@@ -22,22 +22,17 @@ scaling = 10000.0
 LENGTH_FORMAT = '<I'
 
 def pack(data):
-    log.info('Sending {} bytes, checksum: {}'.format(len(data), checksum(data)))
+    log.info('Sending {} bytes'.format(len(data)))
     data = struct.pack(LENGTH_FORMAT, len(data)) + data
     return data
-
 
 def unpack(data):
     length_size = struct.calcsize(LENGTH_FORMAT)
     length, data = data[:length_size], data[length_size:]
     length, = struct.unpack(LENGTH_FORMAT, length)
     data = data[:length]
-    log.info('Decoded {} bytes, leftover: {}, checksum: {}'.format(len(data), len(data)-length, checksum(data)))
+    log.info('Decoded {} bytes, leftover: {}'.format(len(data), len(data)-length))
     return data
-
-def checksum(data):
-    return '\033[0;32m{}\033[0m'.format(hashlib.sha256(data).hexdigest())
-
 
 def to_bits(chars):
     for c in chars:

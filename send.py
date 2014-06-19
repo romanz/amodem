@@ -45,7 +45,7 @@ class Signal(object):
 
 sym = Symbol()
 
-data = os.urandom(1024)
+data = open('data.send', 'r').read()
 data = pack(data)
 
 bits = list(to_bits(data))

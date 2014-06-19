@@ -22,40 +22,11 @@ def load(fname):
     t = np.arange(len(x)) / Fs
     return t, x
 
-def show(t, x):
-    ax1 = pylab.subplot(211)
-    pylab.plot(t, x)
-
-    pylab.subplot(212, sharex=ax1)
-    Pxx, freqs, bins, im = pylab.specgram(x,
-        NFFT=NFFT, Fs=Fs, noverlap=NFFT/2, cmap=pylab.cm.gist_heat)
-
-    pylab.show()
-
 def norm(x):
     return np.sqrt(np.dot(x.conj(), x).real)
 
-def test_coherence(t, x, f, start=None, end=None):
-    if start is None:
-        start = -np.inf
-    if end is None:
-        end = np.inf
-
-    I = (start <= t) & (t < end)
-    t = t[I]
-    x = x[I]
-
-    x = x / norm(x)
-    ph = 2*np.pi*f*t
-    cos = np.cos(ph); cos = cos / norm(cos)
-    sin = np.sin(ph); sin = sin / norm(sin)
-    coeff = np.dot(cos, x)**2 + np.dot(sin, x)**2
-    log.info('{:5.1f} kHz: {:.1f}%'.format(f / 1e3, coeff * 100))
-
-def test(t, x):
-    test_coherence(t, x, f=Fc, start=0.1, end=0.11)
-    test_coherence(t, x, f=F0, start=0.32, end=0.4)
-    test_coherence(t, x, f=F1, start=0.42, end=0.5)
+def power(x):
+    return np.dot(x.conj(), x).real / len(x)
 
 def iterate(x, bufsize, offset=0, advance=1, func=None):
     while True:
@@ -118,18 +89,16 @@ def equalize(symbols):
         y = np.array(list(sigproc.lfilter([b0, b1], [1, -a1], symbols)))
         constellation(y)
 
-        prefix_bits, noise = slicer(y[:n], 0.5)
+        prefix_bits = y[:n] > 0.5
+        noise = y[:n] - prefix_bits
         assert(all(prefix_bits == np.array(prefix)))
-        log.info( 'Prefix OK, at SNR: {:.1f} dB'.format( 20 * np.log10(np.sqrt(len(prefix_bits)) / norm(noise)) ) )
+        log.info( 'Prefix OK')
+        Pnoise = power(noise)
+        log.debug('Noise sigma={:.4f}, SNR={:.1f} dB'.format( Pnoise**0.5, 10*np.log10(1/Pnoise) ))
 
         data_bits = sigproc.qpsk.decode(y[n:])
         data_bits = list(data_bits)
         return data_bits
-
-def slicer(symbols, threshold):
-    bits = symbols.real > threshold
-    noise = symbols - bits
-    return bits, noise
 
 def constellation(y):
     theta = np.linspace(0, 2*np.pi, 1000)
@@ -139,7 +108,6 @@ def constellation(y):
     pylab.plot(y.real, y.imag, '.')
     pylab.plot(np.cos(theta), np.sin(theta), ':')
     keys = np.array(sigproc.qpsk._enc.values())
-    print keys
     pylab.plot(keys.real, keys.imag, 'o')
     pylab.grid('on')
     pylab.axis('equal')
@@ -187,13 +155,10 @@ def main(t, x):
         data = ''.join(c for _, c in data)
         log.info( 'Demodulated {} payload bydes'.format(len(data)) )
         data = unpack(data)
-        log.info(repr(data))
-
-    pylab.show()
-
+        with file('data.recv', 'wb') as f:
+            f.write(data)
 
 if __name__ == '__main__':
-    fname, = sys.argv[1:]
-    t, x = load(fname)
+    t, x = load('rx.int16')
     main(t, x)
     pylab.show()
