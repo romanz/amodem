@@ -116,7 +116,6 @@ def equalize(symbols):
 
         b0, b1, a1 = linalg.lstsq(A, b)[0]
         y = np.array(list(sigproc.lfilter([b0, b1], [1, -a1], symbols)))
-        y = y.conj() # TODO
         constellation(y)
 
         prefix_bits, noise = slicer(y[:n], 0.5)
@@ -125,7 +124,6 @@ def equalize(symbols):
 
         data_bits = sigproc.qpsk.decode(y[n:])
         data_bits = list(data_bits)
-        log.info( 'Demodulated {} payload bits'.format(len(data_bits)) )
         return data_bits
 
 def slicer(symbols, threshold):
@@ -140,8 +138,12 @@ def constellation(y):
     pylab.subplot(121)
     pylab.plot(y.real, y.imag, '.')
     pylab.plot(np.cos(theta), np.sin(theta), ':')
+    keys = np.array(sigproc.qpsk._enc.values())
+    print keys
+    pylab.plot(keys.real, keys.imag, 'o')
     pylab.grid('on')
     pylab.axis('equal')
+    pylab.axis(np.array([-1, 1, -1, 1]) * 1.1)
 
     pylab.subplot(122)
     pylab.plot(np.arange(len(y)) * Tsym, y.real, '.')
@@ -158,8 +160,8 @@ def main(t, x):
     begin, end = result
     x_ = x[begin:end]
     t_ = t[begin:end]
-    Hc = exp_iwt(Fc, len(x_))
-    Zc = np.dot(Hc.conj(), x_) / (0.5*len(x_))
+    Hc = exp_iwt(-Fc, len(x_))
+    Zc = np.dot(Hc, x_) / (0.5*len(x_))
     amp = abs(Zc)
     phase = np.angle(Zc, deg=True)
     log.info('Carrier detected at ~{:.1f} ms @ {:.1f} kHz: coherence={:.3f}%, amplitude={:.3f}'.format(
@@ -170,7 +172,7 @@ def main(t, x):
     x = x[start:] / amp
     t = t[start:]
 
-    Hc = exp_iwt(Fc, Nsym) / (0.5*Nsym)
+    Hc = exp_iwt(-Fc, Nsym) / (0.5*Nsym)
     func = lambda y: np.dot(Hc, y)
     symbols = []
     for _, coeff in iterate(x, Nsym, advance=Nsym, func=func):
@@ -183,6 +185,7 @@ def main(t, x):
     else:
         data = iterate(data_bits, bufsize=8, advance=8, func=to_bytes)
         data = ''.join(c for _, c in data)
+        log.info( 'Demodulated {} payload bydes'.format(len(data)) )
         data = unpack(data)
         log.info(repr(data))
 

@@ -18,7 +18,7 @@ class QPSK(object):
     def __init__(self, bits_per_symbol):
         self._enc = {tuple(): 0.0} # End-Of-Stream symbol
         index = 0
-        amps = [0.6, 1.0]
+        amps = [0.4, 0.6, 0.8, 1.0]
         N = (2 ** bits_per_symbol) / len(amps)
         for a in amps:
             for i in range(N):
@@ -30,7 +30,8 @@ class QPSK(object):
         self.bits_per_symbol = bits_per_symbol
 
     def encode(self, bits):
-        assert len(bits) % self.bits_per_symbol == 0
+        trailing_bits = len(bits) % self.bits_per_symbol
+        bits = bits + [0] * (self.bits_per_symbol - trailing_bits)
         for i in range(0, len(bits), self.bits_per_symbol):
             s = self._enc[ tuple(bits[i:i+self.bits_per_symbol]) ]
             yield s
@@ -44,7 +45,7 @@ class QPSK(object):
                 yield b
 
 
-qpsk = QPSK(bits_per_symbol=4)
+qpsk = QPSK(bits_per_symbol=6)
 
 def test_qpsk():
     q = QPSK(bits_per_symbol=2)
