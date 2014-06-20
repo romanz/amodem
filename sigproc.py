@@ -1,4 +1,5 @@
 import numpy as np
+from numpy import linalg
 
 def lfilter(b, a, x):
     b = np.array(b) / a[0]
@@ -14,11 +15,28 @@ def lfilter(b, a, x):
         y_ = [u] + y_[1:]
         yield u
 
-class QPSK(object):
+
+class Filter(object):
+    def __init__(self, b, a):
+        self.b = b
+        self.a = a
+
+    def apply(self, x):
+        return lfilter(self.b, self.a, x)
+
+    @classmethod
+    def train(cls, S, training):
+        A = np.array([ S[1:], S[:-1], training[:-1] ]).T
+        b = training[1:]
+        b0, b1, a1 = linalg.lstsq(A, b)[0]
+        return cls([b0, b1], [1, -a1])
+
+
+class QAM(object):
     def __init__(self, bits_per_symbol):
         self._enc = {tuple(): 0.0} # End-Of-Stream symbol
         index = 0
-        amps = [0.4, 0.6, 0.8, 1.0]
+        amps = [0.6, 1.0]
         N = (2 ** bits_per_symbol) / len(amps)
         for a in amps:
             for i in range(N):
@@ -27,6 +45,7 @@ class QPSK(object):
                 self._enc[k] = v * a
                 index += 1
         self._dec = {v: k for k, v in self._enc.items()}
+        self.points = self._enc.values()
         self.bits_per_symbol = bits_per_symbol
 
     def encode(self, bits):
@@ -40,15 +59,12 @@ class QPSK(object):
         keys = np.array(self._dec.keys())
         for s in symbols:
             index = np.argmin(np.abs(s - keys))
-            bits = self._dec[ keys[index] ]
-            for b in bits:
-                yield b
+            yield self._dec[ keys[index] ]
 
+modulator = QAM(bits_per_symbol=4)
 
-qpsk = QPSK(bits_per_symbol=6)
-
-def test_qpsk():
-    q = QPSK(bits_per_symbol=2)
+def test():
+    q = QAM(bits_per_symbol=2)
     bits = [1,1, 0,1, 0,0, 1,0]
     S = qpsk.encode(bits)
     assert list(qpsk.decode(list(S))) == bits

@@ -1,26 +1,21 @@
 import numpy as np
-from numpy import linalg
 import pylab
 
 import sys
 import struct
 import logging
+import itertools
 logging.basicConfig(level=0, format='%(message)s')
 log = logging.getLogger(__name__)
 
 import sigproc
+import show
 from common import *
 
-NFFT = 256
 COHERENCE_THRESHOLD = 0.9
 
 CARRIER_DURATION = 300
 CARRIER_THRESHOLD = int(0.9 * CARRIER_DURATION)
-
-def load(fname):
-    x = np.fromfile(open(fname, 'rb'), dtype='int16') / scaling
-    t = np.arange(len(x)) / Fs
-    return t, x
 
 def norm(x):
     return np.sqrt(np.dot(x.conj(), x).real)
@@ -73,32 +68,59 @@ def find_start(x, start):
     log.info('Carrier starts at {:.3f} ms'.format(start * Tsym * 1e3 / Nsym))
     return start
 
-def equalize(symbols):
+def extract_symbols(x, freq, offset=0):
+    Hc = exp_iwt(-freq, Nsym) / (0.5*Nsym)
+    func = lambda y: np.dot(Hc, y)
+    for _, symbol in iterate(x, Nsym, advance=Nsym, func=func):
+        yield symbol
+
+def demodulate(x, freq, filt):
+    S = extract_symbols(x, freq)
+    S = np.array(list(filt.apply(S)))
+    for bits in sigproc.modulator.decode(S):  # list of bit tuples
+        yield bits
+
+def equalize(x, freqs):
+    prefix = [1]*300 + [0]*100
+    symbols = list(itertools.islice(extract_symbols(x, Fc), len(prefix)))
     bits = np.round(np.abs(symbols))
     bits = np.array(bits, dtype=int)
-    prefix = [1]*300 + [0]*100 + ([1]*10 + [0]*10)*20 + [0]*100
-    n = len(prefix)
-    if all(bits[:n] == prefix):
+    if all(bits[:len(prefix)] != prefix):
+        return None
 
-        S = symbols[:n]
+    log.info( 'Prefix OK')
+    x = x[len(prefix)*Nsym:]
+    filters = {}
+    for freq in freqs:
+        training = ([1]*10 + [0]*10)*20 + [0]*100
+        S = list(itertools.islice(extract_symbols(x, freq), len(training)))
 
-        A = np.array([ S[1:], S[:-1], prefix[:-1] ]).T
-        b = prefix[1:]
+        filt = sigproc.Filter.train(S, training)
+        filters[freq] = filt
 
-        b0, b1, a1 = linalg.lstsq(A, b)[0]
-        y = np.array(list(sigproc.lfilter([b0, b1], [1, -a1], symbols)))
-        constellation(y)
+        y = np.array(list(filt.apply(S))).real
+        #constellation(y)
 
-        prefix_bits = y[:n] > 0.5
-        noise = y[:n] - prefix_bits
-        assert(all(prefix_bits == np.array(prefix)))
-        log.info( 'Prefix OK')
+        train_result = y > 0.5
+        assert(all(train_result == np.array(training)))
+
+        noise = y - train_result
         Pnoise = power(noise)
-        log.debug('Noise sigma={:.4f}, SNR={:.1f} dB'.format( Pnoise**0.5, 10*np.log10(1/Pnoise) ))
+        log.debug('{:10.1f}Hz: Noise sigma={:.4f}, SNR={:.1f} dB'.format( freq, Pnoise**0.5, 10*np.log10(1/Pnoise) ))
 
-        data_bits = sigproc.qpsk.decode(y[n:])
-        data_bits = list(data_bits)
-        return data_bits
+        x = x[len(training)*Nsym:]
+
+    results = []
+    for freq in freqs:
+        results.append( demodulate(x, freq, filters[freq]) )
+
+    bitstream = []
+    for block in itertools.izip(*results):
+        for bits in block:
+            bitstream.extend(bits)
+
+    return bitstream
+
 
 def constellation(y):
     theta = np.linspace(0, 2*np.pi, 1000)
@@ -107,8 +129,8 @@ def constellation(y):
     pylab.subplot(121)
     pylab.plot(y.real, y.imag, '.')
     pylab.plot(np.cos(theta), np.sin(theta), ':')
-    keys = np.array(sigproc.qpsk._enc.values())
-    pylab.plot(keys.real, keys.imag, 'o')
+    points = np.array(sigproc.modulator.points)
+    pylab.plot(points.real, points.imag, 'o')
     pylab.grid('on')
     pylab.axis('equal')
     pylab.axis(np.array([-1, 1, -1, 1]) * 1.1)
@@ -138,16 +160,8 @@ def main(t, x):
 
     start = find_start(x, begin)
     x = x[start:] / amp
-    t = t[start:]
 
-    Hc = exp_iwt(-Fc, Nsym) / (0.5*Nsym)
-    func = lambda y: np.dot(Hc, y)
-    symbols = []
-    for _, coeff in iterate(x, Nsym, advance=Nsym, func=func):
-        symbols.append(coeff)
-    symbols = np.array(symbols)
-
-    data_bits = equalize(symbols)
+    data_bits = equalize(x, [F0, F1])
     if data_bits is None:
         log.info('Cannot demodulate symbols!')
     else:
