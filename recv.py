@@ -9,6 +9,7 @@ logging.basicConfig(level=0, format='%(message)s')
 log = logging.getLogger(__name__)
 
 import sigproc
+import ecc
 import show
 from common import *
 
@@ -173,8 +174,7 @@ def main(t, x):
     else:
         data = iterate(data_bits, bufsize=8, advance=8, func=to_bytes)
         data = ''.join(c for _, c in data)
-        log.info( 'Demodulated {} payload bytes'.format(len(data)) )
-        data = unpack(data)
+        data = ecc.decode(data)
         with file('data.recv', 'wb') as f:
             f.write(data)
 

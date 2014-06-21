@@ -1,4 +1,6 @@
 import numpy as np
+import reedsolo as rs
+
 import hashlib
 import struct
 import logging
@@ -21,17 +23,8 @@ SATURATION_THRESHOLD = 1.0
 
 LENGTH_FORMAT = '<I'
 
-def pack(data):
-    log.info('Sending {} bytes'.format(len(data)))
-    return data
-
-def unpack(data):
-    log.info('Received {} bytes'.format(len(data)))
-    return data
-
-def to_bits(chars):
-    for c in chars:
-        val = ord(c)
+def to_bits(bytes_list):
+    for val in bytes_list:
         for i in range(8):
             mask = 1 << i
             yield (1 if (val & mask) else 0)

@@ -12,6 +12,7 @@ import itertools
 logging.basicConfig(level=0, format='%(message)s')
 log = logging.getLogger(__name__)
 
+import ecc
 import sigproc
 from common import *
 
@@ -70,7 +71,7 @@ if __name__ == '__main__':
         for c in sym.carrier:
             train(sig, c)
 
-        bits = to_bits(pack(data))
+        bits = to_bits(ecc.encode(data))
         modulate(sig, bits)
 
 
