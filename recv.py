@@ -77,6 +77,7 @@ def extract_symbols(x, freq, offset=0):
 def demodulate(x, freq, filt):
     S = extract_symbols(x, freq)
     S = np.array(list(filt.apply(S)))
+    #constellation(S)
     for bits in sigproc.modulator.decode(S):  # list of bit tuples
         yield bits
 
@@ -98,11 +99,13 @@ def equalize(x, freqs):
         filt = sigproc.Filter.train(S, training)
         filters[freq] = filt
 
-        y = np.array(list(filt.apply(S))).real
-        #constellation(y)
+        S = list(filt.apply(S))
+        y = np.array(S).real
 
         train_result = y > 0.5
-        assert(all(train_result == np.array(training)))
+        if not all(train_result == np.array(training)):
+            pylab.plot(y, '-', training, '-')
+            return None
 
         noise = y - train_result
         Pnoise = power(noise)
@@ -112,7 +115,7 @@ def equalize(x, freqs):
 
     results = []
     for freq in freqs:
-        results.append( demodulate(x, freq, filters[freq]) )
+        results.append( demodulate(x * len(freqs), freq, filters[freq]) )
 
     bitstream = []
     for block in itertools.izip(*results):
@@ -159,15 +162,18 @@ def main(t, x):
     ))
 
     start = find_start(x, begin)
-    x = x[start:] / amp
+    x = x[start:]
+    peak = np.max(np.abs(x))
+    if peak > SATURATION_THRESHOLD:
+        raise ValueError('Saturation detected: {:.3f}'.format(peak))
 
-    data_bits = equalize(x, [F0, F1])
+    data_bits = equalize(x / amp, frequencies)
     if data_bits is None:
         log.info('Cannot demodulate symbols!')
     else:
         data = iterate(data_bits, bufsize=8, advance=8, func=to_bytes)
         data = ''.join(c for _, c in data)
-        log.info( 'Demodulated {} payload bydes'.format(len(data)) )
+        log.info( 'Demodulated {} payload bytes'.format(len(data)) )
         data = unpack(data)
         with file('data.recv', 'wb') as f:
             f.write(data)

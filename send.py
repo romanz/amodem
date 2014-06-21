@@ -29,13 +29,9 @@ def record(fname):
     return p
 
 
-log.info('MODEM Fc={}KHz, {} BAUD'.format(Fc/1e3, baud))
-
-
 class Symbol(object):
     t       = np.arange(0, Nsym) * Ts
-    c0      = np.exp(2j * np.pi * F0 * t)
-    c1      = np.exp(2j * np.pi * F1 * t)
+    carrier = [ np.exp(2j * np.pi * F * t) for F in frequencies ]
 
 sym = Symbol()
 
@@ -52,24 +48,30 @@ def train(sig, c):
         sig.send(c*0, n=10)
     sig.send(c*0, n=100)
 
+def modulate(sig, bits):
+    symbols_iter = sigproc.modulator.encode(list(bits))
+    symbols_iter = itertools.chain(symbols_iter, itertools.repeat(0))
+    carriers = np.array(sym.carrier) / len(sym.carrier)
+    while True:
+        symbols = itertools.islice(symbols_iter, len(sym.carrier))
+        symbols = np.array(list(symbols))
+        sig.send(np.dot(symbols, carriers))
+        if all(symbols == 0):
+            break
+
 if __name__ == '__main__':
+
+    bps = baud * sigproc.modulator.bits_per_symbol * len(sym.carrier)
+    log.info('Running MODEM @ {:.1f} kbps'.format(bps / 1e3))
 
     with open('tx.int16', 'wb') as fd:
         sig = Signal(fd)
-        start(sig, sym.c0)
-        train(sig, sym.c0)
-        train(sig, sym.c1)
-        carriers = [sym.c0, sym.c1]
+        start(sig, sym.carrier[carrier_index])
+        for c in sym.carrier:
+            train(sig, c)
 
         bits = to_bits(pack(data))
-        symbols_iter = sigproc.modulator.encode(list(bits))
-        symbols_iter = itertools.chain(symbols_iter, itertools.repeat(0))
-        while True:
-            symbols = itertools.islice(symbols_iter, len(carriers))
-            symbols = np.array(list(symbols))
-            sig.send(np.dot(symbols, carriers))
-            if all(symbols == 0):
-                break
+        modulate(sig, bits)
 
 
     r = record('rx.int16')

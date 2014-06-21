@@ -33,12 +33,11 @@ class Filter(object):
 
 
 class QAM(object):
-    def __init__(self, bits_per_symbol):
-        self._enc = {tuple(): 0.0} # End-Of-Stream symbol
+    def __init__(self, bits_per_symbol, radii):
+        self._enc = {}
         index = 0
-        amps = [0.6, 1.0]
-        N = (2 ** bits_per_symbol) / len(amps)
-        for a in amps:
+        N = (2 ** bits_per_symbol) / len(radii)
+        for a in radii:
             for i in range(N):
                 k = tuple(int(index & (1 << j) != 0) for j in range(bits_per_symbol))
                 v = np.exp(2j * i * np.pi / N)
@@ -61,7 +60,7 @@ class QAM(object):
             index = np.argmin(np.abs(s - keys))
             yield self._dec[ keys[index] ]
 
-modulator = QAM(bits_per_symbol=4)
+modulator = QAM(bits_per_symbol=4, radii=[0.6, 1.0])
 
 def test():
     q = QAM(bits_per_symbol=2)

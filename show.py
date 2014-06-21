@@ -8,11 +8,15 @@ def spectrogram(t, x, Fs, NFFT=256):
     Pxx, freqs, bins, im = pylab.specgram(x,
         NFFT=NFFT, Fs=Fs, noverlap=NFFT/2, cmap=pylab.cm.gist_heat)
 
-    pylab.show()
-
 if __name__ == '__main__':
     import sys
     import common
-    fname, = sys.argv[1:]
-    t, x = common.load(fname)
-    spectrogram(t, x, common.Fs)
+
+    for fname in sys.argv[1:]:
+        t, x = common.load(fname)
+        pylab.figure()
+        pylab.title(fname)
+        spectrogram(t, x, common.Fs)
+
+    pylab.show()
+
