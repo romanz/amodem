@@ -15,19 +15,54 @@ class Loop(object):
 
 
 class PLL(object):
-    def __init__(self, freq, Fs, filt, phase=0):
+    def __init__(self, freq, Fs, phase=0, Kerr=1, Kphase=0.04):
         self.freq = freq
         self.phase = phase
         self.Ts = 1.0/Fs
-        self.filt = filt
+        self.Kphase = Kphase
+        self.Kerr = Kerr
 
     def handle(self, sample):
         self.pred = np.cos(self.phase)
-        self.quad = np.cos(self.phase)
-        err = self.quad * sample
-        self.freq += self.filt(err)
-        self.phase += self.freq * self.Ts
+        self.quad = np.sin(self.phase)
+        self.err = self.quad * (self.pred - sample)
+        self.filtered_err = self.Kerr * self.err
+        self.freq += self.filtered_err
+        self.phase += self.Kphase * self.filtered_err
+        self.phase += 2 * np.pi * self.freq * self.Ts
 
+class Filter(object):
+    def __init__(self, b, a):
+        self.b = b
+        self.a = a
+        self.x = [0] * len(b)
+        self.y = [0] * len(a)
+
+    def __call__(self, x):
+        self.x = [x] + self.x[:-1]
+        y = np.dot(self.x, self.b) + np.dot(self.y, self.a)
+        self.y = [y] + self.y[:-1]
+        return y
 
 def test():
-    pass
+    f = 1.2345678e3
+    Fs = 32e3
+    Nsym = 32
+
+    df = f * 10e-3
+    f_ = f + df
+
+    t = np.arange(100*Nsym) / Fs
+
+    pll = PLL(f, Fs)
+    x = -1.0 * np.cos( 2 * np.pi * f_ * t)
+
+    y = []
+    for s in x:
+        pll.handle(s)
+        y.append([pll.err, pll.filtered_err, pll.freq - f, df])
+
+    print y[-1]
+    import pylab
+    pylab.plot(y)
+    pylab.show()
