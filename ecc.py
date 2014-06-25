@@ -43,8 +43,9 @@ def decode(data, nsym=DEFAULT_NSYM):
 
 
 def test_codec():
-    import os
-    x = bytearray(os.urandom(1024))
+    import random
+    r = random.Random(0)
+    x = bytearray(r.randrange(0, 256) for i in range(16 * 1024))
     y = encode(x)
     assert len(y) % BLOCK_SIZE == 0
     x_ = decode(y)
