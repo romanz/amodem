@@ -63,9 +63,6 @@ class QAM(object):
 
 modulator = QAM(bits_per_symbol=4, radii=[0.6, 1.0])
 
-class Resampler(object):
-    def __init__(self, factor, )
-
 def test():
     q = QAM(bits_per_symbol=8, radii=[0.25, 0.5, 0.75, 1.0])
     bits = [(1,1,0,1,0,0,1,0)]
