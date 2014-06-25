@@ -1,8 +1,6 @@
 import numpy as np
 import pylab
 
-import sys
-import struct
 import logging
 import itertools
 logging.basicConfig(level=0, format='%(message)s')
@@ -10,7 +8,6 @@ log = logging.getLogger(__name__)
 
 import sigproc
 import ecc
-import show
 from common import *
 
 COHERENCE_THRESHOLD = 0.9
@@ -153,11 +150,9 @@ def main(t, x):
 
     begin, end = result
     x_ = x[begin:end]
-    t_ = t[begin:end]
     Hc = exp_iwt(-Fc, len(x_))
     Zc = np.dot(Hc, x_) / (0.5*len(x_))
     amp = abs(Zc)
-    phase = np.angle(Zc, deg=True)
     log.info('Carrier detected at ~{:.1f} ms @ {:.1f} kHz: coherence={:.3f}%, amplitude={:.3f}'.format(
           begin * Tsym * 1e3 / Nsym, Fc / 1e3, abs(coherence(x_, Fc)) * 100, amp
     ))

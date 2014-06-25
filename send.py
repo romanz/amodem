@@ -1,9 +1,7 @@
-from matplotlib import pyplot as plt
 import subprocess as sp
 import numpy as np
 
 import os
-import sys
 import time
 import signal
 import logging

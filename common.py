@@ -1,8 +1,5 @@
 import numpy as np
-import reedsolo as rs
 
-import hashlib
-import struct
 import logging
 log = logging.getLogger(__name__)
 
@@ -62,6 +59,4 @@ if __name__ == '__main__':
         pylab.plot(t / Tsym, x, '.k')
 
     plot(Fc)
-    plot(F0)
-    plot(F1)
     pylab.show()
