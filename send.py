@@ -1,9 +1,6 @@
-import subprocess as sp
 import numpy as np
 
-import os
 import time
-import signal
 import logging
 import itertools
 
@@ -13,20 +10,6 @@ log = logging.getLogger(__name__)
 import ecc
 import sigproc
 from common import *
-
-dev_null = open('/dev/null')
-
-def play(fd):
-    args = ['aplay', fd.name, '-q', '-f', 'S16_LE', '-c', '1', '-r', str(int(Fs))]
-    ret = sp.call(args=args)
-    assert ret == 0
-
-def record(fname):
-    args = ['arecord', fname, '-q', '-f', 'S16_LE', '-c', '1', '-r', str(int(Fs))]
-    p = sp.Popen(args=args)
-    p.stop = lambda: os.kill(r.pid, signal.SIGINT)
-    return p
-
 
 class Symbol(object):
     t       = np.arange(0, Nsym) * Ts
@@ -72,6 +55,8 @@ if __name__ == '__main__':
         bits = to_bits(ecc.encode(data))
         modulate(sig, bits)
 
+
+    from wave import play, record
 
     r = record('rx.int16')
     start = time.time()
