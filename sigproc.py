@@ -49,7 +49,8 @@ class QAM(object):
 
     def encode(self, bits):
         trailing_bits = len(bits) % self.bits_per_symbol
-        bits = bits + [0] * (self.bits_per_symbol - trailing_bits)
+        if trailing_bits:
+            bits = bits + [0] * (self.bits_per_symbol - trailing_bits)
         for i in range(0, len(bits), self.bits_per_symbol):
             s = self._enc[ tuple(bits[i:i+self.bits_per_symbol]) ]
             yield s
@@ -62,8 +63,12 @@ class QAM(object):
 
 modulator = QAM(bits_per_symbol=4, radii=[0.6, 1.0])
 
+class Resampler(object):
+    def __init__(self, factor, )
+
 def test():
-    q = QAM(bits_per_symbol=2)
-    bits = [1,1, 0,1, 0,0, 1,0]
-    S = qpsk.encode(bits)
-    assert list(qpsk.decode(list(S))) == bits
+    q = QAM(bits_per_symbol=8, radii=[0.25, 0.5, 0.75, 1.0])
+    bits = [(1,1,0,1,0,0,1,0)]
+    S = q.encode(bits)
+    res = list(q.decode(list(S)))
+    assert res == bits, (res)
