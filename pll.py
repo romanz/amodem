@@ -31,19 +31,6 @@ class PLL(object):
         self.phase += self.Kphase * self.filtered_err
         self.phase += 2 * np.pi * self.freq * self.Ts
 
-class Filter(object):
-    def __init__(self, b, a):
-        self.b = b
-        self.a = a
-        self.x = [0] * len(b)
-        self.y = [0] * len(a)
-
-    def __call__(self, x):
-        self.x = [x] + self.x[:-1]
-        y = np.dot(self.x, self.b) + np.dot(self.y, self.a)
-        self.y = [y] + self.y[:-1]
-        return y
-
 def test():
     f = 1.2345678e3
     Fs = 32e3
