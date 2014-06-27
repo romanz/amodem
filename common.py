@@ -1,3 +1,4 @@
+import cStringIO
 import numpy as np
 
 import logging
@@ -38,14 +39,11 @@ def load(fname):
     t = np.arange(len(x)) / Fs
     return t, x
 
-class Signal(object):
-    def __init__(self, fd):
-        self.fd = fd
-    def send(self, sym, n=1):
-        sym = sym.imag * scaling
-        sym = sym.astype('int16')
-        for i in range(n):
-            sym.tofile(self.fd)
+def dumps(sym, n=1):
+    sym = sym.imag * scaling
+    sym = sym.astype('int16')
+    data = sym.tostring()
+    return data * n
 
 if __name__ == '__main__':
 

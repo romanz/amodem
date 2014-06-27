@@ -19,16 +19,19 @@ sym = Symbol()
 
 data = open('data.send', 'r').read()
 
+def write(fd, sym, n=1):
+    fd.write(dumps(sym, n))
+
 def start(sig, c):
-    sig.send(c*0, n=100)
-    sig.send(c*1, n=300)
-    sig.send(c*0, n=100)
+    write(sig, c*0, n=100)
+    write(sig, c*1, n=300)
+    write(sig, c*0, n=100)
 
 def train(sig, c):
     for i in range(20):
-        sig.send(c*1, n=10)
-        sig.send(c*0, n=10)
-    sig.send(c*0, n=100)
+        write(sig, c*1, n=10)
+        write(sig, c*0, n=10)
+    write(sig, c*0, n=100)
 
 def modulate(sig, bits):
     symbols_iter = sigproc.modulator.encode(list(bits))
@@ -37,7 +40,7 @@ def modulate(sig, bits):
     while True:
         symbols = itertools.islice(symbols_iter, len(sym.carrier))
         symbols = np.array(list(symbols))
-        sig.send(np.dot(symbols, carriers))
+        write(sig, np.dot(symbols, carriers))
         if all(symbols == 0):
             break
 
@@ -47,13 +50,12 @@ if __name__ == '__main__':
     log.info('Running MODEM @ {:.1f} kbps'.format(bps / 1e3))
 
     with open('tx.int16', 'wb') as fd:
-        sig = Signal(fd)
-        start(sig, sym.carrier[carrier_index])
+        start(fd, sym.carrier[carrier_index])
         for c in sym.carrier:
-            train(sig, c)
+            train(fd, c)
 
         bits = to_bits(ecc.encode(data))
-        modulate(sig, bits)
+        modulate(fd, bits)
 
 
     from wave import play, record
