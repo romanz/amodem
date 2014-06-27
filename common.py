@@ -34,7 +34,11 @@ def to_bytes(bits):
     return chr(byte)
 
 def load(fname):
-    x = np.fromfile(open(fname, 'rb'), dtype='int16')
+    data = open(fname, 'rb').read()
+    return loads(data)
+
+def loads(data):
+    x = np.fromstring(data, dtype='int16')
     x = x / scaling
     t = np.arange(len(x)) / Fs
     return t, x
@@ -44,6 +48,9 @@ def dumps(sym, n=1):
     sym = sym.astype('int16')
     data = sym.tostring()
     return data * n
+
+def norm(x):
+    return np.sqrt(np.dot(x.conj(), x).real)
 
 if __name__ == '__main__':
 

@@ -62,7 +62,8 @@ if __name__ == '__main__':
 
     r = record('rx.int16')
     start = time.time()
-    p = play(fd)
+    p = play(fd.name)
+    p.wait()
     log.debug('Took %.2f seconds', time.time() - start)
     time.sleep(0.1)
     r.stop()

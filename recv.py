@@ -15,9 +15,6 @@ COHERENCE_THRESHOLD = 0.9
 CARRIER_DURATION = 300
 CARRIER_THRESHOLD = int(0.9 * CARRIER_DURATION)
 
-def norm(x):
-    return np.sqrt(np.dot(x.conj(), x).real)
-
 def power(x):
     return np.dot(x.conj(), x).real / len(x)
 
@@ -38,7 +35,7 @@ def exp_iwt(freq, n):
 
 def coherence(x, freq):
     n = len(x)
-    Hc = exp_iwt(freq, n) / np.sqrt(0.5*n)
+    Hc = exp_iwt(-freq, n) / np.sqrt(0.5*n)
     return np.dot(Hc, x) / norm(x)
 
 def detect(freq):

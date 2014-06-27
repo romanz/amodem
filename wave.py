@@ -4,15 +4,14 @@ import subprocess as sp
 
 from common import Fs
 
-def play(fd):
-    args = ['aplay', fd.name, '-q', '-f', 'S16_LE', '-c', '1', '-r', str(int(Fs))]
-    ret = sp.call(args=args)
-    assert ret == 0
+def play(fname, **kwargs):
+    return launch('aplay', fname, '-q', '-f', 'S16_LE', '-c', '1', '-r', str(int(Fs)), **kwargs)
 
-def record(fname):
-    args = ['arecord', fname, '-q', '-f', 'S16_LE', '-c', '1', '-r', str(int(Fs))]
-    p = sp.Popen(args=args)
+def record(fname, **kwargs):
+    return launch('arecord', fname, '-q', '-f', 'S16_LE', '-c', '1', '-r', str(int(Fs)), **kwargs)
+
+def launch(*args, **kwargs):
+    print args
+    p = sp.Popen(args=args, **kwargs)
     p.stop = lambda: os.kill(p.pid, signal.SIGINT)
     return p
-
-

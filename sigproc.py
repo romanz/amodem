@@ -61,7 +61,7 @@ class QAM(object):
             index = np.argmin(np.abs(s - keys))
             yield self._dec[ keys[index] ]
 
-modulator = QAM(bits_per_symbol=4, radii=[0.6, 1.0])
+modulator = QAM(bits_per_symbol=2, radii=[1.0])
 
 def test():
     q = QAM(bits_per_symbol=8, radii=[0.25, 0.5, 0.75, 1.0])
