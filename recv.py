@@ -7,7 +7,6 @@ logging.basicConfig(level=0, format='%(message)s')
 log = logging.getLogger(__name__)
 
 import sigproc
-import ecc
 from common import *
 
 COHERENCE_THRESHOLD = 0.9
@@ -164,6 +163,7 @@ def main(t, x):
     if data_bits is None:
         log.info('Cannot demodulate symbols!')
     else:
+        import ecc
         data = iterate(data_bits, bufsize=8, advance=8, func=to_bytes)
         data = ''.join(c for _, c in data)
         data = ecc.decode(data)

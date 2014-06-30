@@ -7,7 +7,6 @@ import itertools
 logging.basicConfig(level=0, format='%(message)s')
 log = logging.getLogger(__name__)
 
-import ecc
 import sigproc
 from common import *
 
@@ -46,6 +45,7 @@ def modulate(sig, bits):
 
 if __name__ == '__main__':
 
+    import ecc
     bps = baud * sigproc.modulator.bits_per_symbol * len(sym.carrier)
     log.info('Running MODEM @ {:.1f} kbps'.format(bps / 1e3))
 
