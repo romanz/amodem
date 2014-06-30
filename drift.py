@@ -51,35 +51,59 @@ class Interpolator(object):
         self.filt = []
         for index in range(resolution):  # split into multiphase filters
             self.filt.append(h[index::resolution])
+        lengths = map(len, self.filt)
+        assert set(lengths) == set([2*width])
+        assert len(self.filt) == resolution
 
-    def get(self, x, offset):
+    def get(self, offset):
         k = int(offset)
         j = np.round((offset - k) * self.resolution)
-        h = self.filt[(self.resolution - int(j)) % self.resolution]
+        index = (self.resolution - int(j)) % self.resolution
+        coeffs = self.filt[index]
 
-        offset = np.ceil(offset)
-        begin, end = offset - self.width, offset + self.width
-        return np.dot(h, x[begin:end])
+        offset = int(np.ceil(offset))
+        return coeffs, offset - self.width
 
 class Sampler(object):
-    def __init__(self, src, frame_size):
-        self.src = src
+    def __init__(self, src, interp=None):
+        self.src = iter(src)
+        self.index = 0
         self.freq = 1.0
-        self.offset = 0
-        self.frame_size = frame_size
+        self.interp = interp or Interpolator()
+        self.offset = self.interp.width
         self.buff = []
 
-    def frame(self):
-        self.buff.extend()
+    def sample(self):
+        coeffs, begin = self.interp.get(self.offset)
+        end = begin + len(coeffs)
+        for s in self.src:
+            self.buff.append(s)
+            self.index += 1
+            if self.index == end:
+                self.buff = self.buff[-len(coeffs):]
+                return np.dot(coeffs, self.buff)
+
+    def next(self):
+        self.offset += self.freq
 
 
-    def
-
-if __name__ == '__main__':
+def main():
     import pylab
-    if 0:
+    if 1:
         f0 = 10e3
-        t, x = common.load('recv_10kHz.pcm')
+        _, x = common.load('recv_10kHz.pcm')
+        x = x[100:]
+        y = []
+        sampler = Sampler(x)
+        sampler.freq = 1
+        while True:
+            u = sampler.sample()
+            if u is None:
+                break
+            y.append(u)
+            sampler.next()
+        x = np.array(y)
+
         S = recv.extract_symbols(x, f0)
         S = np.array(list(S))
 
@@ -87,8 +111,15 @@ if __name__ == '__main__':
         pylab.subplot(1,2,1)
         pylab.plot(y.real, y.imag, '.'); pylab.axis('equal')
         pylab.subplot(1,2,2)
-        pylab.plot(np.unwrap(np.angle(y)))
+        phase = np.unwrap(np.angle(y))
+
+        phase_error_per_1ms = (phase[-1] - phase[0]) / (len(phase) - 1)
+        freq_error = phase_error_per_1ms * 1000.0 / (2 * np.pi)
+        print freq_error
+        pylab.plot(phase)
         pylab.grid('on')
+        #pylab.show()
+        return
 
     t = np.arange(64) * common.Ts
     x = np.sin(2 * np.pi * 3.456e3 * t)
@@ -98,8 +129,12 @@ if __name__ == '__main__':
     y = []
     k = 32 + np.linspace(-5, 5, 1001)
     for offset in k:
-        y.append( r.get(x, offset) )
+        h, i = r.get(offset)
+        y.append( np.dot(x[i:i+len(h)], h) )
 
     pylab.figure()
     pylab.plot(t, x, '.', k * common.Ts, y, '-')
     pylab.show()
+
+if __name__ == '__main__':
+    main()
