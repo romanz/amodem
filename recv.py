@@ -154,7 +154,7 @@ def main(t, x):
         log.info('Cannot demodulate symbols!')
     else:
         import ecc
-        data = iterate(data_bits, bufsize=8, advance=8, func=to_bytes)
+        data = iterate(data_bits, bufsize=8, advance=8, func=to_byte)
         data = ''.join(c for _, c in data)
         data = ecc.decode(data)
         with file('data.recv', 'wb') as f:
