@@ -161,5 +161,5 @@ def main(fname):
             f.write(data)
 
 if __name__ == '__main__':
-    main('rx.int16')
+    main('rx_.int16')
     pylab.show()
