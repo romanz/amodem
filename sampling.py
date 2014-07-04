@@ -56,3 +56,16 @@ class Sampler(object):
             self.buff[:-1] = self.buff[1:]
             self.buff[-1] = self.src.next()  # throws StopIteration
             self.index += 1
+
+if __name__ == '__main__':
+    import common
+    import sys
+    df, = sys.argv[1:]
+    df = float(df)
+
+    _, x = common.load(sys.stdin)
+    sampler = Sampler(x, Interpolator())
+    sampler.freq += df
+    y = np.array(list(sampler), )
+    sys.stdout.write( common.dumps(y*1j) )
+
