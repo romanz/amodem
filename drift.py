@@ -58,52 +58,71 @@ class Sampler(object):
                 return np.dot(coeffs, self.buff)
 
             self.buff[:-1] = self.buff[1:]
-            self.buff[-1] = self.src.next()
+            self.buff[-1] = self.src.next()  # throws StopIteration
             self.index += 1
 
 def clip(x, lims):
     return min(max(x, lims[0]), lims[1])
 
 def loop_filter(P, I):
-    return loop.Filter(b=[P*(1+I/2.), P*(-1+I/2.)], a=[1])
+    return
+
+class FreqLoop(object):
+    def __init__(self, x, freq):
+        self.sampler = Sampler(x, Interpolator())
+        self.symbols = recv.extract_symbols(self.sampler, freq)
+        Kp, Ki = 0.2, 0.01
+        b = np.array([1, -1])*Kp + np.array([0.5, 0.5])*Ki
+        self.filt = loop.Filter(b=b, a=[1])
+        self.correction = 0.0
+
+    def correct(self, actual, expected):
+        self.err = np.angle(expected / actual) / np.pi
+        self.err = clip(self.err, [-0.1, 0.1])
+        self.correction = self.filt(self.err)
+        self.sampler.correct(offset=self.correction)
+
+    def __iter__(self):
+        return iter(self.symbols)
+
+import pylab
 
 def main():
-    import pylab
+    import sigproc
 
     f0 = 10e3
     _, x = common.load('recv_10kHz.pcm')
     x = x[100:]
-    sampler = Sampler(x, Interpolator())
+
     S = []
-    first = None
     Y = []
 
-    filt = loop_filter(P=0.1, I=0.01)
-    for s in recv.extract_symbols(sampler, f0):
+    symbols = FreqLoop(x, f0)
+    prefix = 100
+    for s in symbols:
         S.append(s)
-        if first is None:
-            first = s
-        else:
-            err = np.angle(first / s) / (2*np.pi)
-            err = clip(err, [-0.1, 0.1])
-            filt_err = filt(err)
-            sampler.correct(offset=filt_err)
-            Y.append([err, filt_err])
+        if len(S) > prefix:
+            symbols.correct(s, np.mean(S[:prefix]))
+        Y.append([
+            symbols.correction * (f0 / common.Nsym),
+        ])
 
-
-    y = np.array(list(S))
+    S = np.array(list(S))
 
     pylab.figure()
+
     pylab.subplot(121)
-    pylab.plot(y.real, y.imag, '.')
+    circle = np.exp(2j*np.pi*np.linspace(0, 1, 1001))
+    pylab.plot(S.real, S.imag, '.', circle.real, circle.imag, ':')
     pylab.grid('on')
     pylab.axis('equal')
+
+    Y = np.array(Y)
+    a = 0.01
     pylab.subplot(122)
-    pylab.plot(np.array(Y) * 1e3 / 32, '-')
+    pylab.plot(list(sigproc.lfilter([a], [1, a-1], Y)), '-')
     pylab.grid('on')
-    pylab.show()
-    return
 
 if __name__ == '__main__':
     main()
-
+    pylab.show()
