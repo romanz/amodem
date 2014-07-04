@@ -162,4 +162,6 @@ def main(fname):
 
 if __name__ == '__main__':
     main('rx_.int16')
-    pylab.show()
+    import os
+    if os.environ.get('SHOW') is not None:
+        pylab.show()
