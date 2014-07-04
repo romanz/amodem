@@ -128,7 +128,7 @@ def constellation(y):
 
 def main(fname):
 
-    _, x = load(fname)
+    _, x = load(open(fname, 'rb'))
     result = detect(x, Fc)
     if result is None:
         log.info('No carrier detected')

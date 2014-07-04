@@ -28,7 +28,7 @@ import pylab
 
 def main():
     f0 = 10e3
-    _, x = common.load('recv_10kHz.pcm')
+    _, x = common.load(file('recv_10kHz.pcm', 'rb'))
     x = x[100:]
 
     S = []

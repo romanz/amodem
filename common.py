@@ -33,9 +33,8 @@ def to_byte(bits):
     byte = int(np.dot(bits, bit_weights))
     return chr(byte)
 
-def load(fname):
-    data = open(fname, 'rb').read()
-    return loads(data)
+def load(fileobj):
+    return loads(fileobj.read())
 
 def loads(data):
     x = np.fromstring(data, dtype='int16')
