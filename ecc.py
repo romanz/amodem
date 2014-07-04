@@ -34,6 +34,7 @@ def decode(data, nsym=DEFAULT_NSYM):
         except ReedSolomonError:
             break
 
+    assert i, 'No blocks decoded!'
     overhead = (i - len(dec)) / float(i)
     blocks = i / BLOCK_SIZE
     log.debug('Decoded %d blocks = %d bytes (ECC overhead %.1f%%)', blocks, len(dec), overhead * 100)
