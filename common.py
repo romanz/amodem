@@ -68,7 +68,6 @@ def iterate(data, bufsize, offset=0, advance=1, func=None):
 
         if buf_index == bufsize:
             result = func(buf) if func else buf
-            print offset, result
             yield offset, result
             buf[:-advance] = buf[advance:]
             buf_index = max(0, buf_index - advance)
