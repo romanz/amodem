@@ -27,7 +27,7 @@ def coherence(x, freq):
     Hc = exp_iwt(-freq, n) / np.sqrt(0.5*n)
     return np.dot(Hc, x) / norm(x)
 
-def detect(freq):
+def detect(x, freq):
     counter = 0
     for offset, coeff in iterate(x, Nsym, advance=Nsym, func=lambda x: coherence(x, Fc)):
         if abs(coeff) > COHERENCE_THRESHOLD:
@@ -126,10 +126,11 @@ def constellation(y):
     pylab.plot(np.arange(len(y)) * Tsym, y.real, '.')
     pylab.grid('on')
 
-def main(t, x):
+def main(fname):
 
-    x = (x - np.mean(x))
-    result = detect(Fc)
+    _, x = load(fname)
+    x = x - np.mean(x)
+    result = detect(x, Fc)
     if result is None:
         log.info('No carrier detected')
         return
@@ -161,6 +162,5 @@ def main(t, x):
             f.write(data)
 
 if __name__ == '__main__':
-    t, x = load('rx.int16')
-    main(t, x)
+    main('rx.int16')
     pylab.show()
