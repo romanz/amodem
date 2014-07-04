@@ -2,6 +2,7 @@ import numpy as np
 import pylab
 
 import logging
+import functools
 import itertools
 logging.basicConfig(level=0, format='%(message)s')
 log = logging.getLogger(__name__)
@@ -59,9 +60,12 @@ def extract_symbols(x, freq, offset=0):
     for _, symbol in iterate(x, Nsym, advance=Nsym, func=func):
         yield symbol
 
-def demodulate(x, freq, filt):
+def demodulate(x, freq, filt, plot=None):
     S = extract_symbols(x, freq)
-    S = filt(S)
+    S = np.array(list(filt(S)))
+    if plot:
+        plot()
+        constellation(S, title='$F_c$ = {} kHz'.format(freq / 1e3))
     for bits in sigproc.modulator.decode(S):  # list of bit tuples
         yield bits
 
@@ -98,8 +102,10 @@ def receive(x, freqs):
         x = x[len(training)*Nsym:]
 
     results = []
-    for freq in freqs:
-        results.append( demodulate(x * len(freqs), freq, filters[freq]) )
+    k = int(np.ceil(np.sqrt(len(freqs))))
+    for i, freq in enumerate(freqs):
+        plot = functools.partial(pylab.subplot, k, k, i+1)
+        results.append( demodulate(x * len(freqs), freq, filters[freq], plot=plot) )
 
     bitstream = []
     for block in itertools.izip(*results):
@@ -109,11 +115,8 @@ def receive(x, freqs):
     return bitstream
 
 
-def constellation(y):
+def constellation(y, title):
     theta = np.linspace(0, 2*np.pi, 1000)
-
-    pylab.figure()
-    pylab.subplot(121)
     pylab.plot(y.real, y.imag, '.')
     pylab.plot(np.cos(theta), np.sin(theta), ':')
     points = np.array(sigproc.modulator.points)
@@ -121,10 +124,7 @@ def constellation(y):
     pylab.grid('on')
     pylab.axis('equal')
     pylab.axis(np.array([-1, 1, -1, 1]) * 1.1)
-
-    pylab.subplot(122)
-    pylab.plot(np.arange(len(y)) * Tsym, y.real, '.')
-    pylab.grid('on')
+    pylab.title(title)
 
 def main(fname):
 
