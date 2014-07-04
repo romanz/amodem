@@ -3,11 +3,12 @@ import numpy as np
 import recv
 import common
 import sigproc
+import sampling
 import loop
 
 class FreqLoop(object):
     def __init__(self, x, freq):
-        self.sampler = sigproc.Sampler(x, sigproc.Interpolator())
+        self.sampler = sampling.Sampler(x, sampling.Interpolator())
         self.symbols = recv.extract_symbols(self.sampler, freq)
         Kp, Ki = 0.2, 0.01
         b = np.array([1, -1])*Kp + np.array([0.5, 0.5])*Ki
@@ -26,8 +27,6 @@ class FreqLoop(object):
 import pylab
 
 def main():
-    import sigproc
-
     f0 = 10e3
     _, x = common.load('recv_10kHz.pcm')
     x = x[100:]
