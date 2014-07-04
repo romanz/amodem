@@ -17,16 +17,6 @@ CARRIER_THRESHOLD = int(0.9 * CARRIER_DURATION)
 def power(x):
     return np.dot(x.conj(), x).real / len(x)
 
-def iterate(x, bufsize, offset=0, advance=1, func=None):
-    while True:
-        buf = x[offset:offset+bufsize]
-        if len(buf) == bufsize:
-            result = func(buf) if func else buf
-            yield offset, result
-        else:
-            return
-        offset += advance
-
 def exp_iwt(freq, n):
     iw = 2j * np.pi * freq
     t = np.arange(n) * Ts
