@@ -25,10 +25,10 @@ class Interpolator(object):
         return coeffs, k - self.width
 
 class Sampler(object):
-    def __init__(self, src, interp):
+    def __init__(self, src, interp=None):
         self.src = iter(src)
         self.freq = 1.0
-        self.interp = interp
+        self.interp = interp if (interp is not None) else Interpolator()
         coeffs, begin = self.interp.get(0)
         self.offset = -begin  # should fill samples buffer
         self.buff = np.zeros(len(coeffs))
