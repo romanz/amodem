@@ -8,6 +8,7 @@ logging.basicConfig(level=0, format='%(message)s')
 log = logging.getLogger(__name__)
 
 import sigproc
+import loop
 import show
 from common import *
 
@@ -60,13 +61,14 @@ def demodulate(x, freq, filt, plot=None):
 def receive(x, freqs):
     x = iter(x)
     prefix = [1]*300 + [0]*100
-    symbols = itertools.islice(extract_symbols(x, Fc), len(prefix))
-    bits = np.round(np.abs(list(symbols)))
+    S = itertools.islice(extract_symbols(x, Fc), len(prefix))
+    S = np.array(list(S))
+    bits = np.round(np.abs(S))
     bits = np.array(bits, dtype=int)
     if all(bits != prefix):
         return None
 
-    log.info( 'Prefix OK')
+    log.info('Prefix OK')
     filters = {}
 
     full_scale = len(freqs)
@@ -93,10 +95,11 @@ def receive(x, freqs):
 
     sz = int(np.ceil(np.sqrt(len(freqs))))
     streams = []
-    x = list(x)
-    for i, freq in enumerate(freqs):
-        plot = functools.partial(pylab.subplot, sz, sz, i+1)
-        stream = demodulate(x, freq, filters[freq], plot=plot)
+
+    xs = itertools.tee(x, len(freqs))
+    for i, (x, freq) in enumerate(zip(xs, freqs)):
+        stream = demodulate(x, freq=freq, filt=filters[freq],
+                            plot=functools.partial(pylab.subplot, sz, sz, i+1))
         streams.append(stream)
 
     bitstream = []
