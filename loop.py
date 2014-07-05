@@ -1,5 +1,9 @@
 import numpy as np
 
+import recv
+import sampling
+import sigproc
+
 class Filter(object):
     def __init__(self, b, a=()):
         self.b = b
@@ -15,26 +19,20 @@ class Filter(object):
         self.y = [y] + self.y
         return y
 
-class Loop(object):
-    def __init__(self, x, A, k, h):
-        self.x = np.array(x)
-        self.A = np.array(A)
-        self.k = np.array(k)
-        self.h = np.array(h)
+class FreqLoop(object):
+    def __init__(self, x, freq):
+        self.sampler = sampling.Sampler(x, sampling.Interpolator())
+        self.symbols = recv.extract_symbols(self.sampler, freq)
+        Kp, Ki = 0.2, 0.01
+        b = np.array([1, -1])*Kp + np.array([0.5, 0.5])*Ki
+        self.filt = Filter(b=b, a=[1])
+        self.correction = 0.0
 
-    def __call__(self, y):
-        self.err = y - np.dot(self.h, self.x)
-        self.dx = self.k * self.err
-        self.x = self.x + self.dx
-        self.x = np.dot(self.A, self.x)
+    def correct(self, actual, expected):
+        self.err = np.angle(expected / actual) / np.pi
+        self.err = sigproc.clip(self.err, [-0.1, 0.1])
+        self.correction = self.filt(self.err)
+        self.sampler.correct(offset=self.correction)
 
-class Integrator(Loop):
-    def __init__(self, phase, freq, k):
-        x = [phase, freq]  # state variable vector
-        # evolution matrix:
-        # | phase' = phase + freq
-        # | freq' = freq
-        A = [[1, 1], [0, 1]]
-        h = [1, 0]  # phase = dot(h, x)
-        Loop.__init__(self, x=x, A=A, k=k, h=h)
-
+    def __iter__(self):
+        return iter(self.symbols)

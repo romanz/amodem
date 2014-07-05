@@ -1,30 +1,9 @@
 import numpy as np
+import pylab
 
-import recv
 import common
 import sigproc
-import sampling
 import loop
-
-class FreqLoop(object):
-    def __init__(self, x, freq):
-        self.sampler = sampling.Sampler(x, sampling.Interpolator())
-        self.symbols = recv.extract_symbols(self.sampler, freq)
-        Kp, Ki = 0.2, 0.01
-        b = np.array([1, -1])*Kp + np.array([0.5, 0.5])*Ki
-        self.filt = loop.Filter(b=b, a=[1])
-        self.correction = 0.0
-
-    def correct(self, actual, expected):
-        self.err = np.angle(expected / actual) / np.pi
-        self.err = sigproc.clip(self.err, [-0.1, 0.1])
-        self.correction = self.filt(self.err)
-        self.sampler.correct(offset=self.correction)
-
-    def __iter__(self):
-        return iter(self.symbols)
-
-import pylab
 
 def main():
     f0 = 10e3
@@ -34,7 +13,7 @@ def main():
     S = []
     Y = []
 
-    symbols = FreqLoop(x, f0)
+    symbols = loop.FreqLoop(x, f0)
     prefix = 100
     for s in symbols:
         S.append(s)
