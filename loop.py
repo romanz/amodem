@@ -34,7 +34,7 @@ class FreqLoop(object):
 
         samplers = itertools.tee(self.sampler, len(freqs))
         for freq, generator in zip(freqs, samplers):
-            self.gens.append( recv.extract_symbols(generator, freq) )
+            self.gens.append( sigproc.extract_symbols(generator, freq) )
 
         Kp, Ki = 0.2, 0.01
         b = np.array([1, -1])*Kp + np.array([0.5, 0.5])*Ki

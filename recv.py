@@ -43,12 +43,6 @@ def find_start(x, start):
     log.info('Carrier starts at {:.3f} ms'.format(start * Tsym * 1e3 / Nsym))
     return start
 
-def extract_symbols(x, freq, offset=0):
-    Hc = sigproc.exp_iwt(-freq, Nsym) / (0.5*Nsym)
-    func = lambda y: np.dot(Hc, y)
-    for _, symbol in iterate(x, Nsym, advance=Nsym, func=func):
-        yield symbol
-
 def take(symbols, i, n):
     return np.array([s if i is None else s[i] for s in itertools.islice(symbols, n)])
 

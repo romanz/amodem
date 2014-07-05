@@ -70,3 +70,17 @@ def coherence(x, freq):
     n = len(x)
     Hc = exp_iwt(-freq, n) / np.sqrt(0.5*n)
     return np.dot(Hc, x) / norm(x)
+
+def extract_symbols(x, freq, offset=0):
+    Hc = exp_iwt(-freq, common.Nsym) / (0.5*common.Nsym)
+    func = lambda y: np.dot(Hc, y)
+    for _, symbol in common.iterate(x, common.Nsym, advance=common.Nsym, func=func):
+        yield symbol
+
+def drift(S):
+    x = np.arange(len(S))
+    x = x - np.mean(x)
+    y = np.unwrap(np.angle(S)) / (2*np.pi)
+    y = y - np.mean(y)
+    a = np.dot(x, y) / np.dot(x, x)
+    return a
