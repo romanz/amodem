@@ -1,5 +1,10 @@
 import numpy as np
-import pylab
+import os
+if os.environ.get('PYLAB') is not None:
+    import pylab
+    import show
+else:
+    pylab = None
 
 import logging
 import functools
@@ -9,7 +14,6 @@ log = logging.getLogger(__name__)
 
 import sigproc
 import loop
-import show
 import train
 from common import *
 
@@ -82,8 +86,9 @@ def receive(x, freqs):
 
         train_result = y > 0.5 * full_scale
         if not all(train_result == training_bits):
-            pylab.plot(y, '-', expected, '-')
-            pylab.title('$F_c = {}Hz$'.format(freq))
+            if pylab:
+                pylab.plot(y, '-', expected, '-')
+                pylab.title('$F_c = {}Hz$'.format(freq))
             return None
 
         noise = y - expected
@@ -95,7 +100,8 @@ def receive(x, freqs):
     streams = []
     ugly_hack = itertools.izip(*list(symbols))
     i = 0
-    pylab.figure()
+    if pylab:
+        pylab.figure()
 
     width = np.floor(np.sqrt(len(freqs)))
     height = np.ceil(len(freqs) / float(width))
@@ -103,8 +109,9 @@ def receive(x, freqs):
         i += 1
         S = filters[freq](S)
         S = np.array(list(S))
-        pylab.subplot(height, width, i)
-        show.constellation(S, title='$F_c = {} Hz$'.format(freq))
+        if pylab:
+            pylab.subplot(height, width, i)
+            show.constellation(S, title='$F_c = {} Hz$'.format(freq))
         bits = sigproc.modulator.decode(S)  # list of bit tuples
         streams.append(bits)
 
@@ -156,6 +163,5 @@ def main(fname):
 
 if __name__ == '__main__':
     main('rx.int16')
-    import os
-    if os.environ.get('SHOW') is not None:
+    if pylab:
         pylab.show()
