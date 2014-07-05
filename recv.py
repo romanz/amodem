@@ -58,45 +58,49 @@ def demodulate(x, freq, filt, plot=None):
         yield bits
 
 def receive(x, freqs):
+    x = iter(x)
     prefix = [1]*300 + [0]*100
     symbols = itertools.islice(extract_symbols(x, Fc), len(prefix))
     bits = np.round(np.abs(list(symbols)))
     bits = np.array(bits, dtype=int)
-    if all(bits[:len(prefix)] != prefix):
+    if all(bits != prefix):
         return None
 
     log.info( 'Prefix OK')
-    x = x[len(prefix)*Nsym:]
     filters = {}
-    for freq in freqs:
-        training = ([1]*10 + [0]*10)*20 + [0]*100
-        S = list(itertools.islice(extract_symbols(x, freq), len(training)))
 
-        filt = sigproc.train(S, training)
+    full_scale = len(freqs)
+    training_bits = np.array(([1]*10 + [0]*10)*20 + [0]*100)
+    expected = full_scale * training_bits
+
+    for freq in freqs:
+        S = list(itertools.islice(extract_symbols(x, freq), len(expected)))
+
+        filt = sigproc.train(S, expected)
         filters[freq] = filt
 
         S = list(filt(S))
         y = np.array(S).real
 
-        train_result = y > 0.5
-        if not all(train_result == np.array(training)):
-            pylab.plot(y, '-', training, '-')
+        train_result = y > 0.5 * full_scale
+        if not all(train_result == training_bits):
+            pylab.plot(y, '-', expected, '-')
             return None
 
-        noise = y - train_result
+        noise = y - expected
         Pnoise = sigproc.power(noise)
         log.debug('{:10.1f}Hz: Noise sigma={:.4f}, SNR={:.1f} dB'.format( freq, Pnoise**0.5, 10*np.log10(1/Pnoise) ))
 
-        x = x[len(training)*Nsym:]
-
-    results = []
     sz = int(np.ceil(np.sqrt(len(freqs))))
+    streams = []
+    x = list(x)
     for i, freq in enumerate(freqs):
         plot = functools.partial(pylab.subplot, sz, sz, i+1)
-        results.append( demodulate(x * len(freqs), freq, filters[freq], plot=plot) )
+        stream = demodulate(x, freq, filters[freq], plot=plot)
+        streams.append(stream)
 
     bitstream = []
-    for block in itertools.izip(*results):
+    for block in itertools.izip(*streams):
         for bits in block:
             bitstream.extend(bits)
 
@@ -134,6 +138,10 @@ def main(fname):
         data = iterate(data_bits, bufsize=8, advance=8, func=to_byte)
         data = ''.join(c for _, c in data)
         data = ecc.decode(data)
+        if data is None:
+            log.warning('No blocks decoded!')
+            return
+
         with file('data.recv', 'wb') as f:
             f.write(data)
 
