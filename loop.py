@@ -21,13 +21,20 @@ class Filter(object):
         return y
 
 class FreqLoop(object):
-    def __init__(self, x, freqs):
-        self.sampler = sampling.Sampler(x, sampling.Interpolator())
+    def __init__(self, x, freqs, prefix=None):
+        interp = sampling.Interpolator()
+        if prefix is None:
+            prefix = []
+        else:
+            prefix = [prefix] * interp.width
+
+        src = itertools.chain(prefix, x)
+        self.sampler = sampling.Sampler(src, interp)
         self.gens = []
 
-        gens = itertools.tee(self.sampler, len(freqs))
-        for freq, gen in zip(freqs, gens):
-            self.gens.append( recv.extract_symbols(self.sampler, freq) )
+        samplers = itertools.tee(self.sampler, len(freqs))
+        for freq, generator in zip(freqs, samplers):
+            self.gens.append( recv.extract_symbols(generator, freq) )
 
         Kp, Ki = 0.2, 0.01
         b = np.array([1, -1])*Kp + np.array([0.5, 0.5])*Ki
