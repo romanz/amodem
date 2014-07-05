@@ -49,7 +49,6 @@ def take(symbols, i, n):
 def receive(x, freqs):
     x = list(x)
     lp = loop.FreqLoop(x, freqs, prefix=0.0)
-    lp.sampler.freq += -3e-6
 
     symbols = iter(lp)
 
@@ -62,6 +61,10 @@ def receive(x, freqs):
     if all(bits != prefix):
         return None
     log.info('Prefix OK')
+
+    err = sigproc.drift( S[np.array(prefix, dtype=bool)] ) / (Tsym * Fc)
+    log.info('Frequency error: %.2f ppm', err * 1e6)
+    lp.sampler.freq -= err
 
     filters = {}
 
