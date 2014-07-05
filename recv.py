@@ -8,6 +8,7 @@ logging.basicConfig(level=0, format='%(message)s')
 log = logging.getLogger(__name__)
 
 import sigproc
+import show
 from common import *
 
 COHERENCE_THRESHOLD = 0.95
@@ -65,7 +66,7 @@ def demodulate(x, freq, filt, plot=None):
     S = np.array(list(filt(S)))
     if plot:
         plot()
-        constellation(S, title='$F_c$ = {} kHz'.format(freq / 1e3))
+        show.constellation(S, title='$F_c$ = {} kHz'.format(freq / 1e3))
     for bits in sigproc.modulator.decode(S):  # list of bit tuples
         yield bits
 
@@ -114,17 +115,6 @@ def receive(x, freqs):
 
     return bitstream
 
-
-def constellation(y, title):
-    theta = np.linspace(0, 2*np.pi, 1000)
-    pylab.plot(y.real, y.imag, '.')
-    pylab.plot(np.cos(theta), np.sin(theta), ':')
-    points = np.array(sigproc.modulator.points)
-    pylab.plot(points.real, points.imag, 'o')
-    pylab.grid('on')
-    pylab.axis('equal')
-    pylab.axis(np.array([-1, 1, -1, 1]) * 1.1)
-    pylab.title(title)
 
 def main(fname):
 

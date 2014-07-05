@@ -1,4 +1,18 @@
 import pylab
+import numpy as np
+
+import sigproc
+
+def constellation(y, title):
+    theta = np.linspace(0, 2*np.pi, 1000)
+    pylab.plot(y.real, y.imag, '.')
+    pylab.plot(np.cos(theta), np.sin(theta), ':')
+    points = np.array(sigproc.modulator.points)
+    pylab.plot(points.real, points.imag, 'o')
+    pylab.grid('on')
+    pylab.axis('equal')
+    pylab.axis(np.array([-1, 1, -1, 1]) * 1.1)
+    pylab.title(title)
 
 def spectrogram(t, x, Fs, NFFT=256):
     ax1 = pylab.subplot(211)
