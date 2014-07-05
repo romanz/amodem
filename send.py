@@ -8,6 +8,7 @@ logging.basicConfig(level=0, format='%(message)s')
 log = logging.getLogger(__name__)
 
 import sigproc
+import train
 from common import *
 
 class Symbol(object):
@@ -22,15 +23,13 @@ def write(fd, sym, n=1):
     fd.write(dumps(sym, n))
 
 def start(sig, c):
-    write(sig, c*0, n=100)
-    write(sig, c*1, n=300)
-    write(sig, c*0, n=100)
+    write(sig, c*0, n=50)
+    write(sig, c*1, n=400)
+    write(sig, c*0, n=50)
 
-def train(sig, c):
-    for i in range(20):
-        write(sig, c*1, n=10)
-        write(sig, c*0, n=10)
-    write(sig, c*0, n=100)
+def training(sig, c):
+    for b in train.equalizer:
+        write(sig, c * b)
 
 def modulate(sig, bits):
     symbols_iter = sigproc.modulator.encode(list(bits))
@@ -52,7 +51,7 @@ if __name__ == '__main__':
     with open('tx.int16', 'wb') as fd:
         start(fd, sym.carrier[carrier_index])
         for c in sym.carrier:
-            train(fd, c)
+            training(fd, c)
 
         bits = to_bits(ecc.encode(data))
         modulate(fd, bits)

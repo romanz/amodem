@@ -10,11 +10,12 @@ log = logging.getLogger(__name__)
 import sigproc
 import loop
 import show
+import train
 from common import *
 
 COHERENCE_THRESHOLD = 0.95
 
-CARRIER_DURATION = 300
+CARRIER_DURATION = sum(train.prefix)
 CARRIER_THRESHOLD = int(0.95 * CARRIER_DURATION)
 
 def detect(x, freq):
@@ -52,24 +53,23 @@ def receive(x, freqs):
 
     symbols = iter(lp)
 
-    prefix = [1]*300 + [0]*100
-    S = take(symbols, carrier_index, len(prefix))
+    S = take(symbols, carrier_index, len(train.prefix))
     y = np.abs(S)
     bits = np.round(y)
 
     bits = np.array(bits, dtype=int)
-    if all(bits != prefix):
+    if all(bits != train.prefix):
         return None
     log.info('Prefix OK')
 
-    err = sigproc.drift( S[np.array(prefix, dtype=bool)] ) / (Tsym * Fc)
+    err = sigproc.drift( S[np.array(train.prefix, dtype=bool)] ) / (Tsym * Fc)
     log.info('Frequency error: %.2f ppm', err * 1e6)
     lp.sampler.freq -= err
 
     filters = {}
 
     full_scale = len(freqs)
-    training_bits = np.array(([1]*10 + [0]*10)*20 + [0]*100)
+    training_bits = np.array(train.equalizer)
     expected = full_scale * training_bits
     for i, freq in enumerate(freqs):
         S = take(symbols, i, len(expected))
@@ -88,7 +88,7 @@ def receive(x, freqs):
 
         noise = y - expected
         Pnoise = sigproc.power(noise)
-        log.debug('{:10.1f}Hz: Noise sigma={:.4f}, SNR={:.1f} dB'.format( freq, Pnoise**0.5, 10*np.log10(1/Pnoise) ))
+        log.debug('{:10.1f} kHz: Noise sigma={:.4f}, SNR={:.1f} dB'.format( freq/1e3, Pnoise**0.5, 10*np.log10(1/Pnoise) ))
 
     sz = int(np.ceil(np.sqrt(len(freqs))))
 
