@@ -1,5 +1,6 @@
 import numpy as np
 import common
+import sigproc
 import wave
 import pylab
 
@@ -20,7 +21,7 @@ def recv():
         _, x = common.loads(data)
         x = x - np.mean(x)
 
-        c = np.abs(np.dot(x, sig)) / (np.sqrt(0.5 * len(x)) * common.norm(x))
+        c = np.abs(np.dot(x, sig)) / (np.sqrt(0.5 * len(x)) * sigproc.norm(x))
         z = np.dot(x, sig.conj()) / (0.5 * len(x))
         amp = np.abs(z)
         phase = np.angle(z)
