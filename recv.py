@@ -49,11 +49,11 @@ def extract_symbols(x, freq, offset=0):
         yield symbol
 
 def demodulate(x, freq, filt, plot=None):
-    S = extract_symbols(x, freq)
-    S = np.array(list(filt(S)))
+    S = extract_symbols(x, freq) # samples -> symbols
+    S = np.array(list(filt(S)))  # apply equalizer
     if plot:
         plot()
-        show.constellation(S, title='$F_c$ = {} kHz'.format(freq / 1e3))
+        show.constellation(S, title='$F_c = {} kHz$'.format(freq / 1e3))
     for bits in sigproc.modulator.decode(S):  # list of bit tuples
         yield bits
 
@@ -90,9 +90,9 @@ def receive(x, freqs):
         x = x[len(training)*Nsym:]
 
     results = []
-    k = int(np.ceil(np.sqrt(len(freqs))))
+    sz = int(np.ceil(np.sqrt(len(freqs))))
     for i, freq in enumerate(freqs):
-        plot = functools.partial(pylab.subplot, k, k, i+1)
+        plot = functools.partial(pylab.subplot, sz, sz, i+1)
         results.append( demodulate(x * len(freqs), freq, filters[freq], plot=plot) )
 
     bitstream = []
