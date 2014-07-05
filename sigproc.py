@@ -47,10 +47,9 @@ class QAM(object):
             yield s
 
     def decode(self, symbols):
-        keys = np.array(self._dec.keys())
         for s in symbols:
-            index = np.argmin(np.abs(s - keys))
-            yield self._dec[ keys[index] ]
+            index = np.argmin(np.abs(s - self.points))
+            yield self._dec[ self.points[index] ]
 
 modulator = QAM(bits_per_symbol=2, radii=[1.0])
 
