@@ -54,8 +54,10 @@ def take(symbols, i, n):
 
 def receive(x, freqs):
     x = list(x)
-    symbols = loop.FreqLoop(x, freqs, prefix=0.0)
-    symbols.sampler.freq += -3e-6
+    lp = loop.FreqLoop(x, freqs, prefix=0.0)
+    lp.sampler.freq += -3e-6
+
+    symbols = iter(lp)
 
     prefix = [1]*300 + [0]*100
     S = take(symbols, carrier_index, len(prefix))
