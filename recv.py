@@ -16,23 +16,10 @@ COHERENCE_THRESHOLD = 0.95
 CARRIER_DURATION = 300
 CARRIER_THRESHOLD = int(0.95 * CARRIER_DURATION)
 
-def power(x):
-    return np.dot(x.conj(), x).real / len(x)
-
-def exp_iwt(freq, n):
-    iw = 2j * np.pi * freq
-    t = np.arange(n) * Ts
-    return np.exp(iw * t)
-
-def coherence(x, freq):
-    n = len(x)
-    Hc = exp_iwt(-freq, n) / np.sqrt(0.5*n)
-    return np.dot(Hc, x) / norm(x)
-
 def detect(x, freq):
     counter = 0
     for offset, buf in iterate(x, Nsym, advance=Nsym):
-        coeff = coherence(buf, Fc)
+        coeff = sigproc.coherence(buf, Fc)
         if abs(coeff) > COHERENCE_THRESHOLD:
             counter += 1
         else:
@@ -48,7 +35,7 @@ def find_start(x, start):
     begin, end = start - WINDOW, start + length + WINDOW
     x_ = x[begin:end]
 
-    Hc = exp_iwt(Fc, len(x_))
+    Hc = sigproc.exp_iwt(Fc, len(x_))
     P = np.abs(Hc.conj() * x_) ** 2
     cumsumP = P.cumsum()
     start = begin + np.argmax(cumsumP[length:] - cumsumP[:-length])
@@ -56,7 +43,7 @@ def find_start(x, start):
     return start
 
 def extract_symbols(x, freq, offset=0):
-    Hc = exp_iwt(-freq, Nsym) / (0.5*Nsym)
+    Hc = sigproc.exp_iwt(-freq, Nsym) / (0.5*Nsym)
     func = lambda y: np.dot(Hc, y)
     for _, symbol in iterate(x, Nsym, advance=Nsym, func=func):
         yield symbol
@@ -97,7 +84,7 @@ def receive(x, freqs):
             return None
 
         noise = y - train_result
-        Pnoise = power(noise)
+        Pnoise = sigproc.power(noise)
         log.debug('{:10.1f}Hz: Noise sigma={:.4f}, SNR={:.1f} dB'.format( freq, Pnoise**0.5, 10*np.log10(1/Pnoise) ))
 
         x = x[len(training)*Nsym:]
@@ -126,11 +113,11 @@ def main(fname):
 
     begin, end = result
     x_ = x[begin:end]
-    Hc = exp_iwt(-Fc, len(x_))
+    Hc = sigproc.exp_iwt(-Fc, len(x_))
     Zc = np.dot(Hc, x_) / (0.5*len(x_))
     amp = abs(Zc)
     log.info('Carrier detected at ~{:.1f} ms @ {:.1f} kHz: coherence={:.3f}%, amplitude={:.3f}'.format(
-          begin * Tsym * 1e3 / Nsym, Fc / 1e3, abs(coherence(x_, Fc)) * 100, amp
+          begin * Tsym * 1e3 / Nsym, Fc / 1e3, abs(sigproc.coherence(x_, Fc)) * 100, amp
     ))
 
     start = find_start(x, begin)

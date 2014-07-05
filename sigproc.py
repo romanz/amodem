@@ -1,6 +1,8 @@
 import numpy as np
 from numpy import linalg
 
+import common
+
 def lfilter(b, a, x):
     b = np.array(b) / a[0]
     a = np.array(a[1:]) / a[0]
@@ -54,3 +56,18 @@ modulator = QAM(bits_per_symbol=2, radii=[1.0])
 
 def clip(x, lims):
     return min(max(x, lims[0]), lims[1])
+
+def power(x):
+    return np.dot(x.conj(), x).real / len(x)
+
+def exp_iwt(freq, n):
+    iwt = 2j * np.pi * freq * np.arange(n) * common.Ts
+    return np.exp(iwt)
+
+def norm(x):
+    return np.sqrt(np.dot(x.conj(), x).real)
+
+def coherence(x, freq):
+    n = len(x)
+    Hc = exp_iwt(-freq, n) / np.sqrt(0.5*n)
+    return np.dot(Hc, x) / norm(x)

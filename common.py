@@ -48,10 +48,6 @@ def dumps(sym, n=1):
     data = sym.tostring()
     return data * n
 
-def norm(x):
-    return np.sqrt(np.dot(x.conj(), x).real)
-
-
 def iterate(data, bufsize, offset=0, advance=1, func=None):
     assert bufsize > 0
     assert offset >= 0
