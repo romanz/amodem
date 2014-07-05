@@ -155,7 +155,7 @@ def main(fname):
             f.write(data)
 
 if __name__ == '__main__':
-    main('rx_.int16')
+    main('rx.int16')
     import os
     if os.environ.get('SHOW') is not None:
         pylab.show()
