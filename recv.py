@@ -49,44 +49,42 @@ def extract_symbols(x, freq, offset=0):
     for _, symbol in iterate(x, Nsym, advance=Nsym, func=func):
         yield symbol
 
-def demodulate(x, freq, filt, plot=None):
-    S = extract_symbols(x, freq) # samples -> symbols
-    S = np.array(list(filt(S)))  # apply equalizer
-    if plot:
-        plot()
-        show.constellation(S, title='$F_c = {} kHz$'.format(freq / 1e3))
-    for bits in sigproc.modulator.decode(S):  # list of bit tuples
-        yield bits
+def take(symbols, i, n):
+    return np.array([s if i is None else s[i] for s in itertools.islice(symbols, n)])
 
 def receive(x, freqs):
-    x = iter(x)
+    x = list(x)
+    symbols = loop.FreqLoop(x, freqs, prefix=0.0)
+    symbols.sampler.freq += -3e-6
+
     prefix = [1]*300 + [0]*100
-    S = itertools.islice(extract_symbols(x, Fc), len(prefix))
-    S = np.array(list(S))
-    bits = np.round(np.abs(S))
+    S = take(symbols, carrier_index, len(prefix))
+    y = np.abs(S)
+    bits = np.round(y)
+
     bits = np.array(bits, dtype=int)
     if all(bits != prefix):
         return None
-
     log.info('Prefix OK')
+
     filters = {}
 
     full_scale = len(freqs)
     training_bits = np.array(([1]*10 + [0]*10)*20 + [0]*100)
     expected = full_scale * training_bits
-
-    for freq in freqs:
-        S = list(itertools.islice(extract_symbols(x, freq), len(expected)))
+    for i, freq in enumerate(freqs):
+        S = take(symbols, i, len(expected))
 
         filt = sigproc.train(S, expected)
         filters[freq] = filt
 
-        S = list(filt(S))
-        y = np.array(S).real
+        S = filt(S)
+        y = np.array(list(S)).real
 
         train_result = y > 0.5 * full_scale
         if not all(train_result == training_bits):
             pylab.plot(y, '-', expected, '-')
+            pylab.title('$F_c = {}Hz$'.format(freq))
             return None
 
         noise = y - expected
@@ -94,13 +92,18 @@ def receive(x, freqs):
         log.debug('{:10.1f}Hz: Noise sigma={:.4f}, SNR={:.1f} dB'.format( freq, Pnoise**0.5, 10*np.log10(1/Pnoise) ))
 
     sz = int(np.ceil(np.sqrt(len(freqs))))
-    streams = []
 
-    xs = itertools.tee(x, len(freqs))
-    for i, (x, freq) in enumerate(zip(xs, freqs)):
-        stream = demodulate(x, freq=freq, filt=filters[freq],
-                            plot=functools.partial(pylab.subplot, sz, sz, i+1))
-        streams.append(stream)
+    streams = []
+    ugly_hack = itertools.izip(*list(symbols))
+    i = 0
+    for freq, S in zip(freqs, ugly_hack):
+        i += 1
+        S = filters[freq](S)
+        S = np.array(list(S))
+        pylab.subplot(2,2,i)
+        show.constellation(S, title='$F_c = {} Hz$'.format(freq))
+        bits = sigproc.modulator.decode(S)  # list of bit tuples
+        streams.append(bits)
 
     bitstream = []
     for block in itertools.izip(*streams):
