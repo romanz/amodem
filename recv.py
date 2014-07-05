@@ -92,11 +92,15 @@ def receive(x, freqs):
     streams = []
     ugly_hack = itertools.izip(*list(symbols))
     i = 0
+    pylab.figure()
+
+    width = np.floor(np.sqrt(len(freqs)))
+    height = np.ceil(len(freqs) / float(width))
     for freq, S in zip(freqs, ugly_hack):
         i += 1
         S = filters[freq](S)
         S = np.array(list(S))
-        pylab.subplot(2,2,i)
+        pylab.subplot(height, width, i)
         show.constellation(S, title='$F_c = {} Hz$'.format(freq))
         bits = sigproc.modulator.decode(S)  # list of bit tuples
         streams.append(bits)
