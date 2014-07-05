@@ -26,7 +26,7 @@ class FreqLoop(object):
         if prefix is None:
             prefix = []
         else:
-            prefix = [prefix] * interp.width
+            prefix = [prefix] * (interp.width - 1)
 
         src = itertools.chain(prefix, x)
         self.sampler = sampling.Sampler(src, interp)
