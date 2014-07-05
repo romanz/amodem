@@ -1,4 +1,5 @@
 import numpy as np
+import itertools
 
 import recv
 import sampling
@@ -20,9 +21,14 @@ class Filter(object):
         return y
 
 class FreqLoop(object):
-    def __init__(self, x, freq):
+    def __init__(self, x, freqs):
         self.sampler = sampling.Sampler(x, sampling.Interpolator())
-        self.symbols = recv.extract_symbols(self.sampler, freq)
+        self.gens = []
+
+        gens = itertools.tee(self.sampler, len(freqs))
+        for freq, gen in zip(freqs, gens):
+            self.gens.append( recv.extract_symbols(self.sampler, freq) )
+
         Kp, Ki = 0.2, 0.01
         b = np.array([1, -1])*Kp + np.array([0.5, 0.5])*Ki
         self.filt = Filter(b=b, a=[1])
@@ -35,4 +41,4 @@ class FreqLoop(object):
         self.sampler.correct(offset=self.correction)
 
     def __iter__(self):
-        return iter(self.symbols)
+        return itertools.izip(*self.gens)

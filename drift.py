@@ -13,9 +13,9 @@ def main():
     S = []
     Y = []
 
-    symbols = loop.FreqLoop(x, f0)
     prefix = 100
-    for s in symbols:
+    symbols = loop.FreqLoop(x, [f0])
+    for s, in symbols:
         S.append(s)
         if len(S) > prefix:
             symbols.correct(s, np.mean(S[:prefix]))
