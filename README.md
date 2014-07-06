@@ -7,7 +7,7 @@ The sender is modulating `data.send` binary file using `send.py` script into 32k
 The receiver is using `arecord` Linux utility to record the audio file into `rx.int16` 32kHz audio file, which is demodulated by `recv.py` script into `data.recv` binary file.
 The process requires a single manual calibration step - in order to find the maximal volume for the speaker, which will not saturate the microphone.
 
-The modem's bitrate is currently 8kbps - so it should have no problem sending a simple transaction in O(second).
+The modem's bitrate is currently 8kbps ([constellation diagram](http://i.imgur.com/JAbGkIt.png)) - so it should have no problem sending a simple transaction in O(second).
 Moreover, I am sure it can be optimized by using better modulation, error correction and better audio equipment.
 
 Currently, the documentation is quite lacking, but today was the first time I successfully transmitted 1KB of data between 2 PCs, so I am quite excited :)
