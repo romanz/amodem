@@ -7,7 +7,6 @@ else:
     pylab = None
 
 import logging
-import functools
 import itertools
 logging.basicConfig(level=0, format='%(message)s')
 log = logging.getLogger(__name__)
@@ -94,8 +93,6 @@ def receive(x, freqs):
         noise = y - expected
         Pnoise = sigproc.power(noise)
         log.debug('{:10.1f} kHz: Noise sigma={:.4f}, SNR={:.1f} dB'.format( freq/1e3, Pnoise**0.5, 10*np.log10(1/Pnoise) ))
-
-    sz = int(np.ceil(np.sqrt(len(freqs))))
 
     streams = []
     ugly_hack = itertools.izip(*list(symbols))
