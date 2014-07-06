@@ -1,8 +1,6 @@
 import sigproc
 import itertools
 import common
-import show
-import pylab
 import numpy as np
 
 def test_qam():
@@ -15,10 +13,10 @@ def test_qam():
 
 def test_drift():
     fc = 10e3
-    f = fc * (1 + 50e-6)
+    df = 1.23
+    f = fc + df
     x = np.cos(2 * np.pi * f / common.Fs * np.arange(common.Fs))
     S = sigproc.extract_symbols(x, fc)
     S = np.array(list(S))
-    print 1e6 * sigproc.drift(S) / (fc * common.Tsym)
-    show.constellation(S, 'carrier')
-    pylab.show()
+    df_ = sigproc.drift(S) / common.Tsym
+    assert abs(df - df_) < 1e-5, (df, df_)
