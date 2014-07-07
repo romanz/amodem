@@ -74,6 +74,11 @@ def receive(x, freqs):
     full_scale = len(freqs)
     training_bits = np.array(train.equalizer)
     expected = full_scale * training_bits
+    if pylab:
+        pylab.figure()
+        width = np.floor(np.sqrt(len(freqs)))
+        height = np.ceil(len(freqs) / float(width))
+
     for i, freq in enumerate(freqs):
         S = take(symbols, i, len(expected))
 
@@ -82,12 +87,13 @@ def receive(x, freqs):
 
         S = filt(S)
         y = np.array(list(S)).real
+        if pylab:
+            pylab.subplot(height, width, i+1)
+            pylab.plot(y, '-', expected, '-')
+            pylab.title('Train: $F_c = {}Hz$'.format(freq))
 
         train_result = y > 0.5 * full_scale
         if not all(train_result == training_bits):
-            if pylab:
-                pylab.plot(y, '-', expected, '-')
-                pylab.title('$F_c = {}Hz$'.format(freq))
             return None
 
         noise = y - expected
@@ -100,8 +106,6 @@ def receive(x, freqs):
     if pylab:
         pylab.figure()
 
-    width = np.floor(np.sqrt(len(freqs)))
-    height = np.ceil(len(freqs) / float(width))
     for freq, S in zip(freqs, ugly_hack):
         i += 1
         S = filters[freq](S)
