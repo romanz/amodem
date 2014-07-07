@@ -31,7 +31,9 @@ def decode(data, nsym=DEFAULT_NSYM):
         chunk = data[i:i+BLOCK_SIZE]
         try:
             dec.extend(rs_correct_msg(chunk, nsym))
-        except ReedSolomonError:
+            log.info('Decoded %d blocks = %d bytes', (i+1) / BLOCK_SIZE, len(dec))
+        except ReedSolomonError as e:
+            log.info('Decoding stopped: %s', e)
             break
 
     if i == 0:
@@ -44,17 +46,9 @@ def decode(data, nsym=DEFAULT_NSYM):
     n = struct.calcsize(LEN_FMT)
     payload, length = dec[n:], dec[:n]
     length, = struct.unpack(LEN_FMT, length)
-    assert length <= len(payload)
+    if length > len(payload):
+        log.warning('%d bytes are missing!', length - len(payload))
+        return None
+
     log.info('Decoded {} bytes'.format(length))
     return payload[:length]
-
-
-def test_codec():
-    import random
-    r = random.Random(0)
-    x = bytearray(r.randrange(0, 256) for i in range(16 * 1024))
-    y = encode(x)
-    assert len(y) % BLOCK_SIZE == 0
-    x_ = decode(y)
-    assert x_[:len(x)] == x
-    assert all(v == 0 for v in x_[len(x):])
