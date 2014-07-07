@@ -1,4 +1,4 @@
-import cStringIO
+import functools
 import numpy as np
 
 import logging
@@ -67,6 +67,33 @@ def iterate(data, bufsize, offset=0, advance=1, func=None):
             buf[:-advance] = buf[advance:]
             buf_index = max(0, buf_index - advance)
             offset += advance
+
+class Splitter(object):
+    def __init__(self, iterable, n):
+        self.iterable = iter(iterable)
+        self.read = [True] * n
+        self.last = None
+        self.generators = [functools.partial(self._gen, i)() for i in range(n)]
+        self.n = n
+
+    def _gen(self, index):
+        while True:
+            if all(self.read):
+                try:
+                    self.last = self.iterable.next()
+                except StopIteration:
+                    return
+
+                assert len(self.last) == self.n
+                self.read = [False] * self.n
+
+            if self.read[index]:
+                raise IndexError(index)
+            self.read[index] = True
+            yield self.last[index]
+
+def split(iterable, n):
+    return Splitter(iterable, n).generators
 
 if __name__ == '__main__':
 
