@@ -1,3 +1,6 @@
 *.out
 *.pyc
 *.sublime-*
+*.tgz
+*.txt
+*.png
