@@ -1,13 +1,15 @@
 import numpy as np
+import logging
+import itertools
+import time
 import os
+
 if os.environ.get('PYLAB') is not None:
     import pylab
     import show
 else:
     pylab = None
 
-import logging
-import itertools
 log = logging.getLogger(__name__)
 
 import sigproc
@@ -100,28 +102,34 @@ def receive(x, freqs):
         log.info('{:10.1f} kHz: Noise sigma={:.4f}, SNR={:.1f} dB'.format( freq/1e3, Pnoise**0.5, 10*np.log10(1/Pnoise) ))
 
     streams = []
-    ugly_hack = itertools.izip(*list(symbols))
-    i = 0
-    if pylab:
-        pylab.figure()
+    symbol_list = []
 
-    for freq, S in zip(freqs, ugly_hack):
-        i += 1
+    generators = split(symbols, n=len(freqs))
+    for freq, S in zip(freqs, generators):
         S = filters[freq](S)
-        S = np.array(list(S))
-        if pylab:
-            pylab.subplot(height, width, i)
-            show.constellation(S, title='$F_c = {} Hz$'.format(freq))
+
+        equalized = []
+        S = icapture(S, result=equalized)
+        symbol_list.append(equalized)
+
         bits = sigproc.modulator.decode(S)  # list of bit tuples
         streams.append(bits)
 
     log.info('Demodulation started')
     bitstream = []
+    start = time.time()
     for block in itertools.izip(*streams):
         for bits in block:
             bitstream.extend(bits)
-    log.info('Demodulated %d bits => %.3f kB', len(bitstream), len(bitstream) / 8e3)
+    log.info('Demodulated %d bits : %.3f kB @ %.3f seconds',
+        len(bitstream), len(bitstream) / 8e3, time.time() - start)
 
+    if pylab:
+        pylab.figure()
+        symbol_list = np.array(symbol_list)
+        for i, freq in enumerate(freqs):
+            pylab.subplot(height, width, i+1)
+            show.constellation(symbol_list[i], title='$F_c = {} Hz$'.format(freq))
     return bitstream
 
 
