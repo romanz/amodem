@@ -115,10 +115,12 @@ def receive(x, freqs):
         bits = sigproc.modulator.decode(S)  # list of bit tuples
         streams.append(bits)
 
+    log.info('Demodulation started')
     bitstream = []
     for block in itertools.izip(*streams):
         for bits in block:
             bitstream.extend(bits)
+    log.info('Demodulated %d bits => %.3f kB', len(bitstream), len(bitstream) / 8e3)
 
     return bitstream
 
@@ -148,11 +150,10 @@ def main(fname):
 
     data_bits = receive(x / amp, frequencies)
     if data_bits is None:
-        log.info('Cannot demodulate symbols!')
+        log.warning('Training failed!')
     else:
         data = iterate(data_bits, bufsize=8, advance=8, func=to_byte)
         data = ''.join(c for _, c in data)
-        log.info('Demodulated %.3f kB', len(data) / 1e3)
         import ecc
         data = ecc.decode(data)
         if data is None:
