@@ -17,7 +17,8 @@ class Interpolator(object):
             filt = filt[::-1]
             self.filt.append(filt)
         lengths = map(len, self.filt)
-        assert set(lengths) == set([2*width])
+        self.coeff_len = 2*width
+        assert set(lengths) == set([self.coeff_len])
         assert len(self.filt) == resolution
 
     def get(self, offset):
@@ -51,7 +52,7 @@ class Sampler(object):
 
     def _sample(self):
         coeffs, begin = self.interp.get(self.offset)
-        end = begin + len(coeffs)
+        end = begin + self.interp.coeff_len
         while True:
             if self.index == end:
                 return np.dot(coeffs, self.buff)
