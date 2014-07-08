@@ -29,3 +29,12 @@ def test_split():
             assert False
         except IndexError as e:
             assert e.args == (i,)
+
+def test_icapture():
+    x = range(100)
+    y = []
+    z = []
+    for i in common.icapture(x, result=y):
+        z.append(i)
+    assert x == y
+    assert x == z

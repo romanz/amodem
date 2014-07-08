@@ -95,6 +95,11 @@ class Splitter(object):
 def split(iterable, n):
     return Splitter(iterable, n).generators
 
+def icapture(iterable, result):
+    for i in iter(iterable):
+        result.append(i)
+        yield i
+
 if __name__ == '__main__':
 
     import pylab
