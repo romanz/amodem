@@ -8,7 +8,6 @@ else:
 
 import logging
 import itertools
-logging.basicConfig(level=0, format='%(message)s')
 log = logging.getLogger(__name__)
 
 import sigproc
@@ -98,7 +97,7 @@ def receive(x, freqs):
 
         noise = y - expected
         Pnoise = sigproc.power(noise)
-        log.debug('{:10.1f} kHz: Noise sigma={:.4f}, SNR={:.1f} dB'.format( freq/1e3, Pnoise**0.5, 10*np.log10(1/Pnoise) ))
+        log.info('{:10.1f} kHz: Noise sigma={:.4f}, SNR={:.1f} dB'.format( freq/1e3, Pnoise**0.5, 10*np.log10(1/Pnoise) ))
 
     streams = []
     ugly_hack = itertools.izip(*list(symbols))
@@ -151,18 +150,21 @@ def main(fname):
     if data_bits is None:
         log.info('Cannot demodulate symbols!')
     else:
-        import ecc
         data = iterate(data_bits, bufsize=8, advance=8, func=to_byte)
         data = ''.join(c for _, c in data)
+        log.info('Demodulated %.3f kB', len(data) / 1e3)
+        import ecc
         data = ecc.decode(data)
         if data is None:
             log.warning('No blocks decoded!')
             return
 
+        log.info('Decoded %.3f kB', len(data) / 1e3)
         with file('data.recv', 'wb') as f:
             f.write(data)
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)-12s %(message)s')
     main('rx.int16')
     if pylab:
         pylab.show()
