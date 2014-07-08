@@ -11,7 +11,6 @@ def constellation(y, title):
     pylab.plot(points.real, points.imag, 'o')
     pylab.grid('on')
     pylab.axis('equal')
-    pylab.axis(np.array([-1, 1, -1, 1]) * 1.1)
     pylab.title(title)
 
 def spectrogram(t, x, Fs, NFFT=256):
