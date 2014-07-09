@@ -64,5 +64,5 @@ if __name__ == '__main__':
     p = play(fd.name)
     p.wait()
     log.debug('Took %.2f seconds', time.time() - start)
-    time.sleep(0.1)
+    time.sleep(1)
     r.stop()
