@@ -7,7 +7,7 @@ def constellation(y, title):
     theta = np.linspace(0, 2*np.pi, 1000)
     pylab.plot(y.real, y.imag, '.')
     pylab.plot(np.cos(theta), np.sin(theta), ':')
-    points = np.array(sigproc.modulator.points)
+    points = np.array(sigproc.modulator.symbols)
     pylab.plot(points.real, points.imag, 'o')
     pylab.grid('on')
     pylab.axis('equal')

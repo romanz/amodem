@@ -24,18 +24,21 @@ def train(S, training):
     return lambda x: lfilter(b=[b0, b1], a=[1, -a1], x=x)
 
 class QAM(object):
-    def __init__(self, bits_per_symbol, radii):
+    def __init__(self, symbols):
         self._enc = {}
-        index = 0
-        N = (2 ** bits_per_symbol) / len(radii)
-        for a in radii:
-            for i in range(N):
-                k = tuple(int(index & (1 << j) != 0) for j in range(bits_per_symbol))
-                v = np.exp(2j * i * np.pi / N)
-                self._enc[k] = v * a
-                index += 1
+        symbols = np.array(list(symbols))
+        bits_per_symbol = np.log2(len(symbols))
+        bits_per_symbol = np.round(bits_per_symbol)
+        N = (2 ** bits_per_symbol)
+        assert N == len(symbols)
+        bits_per_symbol = int(bits_per_symbol)
+
+        for i, v in enumerate(symbols):
+            bits = tuple(int(i & (1 << j) != 0) for j in range(bits_per_symbol))
+            self._enc[bits] = v
+
         self._dec = {v: k for k, v in self._enc.items()}
-        self.points = self._enc.values()
+        self.symbols = symbols
         self.bits_per_symbol = bits_per_symbol
 
     def encode(self, bits):
@@ -48,10 +51,12 @@ class QAM(object):
 
     def decode(self, symbols):
         for s in symbols:
-            index = np.argmin(np.abs(s - self.points))
-            yield self._dec[ self.points[index] ]
+            index = np.argmin(np.abs(s - self.symbols))
+            yield self._dec[ self.symbols[index] ]
 
-modulator = QAM(bits_per_symbol=4, radii=[1.0, 0.6])
+_xs, _ys = np.linspace(-1, 1, 4), np.linspace(-1, 1, 4) # QAM-16
+_symbols = np.array([complex(x, y) for x in _xs for y in _ys]) * np.sqrt(0.5)
+modulator = QAM(_symbols)
 
 def clip(x, lims):
     return min(max(x, lims[0]), lims[1])

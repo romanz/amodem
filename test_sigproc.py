@@ -2,10 +2,12 @@ import sigproc
 import itertools
 import common
 import numpy as np
+import random
 
 def test_qam():
-    q = sigproc.QAM(bits_per_symbol=8, radii=[0.25, 0.5, 0.75, 1.0])
-    bits = [(1,1,0,1,0,0,1,0), (0,1,0,0,0,1,1,1)]
+    q = sigproc.QAM(sigproc._symbols)
+    r = random.Random(0)
+    bits = [tuple(r.randint(0, 1) for j in range(4)) for i in range(1024)]
     stream = itertools.chain(*bits)
     S = q.encode(list(stream))
     decoded = list(q.decode(list(S)))
