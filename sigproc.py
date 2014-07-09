@@ -51,7 +51,7 @@ class QAM(object):
             index = np.argmin(np.abs(s - self.points))
             yield self._dec[ self.points[index] ]
 
-modulator = QAM(bits_per_symbol=2, radii=[1.0])
+modulator = QAM(bits_per_symbol=4, radii=[1.0, 0.6])
 
 def clip(x, lims):
     return min(max(x, lims[0]), lims[1])
