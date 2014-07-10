@@ -51,27 +51,23 @@ def find_start(x, start):
 def take(symbols, i, n):
     return np.array([s if i is None else s[i] for s in itertools.islice(symbols, n)])
 
-def receive(x, freqs):
-    x = list(x)
-    lp = loop.FreqLoop(x, freqs, prefix=0.0)
-
-    symbols = iter(lp)
-
+def receive_prefix(symbols):
     S = take(symbols, carrier_index, len(train.prefix))
     y = np.abs(S)
     bits = np.round(y)
 
     bits = np.array(bits, dtype=int)
     if all(bits != train.prefix):
-        return None
+        raise ValueError('Incorrect prefix')
+
     log.info('Prefix OK')
 
     err = sigproc.drift( S[np.array(train.prefix, dtype=bool)] ) / (Tsym * Fc)
     log.info('Frequency error: %.2f ppm', err * 1e6)
-    lp.sampler.freq -= err
+    return err
 
+def train_receiver(symbols, freqs):
     filters = {}
-
     full_scale = len(freqs)
     training_bits = np.array(train.equalizer)
     expected = full_scale * training_bits
@@ -95,12 +91,15 @@ def receive(x, freqs):
 
         train_result = y > 0.5 * full_scale
         if not all(train_result == training_bits):
-            return None
+            return ValueError('#{} training failed on {} Hz'.format(i, freq))
 
         noise = y - expected
         Pnoise = sigproc.power(noise)
         log.info('{:10.1f} kHz: Noise sigma={:.4f}, SNR={:.1f} dB'.format( freq/1e3, Pnoise**0.5, 10*np.log10(1/Pnoise) ))
 
+    return filters
+
+def demodulate(symbols, filters, freqs):
     streams = []
     symbol_list = []
 
@@ -131,6 +130,17 @@ def receive(x, freqs):
             pylab.subplot(height, width, i+1)
             show.constellation(symbol_list[i], title='$F_c = {} Hz$'.format(freq))
     return bitstream
+
+
+def receive(signal, freqs):
+    signal = loop.FreqLoop(signal, freqs)
+    symbols = iter(signal)
+
+    err = receive_prefix(symbols)
+    signal.sampler.freq -= err
+
+    filters = train_receiver(symbols, freqs)
+    return demodulate(symbols, filters, freqs)
 
 
 def main(fname):

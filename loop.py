@@ -21,7 +21,7 @@ class Filter(object):
         return y
 
 class FreqLoop(object):
-    def __init__(self, x, freqs, prefix=None):
+    def __init__(self, x, freqs, prefix=0.0):
         interp = sampling.Interpolator()
         if prefix is None:
             prefix = []
