@@ -7,13 +7,15 @@ import logging
 log = logging.getLogger(__name__)
 
 from common import Fs
-Fs = int(Fs)
+Fs = int(Fs) # sampling rate
+bits_per_sample = 16
+audio_format = 'S{}_LE'.format(bits_per_sample) # PCM signed little endian
 
 def play(fname, **kwargs):
-    return launch('aplay', fname, '-q', '-f', 'S16_LE', '-c', '1', '-r', Fs, **kwargs)
+    return launch('aplay', fname, '-q', '-f', audio_format, '-c', '1', '-r', Fs, **kwargs)
 
 def record(fname, **kwargs):
-    return launch('arecord', fname, '-q', '-f', 'S16_LE', '-c', '1', '-r', Fs, **kwargs)
+    return launch('arecord', fname, '-q', '-f', audio_format, '-c', '1', '-r', Fs, **kwargs)
 
 def launch(*args, **kwargs):
     args = map(str, args)
@@ -41,4 +43,11 @@ if __name__ == '__main__':
     p = args.func(args.filename)
 
     import sys
-    sys.exit(p.wait())
+    exitcode = 0
+    try:
+        exitcode = p.wait()
+    except KeyboardInterrupt:
+        p.kill()
+        exitcode = p.wait()
+
+    sys.exit(exitcode)

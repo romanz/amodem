@@ -186,7 +186,8 @@ def main(fname):
             f.write(data)
 
 if __name__ == '__main__':
+    import sys
     logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)-12s %(message)s')
-    main('rx.int16')
+    main(fname=sys.argv[1])
     if pylab:
         pylab.show()

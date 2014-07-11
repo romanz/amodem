@@ -42,11 +42,11 @@ def modulate(sig, bits):
         if all(symbols == 0):
             break
 
-def main():
+def main(fname):
     import ecc
     log.info('Running MODEM @ {:.1f} kbps'.format(sigproc.modem_bps / 1e3))
 
-    with open('tx.int16', 'wb') as fd:
+    with open(fname, 'wb') as fd:
         start(fd, sym.carrier[carrier_index])
         for c in sym.carrier:
             training(fd, c)
@@ -55,5 +55,6 @@ def main():
         modulate(fd, bits)
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG, format='%(message)s')
-    main()
+    import sys
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)-12s %(message)s')
+    main(fname=sys.argv[1])
