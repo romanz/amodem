@@ -2,7 +2,7 @@
 set -u 
 set -e 
 
-dd if=/dev/urandom of=data.send bs=1024 count=1
+dd if=/dev/urandom of=data.send bs=1024 count=16
 ./send.py tx.int16
 
 killall arecord aplay || true
