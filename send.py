@@ -1,10 +1,10 @@
+#!/usr/bin/env python
 import numpy as np
 
 import time
 import logging
 import itertools
 
-logging.basicConfig(level=0, format='%(message)s')
 log = logging.getLogger(__name__)
 
 import sigproc
@@ -42,11 +42,9 @@ def modulate(sig, bits):
         if all(symbols == 0):
             break
 
-if __name__ == '__main__':
-
+def main():
     import ecc
-    bps = baud * sigproc.modulator.bits_per_symbol * len(sym.carrier)
-    log.info('Running MODEM @ {:.1f} kbps'.format(bps / 1e3))
+    log.info('Running MODEM @ {:.1f} kbps'.format(sigproc.modem_bps / 1e3))
 
     with open('tx.int16', 'wb') as fd:
         start(fd, sym.carrier[carrier_index])
@@ -56,13 +54,6 @@ if __name__ == '__main__':
         bits = to_bits(ecc.encode(data))
         modulate(fd, bits)
 
-
-    from wave import play, record
-
-    r = record('rx.int16')
-    start = time.time()
-    p = play(fd.name)
-    p.wait()
-    log.debug('Took %.2f seconds', time.time() - start)
-    time.sleep(1)
-    r.stop()
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.DEBUG, format='%(message)s')
+    main()

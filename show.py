@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import pylab
 import numpy as np
 

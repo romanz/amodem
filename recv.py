@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import numpy as np
 import logging
 import itertools
@@ -144,6 +145,8 @@ def receive(signal, freqs):
 
 
 def main(fname):
+
+    log.info('Running MODEM @ {:.1f} kbps'.format(sigproc.modem_bps / 1e3))
 
     _, x = load(open(fname, 'rb'))
     result = detect(x, Fc)
