@@ -5,18 +5,20 @@ import itertools
 import time
 import os
 
-if os.environ.get('PYLAB') is not None:
-    import pylab
-    import show
-else:
-    pylab = None
-
 log = logging.getLogger(__name__)
 
 import sigproc
 import loop
 import train
 from common import *
+
+if os.environ.get('PYLAB') is not None:
+    import pylab
+    import show
+    WIDTH = np.floor(np.sqrt(len(frequencies)))
+    HEIGHT = np.ceil(len(frequencies) / float(WIDTH))
+else:
+    pylab = None
 
 COHERENCE_THRESHOLD = 0.95
 
@@ -74,8 +76,6 @@ def train_receiver(symbols, freqs):
     expected = full_scale * training_bits
     if pylab:
         pylab.figure()
-        width = np.floor(np.sqrt(len(freqs)))
-        height = np.ceil(len(freqs) / float(width))
 
     for i, freq in enumerate(freqs):
         S = take(symbols, i, len(expected))
@@ -86,7 +86,7 @@ def train_receiver(symbols, freqs):
         S = filt(S)
         y = np.array(list(S)).real
         if pylab:
-            pylab.subplot(height, width, i+1)
+            pylab.subplot(HEIGHT, WIDTH, i+1)
             pylab.plot(y, '-', expected, '-')
             pylab.title('Train: $F_c = {}Hz$'.format(freq))
 
@@ -128,7 +128,7 @@ def demodulate(symbols, filters, freqs):
         pylab.figure()
         symbol_list = np.array(symbol_list)
         for i, freq in enumerate(freqs):
-            pylab.subplot(height, width, i+1)
+            pylab.subplot(HEIGHT, WIDTH, i+1)
             show.constellation(symbol_list[i], title='$F_c = {} Hz$'.format(freq))
     return bitstream
 
