@@ -9,6 +9,7 @@ log = logging.getLogger(__name__)
 
 import sigproc
 import train
+import wave
 from common import *
 
 class Symbol(object):
@@ -32,7 +33,7 @@ def training(sig, c):
         write(sig, c * b)
 
 def modulate(sig, bits):
-    symbols_iter = sigproc.modulator.encode(list(bits))
+    symbols_iter = sigproc.modulator.encode(bits)
     symbols_iter = itertools.chain(symbols_iter, itertools.repeat(0))
     carriers = np.array(sym.carrier) / len(sym.carrier)
     while True:
@@ -50,9 +51,15 @@ def main(fname):
         start(fd, sym.carrier[carrier_index])
         for c in sym.carrier:
             training(fd, c)
+        training_size = fd.tell()
+        log.info('%.3f seconds of training audio', training_size / wave.bytes_per_second)
 
-        bits = to_bits(ecc.encode(data))
+        log.info('%d bits to be send', len(data)*8)
+        bits = list(to_bits(ecc.encode(data)))
+        log.info('%d bits modulated (with ECC)', len(bits))
         modulate(fd, bits)
+        data_size = fd.tell() - training_size
+        log.info('%.3f seconds of data audio', data_size / wave.bytes_per_second)
 
 if __name__ == '__main__':
     import sys
