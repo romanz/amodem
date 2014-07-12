@@ -7,7 +7,7 @@ log = logging.getLogger(__name__)
 Fs = 32e3
 Ts = 1.0 / Fs
 
-frequencies = (np.arange(10) + 1) * 1e3
+frequencies = (1 + np.arange(1)) * 1e3
 carrier_index = 0
 Fc = frequencies[carrier_index]
 Tc = 1.0 / Fc
