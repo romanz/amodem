@@ -56,9 +56,7 @@ class QAM(object):
             S = self.symbols[index]
             yield self._dec[S]
 
-_xs, _ys = np.linspace(-1, 1, 4), np.linspace(-1, 1, 4) # QAM-16
-_symbols = np.array([complex(x, y) for x in _xs for y in _ys]) * np.sqrt(0.5)
-modulator = QAM(_symbols)
+modulator = QAM(common.symbols)
 
 modem_bps = common.baud * modulator.bits_per_symbol * len(common.frequencies)
 
