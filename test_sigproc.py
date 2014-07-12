@@ -8,7 +8,8 @@ import random
 def test_qam():
     q = sigproc.QAM(common.symbols)
     r = random.Random(0)
-    bits = [tuple(r.randint(0, 1) for j in range(4)) for i in range(1024)]
+    m = q.bits_per_symbol
+    bits = [tuple(r.randint(0, 1) for j in range(m)) for i in range(1024)]
     stream = itertools.chain(*bits)
     S = q.encode(list(stream))
     decoded = list(q.decode(list(S)))

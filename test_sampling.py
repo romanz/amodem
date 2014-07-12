@@ -4,12 +4,10 @@ import numpy as np
 
 def test_resample():
     x = np.arange(300)
-    s = sampling.Sampler(x, )
+    s = sampling.Sampler(x)
     y = np.array(list(s))
 
-    w = s.interp.width
-    x = x[w-1:-w]
-    err = x - y
+    err = x[1:len(y)+1] - y
     assert np.max(np.abs(err)) < 1e-10
 
 
