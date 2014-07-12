@@ -21,6 +21,7 @@ SATURATION_THRESHOLD = 1.0
 
 LENGTH_FORMAT = '<I'
 
+
 def to_bits(bytes_list):
     for val in bytes_list:
         for i in range(8):
@@ -28,13 +29,17 @@ def to_bits(bytes_list):
             yield (1 if (val & mask) else 0)
 
 bit_weights = [1 << i for i in range(8)]
+
+
 def to_byte(bits):
     assert len(bits) == 8
     byte = int(np.dot(bits, bit_weights))
     return chr(byte)
 
+
 def load(fileobj):
     return loads(fileobj.read())
+
 
 def loads(data):
     x = np.fromstring(data, dtype='int16')
@@ -42,11 +47,13 @@ def loads(data):
     t = np.arange(len(x)) / Fs
     return t, x
 
+
 def dumps(sym, n=1):
     sym = sym.imag * scaling
     sym = sym.astype('int16')
     data = sym.tostring()
     return data * n
+
 
 def iterate(data, bufsize, offset=0, advance=1, func=None):
     assert bufsize > 0
@@ -68,7 +75,9 @@ def iterate(data, bufsize, offset=0, advance=1, func=None):
             buf_index = max(0, buf_index - advance)
             offset += advance
 
+
 class Splitter(object):
+
     def __init__(self, iterable, n):
         self.iterable = iter(iterable)
         self.read = [True] * n
@@ -92,8 +101,10 @@ class Splitter(object):
             self.read[index] = True
             yield self.last[index]
 
+
 def split(iterable, n):
     return Splitter(iterable, n).generators
+
 
 def icapture(iterable, result):
     for i in iter(iterable):
@@ -103,13 +114,10 @@ def icapture(iterable, result):
 if __name__ == '__main__':
 
     import pylab
-    def plot(f):
-        t = pylab.linspace(0, Tsym, 1e3)
-        x = pylab.sin(2 * pylab.pi * f * t)
-        pylab.plot(t / Tsym, x)
-        t = pylab.linspace(0, Tsym, Nsym + 1)
-        x = pylab.sin(2 * pylab.pi * f * t)
-        pylab.plot(t / Tsym, x, '.k')
-
-    plot(Fc)
+    t = pylab.linspace(0, Tsym, 1e3)
+    x = pylab.sin(2 * pylab.pi * Fc * t)
+    pylab.plot(t / Tsym, x)
+    t = pylab.linspace(0, Tsym, Nsym + 1)
+    x = pylab.sin(2 * pylab.pi * Fc * t)
+    pylab.plot(t / Tsym, x, '.k')
     pylab.show()
