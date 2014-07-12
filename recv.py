@@ -129,8 +129,10 @@ def demodulate(symbols, filters, freqs):
     for block in itertools.izip(*streams):
         for bits in block:
             bitstream.extend(bits)
-    log.info('Demodulated %d bits : %.3f kB @ %.3f seconds',
-             len(bitstream), len(bitstream) / 8e3, time.time() - start)
+    duration = time.time() - start
+    audio_time = len(bitstream) / sigproc.modem_bps
+    log.info('Demodulated %.3f kB @ %.3f seconds = %.1f%% realtime',
+             len(bitstream) / 8e3, duration, 100 * duration / audio_time)
 
     if pylab:
         pylab.figure()
