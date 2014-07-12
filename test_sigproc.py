@@ -4,6 +4,7 @@ import common
 import numpy as np
 import random
 
+
 def test_qam():
     q = sigproc.QAM(sigproc._symbols)
     r = random.Random(0)
@@ -12,6 +13,7 @@ def test_qam():
     S = q.encode(list(stream))
     decoded = list(q.decode(list(S)))
     assert decoded == bits
+
 
 def test_drift():
     fc = 10e3

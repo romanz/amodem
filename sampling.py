@@ -3,6 +3,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
+
 class Interpolator(object):
     def __init__(self, resolution=10000, width=128):
         self.width = width
@@ -27,6 +28,7 @@ class Interpolator(object):
         j = int((offset - k) * self.resolution)
         coeffs = self.filt[j]
         return coeffs, k - self.width
+
 
 class Sampler(object):
     def __init__(self, src, interp=None):
@@ -70,6 +72,6 @@ if __name__ == '__main__':
     _, x = common.load(sys.stdin)
     sampler = Sampler(x, Interpolator())
     sampler.freq += df
-    y = np.array(list(sampler), )
-    sys.stdout.write( common.dumps(y*1j) )
-
+    y = np.array(list(sampler))
+    y = common.dumps(y*1j)
+    sys.stdout.write(y)

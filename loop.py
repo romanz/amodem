@@ -1,9 +1,9 @@
 import numpy as np
 import itertools
 
-import recv
 import sampling
 import sigproc
+
 
 class Filter(object):
     def __init__(self, b, a=()):
@@ -20,6 +20,7 @@ class Filter(object):
         self.y = [y] + self.y
         return y
 
+
 class FreqLoop(object):
     def __init__(self, x, freqs, prefix=0.0):
         interp = sampling.Interpolator()
@@ -34,7 +35,8 @@ class FreqLoop(object):
 
         samplers = itertools.tee(self.sampler, len(freqs))
         for freq, generator in zip(freqs, samplers):
-            self.gens.append( sigproc.extract_symbols(generator, freq) )
+            gen = sigproc.extract_symbols(generator, freq)
+            self.gens.append(gen)
 
         Kp, Ki = 0.2, 0.01
         b = np.array([1, -1])*Kp + np.array([0.5, 0.5])*Ki
