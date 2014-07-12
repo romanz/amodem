@@ -112,7 +112,6 @@ def demodulate(symbols, filters, freqs):
     symbol_list = []
 
     generators = split(symbols, n=len(freqs))
-    print filters
     for freq, S in zip(freqs, generators):
         S = filters[freq](S)
 
