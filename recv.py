@@ -28,7 +28,7 @@ CARRIER_THRESHOLD = int(0.95 * CARRIER_DURATION)
 
 def detect(x, freq):
     counter = 0
-    for offset, buf in iterate(x, Nsym, advance=Nsym):
+    for offset, buf in iterate(x, Nsym):
         coeff = sigproc.coherence(buf, Fc)
         if abs(coeff) > COHERENCE_THRESHOLD:
             counter += 1
@@ -185,7 +185,7 @@ def main(fname):
     if data_bits is None:
         log.warning('Training failed!')
     else:
-        data = iterate(data_bits, bufsize=8, advance=8, func=to_byte)
+        data = iterate(data_bits, 8, func=to_byte)
         data = ''.join(c for _, c in data)
         import ecc
         data = ecc.decode(data)

@@ -91,7 +91,7 @@ def extract_symbols(x, freq, offset=0):
     Hc = exp_iwt(-freq, common.Nsym) / (0.5*common.Nsym)
     func = lambda y: np.dot(Hc, y)
 
-    iterator = common.iterate(x, common.Nsym, advance=common.Nsym, func=func)
+    iterator = common.iterate(x, common.Nsym, func=func)
     for _, symbol in iterator:
         yield symbol
 

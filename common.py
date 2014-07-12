@@ -1,4 +1,5 @@
 import functools
+import itertools
 import numpy as np
 
 import logging
@@ -59,25 +60,19 @@ def dumps(sym, n=1):
     return data * n
 
 
-def iterate(data, bufsize, offset=0, advance=1, func=None):
-    assert bufsize > 0
-    assert offset >= 0
-    assert advance > 0
-    buf = np.zeros(bufsize)
-    buf_index = 0
-    for data_index, value in enumerate(data):
-        if data_index < offset:
-            continue
+def iterate(data, size, func=None):
+    offset = 0
+    data = iter(data)
 
-        buf[buf_index] = value
-        buf_index += 1
+    while True:
+        buf = list(itertools.islice(data, size))
+        if len(buf) < size:
+            return
 
-        if buf_index == bufsize:
-            result = func(buf) if func else buf
-            yield offset, result
-            buf[:-advance] = buf[advance:]
-            buf_index = max(0, buf_index - advance)
-            offset += advance
+        buf = np.array(buf)
+        result = func(buf) if func else buf
+        yield offset, result
+        offset += size
 
 
 class Splitter(object):
