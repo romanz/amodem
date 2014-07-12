@@ -79,8 +79,8 @@ def receive_prefix(symbols):
 def train_receiver(symbols, freqs):
     filters = {}
     full_scale = len(freqs)
-    training_bits = np.array(train.equalizer)
-    expected = full_scale * training_bits
+    training = np.array(train.equalizer)
+    expected = full_scale * training
     if pylab:
         pylab.figure()
 
@@ -90,16 +90,15 @@ def train_receiver(symbols, freqs):
         filt = sigproc.train(S, expected)
         filters[freq] = filt
 
-        S = filt(S)
-        y = np.array(list(S)).real
+        S = list(filt(S))
+        y = np.array(S)
         if pylab:
             pylab.subplot(HEIGHT, WIDTH, i+1)
-            pylab.plot(y, '-', expected, '-')
-            pylab.title('Train: $F_c = {}Hz$'.format(freq))
+            show.constellation(y, 'Train: $F_c = {}Hz$'.format(freq))
 
-        train_result = y > 0.5 * full_scale
-        if not all(train_result == training_bits):
-            return ValueError('#{} training failed on {} Hz'.format(i, freq))
+        train_result = np.round(y)
+        if not all(train_result == training):
+            raise ValueError('#{} training failed on {} Hz'.format(i, freq))
 
         noise = y - expected
         Pnoise = sigproc.power(noise)
@@ -114,6 +113,7 @@ def demodulate(symbols, filters, freqs):
     symbol_list = []
 
     generators = split(symbols, n=len(freqs))
+    print filters
     for freq, S in zip(freqs, generators):
         S = filters[freq](S)
 
@@ -204,7 +204,10 @@ if __name__ == '__main__':
     p = argparse.ArgumentParser()
     p.add_argument('fname')
     args = p.parse_args()
-    main(fname=args.fname)
-
-    if pylab:
-        pylab.show()
+    try:
+        main(fname=args.fname)
+    except Exception as e:
+        log.exception(e)
+    finally:
+        if pylab:
+            pylab.show()
