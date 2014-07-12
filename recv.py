@@ -78,20 +78,19 @@ def receive_prefix(symbols):
 
 def train_receiver(symbols, freqs):
     filters = {}
-    full_scale = len(freqs)
+    scaling_factor = len(freqs)  # to avoid saturation
     training = np.array(train.equalizer)
-    expected = full_scale * training
     if pylab:
         pylab.figure()
 
     for i, freq in enumerate(freqs):
-        S = take(symbols, i, len(expected))
+        S = take(symbols, i, len(training))
 
-        filt = sigproc.train(S, expected)
+        filt = sigproc.train(S, training * scaling_factor)
         filters[freq] = filt
 
         S = list(filt(S))
-        y = np.array(S)
+        y = np.array(S) / scaling_factor
         if pylab:
             pylab.subplot(HEIGHT, WIDTH, i+1)
             show.constellation(y, 'Train: $F_c = {}Hz$'.format(freq))
@@ -100,7 +99,7 @@ def train_receiver(symbols, freqs):
         if not all(train_result == training):
             raise ValueError('#{} training failed on {} Hz'.format(i, freq))
 
-        noise = y - expected
+        noise = y - training
         Pnoise = sigproc.power(noise)
         log.info('%10.1f kHz: Noise sigma=%.4f, SNR=%.1f dB',
                  freq/1e3, Pnoise**0.5, 10*np.log10(1/Pnoise))
