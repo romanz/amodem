@@ -46,13 +46,15 @@ class QAM(object):
         if trailing_bits:
             bits = bits + [0] * (self.bits_per_symbol - trailing_bits)
         for i in range(0, len(bits), self.bits_per_symbol):
-            s = self._enc[ tuple(bits[i:i+self.bits_per_symbol]) ]
+            bits_tuple = tuple(bits[i:i+self.bits_per_symbol])
+            s = self._enc[bits_tuple]
             yield s
 
     def decode(self, symbols):
         for s in symbols:
             index = np.argmin(np.abs(s - self.symbols))
-            yield self._dec[ self.symbols[index] ]
+            S = self.symbols[index]
+            yield self._dec[S]
 
 _xs, _ys = np.linspace(-1, 1, 4), np.linspace(-1, 1, 4) # QAM-16
 _symbols = np.array([complex(x, y) for x in _xs for y in _ys]) * np.sqrt(0.5)
@@ -60,29 +62,38 @@ modulator = QAM(_symbols)
 
 modem_bps = common.baud * modulator.bits_per_symbol * len(common.frequencies)
 
+
 def clip(x, lims):
     return min(max(x, lims[0]), lims[1])
 
+
 def power(x):
     return np.dot(x.conj(), x).real / len(x)
+
 
 def exp_iwt(freq, n):
     iwt = 2j * np.pi * freq * np.arange(n) * common.Ts
     return np.exp(iwt)
 
+
 def norm(x):
     return np.sqrt(np.dot(x.conj(), x).real)
+
 
 def coherence(x, freq):
     n = len(x)
     Hc = exp_iwt(-freq, n) / np.sqrt(0.5*n)
     return np.dot(Hc, x) / norm(x)
 
+
 def extract_symbols(x, freq, offset=0):
     Hc = exp_iwt(-freq, common.Nsym) / (0.5*common.Nsym)
     func = lambda y: np.dot(Hc, y)
-    for _, symbol in common.iterate(x, common.Nsym, advance=common.Nsym, func=func):
+
+    iterator = common.iterate(x, common.Nsym, advance=common.Nsym, func=func)
+    for _, symbol in iterator:
         yield symbol
+
 
 def drift(S):
     x = np.arange(len(S))
