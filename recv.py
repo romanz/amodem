@@ -115,9 +115,10 @@ def demodulate(symbols, filters, freqs):
     for freq, S in zip(freqs, generators):
         S = filters[freq](S)
 
-        equalized = []
-        S = icapture(S, result=equalized)
-        symbol_list.append(equalized)
+        if pylab:
+            equalized = []
+            S = icapture(S, result=equalized)
+            symbol_list.append(equalized)
 
         bits = sigproc.modulator.decode(S)  # list of bit tuples
         streams.append(bits)
