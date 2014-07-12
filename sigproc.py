@@ -3,6 +3,7 @@ from numpy import linalg
 
 import common
 
+
 def lfilter(b, a, x):
     b = np.array(b) / a[0]
     a = np.array(a[1:]) / a[0]
@@ -11,17 +12,19 @@ def lfilter(b, a, x):
     y_ = [0] * len(a)
     for v in x:
         x_ = [v] + x_[:-1]
-        u  = np.dot(x_, b)
+        u = np.dot(x_, b)
         u = u - np.dot(y_, a)
 
         y_ = [u] + y_[1:]
         yield u
 
+
 def train(S, training):
-    A = np.array([ S[1:], S[:-1], training[:-1] ]).T
+    A = np.array([S[1:], S[:-1], training[:-1]]).T
     b = training[1:]
     b0, b1, a1 = linalg.lstsq(A, b)[0]
     return lambda x: lfilter(b=[b0, b1], a=[1, -a1], x=x)
+
 
 class QAM(object):
     def __init__(self, symbols):
