@@ -25,6 +25,7 @@ COHERENCE_THRESHOLD = 0.95
 CARRIER_DURATION = sum(train.prefix)
 CARRIER_THRESHOLD = int(0.95 * CARRIER_DURATION)
 
+
 def detect(x, freq):
     counter = 0
     for offset, buf in iterate(x, Nsym, advance=Nsym):
@@ -37,6 +38,7 @@ def detect(x, freq):
         if counter == CARRIER_THRESHOLD:
             length = CARRIER_THRESHOLD * Nsym
             return offset - length + Nsym, offset
+
 
 def find_start(x, start):
     WINDOW = Nsym * 10
@@ -51,8 +53,11 @@ def find_start(x, start):
     log.info('Carrier starts at {:.3f} ms'.format(start * Tsym * 1e3 / Nsym))
     return start
 
+
 def take(symbols, i, n):
-    return np.array([s if i is None else s[i] for s in itertools.islice(symbols, n)])
+    symbols = itertools.islice(symbols, n)
+    return np.array([(s if (i is None) else s[i]) for s in symbols])
+
 
 def receive_prefix(symbols):
     S = take(symbols, carrier_index, len(train.prefix))
@@ -65,9 +70,11 @@ def receive_prefix(symbols):
 
     log.info('Prefix OK')
 
-    err = sigproc.drift( S[np.array(train.prefix, dtype=bool)] ) / (Tsym * Fc)
+    pilot_tone = S[np.array(train.prefix, dtype=bool)]
+    err = sigproc.drift(pilot_tone) / (Tsym * Fc)
     log.info('Frequency error: %.2f ppm', err * 1e6)
     return err
+
 
 def train_receiver(symbols, freqs):
     filters = {}
@@ -96,9 +103,11 @@ def train_receiver(symbols, freqs):
 
         noise = y - expected
         Pnoise = sigproc.power(noise)
-        log.info('{:10.1f} kHz: Noise sigma={:.4f}, SNR={:.1f} dB'.format( freq/1e3, Pnoise**0.5, 10*np.log10(1/Pnoise) ))
+        log.info('%10.1f kHz: Noise sigma=%.4f, SNR=%.1f dB',
+                 freq/1e3, Pnoise**0.5, 10*np.log10(1/Pnoise))
 
     return filters
+
 
 def demodulate(symbols, filters, freqs):
     streams = []
@@ -122,14 +131,15 @@ def demodulate(symbols, filters, freqs):
         for bits in block:
             bitstream.extend(bits)
     log.info('Demodulated %d bits : %.3f kB @ %.3f seconds',
-        len(bitstream), len(bitstream) / 8e3, time.time() - start)
+             len(bitstream), len(bitstream) / 8e3, time.time() - start)
 
     if pylab:
         pylab.figure()
         symbol_list = np.array(symbol_list)
         for i, freq in enumerate(freqs):
             pylab.subplot(HEIGHT, WIDTH, i+1)
-            show.constellation(symbol_list[i], title='$F_c = {} Hz$'.format(freq))
+            title = '$F_c = {} Hz$'.format(freq)
+            show.constellation(symbol_list[i], title)
     return bitstream
 
 
@@ -159,9 +169,10 @@ def main(fname):
     Hc = sigproc.exp_iwt(-Fc, len(x_))
     Zc = np.dot(Hc, x_) / (0.5*len(x_))
     amp = abs(Zc)
-    log.info('Carrier detected at ~{:.1f} ms @ {:.1f} kHz: coherence={:.3f}%, amplitude={:.3f}'.format(
-          begin * Tsym * 1e3 / Nsym, Fc / 1e3, abs(sigproc.coherence(x_, Fc)) * 100, amp
-    ))
+    log.info('Carrier detected at ~%.1f ms @ %.1f kHz:'
+             ' coherence=%.3f%%, amplitude=%.3f',
+             begin * Tsym * 1e3 / Nsym, Fc / 1e3,
+             np.abs(sigproc.coherence(x_, Fc)) * 100, amp)
 
     start = find_start(x, begin)
     x = x[start:]
@@ -186,8 +197,14 @@ def main(fname):
             f.write(data)
 
 if __name__ == '__main__':
-    import sys
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)-12s %(message)s')
-    main(fname=sys.argv[1])
+    logging.basicConfig(level=logging.INFO,
+                        format='%(asctime)s %(levelname)-12s %(message)s')
+
+    import argparse
+    p = argparse.ArgumentParser()
+    p.add_argument('fname')
+    args = p.parse_args()
+    main(fname=args.fname)
+
     if pylab:
         pylab.show()
