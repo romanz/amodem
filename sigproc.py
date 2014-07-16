@@ -53,10 +53,12 @@ class QAM(object):
             s = self._enc[bits_tuple]
             yield s
 
-    def decode(self, symbols):
+    def decode(self, symbols, error_handler=None):
         for s in symbols:
             index = np.argmin(np.abs(s - self.symbols))
             S = self.symbols[index]
+            if error_handler:
+                error_handler(received=s, decoded=S)
             yield self._dec[S]
 
 modulator = QAM(common.symbols)
