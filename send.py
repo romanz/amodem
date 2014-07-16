@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import numpy as np
-
+import sys
 import logging
 import itertools
 
@@ -17,8 +17,7 @@ class Symbol(object):
     carrier = [np.exp(2j * np.pi * F * t) for F in frequencies]
 
 sym = Symbol()
-
-data = open('data.send', 'r').read()
+data = sys.stdin.read()
 
 
 def write(fd, sym, n=1):

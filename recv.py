@@ -3,6 +3,7 @@ import numpy as np
 import logging
 import itertools
 import time
+import sys
 import os
 
 log = logging.getLogger(__name__)
@@ -194,8 +195,7 @@ def main(fname):
             return
 
         log.info('Decoded %.3f kB', len(data) / 1e3)
-        with file('data.recv', 'wb') as f:
-            f.write(data)
+        sys.stdout.write(data)
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO,

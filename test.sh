@@ -3,7 +3,7 @@ set -u
 set -e 
 
 dd if=/dev/urandom of=data.send bs=1024 count=16 status=none
-./send.py tx.int16
+./send.py tx.int16 < data.send
 
 killall arecord aplay || true
 
@@ -13,7 +13,7 @@ sleep 1
 
 killall arecord aplay || true
 
-./recv.py rx.int16
+./recv.py rx.int16 > data.recv
 ./errors.py data.* 
 if [ -z $? ]; then
 	./show.py tx.int16 rx.int16
