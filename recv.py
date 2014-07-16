@@ -122,12 +122,12 @@ def demodulate(symbols, filters, freqs):
             symbol_list.append(equalized)
 
         bits = sigproc.modulator.decode(S)  # list of bit tuples
-        streams.append(bits)
+        streams.append(bits)  # stream per frequency
 
     log.info('Demodulation started')
     bitstream = []
     start = time.time()
-    for block in itertools.izip(*streams):
+    for block in itertools.izip(*streams):  # block per frequency
         for bits in block:
             bitstream.extend(bits)
     duration = time.time() - start
