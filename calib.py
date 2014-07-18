@@ -10,15 +10,22 @@ t = np.arange(int(Tsample * common.Fs)) * common.Ts
 sig = np.exp(2j * np.pi * common.Fc * t)
 sig_dump = common.dumps(sig)
 
+
 def send():
     p = wave.play('-', stdin=wave.sp.PIPE)
     while True:
-        p.stdin.write(sig_dump)
+        try:
+            p.stdin.write(sig_dump)
+        except IOError:
+            return
+
 
 def recv():
     out = wave.record('-', stdout=wave.sp.PIPE).stdout
     while True:
         data = out.read(len(sig_dump))
+        if len(data) < len(sig_dump):
+            return
         _, x = common.loads(data)
         x = x - np.mean(x)
 
@@ -27,18 +34,18 @@ def recv():
         amp = np.abs(z)
         phase = np.angle(z)
         peak = np.max(np.abs(x))
-        print('coherence={:.3f} amp={:.3f} phase={:.1f} peak={:.3f}'.format(c, amp, phase * 180 / np.pi, peak))
+        print('coherence={:.3f} amp={:.3f} phase={:.1f} peak={:.3f}'.format(
+              c, amp, phase * 180 / np.pi, peak))
 
-def plot(x, z):
-    pylab.plot(x)
-    pylab.plot((sig * z).real)
-    pylab.show()
 
 if __name__ == '__main__':
-    import sys
-    opt, = sys.argv[1:]
-    if opt == 'send':
-        send()
-    if opt == 'recv':
-        recv()
-
+    import argparse
+    p = argparse.ArgumentParser()
+    sub = p.add_subparsers()
+    sub.add_parser('send').set_defaults(func=send)
+    sub.add_parser('recv').set_defaults(func=recv)
+    args = p.parse_args()
+    try:
+        args.func()
+    except KeyboardInterrupt:
+        pass
