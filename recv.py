@@ -13,7 +13,7 @@ import loop
 import train
 from common import *
 
-if os.environ.get('PYLAB') is not None:
+if os.environ.get('PYLAB') == '1':
     import pylab
     import show
     WIDTH = np.floor(np.sqrt(len(frequencies)))
