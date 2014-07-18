@@ -5,7 +5,7 @@ import struct
 import logging
 log = logging.getLogger(__name__)
 
-DEFAULT_NSYM = 25
+DEFAULT_NSYM = 10
 BLOCK_SIZE = 255
 
 LEN_FMT = '<I'
