@@ -55,13 +55,13 @@ def find_start(x, start):
     return start
 
 
-def take(symbols, i, n):
+def take(symbols, n):
     symbols = itertools.islice(symbols, n)
-    return np.array([(s if (i is None) else s[i]) for s in symbols])
+    return np.array(list(symbols))
 
 
 def receive_prefix(symbols):
-    S = take(symbols, carrier_index, len(train.prefix))
+    S = take(symbols, len(train.prefix))[:, carrier_index]
     y = np.abs(S)
     bits = np.round(y)
 
@@ -84,8 +84,11 @@ def train_receiver(symbols, freqs):
     if pylab:
         pylab.figure()
 
+    symbols = take(symbols, len(training) * len(freqs))
     for i, freq in enumerate(freqs):
-        S = take(symbols, i, len(training))
+        size = len(training)
+        offset = i * size
+        S = symbols[offset:offset+size, i]
 
         filt = sigproc.train(S, training * scaling_factor)
         filters[freq] = filt
