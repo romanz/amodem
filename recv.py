@@ -114,6 +114,11 @@ def train_receiver(symbols, freqs):
 def demodulate(symbols, filters, freqs):
     streams = []
     symbol_list = []
+    errors = {}
+
+    def error_handler(received, decoded, freq):
+        errlist = errors.setdefault(freq, [])
+        errlist.append(received - decoded)
 
     generators = split(symbols, n=len(freqs))
     for freq, S in zip(freqs, generators):
@@ -124,7 +129,8 @@ def demodulate(symbols, filters, freqs):
             S = icapture(S, result=equalized)
             symbol_list.append(equalized)
 
-        bits = sigproc.modulator.decode(S)  # list of bit tuples
+        freq_handler = functools.partial(error_handler, freq=freq)
+        bits = sigproc.modulator.decode(S, freq_handler)  # list of bit tuples
         streams.append(bits)  # stream per frequency
 
     log.info('Demodulation started')
