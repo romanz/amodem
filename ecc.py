@@ -10,6 +10,7 @@ BLOCK_SIZE = 255
 
 LEN_FMT = '<I'
 
+
 def encode(data, nsym=DEFAULT_NSYM):
     log.debug('Encoded {} bytes'.format(len(data)))
     data = bytearray(struct.pack(LEN_FMT, len(data)) + data)
@@ -24,6 +25,7 @@ def encode(data, nsym=DEFAULT_NSYM):
 
     return enc
 
+
 def decode(data, nsym=DEFAULT_NSYM):
     data = bytearray(data)
     dec = bytearray()
@@ -31,7 +33,8 @@ def decode(data, nsym=DEFAULT_NSYM):
         chunk = data[i:i+BLOCK_SIZE]
         try:
             dec.extend(rs_correct_msg(chunk, nsym))
-            log.debug('Decoded %d blocks = %d bytes', (i+1) / BLOCK_SIZE, len(dec))
+            log.debug('Decoded %d blocks = %d bytes',
+                      (i+1) / BLOCK_SIZE, len(dec))
         except ReedSolomonError as e:
             log.debug('Decoding stopped: %s', e)
             break
@@ -41,7 +44,8 @@ def decode(data, nsym=DEFAULT_NSYM):
 
     overhead = (i - len(dec)) / float(i)
     blocks = i / BLOCK_SIZE
-    log.debug('Decoded %d blocks = %d bytes (ECC overhead %.1f%%)', blocks, len(dec), overhead * 100)
+    log.debug('Decoded %d blocks = %d bytes (ECC overhead %.1f%%)',
+              blocks, len(dec), overhead * 100)
 
     n = struct.calcsize(LEN_FMT)
     payload, length = dec[n:], dec[:n]
