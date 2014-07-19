@@ -166,11 +166,20 @@ def receive(signal, freqs):
 
 
 def decode(bits_iterator):
-    bits = list(bits_iterator)
-    data = iterate(bits, 8, func=to_byte)
-    data = ''.join(c for _, c in data)
-
+    import cStringIO
+    import bitarray
     import ecc
+
+    result = cStringIO.StringIO()
+    while True:
+        bits = itertools.islice(bits_iterator, 8 * ecc.BLOCK_SIZE)
+        block = bitarray.bitarray(endian='little')
+        block.extend(bits)
+        if not block:
+            break
+        result.write(block)
+
+    data = result.getvalue()
     data = ecc.decode(data)
     if data is None:
         log.warning('No blocks decoded!')
