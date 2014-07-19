@@ -149,8 +149,7 @@ def demodulate(symbols, filters, freqs):
         symbol_list = np.array(symbol_list)
         for i, freq in enumerate(freqs):
             pylab.subplot(HEIGHT, WIDTH, i+1)
-            title = '$F_c = {} Hz$'.format(freq)
-            show.constellation(symbol_list[i], title)
+            show.constellation(symbol_list[i], '$F_c = {} Hz$'.format(freq))
     return bitstream
 
 
