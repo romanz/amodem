@@ -39,7 +39,7 @@ def decode(data, nsym=DEFAULT_NSYM):
             log.debug('Decoding stopped: %s', e)
             break
 
-    if i == 0:
+    if not dec:
         return None
 
     overhead = (i - len(dec)) / float(i)
