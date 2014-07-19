@@ -134,15 +134,17 @@ def demodulate(symbols, filters, freqs):
         streams.append(bits)  # stream per frequency
 
     log.info('Demodulation started')
-    bitstream = []
+    decoded_bits = 0
     start = time.time()
     for block in itertools.izip(*streams):  # block per frequency
         for bits in block:
-            bitstream.extend(bits)
+            yield bits
+            decoded_bits = decoded_bits + len(bits)
+
     duration = time.time() - start
-    audio_time = len(bitstream) / sigproc.modem_bps
+    audio_time = decoded_bits / sigproc.modem_bps
     log.info('Demodulated %.3f kB @ %.3f seconds = %.1f%% realtime',
-             len(bitstream) / 8e3, duration, 100 * duration / audio_time)
+             decoded_bits / 8e3, duration, 100 * duration / audio_time)
 
     if pylab:
         pylab.figure()
@@ -150,7 +152,6 @@ def demodulate(symbols, filters, freqs):
         for i, freq in enumerate(freqs):
             pylab.subplot(HEIGHT, WIDTH, i+1)
             show.constellation(symbol_list[i], '$F_c = {} Hz$'.format(freq))
-    return bitstream
 
 
 def receive(signal, freqs):
@@ -162,6 +163,19 @@ def receive(signal, freqs):
 
     filters = train_receiver(symbols, freqs)
     return demodulate(symbols, filters, freqs)
+
+
+def decode(bits_iterator):
+    bits = list(bits_iterator)
+    data = iterate(bits, 8, func=to_byte)
+    data = ''.join(c for _, c in data)
+
+    import ecc
+    data = ecc.decode(data)
+    if data is None:
+        log.warning('No blocks decoded!')
+
+    return data
 
 
 def main(fname):
@@ -191,19 +205,11 @@ def main(fname):
         raise ValueError('Saturation detected: {:.3f}'.format(peak))
 
     data_bits = receive(x / amp, frequencies)
-    if data_bits is None:
-        log.warning('Training failed!')
-    else:
-        data = iterate(data_bits, 8, func=to_byte)
-        data = ''.join(c for _, c in data)
-        import ecc
-        data = ecc.decode(data)
-        if data is None:
-            log.warning('No blocks decoded!')
-            return
+    bits = itertools.chain.from_iterable(data_bits)
+    data = decode(bits)
 
-        log.info('Decoded %.3f kB', len(data) / 1e3)
-        sys.stdout.write(data)
+    log.info('Decoded %.3f kB', len(data) / 1e3)
+    sys.stdout.write(data)
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO,
