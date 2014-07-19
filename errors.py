@@ -7,6 +7,9 @@ tx = bytearray(open(tx).read())
 rx = bytearray(open(rx).read())
 
 L = min(len(tx), len(rx))
+if L == 0:
+    sys.exit(1)
+
 rx = list(common.to_bits(rx[:L]))
 tx = list(common.to_bits(tx[:L]))
 indices = [index for index, (r, t) in enumerate(zip(rx, tx)) if r != t]
