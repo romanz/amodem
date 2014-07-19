@@ -10,8 +10,8 @@ for line in lines:
         data = binascii.unhexlify(head)
         data = map(ord, data)
         bars = ['\033[48;5;%dm \033[m' % (x,) for x in data]
-        bars = '{{{}}}'.format(''.join(bars))
+        bars = ''.join(bars)
     except TypeError:
         pass
 
-    print('%s %s %s' % (head, tail, bars))
+    print('%s: %s %s' % (bars, head, tail))
