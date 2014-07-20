@@ -203,21 +203,24 @@ def main(fname):
 
     size = 0
     bits = receive(x / amp, frequencies)
-    for chunk in decode(bits):
-        sys.stdout.write(chunk)
-        size = size + len(chunk)
+    try:
+        for chunk in decode(bits):
+            sys.stdout.write(chunk)
+            size = size + len(chunk)
+    except Exception:
+        log.exception('Decoding failed')
 
-    log.info('Decoded %.3f kB', size / 1e3)
+    log.info('Decoded %.3f kB: %r', size / 1e3, stats['rx_bits'])
 
     duration = time.time() - stats['rx_start']
-    audio_time = stats['rx_bits'] / sigproc.modem_bps
+    audio_time = stats['rx_bits'] / float(sigproc.modem_bps)
     log.info('Demodulated %.3f kB @ %.3f seconds = %.1f%% realtime',
              stats['rx_bits'] / 8e3, duration, 100 * duration / audio_time)
 
     if pylab:
         pylab.figure()
-        symbol_list = np.array(symbol_list)
-        for i, freq in enumerate(freqs):
+        symbol_list = np.array(stats['symbol_list'])
+        for i, freq in enumerate(frequencies):
             pylab.subplot(HEIGHT, WIDTH, i+1)
             show.constellation(symbol_list[i], '$F_c = {} Hz$'.format(freq))
 
