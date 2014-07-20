@@ -32,16 +32,5 @@ class FreqLoop(object):
             gen = sigproc.extract_symbols(generator, freq)
             self.gens.append(gen)
 
-        Kp, Ki = 0.2, 0.01
-        b = np.array([1, -1])*Kp + np.array([0.5, 0.5])*Ki
-        self.filt = Filter(b=b, a=[1])
-        self.correction = 0.0
-
-    def correct(self, actual, expected):
-        self.err = np.angle(expected / actual) / np.pi
-        self.err = sigproc.clip(self.err, [-0.1, 0.1])
-        self.correction = self.filt(self.err)
-        self.sampler.correct(offset=self.correction)
-
     def __iter__(self):
         return itertools.izip(*self.gens)
