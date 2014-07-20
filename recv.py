@@ -111,6 +111,9 @@ def train_receiver(symbols, freqs):
     return filters
 
 
+stats = {}
+
+
 def demodulate(symbols, filters, freqs):
     streams = []
     symbol_list = []
@@ -133,26 +136,15 @@ def demodulate(symbols, filters, freqs):
         bits = sigproc.modulator.decode(S, freq_handler)  # list of bit tuples
         streams.append(bits)  # stream per frequency
 
+    stats['symbol_list'] = symbol_list
+    stats['rx_bits'] = 0
+    stats['rx_start'] = time.time()
+
     log.info('Demodulation started')
-    decoded_bits = 0
-    start = time.time()
     for block in itertools.izip(*streams):  # block per frequency
         for bits in block:
+            stats['rx_bits'] = stats['rx_bits'] + len(bits)
             yield bits
-            decoded_bits = decoded_bits + len(bits)
-
-    # TODO: make this run even after EOF
-    duration = time.time() - start
-    audio_time = decoded_bits / sigproc.modem_bps
-    log.info('Demodulated %.3f kB @ %.3f seconds = %.1f%% realtime',
-             decoded_bits / 8e3, duration, 100 * duration / audio_time)
-
-    if pylab:
-        pylab.figure()
-        symbol_list = np.array(symbol_list)
-        for i, freq in enumerate(freqs):
-            pylab.subplot(HEIGHT, WIDTH, i+1)
-            show.constellation(symbol_list[i], '$F_c = {} Hz$'.format(freq))
 
 
 def receive(signal, freqs):
@@ -180,8 +172,7 @@ def decode(bits_iterator):
                 break
             yield bytearray(block.tobytes())
 
-    data = ecc.decode(blocks())
-    return data
+    return ecc.decode(blocks())
 
 
 def main(fname):
@@ -217,6 +208,18 @@ def main(fname):
         size = size + len(chunk)
 
     log.info('Decoded %.3f kB', size / 1e3)
+
+    duration = time.time() - stats['rx_start']
+    audio_time = stats['rx_bits'] / sigproc.modem_bps
+    log.info('Demodulated %.3f kB @ %.3f seconds = %.1f%% realtime',
+             stats['rx_bits'] / 8e3, duration, 100 * duration / audio_time)
+
+    if pylab:
+        pylab.figure()
+        symbol_list = np.array(symbol_list)
+        for i, freq in enumerate(freqs):
+            pylab.subplot(HEIGHT, WIDTH, i+1)
+            show.constellation(symbol_list[i], '$F_c = {} Hz$'.format(freq))
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO,
