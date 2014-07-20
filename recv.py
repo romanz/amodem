@@ -38,7 +38,28 @@ def detect(x, freq):
 
         if counter == CARRIER_THRESHOLD:
             length = CARRIER_THRESHOLD * Nsym
-            return offset - length + Nsym, offset
+            begin = offset - length + Nsym
+            end = offset
+            break
+    else:
+        return None
+
+    x_ = x[begin:end]
+    Hc = sigproc.exp_iwt(-Fc, len(x_))
+    Zc = np.dot(Hc, x_) / (0.5*len(x_))
+    amp = abs(Zc)
+    log.info('Carrier detected at ~%.1f ms @ %.1f kHz:'
+             ' coherence=%.3f%%, amplitude=%.3f',
+             begin * Tsym * 1e3 / Nsym, Fc / 1e3,
+             np.abs(sigproc.coherence(x_, Fc)) * 100, amp)
+
+    start = find_start(x, begin)
+    x = x[start:]
+    peak = np.max(np.abs(x))
+    if peak > SATURATION_THRESHOLD:
+        raise ValueError('Saturation detected: {:.3f}'.format(peak))
+
+    return x / amp
 
 
 def find_start(x, start):
@@ -196,29 +217,13 @@ def main(fname):
     log.info('Running MODEM @ {:.1f} kbps'.format(sigproc.modem_bps / 1e3))
 
     _, x = load(open(fname, 'rb'))
-    result = detect(x, Fc)
-    if result is None:
-        log.info('No carrier detected')
+    y = detect(x, Fc)
+    if y is None:
+        log.warning('No carrier detected')
         return
 
-    begin, end = result
-    x_ = x[begin:end]
-    Hc = sigproc.exp_iwt(-Fc, len(x_))
-    Zc = np.dot(Hc, x_) / (0.5*len(x_))
-    amp = abs(Zc)
-    log.info('Carrier detected at ~%.1f ms @ %.1f kHz:'
-             ' coherence=%.3f%%, amplitude=%.3f',
-             begin * Tsym * 1e3 / Nsym, Fc / 1e3,
-             np.abs(sigproc.coherence(x_, Fc)) * 100, amp)
-
-    start = find_start(x, begin)
-    x = x[start:]
-    peak = np.max(np.abs(x))
-    if peak > SATURATION_THRESHOLD:
-        raise ValueError('Saturation detected: {:.3f}'.format(peak))
-
     size = 0
-    bits = receive(x / amp, frequencies)
+    bits = receive(y, frequencies)
     try:
         for chunk in decode(bits):
             sys.stdout.write(chunk)
