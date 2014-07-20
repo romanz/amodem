@@ -64,8 +64,8 @@ def main(fname):
         for block in ecc.encode(data):
             buf.extend(block)
         bits = list(to_bits(buf))
-        ecc_ratio = 1.0 - len(data)*8.0 / len(bits)
-        log.info('%d bits modulated (%.1f%% ECC)', len(bits), ecc_ratio * 100)
+        ratio = 1.0 - len(data)*8.0 / len(bits)
+        log.info('%d bits modulated (%.1f%% overhead)', len(bits), ratio * 100)
         modulate(fd, bits)
         data_size = fd.tell() - training_size
         log.info('%.3f seconds of data audio',
