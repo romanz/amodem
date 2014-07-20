@@ -179,7 +179,7 @@ def decode(bits_iterator):
             break
         result.write(block)
 
-    data = result.getvalue()
+    data = bytearray(result.getvalue())
     data = ecc.decode(data)
     if data is None:
         log.warning('No blocks decoded!')
@@ -215,10 +215,12 @@ def main(fname):
 
     data_bits = receive(x / amp, frequencies)
     bits = itertools.chain.from_iterable(data_bits)
-    data = decode(bits)
+    size = 0
+    for chunk in decode(bits):
+        sys.stdout.write(chunk)
+        size = size + len(chunk)
 
-    log.info('Decoded %.3f kB', len(data) / 1e3)
-    sys.stdout.write(data)
+    log.info('Decoded %.3f kB', size / 1e3)
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO,
