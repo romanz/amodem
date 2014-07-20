@@ -103,6 +103,7 @@ def drift(S):
     x = np.arange(len(S))
     x = x - np.mean(x)
     y = np.unwrap(np.angle(S)) / (2*np.pi)
-    y = y - np.mean(y)
+    mean_y = np.mean(y)
+    y = y - mean_y
     a = np.dot(x, y) / np.dot(x, x)
-    return a
+    return a, mean_y

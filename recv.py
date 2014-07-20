@@ -62,19 +62,25 @@ def take(symbols, n):
 
 def receive_prefix(symbols):
     S = take(symbols, len(train.prefix))[:, carrier_index]
-    y = np.abs(S)
-    bits = np.round(y)
+    sliced = np.round(S)
 
-    bits = np.array(bits, dtype=int)
+    nonzeros = np.array(train.prefix, dtype=bool)
+
+    bits = np.array(np.abs(sliced), dtype=int)
     if all(bits != train.prefix):
         raise ValueError('Incorrect prefix')
 
     log.info('Prefix OK')
 
-    pilot_tone = S[np.array(train.prefix, dtype=bool)]
-    err = sigproc.drift(pilot_tone) / (Tsym * Fc)
-    log.info('Frequency error: %.2f ppm', err * 1e6)
-    return err
+    pilot_tone = S[nonzeros]
+
+    freq_err, mean_phase = sigproc.drift(pilot_tone) / (Tsym * Fc)
+    expected_phase, = set(np.angle(sliced[nonzeros]) / (2 * np.pi))
+
+    sampling_err = (mean_phase - expected_phase) * Nsym
+    log.info('Frequency error: %.2f ppm', freq_err * 1e6)
+    log.info('Sampling error: %.2f samples', sampling_err)
+    return freq_err, sampling_err
 
 
 def train_receiver(symbols, freqs):
@@ -93,11 +99,12 @@ def train_receiver(symbols, freqs):
         filt = sigproc.train(S, training * scaling_factor)
         filters[freq] = filt
 
-        S = list(filt(S))
-        y = np.array(S) / scaling_factor
+        Y = list(filt(S))
+        y = np.array(Y) / scaling_factor
         if pylab:
             pylab.subplot(HEIGHT, WIDTH, i+1)
             show.constellation(y, 'Train: $F_c = {}Hz$'.format(freq))
+            pylab.plot(S.real, S.imag, '.-')
 
         train_result = np.round(y)
         if not all(train_result == training):
@@ -151,8 +158,9 @@ def receive(signal, freqs):
     signal = loop.FreqLoop(signal, freqs)
     symbols = iter(signal)
 
-    err = receive_prefix(symbols)
-    signal.sampler.freq -= err
+    freq_err, offset_err = receive_prefix(symbols)
+    signal.sampler.freq -= freq_err
+    signal.sampler.offset -= offset_err
 
     filters = train_receiver(symbols, freqs)
     data_bits = demodulate(symbols, filters, freqs)
