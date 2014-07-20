@@ -121,14 +121,13 @@ def train_receiver(symbols, freqs):
 stats = {}
 
 
-def demodulate(symbols, filters, freqs):
+def demodulate(symbols, filters, freqs, sampler):
     streams = []
     symbol_list = []
     errors = {}
 
     def error_handler(received, decoded, freq):
-        errlist = errors.setdefault(freq, [])
-        errlist.append(received - decoded)
+        errors.setdefault(freq, []).append(received / decoded)
 
     generators = split(symbols, n=len(freqs))
     for freq, S in zip(freqs, generators):
@@ -148,10 +147,19 @@ def demodulate(symbols, filters, freqs):
     stats['rx_start'] = time.time()
 
     log.info('Demodulation started')
-    for block in itertools.izip(*streams):  # block per frequency
+    for i, block in enumerate(itertools.izip(*streams)):  # block per frequency
         for bits in block:
             stats['rx_bits'] = stats['rx_bits'] + len(bits)
             yield bits
+
+        if i and i % baud == 0:
+            mean_err = np.array([e for v in errors.values() for e in v])
+            correction = np.mean(np.angle(mean_err)) / (2*np.pi)
+            log.debug('%10.1f kB, sampling error: %+.3f%%',
+                      stats['rx_bits'] / 8e3, correction * 1e2)
+            errors.clear()
+            sampler.freq -= 0.01 * correction / Fc
+            sampler.offset -= correction
 
 
 def receive(signal, freqs):
@@ -163,7 +171,7 @@ def receive(signal, freqs):
     signal.sampler.offset -= offset_err
 
     filters = train_receiver(symbols, freqs)
-    data_bits = demodulate(symbols, filters, freqs)
+    data_bits = demodulate(symbols, filters, freqs, signal.sampler)
     return itertools.chain.from_iterable(data_bits)
 
 
@@ -218,12 +226,12 @@ def main(fname):
     except Exception:
         log.exception('Decoding failed')
 
-    log.info('Decoded %.3f kB: %r', size / 1e3, stats['rx_bits'])
-
     duration = time.time() - stats['rx_start']
     audio_time = stats['rx_bits'] / float(sigproc.modem_bps)
     log.info('Demodulated %.3f kB @ %.3f seconds = %.1f%% realtime',
              stats['rx_bits'] / 8e3, duration, 100 * duration / audio_time)
+
+    log.info('Decoded %.3f kB', size / 1e3)
 
     if pylab:
         pylab.figure()
@@ -233,7 +241,7 @@ def main(fname):
             show.constellation(symbol_list[i], '$F_c = {} Hz$'.format(freq))
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO,
+    logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s %(levelname)-12s %(message)s')
 
     import argparse
