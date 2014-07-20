@@ -9,9 +9,9 @@ for line in lines:
     try:
         data = binascii.unhexlify(head)
         data = map(ord, data)
-        bars = ['\033[48;5;%dm \033[m' % (x,) for x in data]
-        bars = ''.join(bars)
+        bars = ['\033[48;5;%dm%02x\033[m' % (x, x) for x in data]
+        head = ''.join(bars)
     except TypeError:
         pass
 
-    print('%s: %s %s' % (bars, head, tail))
+    print('%s %s' % (head, tail))
