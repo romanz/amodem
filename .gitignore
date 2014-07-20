@@ -5,3 +5,6 @@
 *.txt
 *.png
 *.csv
+*.int16
+data.*
+*.prof
