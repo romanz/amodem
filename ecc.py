@@ -36,14 +36,14 @@ def encode(data, nsym=DEFAULT_NSYM):
 def decode(data, nsym=DEFAULT_NSYM):
 
     last_chunk = end_of_stream(BLOCK_SIZE - nsym - 1)
-    for _, chunk in common.iterate(data, BLOCK_SIZE):
-        chunk = bytearray(rs_correct_msg(chunk, nsym))
+    for _, block in common.iterate(data, BLOCK_SIZE):
+        chunk = bytearray(rs_correct_msg(block, nsym))
         if chunk == last_chunk:
             return  # end of stream
 
         size = chunk[0]
-        chunk = chunk[1:]
-        if size > len(chunk):
-            raise ValueError('Invalid chunk', size, len(chunk), chunk)
+        payload = chunk[1:]
+        if size > len(payload):
+            raise ValueError('Invalid chunk', size, len(payload), payload)
 
-        yield chunk[:size]
+        yield payload[:size]
