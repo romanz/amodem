@@ -5,13 +5,13 @@ set -e
 dd if=/dev/urandom of=data.send bs=1024 count=16 status=none
 ./send.py tx.int16 < data.send
 
-killall arecord aplay || true
+killall -q arecord aplay || true
 
 ./wave.py record rx.int16 &
 ./wave.py play   tx.int16
 sleep 1
 
-killall arecord aplay || true
+killall -q arecord aplay || true
 
 ./recv.py rx.int16 > data.recv
 ./errors.py data.* 
