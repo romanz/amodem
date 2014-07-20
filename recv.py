@@ -141,6 +141,7 @@ def demodulate(symbols, filters, freqs):
             yield bits
             decoded_bits = decoded_bits + len(bits)
 
+    # TODO: make this run even after EOF
     duration = time.time() - start
     audio_time = decoded_bits / sigproc.modem_bps
     log.info('Demodulated %.3f kB @ %.3f seconds = %.1f%% realtime',
@@ -162,28 +163,24 @@ def receive(signal, freqs):
     signal.sampler.freq -= err
 
     filters = train_receiver(symbols, freqs)
-    return demodulate(symbols, filters, freqs)
+    data_bits = demodulate(symbols, filters, freqs)
+    return itertools.chain.from_iterable(data_bits)
 
 
 def decode(bits_iterator):
-    import cStringIO
     import bitarray
     import ecc
 
-    result = cStringIO.StringIO()
-    while True:
-        bits = itertools.islice(bits_iterator, 8 * ecc.BLOCK_SIZE)
-        block = bitarray.bitarray(endian='little')
-        block.extend(bits)
-        if not block:
-            break
-        result.write(block)
+    def blocks():
+        while True:
+            bits = itertools.islice(bits_iterator, 8 * ecc.BLOCK_SIZE)
+            block = bitarray.bitarray(endian='little')
+            block.extend(bits)
+            if not block:
+                break
+            yield bytearray(block.tobytes())
 
-    data = bytearray(result.getvalue())
-    data = ecc.decode(data)
-    if data is None:
-        log.warning('No blocks decoded!')
-
+    data = ecc.decode(blocks())
     return data
 
 
@@ -213,9 +210,8 @@ def main(fname):
     if peak > SATURATION_THRESHOLD:
         raise ValueError('Saturation detected: {:.3f}'.format(peak))
 
-    data_bits = receive(x / amp, frequencies)
-    bits = itertools.chain.from_iterable(data_bits)
     size = 0
+    bits = receive(x / amp, frequencies)
     for chunk in decode(bits):
         sys.stdout.write(chunk)
         size = size + len(chunk)

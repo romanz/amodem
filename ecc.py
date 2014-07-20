@@ -4,8 +4,6 @@ from reedsolo import rs_encode_msg, rs_correct_msg
 import logging
 log = logging.getLogger(__name__)
 
-import common
-
 DEFAULT_NSYM = 10
 BLOCK_SIZE = 255
 
@@ -17,7 +15,6 @@ def end_of_stream(size):
 def encode(data, nsym=DEFAULT_NSYM):
     chunk_size = BLOCK_SIZE - nsym - 1
 
-    enc = bytearray()
     for i in range(0, len(data), chunk_size):
         chunk = bytearray(data[i:i+chunk_size])
 
@@ -26,19 +23,20 @@ def encode(data, nsym=DEFAULT_NSYM):
             padding = b'\x00' * (chunk_size - size)
             chunk.extend(padding)
 
-        chunk = bytearray([size]) + chunk
-        enc.extend(rs_encode_msg(chunk, nsym))
+        block = bytearray([size]) + chunk
+        yield rs_encode_msg(block, nsym)
 
-    enc.extend(rs_encode_msg(end_of_stream(chunk_size), nsym))
-    return enc
+    yield rs_encode_msg(end_of_stream(chunk_size), nsym)
 
 
-def decode(data, nsym=DEFAULT_NSYM):
+def decode(blocks, nsym=DEFAULT_NSYM):
 
     last_chunk = end_of_stream(BLOCK_SIZE - nsym - 1)
-    for _, block in common.iterate(data, BLOCK_SIZE):
+    for block in blocks:
+        assert len(block) == BLOCK_SIZE
         chunk = bytearray(rs_correct_msg(block, nsym))
         if chunk == last_chunk:
+            log.info('EOF encountered')
             return  # end of stream
 
         size = chunk[0]

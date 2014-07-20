@@ -60,7 +60,10 @@ def main(fname):
                  training_size / wave.bytes_per_second)
 
         log.info('%d bits to be send', len(data)*8)
-        bits = list(to_bits(ecc.encode(data)))
+        buf = bytearray()
+        for block in ecc.encode(data):
+            buf.extend(block)
+        bits = list(to_bits(buf))
         ecc_ratio = 1.0 - len(data)*8.0 / len(bits)
         log.info('%d bits modulated (%.1f%% ECC)', len(bits), ecc_ratio * 100)
         modulate(fd, bits)
