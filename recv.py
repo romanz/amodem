@@ -60,7 +60,7 @@ def detect(samples, freq):
             report_carrier(bufs, begin=begin)
             break
     else:
-        return None
+        raise ValueError('No carrier detected')
 
     log.debug('Buffered %d ms of audio', len(bufs))
 
