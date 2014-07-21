@@ -2,7 +2,7 @@
 set -u 
 set -e 
 
-dd if=/dev/urandom of=data.send bs=5MB count=1 status=none
+dd if=/dev/urandom of=data.send bs=125kB count=1 status=none
 ./send.py tx.int16 < data.send
 
 killall -q arecord aplay || true
