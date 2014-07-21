@@ -1,4 +1,6 @@
 import time
+import itertools
+
 import common
 import wave
 
@@ -31,3 +33,7 @@ class Reader(object):
             time.sleep(self.WAIT)
 
         raise IOError('timeout')
+
+
+def iread(fd):
+    return itertools.chain.from_iterable(Reader(fd))

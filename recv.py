@@ -2,12 +2,14 @@
 import numpy as np
 import logging
 import itertools
+import collections
 import time
 import sys
 import os
 
 log = logging.getLogger(__name__)
 
+import stream
 import sigproc
 import loop
 import train
@@ -25,12 +27,27 @@ COHERENCE_THRESHOLD = 0.95
 
 CARRIER_DURATION = sum(train.prefix)
 CARRIER_THRESHOLD = int(0.95 * CARRIER_DURATION)
+SEARCH_WINDOW = 10  # symbols
 
 
-def detect(fd, freq):
-    _, x = load(fd)
+def report_carrier(bufs, begin):
+    x = np.concatenate(tuple(bufs)[-CARRIER_THRESHOLD:-1])
+    Hc = sigproc.exp_iwt(-Fc, len(x))
+    Zc = np.dot(Hc, x) / (0.5*len(x))
+    amp = abs(Zc)
+    log.info('Carrier detected at ~%.1f ms @ %.1f kHz:'
+             ' coherence=%.3f%%, amplitude=%.3f',
+             begin * Tsym * 1e3 / Nsym, Fc / 1e3,
+             np.abs(sigproc.coherence(x, Fc)) * 100, amp)
+
+
+def detect(samples, freq):
+
     counter = 0
-    for offset, buf in iterate(x, Nsym):
+    bufs = collections.deque([], maxlen=baud)  # 1 second of symbols
+    for offset, buf in iterate(samples, Nsym):
+        bufs.append(buf)
+
         coeff = sigproc.coherence(buf, Fc)
         if abs(coeff) > COHERENCE_THRESHOLD:
             counter += 1
@@ -38,43 +55,34 @@ def detect(fd, freq):
             counter = 0
 
         if counter == CARRIER_THRESHOLD:
-            length = CARRIER_THRESHOLD * Nsym
-            begin = offset - length + Nsym
-            end = offset
+            length = (CARRIER_THRESHOLD - 1) * Nsym
+            begin = offset - length
+            report_carrier(bufs, begin=begin)
             break
     else:
         return None
 
-    x_ = x[begin:end]
-    Hc = sigproc.exp_iwt(-Fc, len(x_))
-    Zc = np.dot(Hc, x_) / (0.5*len(x_))
-    amp = abs(Zc)
-    log.info('Carrier detected at ~%.1f ms @ %.1f kHz:'
-             ' coherence=%.3f%%, amplitude=%.3f',
-             begin * Tsym * 1e3 / Nsym, Fc / 1e3,
-             np.abs(sigproc.coherence(x_, Fc)) * 100, amp)
+    log.debug('Buffered %d ms of audio', len(bufs))
 
-    start = find_start(x, begin)
-    x = x[start:]
-    peak = np.max(np.abs(x))
-    if peak > SATURATION_THRESHOLD:
-        raise ValueError('Saturation detected: {:.3f}'.format(peak))
+    to_append = SEARCH_WINDOW + (CARRIER_DURATION - CARRIER_THRESHOLD)
+    for _, buf in itertools.islice(iterate(samples, Nsym), to_append):
+        bufs.append(buf)
 
-    return x
+    bufs = tuple(bufs)[-CARRIER_DURATION-2*SEARCH_WINDOW:]
+    buf = np.concatenate(bufs)
 
-
-def find_start(x, start):
-    WINDOW = Nsym * 10
-    length = CARRIER_DURATION * Nsym
-    begin, end = start - WINDOW, start + length + WINDOW
-    x_ = x[begin:end]
-
-    Hc = sigproc.exp_iwt(Fc, len(x_))
-    P = np.abs(Hc.conj() * x_) ** 2
-    cumsumP = P.cumsum()
-    start = begin + np.argmax(cumsumP[length:] - cumsumP[:-length])
+    offset = find_start(buf, length=Nsym*CARRIER_DURATION)
+    start = begin - Nsym * SEARCH_WINDOW + offset
     log.info('Carrier starts at {:.3f} ms'.format(start * Tsym * 1e3 / Nsym))
-    return start
+
+    return itertools.chain(buf[offset:], samples)
+
+
+def find_start(buf, length):
+    Hc = sigproc.exp_iwt(Fc, len(buf))
+    P = np.abs(Hc.conj() * buf) ** 2
+    cumsumP = P.cumsum()
+    return np.argmax(cumsumP[length:] - cumsumP[:-length])
 
 
 def take(symbols, n):
@@ -217,13 +225,14 @@ def main(fname):
 
     log.info('Running MODEM @ {:.1f} kbps'.format(sigproc.modem_bps / 1e3))
 
-    y = detect(open(fname, 'rb'), Fc)
-    if y is None:
+    samples = stream.iread(open(fname, 'rb'))
+    result = detect(samples, Fc)
+    if result is None:
         log.warning('No carrier detected')
         return
 
     size = 0
-    bits = receive(y, frequencies)
+    bits = receive(result, frequencies)
     try:
         for chunk in decode(bits):
             sys.stdout.write(chunk)
