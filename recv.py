@@ -227,7 +227,8 @@ def main(fname):
 
     log.info('Running MODEM @ {:.1f} kbps'.format(sigproc.modem_bps / 1e3))
 
-    samples = stream.iread(open(fname, 'rb'))
+    fd = sys.stdin if (fname == '-') else open(fname, 'rb')
+    samples = stream.iread(fd)
     result = detect(samples, Fc)
     if result is None:
         log.warning('No carrier detected')
@@ -262,7 +263,7 @@ if __name__ == '__main__':
 
     import argparse
     p = argparse.ArgumentParser()
-    p.add_argument('fname')
+    p.add_argument('fname', default='-', nargs='?')
     args = p.parse_args()
     try:
         main(fname=args.fname)
