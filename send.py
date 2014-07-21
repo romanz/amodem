@@ -3,13 +3,13 @@ import numpy as np
 import sys
 import logging
 import itertools
+import time
 
 log = logging.getLogger(__name__)
 
 import sigproc
 import train
 import wave
-import stream
 
 from common import *
 
@@ -21,8 +21,18 @@ class Symbol(object):
 sym = Symbol()
 
 
-def write(fd, sym, n=1):
-    fd.write(dumps(sym, n))
+class Writer(object):
+    def __init__(self):
+        self.last = time.time()
+
+    def write(self, fd, sym, n=1):
+        fd.write(dumps(sym, n))
+        if time.time() > self.last + 1:
+            log.debug('%10.3f seconds of data audio',
+                      fd.tell() / wave.bytes_per_second)
+            self.last += 1
+
+write = Writer().write
 
 
 def start(fd, c):
@@ -48,13 +58,22 @@ def modulate(fd, bits):
             break
 
 
-def iread(fd, size):
-    while True:
-        block = fd.read(size)
+class Reader(object):
+    def __init__(self, fd, size):
+        self.fd = fd
+        self.size = size
+        self.total = 0
+
+    def next(self):
+        block = self.fd.read(self.size)
         if block:
-            yield block
+            self.total += len(block)
+            return block
         else:
-            return
+            raise StopIteration()
+
+    def __iter__(self):
+        return self
 
 
 def main(fname):
@@ -69,18 +88,19 @@ def main(fname):
         log.info('%.3f seconds of training audio',
                  training_size / wave.bytes_per_second)
 
-        data = itertools.chain.from_iterable(iread(sys.stdin, 64 << 10))
+        reader = Reader(sys.stdin, 64 << 10)
+        data = itertools.chain.from_iterable(reader)
         encoded = itertools.chain.from_iterable(ecc.encode(data))
         modulate(fd, bits=to_bits(encoded))
 
         data_size = fd.tell() - training_size
-        log.info('%.3f seconds of data audio',
-                 data_size / wave.bytes_per_second)
+        log.info('%.3f seconds of data audio, for %.3f kB of data',
+                 data_size / wave.bytes_per_second, reader.total / 1e3)
         # padding audio with silence
         fd.write('\x00' * int(wave.bytes_per_second))
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO,
+    logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s %(levelname)-12s %(message)s')
 
     import argparse
