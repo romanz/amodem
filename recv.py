@@ -185,8 +185,10 @@ def demodulate(symbols, filters, freqs, sampler):
         if i and i % baud == 0:
             mean_err = np.array([e for v in errors.values() for e in v])
             correction = np.mean(np.angle(mean_err)) / (2*np.pi)
-            log.debug('%10.1f kB, sampling error: %+.3f%%',
-                      stats['rx_bits'] / 8e3, correction * 1e2)
+            log.debug('%10.1f kB, realtime: %.2f%%, sampling error: %+.3f%%',
+                      stats['rx_bits'] / 8e3,
+                      (time.time() - stats['rx_start']) * 100.0 / (i*Tsym),
+                      correction * 1e2)
             errors.clear()
             sampler.freq -= 0.01 * correction / Fc
             sampler.offset -= correction
