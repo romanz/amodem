@@ -3,7 +3,6 @@ import numpy as np
 import common
 import sigproc
 import wave
-import pylab
 
 Tsample = 1
 t = np.arange(int(Tsample * common.Fs)) * common.Ts
