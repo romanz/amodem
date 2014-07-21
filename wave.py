@@ -29,7 +29,7 @@ def launch(*args, **kwargs):
     args = map(str, args)
     log.debug('$ %s', ' '.join(args))
     p = sp.Popen(args=args, **kwargs)
-    p.stop = lambda: os.kill(p.pid, signal.SIGINT)
+    p.stop = lambda: os.kill(p.pid, signal.SIGKILL)
     return p
 
 if __name__ == '__main__':
