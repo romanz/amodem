@@ -3,7 +3,7 @@ import common
 import wave
 
 
-class FileBuffer(object):
+class Reader(object):
 
     SAMPLES = 4096
     BUFSIZE = int(SAMPLES * wave.bytes_per_sample)

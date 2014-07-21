@@ -4,7 +4,7 @@ import wave
 
 def test():
     p = wave.record('-', stdout=wave.sp.PIPE)
-    f = stream.FileBuffer(p.stdout)
+    f = stream.Reader(p.stdout)
 
     result = zip(range(10), f)
     p.stop()
