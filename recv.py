@@ -27,7 +27,8 @@ CARRIER_DURATION = sum(train.prefix)
 CARRIER_THRESHOLD = int(0.95 * CARRIER_DURATION)
 
 
-def detect(x, freq):
+def detect(fd, freq):
+    _, x = load(fd)
     counter = 0
     for offset, buf in iterate(x, Nsym):
         coeff = sigproc.coherence(buf, Fc)
@@ -216,8 +217,7 @@ def main(fname):
 
     log.info('Running MODEM @ {:.1f} kbps'.format(sigproc.modem_bps / 1e3))
 
-    _, x = load(open(fname, 'rb'))
-    y = detect(x, Fc)
+    y = detect(open(fname, 'rb'), Fc)
     if y is None:
         log.warning('No carrier detected')
         return
