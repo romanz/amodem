@@ -42,6 +42,10 @@ def to_byte(bits):
     return chr(byte)
 
 
+class SaturationError(ValueError):
+    pass
+
+
 def load(fileobj, time=False):
     return loads(fileobj.read(), time=time)
 
@@ -49,8 +53,9 @@ def load(fileobj, time=False):
 def loads(data, time=False):
     x = np.fromstring(data, dtype='int16')
     x = x / scaling
-    if np.max(np.abs(x)) > SATURATION_THRESHOLD:
-        raise ValueError('saturation')
+    peak = np.max(np.abs(x))
+    if peak > SATURATION_THRESHOLD:
+        raise SaturationError(peak)
 
     if time:
         t = np.arange(len(x)) / Fs
