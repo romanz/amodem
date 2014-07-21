@@ -9,7 +9,8 @@ log = logging.getLogger(__name__)
 from common import Fs
 Fs = int(Fs)  # sampling rate
 bits_per_sample = 16
-bytes_per_second = bits_per_sample * Fs / 8.0
+bytes_per_sample = bits_per_sample / 8.0
+bytes_per_second = bytes_per_sample * Fs
 
 audio_format = 'S{}_LE'.format(bits_per_sample)  # PCM signed little endian
 
