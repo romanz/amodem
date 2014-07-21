@@ -45,13 +45,8 @@ class QAM(object):
         self.bits_per_symbol = bits_per_symbol
 
     def encode(self, bits):
-        trailing_bits = len(bits) % self.bits_per_symbol
-        if trailing_bits:
-            bits = bits + [0] * (self.bits_per_symbol - trailing_bits)
-        for i in range(0, len(bits), self.bits_per_symbol):
-            bits_tuple = tuple(bits[i:i+self.bits_per_symbol])
-            s = self._enc[bits_tuple]
-            yield s
+        for _, bits_tuple in common.iterate(bits, self.bits_per_symbol, tuple):
+            yield self._enc[bits_tuple]
 
     def decode(self, symbols, error_handler=None):
         for s in symbols:

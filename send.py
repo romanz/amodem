@@ -9,6 +9,8 @@ log = logging.getLogger(__name__)
 import sigproc
 import train
 import wave
+import stream
+
 from common import *
 
 
@@ -17,34 +19,42 @@ class Symbol(object):
     carrier = [np.exp(2j * np.pi * F * t) for F in frequencies]
 
 sym = Symbol()
-data = sys.stdin.read()
 
 
 def write(fd, sym, n=1):
     fd.write(dumps(sym, n))
 
 
-def start(sig, c):
-    write(sig, c*0, n=50)
-    write(sig, c*1, n=400)
-    write(sig, c*0, n=50)
+def start(fd, c):
+    write(fd, c*0, n=50)
+    write(fd, c*1, n=400)
+    write(fd, c*0, n=50)
 
 
-def training(sig, c):
+def training(fd, c):
     for b in train.equalizer:
-        write(sig, c * b)
+        write(fd, c * b)
 
 
-def modulate(sig, bits):
+def modulate(fd, bits):
     symbols_iter = sigproc.modulator.encode(bits)
     symbols_iter = itertools.chain(symbols_iter, itertools.repeat(0))
     carriers = np.array(sym.carrier) / len(sym.carrier)
     while True:
         symbols = itertools.islice(symbols_iter, len(sym.carrier))
         symbols = np.array(list(symbols))
-        write(sig, np.dot(symbols, carriers))
+        write(fd, np.dot(symbols, carriers))
         if all(symbols == 0):
             break
+
+
+def iread(fd, size):
+    while True:
+        block = fd.read(size)
+        if block:
+            yield block
+        else:
+            return
 
 
 def main(fname):
@@ -59,14 +69,10 @@ def main(fname):
         log.info('%.3f seconds of training audio',
                  training_size / wave.bytes_per_second)
 
-        log.info('%d bits to be send', len(data)*8)
-        buf = bytearray()
-        for block in ecc.encode(data):
-            buf.extend(block)
-        bits = list(to_bits(buf))
-        ratio = 1.0 - len(data)*8.0 / len(bits)
-        log.info('%d bits modulated (%.1f%% overhead)', len(bits), ratio * 100)
-        modulate(fd, bits)
+        data = itertools.chain.from_iterable(iread(sys.stdin, 64 << 10))
+        encoded = itertools.chain.from_iterable(ecc.encode(data))
+        modulate(fd, bits=to_bits(encoded))
+
         data_size = fd.tell() - training_size
         log.info('%.3f seconds of data audio',
                  data_size / wave.bytes_per_second)

@@ -73,14 +73,17 @@ def dumps(sym, n=1):
     return data * n
 
 
-def iterate(data, size, func=None):
+def iterate(data, size, func=None, truncate=True):
     offset = 0
     data = iter(data)
 
-    while True:
+    done = False
+    while not done:
         buf = list(itertools.islice(data, size))
         if len(buf) < size:
-            return
+            if truncate or not buf:
+                return
+            done = True
 
         buf = np.array(buf)
         result = func(buf) if func else buf
