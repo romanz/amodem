@@ -59,7 +59,7 @@ def detect(x, freq):
     if peak > SATURATION_THRESHOLD:
         raise ValueError('Saturation detected: {:.3f}'.format(peak))
 
-    return x / amp
+    return x
 
 
 def find_start(x, start):
