@@ -85,11 +85,6 @@ def find_start(buf, length):
     return np.argmax(cumsumP[length:] - cumsumP[:-length])
 
 
-def take(symbols, n):
-    symbols = itertools.islice(symbols, n)
-    return np.array(list(symbols))
-
-
 def receive_prefix(symbols):
     S = take(symbols, len(train.prefix))[:, carrier_index]
     sliced = np.round(S)
@@ -228,14 +223,13 @@ def main(fname):
     log.info('Running MODEM @ {:.1f} kbps'.format(sigproc.modem_bps / 1e3))
 
     fd = sys.stdin if (fname == '-') else open(fname, 'rb')
-    samples = stream.iread(fd)
-    result = detect(samples, Fc)
-    if result is None:
-        log.warning('No carrier detected')
-        return
+    signal = stream.iread(fd)
+    take(signal, 100)  # skip initial 0.1 second, due to spurious spikes
+    stream.check = check_saturation
 
     size = 0
-    bits = receive(result, frequencies)
+    signal = detect(signal, Fc)
+    bits = receive(signal, frequencies)
     try:
         for chunk in decode(bits):
             sys.stdout.write(chunk)

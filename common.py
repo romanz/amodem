@@ -46,6 +46,12 @@ class SaturationError(ValueError):
     pass
 
 
+def check_saturation(x):
+    peak = np.max(np.abs(x))
+    if peak > SATURATION_THRESHOLD:
+        raise SaturationError(peak)
+
+
 def load(fileobj, time=False):
     return loads(fileobj.read(), time=time)
 
@@ -53,10 +59,6 @@ def load(fileobj, time=False):
 def loads(data, time=False):
     x = np.fromstring(data, dtype='int16')
     x = x / scaling
-    peak = np.max(np.abs(x))
-    if peak > SATURATION_THRESHOLD:
-        raise SaturationError(peak)
-
     if time:
         t = np.arange(len(x)) / Fs
         return t, x
@@ -120,6 +122,10 @@ def icapture(iterable, result):
     for i in iter(iterable):
         result.append(i)
         yield i
+
+
+def take(iterable, n):
+    return np.array(list(itertools.islice(iterable, n)))
 
 if __name__ == '__main__':
 

@@ -14,6 +14,7 @@ class Reader(object):
 
     def __init__(self, fd):
         self.fd = fd
+        self.check = None
 
     def __iter__(self):
         return self
@@ -26,8 +27,12 @@ class Reader(object):
             data = self.fd.read(left)
             if data:
                 block.extend(data)
+
             if len(block) == self.BUFSIZE:
-                return common.loads(str(block))
+                values = common.loads(str(block))
+                if self.check:
+                    self.check(values)
+                return values
 
             time.sleep(self.WAIT)
 
