@@ -42,15 +42,21 @@ def to_byte(bits):
     return chr(byte)
 
 
-def load(fileobj):
-    return loads(fileobj.read())
+def load(fileobj, time=False):
+    return loads(fileobj.read(), time=time)
 
 
-def loads(data):
+def loads(data, time=False):
     x = np.fromstring(data, dtype='int16')
     x = x / scaling
-    t = np.arange(len(x)) / Fs
-    return t, x
+    if np.max(np.abs(x)) > SATURATION_THRESHOLD:
+        raise ValueError('saturation')
+
+    if time:
+        t = np.arange(len(x)) / Fs
+        return t, x
+    else:
+        return x
 
 
 def dumps(sym, n=1):

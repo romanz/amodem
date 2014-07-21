@@ -29,7 +29,7 @@ if __name__ == '__main__':
     import common
 
     for fname in sys.argv[1:]:
-        t, x = common.load(open(fname, 'rb'))
+        t, x = common.load(open(fname, 'rb'), time=True)
         pylab.figure()
         pylab.title(fname)
         spectrogram(t, x, common.Fs)

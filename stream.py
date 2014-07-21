@@ -27,8 +27,7 @@ class Reader(object):
             if data:
                 block.extend(data)
             if len(block) == self.BUFSIZE:
-                _, values = common.loads(str(block))
-                return values
+                return common.loads(str(block))
 
             time.sleep(self.WAIT)
 

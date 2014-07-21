@@ -72,7 +72,7 @@ if __name__ == '__main__':
     df, = sys.argv[1:]
     df = float(df)
 
-    _, x = common.load(sys.stdin)
+    x = common.load(sys.stdin)
     sampler = Sampler(x, Interpolator())
     sampler.freq += df
     y = np.array(list(sampler))

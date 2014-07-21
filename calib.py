@@ -25,7 +25,7 @@ def recv():
         data = out.read(len(sig_dump))
         if len(data) < len(sig_dump):
             return
-        _, x = common.loads(data)
+        x = common.loads(data)
         x = x - np.mean(x)
 
         c = np.abs(np.dot(x, sig)) / (np.sqrt(0.5 * len(x)) * sigproc.norm(x))
