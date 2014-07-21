@@ -25,7 +25,11 @@ def recv():
         data = out.read(len(sig_dump))
         if len(data) < len(sig_dump):
             return
-        x = common.loads(data)
+        try:
+            x = common.loads(data)
+        except common.SaturationError as e:
+            print('saturation: {}'.format(e))
+            continue
         x = x - np.mean(x)
 
         c = np.abs(np.dot(x, sig)) / (np.sqrt(0.5 * len(x)) * sigproc.norm(x))
