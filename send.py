@@ -36,7 +36,6 @@ write = Writer().write
 
 
 def start(fd, c):
-    write(fd, c*0, n=50)
     write(fd, c*1, n=400)
     write(fd, c*0, n=50)
 
@@ -54,7 +53,7 @@ def modulate(fd, bits):
         symbols = itertools.islice(symbols_iter, len(sym.carrier))
         symbols = np.array(list(symbols))
         write(fd, np.dot(symbols, carriers))
-        if all(symbols == 0):
+        if all(symbols == 0):  # EOF marker
             break
 
 
@@ -76,28 +75,33 @@ class Reader(object):
         return self
 
 
-def main(fname):
+def main(args):
     import ecc
     log.info('Running MODEM @ {:.1f} kbps'.format(sigproc.modem_bps / 1e3))
 
-    with open(fname, 'wb') as fd:
-        start(fd, sym.carrier[carrier_index])
-        for c in sym.carrier:
-            training(fd, c)
-        training_size = fd.tell()
-        log.info('%.3f seconds of training audio',
-                 training_size / wave.bytes_per_second)
+    fd = sys.stdout
 
-        reader = Reader(sys.stdin, 64 << 10)
-        data = itertools.chain.from_iterable(reader)
-        encoded = itertools.chain.from_iterable(ecc.encode(data))
-        modulate(fd, bits=to_bits(encoded))
+    # padding audio with silence
+    write(fd, np.zeros(int(Fs * args.silence_start)))
 
-        data_size = fd.tell() - training_size
-        log.info('%.3f seconds of data audio, for %.3f kB of data',
-                 data_size / wave.bytes_per_second, reader.total / 1e3)
-        # padding audio with silence
-        fd.write('\x00' * int(wave.bytes_per_second))
+    start(fd, sym.carrier[carrier_index])
+    for c in sym.carrier:
+        training(fd, c)
+    training_size = fd.tell()
+    log.info('%.3f seconds of training audio',
+             training_size / wave.bytes_per_second)
+
+    reader = Reader(sys.stdin, 64 << 10)
+    data = itertools.chain.from_iterable(reader)
+    encoded = itertools.chain.from_iterable(ecc.encode(data))
+    modulate(fd, bits=to_bits(encoded))
+
+    data_size = fd.tell() - training_size
+    log.info('%.3f seconds of data audio, for %.3f kB of data',
+             data_size / wave.bytes_per_second, reader.total / 1e3)
+
+    # padding audio with silence
+    write(fd, np.zeros(int(Fs * args.silence_stop)))
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG,
@@ -105,6 +109,7 @@ if __name__ == '__main__':
 
     import argparse
     p = argparse.ArgumentParser()
-    p.add_argument('fname')
+    p.add_argument('--silence-start', type=float, default=1.0)
+    p.add_argument('--silence-stop', type=float, default=1.0)
     args = p.parse_args()
-    main(fname=args.fname)
+    main(args)
