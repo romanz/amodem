@@ -27,11 +27,13 @@ def spectrogram(t, x, Fs, NFFT=256):
 if __name__ == '__main__':
     import sys
     import common
+    from config import Fs, Ts
 
     for fname in sys.argv[1:]:
-        t, x = common.load(open(fname, 'rb'), time=True)
+        x = common.load(open(fname, 'rb'))
+        t = np.arange(len(x)) * Ts
         pylab.figure()
         pylab.title(fname)
-        spectrogram(t, x, common.Fs)
+        spectrogram(t, x, Fs)
 
     pylab.show()

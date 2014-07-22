@@ -4,7 +4,12 @@ import binascii
 
 lines = sys.stdin.read().strip().split('\n')
 for line in lines:
-    head, tail = line.split(' ', 1)
+    try:
+        head, tail = line.split(' ', 1)
+    except ValueError:
+        print line
+        continue
+
     bars = ''
     try:
         data = binascii.unhexlify(head)

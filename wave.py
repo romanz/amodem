@@ -6,8 +6,9 @@ import logging
 
 log = logging.getLogger(__name__)
 
-from common import Fs
-Fs = int(Fs)  # sampling rate
+import config
+Fs = int(config.Fs)  # sampling rate
+
 bits_per_sample = 16
 bytes_per_sample = bits_per_sample / 8.0
 bytes_per_second = bytes_per_sample * Fs

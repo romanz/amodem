@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 import numpy as np
 import common
+import config
 import sigproc
 import wave
 
 Tsample = 1
-t = np.arange(int(Tsample * common.Fs)) * common.Ts
-sig = np.exp(2j * np.pi * common.Fc * t)
+t = np.arange(int(Tsample * config.Fs)) * config.Ts
+sig = np.exp(2j * np.pi * config.Fc * t)
 sig_dump = common.dumps(sig)
 
 

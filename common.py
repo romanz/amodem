@@ -5,22 +5,6 @@ import numpy as np
 import logging
 log = logging.getLogger(__name__)
 
-Fs = 32e3
-Ts = 1.0 / Fs
-
-frequencies = (1 + np.arange(9)) * 1e3
-carrier_index = 0
-Fc = frequencies[carrier_index]
-Tc = 1.0 / Fc
-
-symbols = np.array([complex(x, y)
-                   for x in np.linspace(-1, 1, 8)
-                   for y in np.linspace(-1, 1, 8)]) / np.sqrt(2)
-
-Tsym = 1e-3
-Nsym = int(Tsym / Ts)
-baud = int(1/Tsym)
-
 scaling = 32000.0  # out of 2**15
 SATURATION_THRESHOLD = 1.0
 
@@ -52,18 +36,14 @@ def check_saturation(x):
         raise SaturationError(peak)
 
 
-def load(fileobj, time=False):
-    return loads(fileobj.read(), time=time)
+def load(fileobj):
+    return loads(fileobj.read())
 
 
-def loads(data, time=False):
+def loads(data):
     x = np.fromstring(data, dtype='int16')
     x = x / scaling
-    if time:
-        t = np.arange(len(x)) / Fs
-        return t, x
-    else:
-        return x
+    return x
 
 
 def dumps(sym, n=1):
@@ -129,14 +109,3 @@ def icapture(iterable, result):
 
 def take(iterable, n):
     return np.array(list(itertools.islice(iterable, n)))
-
-if __name__ == '__main__':
-
-    import pylab
-    t = pylab.linspace(0, Tsym, 1e3)
-    x = pylab.sin(2 * pylab.pi * Fc * t)
-    pylab.plot(t / Tsym, x)
-    t = pylab.linspace(0, Tsym, Nsym + 1)
-    x = pylab.sin(2 * pylab.pi * Fc * t)
-    pylab.plot(t / Tsym, x, '.k')
-    pylab.show()

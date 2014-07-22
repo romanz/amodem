@@ -2,6 +2,7 @@
 import numpy as np
 import logging
 import itertools
+import functools
 import collections
 import time
 import sys
@@ -13,13 +14,17 @@ import stream
 import sigproc
 import loop
 import train
-from common import *
+import common
+import config
+
+modem = sigproc.MODEM(config)
+
 
 if os.environ.get('PYLAB') == '1':
     import pylab
     import show
-    WIDTH = np.floor(np.sqrt(len(frequencies)))
-    HEIGHT = np.ceil(len(frequencies) / float(WIDTH))
+    WIDTH = np.floor(np.sqrt(len(modem.freqs)))
+    HEIGHT = np.ceil(len(modem.freqs) / float(WIDTH))
 else:
     pylab = None
 
@@ -32,30 +37,30 @@ SEARCH_WINDOW = 10  # symbols
 
 def report_carrier(bufs, begin):
     x = np.concatenate(tuple(bufs)[-CARRIER_THRESHOLD:-1])
-    Hc = sigproc.exp_iwt(-Fc, len(x))
+    Hc = sigproc.exp_iwt(-config.Fc, len(x))
     Zc = np.dot(Hc, x) / (0.5*len(x))
     amp = abs(Zc)
     log.info('Carrier detected at ~%.1f ms @ %.1f kHz:'
              ' coherence=%.3f%%, amplitude=%.3f',
-             begin * Tsym * 1e3 / Nsym, Fc / 1e3,
-             np.abs(sigproc.coherence(x, Fc)) * 100, amp)
+             begin * config.Tsym * 1e3 / config.Nsym, config.Fc / 1e3,
+             np.abs(sigproc.coherence(x, config.Fc)) * 100, amp)
 
 
 def detect(samples, freq):
 
     counter = 0
-    bufs = collections.deque([], maxlen=baud)  # 1 second of symbols
-    for offset, buf in iterate(samples, Nsym):
+    bufs = collections.deque([], maxlen=config.baud)  # 1 second of symbols
+    for offset, buf in common.iterate(samples, config.Nsym):
         bufs.append(buf)
 
-        coeff = sigproc.coherence(buf, Fc)
+        coeff = sigproc.coherence(buf, config.Fc)
         if abs(coeff) > COHERENCE_THRESHOLD:
             counter += 1
         else:
             counter = 0
 
         if counter == CARRIER_THRESHOLD:
-            length = (CARRIER_THRESHOLD - 1) * Nsym
+            length = (CARRIER_THRESHOLD - 1) * config.Nsym
             begin = offset - length
             report_carrier(bufs, begin=begin)
             break
@@ -65,28 +70,30 @@ def detect(samples, freq):
     log.debug('Buffered %d ms of audio', len(bufs))
 
     to_append = SEARCH_WINDOW + (CARRIER_DURATION - CARRIER_THRESHOLD)
-    for _, buf in itertools.islice(iterate(samples, Nsym), to_append):
+    bufs_iterator = common.iterate(samples, config.Nsym)
+    for _, buf in itertools.islice(bufs_iterator, to_append):
         bufs.append(buf)
 
     bufs = tuple(bufs)[-CARRIER_DURATION-2*SEARCH_WINDOW:]
     buf = np.concatenate(bufs)
 
-    offset = find_start(buf, length=Nsym*CARRIER_DURATION)
-    start = begin - Nsym * SEARCH_WINDOW + offset
-    log.info('Carrier starts at {:.3f} ms'.format(start * Tsym * 1e3 / Nsym))
+    offset = find_start(buf, length=config.Nsym*CARRIER_DURATION)
+    start = begin - config.Nsym * SEARCH_WINDOW + offset
+    log.info('Carrier starts at %.3f ms',
+             start * config.Tsym * 1e3 / config.Nsym)
 
     return itertools.chain(buf[offset:], samples)
 
 
 def find_start(buf, length):
-    Hc = sigproc.exp_iwt(Fc, len(buf))
+    Hc = sigproc.exp_iwt(config.Fc, len(buf))
     P = np.abs(Hc.conj() * buf) ** 2
     cumsumP = P.cumsum()
     return np.argmax(cumsumP[length:] - cumsumP[:-length])
 
 
 def receive_prefix(symbols):
-    S = take(symbols, len(train.prefix))[:, carrier_index]
+    S = common.take(symbols, len(train.prefix))[:, config.carrier_index]
     sliced = np.round(S)
 
     nonzeros = np.array(train.prefix, dtype=bool)
@@ -99,10 +106,10 @@ def receive_prefix(symbols):
 
     pilot_tone = S[nonzeros]
 
-    freq_err, mean_phase = sigproc.drift(pilot_tone) / (Tsym * Fc)
+    freq_err, mean_phase = sigproc.drift(pilot_tone) / (config.Tsym * config.Fc)
     expected_phase, = set(np.angle(sliced[nonzeros]) / (2 * np.pi))
 
-    sampling_err = (mean_phase - expected_phase) * Nsym
+    sampling_err = (mean_phase - expected_phase) * config.Nsym
     log.info('Frequency error: %.2f ppm', freq_err * 1e6)
     log.info('Sampling error: %.2f samples', sampling_err)
     return freq_err, sampling_err
@@ -115,7 +122,7 @@ def train_receiver(symbols, freqs):
     if pylab:
         pylab.figure()
 
-    symbols = take(symbols, len(training) * len(freqs))
+    symbols = common.take(symbols, len(training) * len(freqs))
     for i, freq in enumerate(freqs):
         size = len(training)
         offset = i * size
@@ -154,17 +161,17 @@ def demodulate(symbols, filters, freqs, sampler):
     def error_handler(received, decoded, freq):
         errors.setdefault(freq, []).append(received / decoded)
 
-    generators = split(symbols, n=len(freqs))
+    generators = common.split(symbols, n=len(freqs))
     for freq, S in zip(freqs, generators):
         S = filters[freq](S)
 
         if pylab:
             equalized = []
-            S = icapture(S, result=equalized)
+            S = common.icapture(S, result=equalized)
             symbol_list.append(equalized)
 
         freq_handler = functools.partial(error_handler, freq=freq)
-        bits = sigproc.modulator.decode(S, freq_handler)  # list of bit tuples
+        bits = modem.qam.decode(S, freq_handler)  # list of bit tuples
         streams.append(bits)  # stream per frequency
 
     stats['symbol_list'] = symbol_list
@@ -177,15 +184,16 @@ def demodulate(symbols, filters, freqs, sampler):
             stats['rx_bits'] = stats['rx_bits'] + len(bits)
             yield bits
 
-        if i and i % baud == 0:
+        if i and i % config.baud == 0:
             mean_err = np.array([e for v in errors.values() for e in v])
             correction = np.mean(np.angle(mean_err)) / (2*np.pi)
+            duration = time.time() - stats['rx_start']
             log.debug('%10.1f kB, realtime: %6.2f%%, sampling error: %+.3f%%',
                       stats['rx_bits'] / 8e3,
-                      (time.time() - stats['rx_start']) * 100.0 / (i*Tsym),
+                      duration * 100.0 / (i*config.Tsym),
                       correction * 1e2)
             errors.clear()
-            sampler.freq -= 0.01 * correction / Fc
+            sampler.freq -= 0.01 * correction / config.Fc
             sampler.offset -= correction
 
 
@@ -220,19 +228,19 @@ def decode(bits_iterator):
 
 def main(args):
 
-    log.info('Running MODEM @ {:.1f} kbps'.format(sigproc.modem_bps / 1e3))
+    log.info('Running MODEM @ {:.1f} kbps'.format(modem.modem_bps / 1e3))
     start = time.time()
 
     fd = sys.stdin
     signal = stream.iread(fd)
-    skipped = take(signal, args.skip)
-    log.debug('Skipping first %.3f seconds', len(skipped) / float(baud))
+    skipped = common.take(signal, args.skip)
+    log.debug('Skipping first %.3f seconds', len(skipped) / float(modem.baud))
 
-    stream.check = check_saturation
+    stream.check = common.check_saturation
 
     size = 0
-    signal = detect(signal, Fc)
-    bits = receive(signal, frequencies)
+    signal = detect(signal, config.Fc)
+    bits = receive(signal, modem.freqs)
     try:
         for chunk in decode(bits):
             sys.stdout.write(chunk)
@@ -241,7 +249,7 @@ def main(args):
         log.exception('Decoding failed')
 
     duration = time.time() - stats['rx_start']
-    audio_time = stats['rx_bits'] / float(sigproc.modem_bps)
+    audio_time = stats['rx_bits'] / float(modem.modem_bps)
     log.info('Demodulated %.3f kB @ %.3f seconds (%.1f%% realtime)',
              stats['rx_bits'] / 8e3, duration, 100 * duration / audio_time)
 
@@ -252,7 +260,7 @@ def main(args):
     if pylab:
         pylab.figure()
         symbol_list = np.array(stats['symbol_list'])
-        for i, freq in enumerate(frequencies):
+        for i, freq in enumerate(modem.freqs):
             pylab.subplot(HEIGHT, WIDTH, i+1)
             show.constellation(symbol_list[i], '$F_c = {} Hz$'.format(freq))
 

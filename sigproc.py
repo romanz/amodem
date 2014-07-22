@@ -2,6 +2,7 @@ import numpy as np
 from numpy import linalg
 
 import common
+from config import Ts, Nsym
 
 
 class Filter(object):
@@ -56,10 +57,14 @@ class QAM(object):
                 error_handler(received=s, decoded=S)
             yield self._dec[S]
 
-modulator = QAM(common.symbols)
 
-bits_per_baud = modulator.bits_per_symbol * len(common.frequencies)
-modem_bps = common.baud * bits_per_baud
+class MODEM(object):
+    def __init__(self, config):
+        self.qam = QAM(config.symbols)
+        self.baud = config.baud
+        self.freqs = config.frequencies
+        self.bits_per_baud = self.qam.bits_per_symbol * len(self.freqs)
+        self.modem_bps = self.baud * self.bits_per_baud
 
 
 def clip(x, lims):
@@ -71,7 +76,7 @@ def power(x):
 
 
 def exp_iwt(freq, n):
-    iwt = 2j * np.pi * freq * np.arange(n) * common.Ts
+    iwt = 2j * np.pi * freq * np.arange(n) * Ts
     return np.exp(iwt)
 
 
@@ -82,14 +87,18 @@ def norm(x):
 def coherence(x, freq):
     n = len(x)
     Hc = exp_iwt(-freq, n) / np.sqrt(0.5*n)
-    return np.dot(Hc, x) / norm(x)
+    norm_x = norm(x)
+    if norm_x:
+        return np.dot(Hc, x) / norm_x
+    else:
+        return 0.0
 
 
 def extract_symbols(x, freq, offset=0):
-    Hc = exp_iwt(-freq, common.Nsym) / (0.5*common.Nsym)
+    Hc = exp_iwt(-freq, Nsym) / (0.5*Nsym)
     func = lambda y: np.dot(Hc, y)
 
-    iterator = common.iterate(x, common.Nsym, func=func)
+    iterator = common.iterate(x, Nsym, func=func)
     for _, symbol in iterator:
         yield symbol
 

@@ -7,16 +7,19 @@ import time
 
 log = logging.getLogger(__name__)
 
-import sigproc
 import train
 import wave
 
-from common import *
+import common
+import config
+import sigproc
+
+modem = sigproc.MODEM(config)
 
 
 class Symbol(object):
-    t = np.arange(0, Nsym) * Ts
-    carrier = [np.exp(2j * np.pi * F * t) for F in frequencies]
+    t = np.arange(0, config.Nsym) * config.Ts
+    carrier = [np.exp(2j * np.pi * F * t) for F in modem.freqs]
 
 sym = Symbol()
 
@@ -26,7 +29,7 @@ class Writer(object):
         self.last = time.time()
 
     def write(self, fd, sym, n=1):
-        fd.write(dumps(sym, n))
+        fd.write(common.dumps(sym, n))
         if time.time() > self.last + 1:
             log.debug('%10.3f seconds of data audio',
                       fd.tell() / wave.bytes_per_second)
@@ -46,7 +49,7 @@ def training(fd, c):
 
 
 def modulate(fd, bits):
-    symbols_iter = sigproc.modulator.encode(bits)
+    symbols_iter = modem.qam.encode(bits)
     symbols_iter = itertools.chain(symbols_iter, itertools.repeat(0))
     carriers = np.array(sym.carrier) / len(sym.carrier)
     while True:
@@ -77,14 +80,14 @@ class Reader(object):
 
 def main(args):
     import ecc
-    log.info('Running MODEM @ {:.1f} kbps'.format(sigproc.modem_bps / 1e3))
+    log.info('Running MODEM @ {:.1f} kbps'.format(modem.modem_bps / 1e3))
 
     fd = sys.stdout
 
     # padding audio with silence
-    write(fd, np.zeros(int(Fs * args.silence_start)))
+    write(fd, np.zeros(int(config.Fs * args.silence_start)))
 
-    start(fd, sym.carrier[carrier_index])
+    start(fd, sym.carrier[config.carrier_index])
     for c in sym.carrier:
         training(fd, c)
     training_size = fd.tell()
@@ -94,14 +97,14 @@ def main(args):
     reader = Reader(sys.stdin, 64 << 10)
     data = itertools.chain.from_iterable(reader)
     encoded = itertools.chain.from_iterable(ecc.encode(data))
-    modulate(fd, bits=to_bits(encoded))
+    modulate(fd, bits=common.to_bits(encoded))
 
     data_size = fd.tell() - training_size
     log.info('%.3f seconds of data audio, for %.3f kB of data',
              data_size / wave.bytes_per_second, reader.total / 1e3)
 
     # padding audio with silence
-    write(fd, np.zeros(int(Fs * args.silence_stop)))
+    write(fd, np.zeros(int(config.Fs * args.silence_stop)))
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG,

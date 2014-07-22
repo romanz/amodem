@@ -4,7 +4,7 @@ set -e
 
 run() {
 	echo "SRC $HOST: $CMD" 1>&2
-	ssh $HOST $CMD
+	ssh $HOST "$CMD"
 }
 
 run_src() {
@@ -20,7 +20,7 @@ run_dst() {
 }
 
 ## generate 1Mbit of random data
-#run_src dd if=/dev/urandom of=data.send bs=125kB count=1 status=none
+run_src dd if=/dev/urandom of=data.send bs=125kB count=1 status=none
 SRC_HASH=`run_src sha256sum data.send | ./colorhash.py`
 
 # modulate data into audio file
