@@ -3,21 +3,28 @@ set -u
 set -e
 
 run() {
-	echo "SRC $HOST: $CMD" 1>&2
-	ssh $HOST "$CMD"
+	echo "SRC $HOST ($DIR): $*" 1>&2
+	if [ "$HOST" == "localhost" ]; then
+		echo "$*" | bash
+	else
+		ssh $HOST "cd $DIR; $*"
+	fi
 }
 
 run_src() {
-	CMD="cd ~/Code/modem; $*"
-	HOST="roman@localhost"
-	run
+	DIR=${SRC_DIR:-"~/Code/modem"}
+	HOST=${SRC_HOST:-localhost}
+	run "$*"
 }
 
 run_dst() {
-	CMD="cd ~/Code/modem; $*"
-	HOST="roman@127.0.0.1"
-	run
+	DIR=${DST_DIR:-"~/Code/modem"}
+	HOST=${DST_HOST:-localhost}
+	run "$*"
 }
+
+run_src true
+run_dst true
 
 ## generate 1Mbit of random data
 run_src dd if=/dev/urandom of=data.send bs=125kB count=1 status=none
