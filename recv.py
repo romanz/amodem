@@ -218,14 +218,16 @@ def decode(bits_iterator):
     return ecc.decode(blocks())
 
 
-def main(fname):
+def main(args):
 
     log.info('Running MODEM @ {:.1f} kbps'.format(sigproc.modem_bps / 1e3))
     start = time.time()
 
-    fd = sys.stdin if (fname == '-') else open(fname, 'rb')
+    fd = sys.stdin
     signal = stream.iread(fd)
-    take(signal, 100)  # skip initial 0.1 second, due to spurious spikes
+    skipped = take(signal, args.skip)
+    log.debug('Skipping first %.3f seconds', len(skipped) / float(baud))
+
     stream.check = check_saturation
 
     size = 0
@@ -260,10 +262,11 @@ if __name__ == '__main__':
 
     import argparse
     p = argparse.ArgumentParser()
-    p.add_argument('fname', default='-', nargs='?')
+    p.add_argument('--skip', type=int, default=100,
+                   help='skip initial N samples, due to spurious spikes')
     args = p.parse_args()
     try:
-        main(fname=args.fname)
+        main(args)
     except Exception as e:
         log.exception(e)
     finally:
