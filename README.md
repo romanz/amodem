@@ -1,21 +1,64 @@
-# Audio Modem for Air-Gapped Communication #
+# Audio Modem for Uni-Directional Communication
 
-I am using a simple headset, whose speaker is connected to the transmitting PC and the microphone is connected to the receiving PC.
-Then, I bring the speaker and the microphone close together and use the PC's sound cards to perform the communication.
+This program can be used to transmit a specified file between 2 computers, using
+a simple audio cable (for better SNR and higher speeds) or a simple headset,
+allowing true air-gapped communication (via a speaker and a microphone).
 
-The sender is modulating `data.send` binary file using `send.py` script into 32kHz audio file (`tx.int16`), which is played using `aplay` Linux utility.
-The receiver is using `arecord` Linux utility to record the audio file into `rx.int16` 32kHz audio file, which is demodulated by `recv.py` script into `data.recv` binary file.
-The process requires a single manual calibration step - in order to find the maximal volume for the speaker, which will not saturate the microphone.
+The sender side uses `send.py` script to modulate the input data into an 32kHz
+audio file, which is played to the sound card, using `aplay` Linux utility.
 
-The modem's bitrate is currently 8kbps ([constellation diagram](http://i.imgur.com/JAbGkIt.png)) - so it should have no problem sending a simple transaction in O(second).
-Moreover, I am sure it can be optimized by using better modulation, error correction and better audio equipment.
+The receiver side uses `arecord` Linux utility to record the transmitted audio
+to an audio file, which is demodulated concurrently by the `recv.py` script.
 
-Currently, the documentation is quite lacking, but today was the first time I successfully transmitted 1KB of data between 2 PCs, so I am quite excited :)
-The recorded audio file is currently stored at `rx.int16` - and can be demodulated by running:
+The process requires a single manual calibration step: the transmitter has to
+find maximal output volume for its sound card, which will not saturate the
+receiving microphone.
 
-	$ virtualenv env
-	$ source env/bin/activate
-	$ pip install reedsolo numpy
-	$ python recv.py
+The modem is using OFDM over an audio cable with the following parameters:
 
-I would be happy to continue developing this library, in order to be able to integrate it with popular Bitcoin wallets, to support air-gapped transaction signing.
+- Sampling rate: 32 kHz
+- BAUD rate: 1 kHz
+- Symbol modulation: 64-QAM
+- Carriers: (1,2,3,4,5,6,7,8,9) kHz
+
+This way, modem achieves 54kpbs bitrate = 6.75 kB/s.
+
+A simple Reed-Solomon ECC is used, with (255,245) rate = ~3.9% overhead.
+
+# Installation
+
+## Required packages
+
+Make sure that `numpy` and `reedsolo` Python packages are installed.
+
+	$ sudo pip install numpy reedsolo
+
+## Calibration
+
+Connect the audio cable between the sender and the receiver, and run the
+following script on both of them.
+
+    $ ./auto-calib.sh
+
+The sender computer's audio level should be increased, until the received
+amplitude is around 0.5, while the coherence is very close to 1.0 (so no
+saturation takes place).
+
+## Testing
+
+`test.sh` script is used to transmit a random data file between two computers,
+using SSH connection, and to verify its correct reception.
+
+- Set connection parameters to sending computer:
+
+    $ export SRC_HOST="sender@tx.host"
+    $ export SRC_DIR="/home/sender/Code/amodem"
+
+- Set connection parameters to receiving computer:
+
+    $ export DST_HOST="receiver@rx.host"
+    $ export SRC_DIR="/home/receiver/Code/amodem"
+
+- Run the test script:
+
+	$ ./test.sh
