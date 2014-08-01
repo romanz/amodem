@@ -135,7 +135,8 @@ def train_receiver(symbols, freqs):
         y = np.array(Y) / scaling_factor
         if pylab:
             pylab.subplot(HEIGHT, WIDTH, i+1)
-            show.constellation(y, 'Train: $F_c = {}Hz$'.format(freq))
+            show.constellation(y, modem.qam.symbols,
+                               'Train: $F_c = {}Hz$'.format(freq))
             pylab.plot(S.real, S.imag, '.-')
 
         train_result = np.round(y)
@@ -262,7 +263,8 @@ def main(args):
         symbol_list = np.array(stats['symbol_list'])
         for i, freq in enumerate(modem.freqs):
             pylab.subplot(HEIGHT, WIDTH, i+1)
-            show.constellation(symbol_list[i], '$F_c = {} Hz$'.format(freq))
+            show.constellation(symbol_list[i], modem.qam.symbols,
+                               '$F_c = {} Hz$'.format(freq))
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG,

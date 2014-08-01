@@ -2,14 +2,12 @@
 import pylab
 import numpy as np
 
-import sigproc
 
-
-def constellation(y, title):
+def constellation(y, symbols, title):
     theta = np.linspace(0, 2*np.pi, 1000)
     pylab.plot(y.real, y.imag, '.')
     pylab.plot(np.cos(theta), np.sin(theta), ':')
-    points = np.array(sigproc.modulator.symbols)
+    points = np.array(symbols)
     pylab.plot(points.real, points.imag, '+')
     pylab.grid('on')
     pylab.axis('equal')
