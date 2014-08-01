@@ -29,9 +29,9 @@ A simple Reed-Solomon ECC is used, with (255,245) rate = ~3.9% overhead.
 
 ## Required packages
 
-Make sure that `numpy` and `reedsolo` Python packages are installed.
+Make sure the following  Python packages are installed:
 
-	$ sudo pip install numpy reedsolo
+	$ sudo pip install numpy reedsolo bitarray
 
 ## Calibration
 
