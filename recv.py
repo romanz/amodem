@@ -241,7 +241,6 @@ def decode(bits_iterator):
 def main(args):
 
     log.info('Running MODEM @ {:.1f} kbps'.format(modem.modem_bps / 1e3))
-    start = time.time()
 
     fd = sys.stdin
     signal = stream.iread(fd)
@@ -262,10 +261,9 @@ def main(args):
 
     duration = time.time() - stats['rx_start']
     audio_time = stats['rx_bits'] / float(modem.modem_bps)
-    log.info('Demodulated %.3f kB @ %.3f seconds (%.1f%% realtime)',
-             stats['rx_bits'] / 8e3, duration, 100 * duration / audio_time)
+    log.debug('Demodulated %.3f kB @ %.3f seconds (%.1f%% realtime)',
+              stats['rx_bits'] / 8e3, duration, 100 * duration / audio_time)
 
-    duration = time.time() - start
     log.info('Received %.3f kB @ %.3f seconds = %.3f kB/s',
              size * 1e-3, duration, size * 1e-3 / duration)
 
