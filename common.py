@@ -65,8 +65,7 @@ def iterate(data, size, func=None, truncate=True):
                 return
             done = True
 
-        buf = np.array(buf)
-        result = func(buf) if func else buf
+        result = func(buf) if func else np.array(buf)
         yield offset, result
         offset += size
 

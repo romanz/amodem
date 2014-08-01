@@ -18,7 +18,7 @@ def test_iterate():
     assert iterlist(range(N), 3) == [
         (i, [i, i+1, i+2]) for i in range(0, N-2, 3)]
 
-    assert iterlist(range(N), 1, func=lambda b: -b) == [
+    assert iterlist(range(N), 1, func=lambda b: -np.array(b)) == [
         (i, [-i]) for i in range(N)]
 
 
