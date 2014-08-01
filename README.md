@@ -33,6 +33,10 @@ Make sure the following  Python packages are installed:
 
 	$ sudo pip install numpy reedsolo bitarray
 
+For graphs and visualization (optional), install:
+
+	$ sudo pip install matplotlib
+
 ## Calibration
 
 Connect the audio cable between the sender and the receiver, and run the
@@ -44,8 +48,8 @@ $ ./calib.py recv  # run on the receiver side
 ```
 
 The sender computer's audio level should be increased, until the received
-**amplitude** is not higher than 0.5, while the **coherence** is 1.0 (so
-saturation does not happen).
+**amplitude** and **peak** values are not higher than 0.5, while the
+**coherence** is 1.0 (to avoid saturation).
 
 See http://youtu.be/iCg1tepGz10 for calibration demo.
 
@@ -126,8 +130,12 @@ See http://youtu.be/94yS3IZmtho for usage demo.
 2014-08-01 21:00:58,372 INFO         Received 125.000 kB @ 21.531 seconds = 5.806 kB/s
 ```
 
-- Verify correctness:
+- Verify correctness and stop the recording:
 ```
 ~/receiver/amodem $ sha256sum data.recv 
 008df57d4f3ed6e7a25d25afd57d04fc73140e8df604685bd34fcab58f5ddc01  data.recv
+~/receiver/amodem $ killall arecord
 ``` 
+
+See https://www.dropbox.com/sh/2yai1xmntdqlwf1/AACvfzasKEHK0zVxdzI4jF7pa for complete sender
+and receiver snapshot data.
