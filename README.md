@@ -38,27 +38,36 @@ Make sure that `numpy` and `reedsolo` Python packages are installed.
 Connect the audio cable between the sender and the receiver, and run the
 following script on both of them.
 
-    $ ./auto-calib.sh
+```
+$ ./calib.py send  # run on the sender side
+$ ./calib.py recv  # run on the receiver side
+```
 
 The sender computer's audio level should be increased, until the received
-amplitude is around 0.5, while the coherence is very close to 1.0 (so no
-saturation takes place).
+**amplitude** is not higher than 0.5, while the **coherence** is 1.0 (so 
+saturation does not happen).
 
 ## Testing
 
-`test.sh` script is used to transmit a random data file between two computers,
-using SSH connection, and to verify its correct reception.
+`test.sh` script is used to transmit a random data file between two computers
+(using SSH connection) and to verify its correct reception.
 
 - Set connection parameters to sending computer:
 
-    $ export SRC_HOST="sender@tx.host"
-    $ export SRC_DIR="/home/sender/Code/amodem"
+```
+$ export SRC_HOST="sender@tx.host"
+$ export SRC_DIR="/home/sender/Code/amodem"
+```
 
 - Set connection parameters to receiving computer:
 
-    $ export DST_HOST="receiver@rx.host"
-    $ export SRC_DIR="/home/receiver/Code/amodem"
+```
+$ export DST_HOST="receiver@rx.host"
+$ export SRC_DIR="/home/receiver/Code/amodem"
+```
 
 - Run the test script:
 
-	$ ./test.sh
+```
+$ ./test.sh
+```
