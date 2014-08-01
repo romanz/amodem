@@ -28,7 +28,7 @@ run_dst true
 
 ## generate 1Mbit of random data
 run_src dd if=/dev/urandom of=data.send bs=125kB count=1 status=none
-SRC_HASH=`run_src sha256sum data.send | ./colorhash.py`
+SRC_HASH=`run_src sha256sum data.send`
 
 # modulate data into audio file
 run_src "./send.py <data.send >tx.int16"
@@ -51,6 +51,6 @@ run_src killall -q aplay || true
 run_dst killall -q arecord || true
 
 # verify transmittion
-DST_HASH=`run_dst sha256sum data.recv | ./colorhash.py`
+DST_HASH=`run_dst sha256sum data.recv`
 
 echo -e "$SRC_HASH\n$DST_HASH"
