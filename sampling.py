@@ -43,6 +43,7 @@ class Sampler(object):
         self.offset = self.interp.width + 1
         self.buff = np.zeros(self.interp.coeff_len)
         self.index = 0
+        self.gain = 1.0
 
     def __iter__(self):
         return self
@@ -52,7 +53,7 @@ class Sampler(object):
         self.offset += offset
 
     def next(self):
-        res = self._sample()
+        res = self._sample() * self.gain
         self.offset += self.freq
         return res
 

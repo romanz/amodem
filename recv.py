@@ -44,6 +44,7 @@ def report_carrier(bufs, begin):
              ' coherence=%.3f%%, amplitude=%.3f',
              begin * config.Tsym * 1e3 / config.Nsym, config.Fc / 1e3,
              np.abs(sigproc.coherence(x, config.Fc)) * 100, amp)
+    return amp
 
 
 def detect(samples, freq):
@@ -62,7 +63,7 @@ def detect(samples, freq):
         if counter == CARRIER_THRESHOLD:
             length = (CARRIER_THRESHOLD - 1) * config.Nsym
             begin = offset - length
-            report_carrier(bufs, begin=begin)
+            amplitude = report_carrier(bufs, begin=begin)
             break
     else:
         raise ValueError('No carrier detected')
@@ -82,7 +83,7 @@ def detect(samples, freq):
     log.info('Carrier starts at %.3f ms',
              start * config.Tsym * 1e3 / config.Nsym)
 
-    return itertools.chain(buf[offset:], samples)
+    return itertools.chain(buf[offset:], samples), amplitude
 
 
 def find_start(buf, length):
@@ -95,21 +96,30 @@ def find_start(buf, length):
 def receive_prefix(symbols):
     S = common.take(symbols, len(train.prefix))[:, config.carrier_index]
     sliced = np.round(S)
-
-    nonzeros = np.array(train.prefix, dtype=bool)
+    if pylab:
+        pylab.figure()
+        show.constellation(S, sliced, 'Prefix')
 
     bits = np.array(np.abs(sliced), dtype=int)
-    if all(bits != train.prefix):
+    if any(bits != train.prefix):
         raise ValueError('Incorrect prefix')
 
     log.info('Prefix OK')
 
+    nonzeros = np.array(train.prefix, dtype=bool)
     pilot_tone = S[nonzeros]
+    phase = np.unwrap(np.angle(pilot_tone)) / (2 * np.pi)
+    indices = np.arange(len(phase))
+    a, b = sigproc.linear_regression(indices, phase)
 
-    freq_err, mean_phase = sigproc.drift(pilot_tone) / (config.Tsym * config.Fc)
+    freq_err = a / (config.Tsym * config.Fc)
+    last_phase = a * indices[-1] + b
+    log.debug('Current phase on carrier: %.3f', last_phase)
+
     expected_phase, = set(np.angle(sliced[nonzeros]) / (2 * np.pi))
+    log.debug('Excepted phase on carrier: %.3f', expected_phase)
 
-    sampling_err = (mean_phase - expected_phase) * config.Nsym
+    sampling_err = (last_phase - expected_phase) * config.Nsym
     log.info('Frequency error: %.2f ppm', freq_err * 1e6)
     log.info('Sampling error: %.2f samples', sampling_err)
     return freq_err, sampling_err
@@ -198,13 +208,14 @@ def demodulate(symbols, filters, freqs, sampler):
             sampler.offset -= correction
 
 
-def receive(signal, freqs):
+def receive(signal, freqs, gain=1.0):
     signal = loop.FreqLoop(signal, freqs)
+    signal.sampler.gain = gain
     symbols = iter(signal)
 
     freq_err, offset_err = receive_prefix(symbols)
-    signal.sampler.freq -= freq_err
     signal.sampler.offset -= offset_err
+    signal.sampler.freq -= freq_err
 
     filters = train_receiver(symbols, freqs)
     data_bits = demodulate(symbols, filters, freqs, signal.sampler)
@@ -240,8 +251,8 @@ def main(args):
     stream.check = common.check_saturation
 
     size = 0
-    signal = detect(signal, config.Fc)
-    bits = receive(signal, modem.freqs)
+    signal, amplitude = detect(signal, config.Fc)
+    bits = receive(signal, modem.freqs, gain=1.0/amplitude)
     try:
         for chunk in decode(bits):
             sys.stdout.write(chunk)
