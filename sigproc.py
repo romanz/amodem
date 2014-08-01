@@ -101,11 +101,11 @@ def extract_symbols(x, freq, offset=0):
         yield np.dot(Hc, symbol)
 
 
-def drift(S):
-    x = np.arange(len(S))
-    x = x - np.mean(x)
-    y = np.unwrap(np.angle(S)) / (2*np.pi)
-    mean_y = np.mean(y)
-    y = y - mean_y
-    a = np.dot(x, y) / np.dot(x, x)
-    return a, mean_y
+def linear_regression(x, y):
+    ''' Find (a,b) such that y = a*x + b. '''
+    x = np.array(x)
+    y = np.array(y)
+    ones = np.ones(len(x))
+    M = np.array([x, ones]).T
+    a, b = linalg.lstsq(M, y)[0]
+    return a, b
