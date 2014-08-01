@@ -40,11 +40,11 @@ run_dst killall -q arecord || true
 run_dst "./wave.py record rx.int16" &
 sleep 1  # let rx.int16 be filled
 
-# start the receiever
-run_dst "./recv.py <rx.int16 >data.recv" &
-
 # play the modulated data
-run_src ./wave.py play   tx.int16
+run_src ./wave.py play   tx.int16 &
+
+# start the receiever
+run_dst "./recv.py <rx.int16 >data.recv"
 
 # stop recording after playing is over
 run_src killall -q aplay || true
