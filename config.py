@@ -3,7 +3,7 @@ import numpy as np
 Fs = 32e3
 Ts = 1.0 / Fs
 
-frequencies = (1 + np.arange(9)) * 1e3
+frequencies = (1 + np.arange(8)) * 1e3
 carrier_index = 0
 Fc = frequencies[carrier_index]
 Tc = 1.0 / Fc
