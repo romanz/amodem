@@ -1,4 +1,4 @@
-# Audio Modem for Uni-Directional Communication
+# Audio Modem Communication Library
 
 This program can be used to transmit a specified file between 2 computers, using
 a simple audio cable (for better SNR and higher speeds) or a simple headset,
@@ -40,16 +40,21 @@ For graphs and visualization (optional), install:
 ## Calibration
 
 Connect the audio cable between the sender and the receiver, and run the
-following script on both of them.
+following scripts:
 
+- On the sender's side:
 ```
-$ ./calib.py send  # run on the sender side
-$ ./calib.py recv  # run on the receiver side
+~/sender/amodem $ ./calib.py send 
 ```
 
-The sender computer's audio level should be increased, until the received
-**amplitude** and **peak** values are not higher than 0.5, while the
-**coherence** is 1.0 (to avoid saturation).
+- On the receiver's side:
+```
+~/receiver/amodem $ ./calib.py recv
+```
+
+The sender computer's output audio level should be increased, until the 
+received **amplitude** and **peak** values are not higher than 0.5, while
+the **coherence** is 1.0 (to avoid saturation).
 
 See http://youtu.be/iCg1tepGz10 for calibration demo.
 
