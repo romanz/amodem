@@ -144,3 +144,16 @@ See http://youtu.be/94yS3IZmtho for usage demo.
 
 See https://www.dropbox.com/sh/2yai1xmntdqlwf1/AACvfzasKEHK0zVxdzI4jF7pa for complete sender
 and receiver snapshot data.
+
+# Visualization
+Make sure that `matplotlib` package is installed, and run (at the receiver side):
+
+```
+ ~/receiver/amodem $ PYLAB=1 ./recv.py <rx.int16 >data.recv
+```
+
+The following figures are be plotted:
+
+1. Prefix symbol: https://www.dropbox.com/s/lrk2ghastf7rbue/figure_1.png
+1. Training symbols: https://www.dropbox.com/s/3jnmdjgd3zavcod/figure_2.png
+1. Actual data symbols (full 64-QAM): https://www.dropbox.com/s/z0ca6tfvf8b8y8k/figure_3.png
