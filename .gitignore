@@ -9,3 +9,5 @@
 data.*
 *.prof
 *.log
+*.ogv
+*.pcm
