@@ -1,0 +1,4 @@
+numpy
+bitarray
+reedsolo
+matplotlib
