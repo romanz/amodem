@@ -12,13 +12,13 @@ run() {
 }
 
 run_src() {
-	DIR=${SRC_DIR:-"~/Code/modem"}
+	DIR=${SRC_DIR:-"$PWD"}
 	HOST=${SRC_HOST:-localhost}
 	run "$*"
 }
 
 run_dst() {
-	DIR=${DST_DIR:-"~/Code/modem"}
+	DIR=${DST_DIR:-"$PWD"}
 	HOST=${DST_HOST:-localhost}
 	run "$*"
 }
