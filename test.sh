@@ -31,20 +31,20 @@ run_src dd if=/dev/urandom of=data.send bs=125kB count=1 status=none
 SRC_HASH=`run_src sha256sum data.send`
 
 # modulate data into audio file
-run_src "./send.py <data.send >tx.int16"
+run_src "./send.py <data.send >audio.send"
 
 # stop old recording and start a new one
 run_src killall -q aplay || true
 run_dst killall -q arecord || true
 
-run_dst "./wave.py record rx.int16" &
-sleep 1  # let rx.int16 be filled
+run_dst "./wave.py record audio.recv" &
+sleep 1  # let audio.recv be filled
 
 # play the modulated data
-run_src ./wave.py play   tx.int16 &
+run_src ./wave.py play   audio.send &
 
 # start the receiever
-run_dst "./recv.py <rx.int16 >data.recv"
+run_dst "./recv.py <audio.recv >data.recv"
 
 # stop recording after playing is over
 run_src killall -q aplay || true
