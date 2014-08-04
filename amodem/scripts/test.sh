@@ -23,34 +23,35 @@ run_dst() {
 	run "$*"
 }
 
-run_src true
-run_dst true
+TEST_DIR=test_results
+run_src mkdir -p $TEST_DIR
+run_dst mkdir -p $TEST_DIR
 
 ## generate 1Mbit of random data
-run_src dd if=/dev/urandom of=data.send bs=125kB count=1 status=none
-SRC_HASH=`run_src sha256sum data.send`
+run_src dd if=/dev/urandom of=$TEST_DIR/data.send bs=125kB count=1 status=none
+SRC_HASH=`run_src sha256sum $TEST_DIR/data.send`
 
 # modulate data into audio file
-run_src "./send.py <data.send >audio.send"
+run_src "./send.py <$TEST_DIR/data.send >$TEST_DIR/audio.send"
 
 # stop old recording and start a new one
 run_src killall -q aplay || true
 run_dst killall -q arecord || true
 
-run_dst "./wave.py record audio.recv" &
+run_dst "./wave.py record $TEST_DIR/audio.recv" &
 sleep 1  # let audio.recv be filled
 
 # play the modulated data
-run_src ./wave.py play   audio.send &
+run_src ./wave.py play   $TEST_DIR/audio.send &
 
 # start the receiever
-run_dst "./recv.py <audio.recv >data.recv"
+run_dst "./recv.py <$TEST_DIR/audio.recv >$TEST_DIR/data.recv"
 
 # stop recording after playing is over
 run_src killall -q aplay || true
 run_dst killall -q arecord || true
 
 # verify transmittion
-DST_HASH=`run_dst sha256sum data.recv`
+DST_HASH=`run_dst sha256sum $TEST_DIR/data.recv`
 
 echo -e "$SRC_HASH\n$DST_HASH"
