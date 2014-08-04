@@ -42,8 +42,8 @@ writer = Writer()
 
 
 def start(fd, c):
-    writer.write(fd, c*1, n=400)
-    writer.write(fd, c*0, n=50)
+    for value in train.prefix:
+        writer.write(fd, c * value)
 
 
 def training(fd, c):
