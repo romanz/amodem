@@ -85,29 +85,27 @@ def main(args):
     import ecc
     log.info('Running MODEM @ {:.1f} kbps'.format(modem.modem_bps / 1e3))
 
-    fd = sys.stdout
-
     # padding audio with silence
-    writer.write(fd, np.zeros(int(config.Fs * args.silence_start)))
+    writer.write(args.output, np.zeros(int(config.Fs * args.silence_start)))
 
-    start(fd, sym.carrier[config.carrier_index])
+    start(args.output, sym.carrier[config.carrier_index])
     for c in sym.carrier:
-        training(fd, c)
+        training(args.output, c)
     training_size = writer.offset
     log.info('%.3f seconds of training audio',
              training_size / wave.bytes_per_second)
 
-    reader = Reader(sys.stdin, 64 << 10)
+    reader = Reader(args.input, 64 << 10)
     data = itertools.chain.from_iterable(reader)
     encoded = itertools.chain.from_iterable(ecc.encode(data))
-    modulate(fd, bits=common.to_bits(encoded))
+    modulate(args.output, bits=common.to_bits(encoded))
 
     data_size = writer.offset - training_size
     log.info('%.3f seconds of data audio, for %.3f kB of data',
              data_size / wave.bytes_per_second, reader.total / 1e3)
 
     # padding audio with silence
-    writer.write(fd, np.zeros(int(config.Fs * args.silence_stop)))
+    writer.write(args.output, np.zeros(int(config.Fs * args.silence_stop)))
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG,
@@ -117,5 +115,7 @@ if __name__ == '__main__':
     p = argparse.ArgumentParser()
     p.add_argument('--silence-start', type=float, default=1.0)
     p.add_argument('--silence-stop', type=float, default=1.0)
+    p.add_argument('-i', '--input', type=argparse.FileType('r'), default=sys.stdin)
+    p.add_argument('-o', '--output', type=argparse.FileType('w'), default=sys.stdout)
     args = p.parse_args()
     main(args)

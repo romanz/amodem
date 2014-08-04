@@ -242,8 +242,7 @@ def main(args):
 
     log.info('Running MODEM @ {:.1f} kbps'.format(modem.modem_bps / 1e3))
 
-    fd = sys.stdin
-    signal = stream.iread(fd)
+    signal = stream.iread(args.input)
     skipped = common.take(signal, args.skip)
     log.debug('Skipping first %.3f seconds', len(skipped) / float(modem.baud))
 
@@ -254,7 +253,7 @@ def main(args):
     bits = receive(signal, modem.freqs, gain=1.0/amplitude)
     try:
         for chunk in decode(bits):
-            sys.stdout.write(chunk)
+            args.output.write(chunk)
             size = size + len(chunk)
     except Exception:
         log.exception('Decoding failed')
@@ -283,6 +282,8 @@ if __name__ == '__main__':
     p = argparse.ArgumentParser()
     p.add_argument('--skip', type=int, default=100,
                    help='skip initial N samples, due to spurious spikes')
+    p.add_argument('-i', '--input', type=argparse.FileType('r'), default=sys.stdin)
+    p.add_argument('-o', '--output', type=argparse.FileType('w'), default=sys.stdout)
     args = p.parse_args()
     try:
         main(args)
