@@ -5,8 +5,8 @@
 *.txt
 *.png
 *.csv
-*.int16
-data.*
+*.recv
+*.send
 *.prof
 *.log
 *.ogv
