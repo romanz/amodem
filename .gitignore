@@ -14,3 +14,4 @@
 *.tar.gz
 build/
 *.egg-info
+/.coverage
