@@ -29,6 +29,7 @@ A simple Reed-Solomon ECC is used, with (255,245) rate = ~3.9% overhead.
 
 ## Status
 [![Build Status](https://travis-ci.org/romanz/amodem.svg?branch=master)](https://travis-ci.org/romanz/amodem)
+[![Coverage Status](https://coveralls.io/repos/romanz/amodem/badge.png?branch=master)](https://coveralls.io/r/romanz/amodem?branch=master)
 
 # Installation
 
