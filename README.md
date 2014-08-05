@@ -1,5 +1,7 @@
 # Audio Modem Communication Library
 
+## Description
+
 This program can be used to transmit a specified file between 2 computers, using
 a simple audio cable (for better SNR and higher speeds) or a simple headset,
 allowing true air-gapped communication (via a speaker and a microphone).
@@ -24,6 +26,9 @@ The modem is using OFDM over an audio cable with the following parameters:
 This way, modem achieves 48kpbs bitrate = 6.0 kB/s.
 
 A simple Reed-Solomon ECC is used, with (255,245) rate = ~3.9% overhead.
+
+## Status
+[![Build Status](https://travis-ci.org/romanz/amodem.svg?branch=master)](https://travis-ci.org/romanz/amodem)
 
 # Installation
 
