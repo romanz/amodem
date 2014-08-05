@@ -3,11 +3,12 @@ python:
   - "2.7"
 
 install:
-  - "pip install ."
-  - "pip install -r requirements.txt"
-  - "pip install coveralls"
+  - pip install .
+  - pip install coveralls
 
-script: coverage run tests/run.py
+script: 
+  - cd tests
+  - coverage run --source=amodem -m py.test
 
 after_success:
   - coverage report
