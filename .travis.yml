@@ -10,4 +10,4 @@ install:
 script: coverage run tests/run.py
 
 after_success:
-  - coveralls
+  - coverage report
