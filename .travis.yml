@@ -11,4 +11,4 @@ script:
   - coverage run --source=amodem -m py.test
 
 after_success:
-  - coverage report
+  - coveralls
