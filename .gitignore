@@ -11,3 +11,6 @@
 *.log
 *.ogv
 *.pcm
+*.tar.gz
+build/
+*.egg-info
