@@ -1,4 +1,4 @@
-import ecc
+from amodem import ecc
 import random
 import itertools
 

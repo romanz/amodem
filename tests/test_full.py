@@ -2,9 +2,9 @@ import os
 from cStringIO import StringIO
 import numpy as np
 
-import send
-import recv
-import common
+from amodem import send
+from amodem import recv
+from amodem import common
 
 import logging
 logging.basicConfig(level=logging.DEBUG,

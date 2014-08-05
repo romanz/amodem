@@ -1,4 +1,4 @@
-import sampling
+from amodem import sampling
 import numpy as np
 
 

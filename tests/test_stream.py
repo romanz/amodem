@@ -1,5 +1,5 @@
-import stream
-import wave
+from amodem import stream
+from amodem import wave
 
 
 def test():

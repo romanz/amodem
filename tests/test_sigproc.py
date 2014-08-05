@@ -1,8 +1,8 @@
-import sigproc
-import itertools
-import config
+from amodem import sigproc
+from amodem import config
 import numpy as np
 import random
+import itertools
 
 
 def test_qam():

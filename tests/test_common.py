@@ -1,4 +1,4 @@
-import common
+from amodem import common
 import numpy as np
 
 
