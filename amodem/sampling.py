@@ -53,20 +53,18 @@ class Sampler(object):
         self.offset += offset
 
     def next(self):
-        res = self._sample() * self.gain
-        self.offset += self.freq
-        return res
+        return self._sample() * self.gain
 
     def _sample(self):
         coeffs, begin = self.interp.get(self.offset)
         end = begin + self.interp.coeff_len
-        while True:
-            if self.index == end:
-                return np.dot(coeffs, self.buff)
-
+        while self.index < end:
             self.buff[:-1] = self.buff[1:]
             self.buff[-1] = self.src.next()  # throws StopIteration
             self.index += 1
+
+        self.offset += self.freq
+        return np.dot(coeffs, self.buff)
 
 if __name__ == '__main__':
     import common
