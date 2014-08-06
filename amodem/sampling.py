@@ -24,18 +24,16 @@ class Interpolator(object):
         assert set(lengths) == set([self.coeff_len])
         assert len(self.filt) == resolution
 
-    def get(self, offset):
-        # offset = k + (j / self.resolution)
-        k = int(offset)
-        j = int((offset - k) * self.resolution)
-        coeffs = self.filt[j]
-        return coeffs, k - self.width
-
 
 class Sampler(object):
     def __init__(self, src, interp=None):
         self.freq = 1.0
-        self.interp = interp if (interp is not None) else Interpolator()
+        if interp is None:
+            interp = Interpolator()
+        self.interp = interp
+        self.resolution = self.interp.resolution
+        self.filt = self.interp.filt
+        self.width = self.interp.width
 
         # TODO: explain indices arithmetic
         padding = [0.0] * (self.interp.width - 1)
@@ -52,8 +50,12 @@ class Sampler(object):
         return self._sample() * self.gain
 
     def _sample(self):
-        coeffs, begin = self.interp.get(self.offset)
-        end = begin + self.interp.coeff_len
+        offset = self.offset
+        # offset = k + (j / self.resolution)
+        k = int(offset)  # integer part
+        j = int((offset - k) * self.resolution)  # fractional part
+        coeffs = self.filt[j]
+        end = k + self.width
         while self.index < end:
             self.buff[:-1] = self.buff[1:]
             self.buff[-1] = self.src.next()  # throws StopIteration
