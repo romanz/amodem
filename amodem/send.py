@@ -18,8 +18,9 @@ modem = sigproc.MODEM(config)
 
 
 class Symbol(object):
-    t = np.arange(0, config.Nsym) * config.Ts
-    carrier = [np.exp(2j * np.pi * F * t) for F in modem.freqs]
+    def __init__(self):
+        t = np.arange(0, config.Nsym) * config.Ts
+        self.carrier = [np.exp(2j * np.pi * F * t) for F in modem.freqs]
 
 sym = Symbol()
 
@@ -31,7 +32,7 @@ class Writer(object):
 
     def write(self, fd, sym, n=1):
         data = common.dumps(sym, n)
-        fd.write(data)
+        fd.write(str(data))
         self.offset += len(data)
         if time.time() > self.last + 1:
             log.debug('%10.3f seconds of data audio',
@@ -69,7 +70,7 @@ class Reader(object):
         self.size = size
         self.total = 0
 
-    def next(self):
+    def __next__(self):
         block = self.fd.read(self.size)
         if block:
             self.total += len(block)

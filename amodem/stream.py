@@ -19,7 +19,7 @@ class Reader(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         block = bytearray()
         finish_time = time.time() + self.TIMEOUT
         while time.time() <= finish_time:
