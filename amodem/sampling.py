@@ -48,10 +48,6 @@ class Sampler(object):
     def __iter__(self):
         return self
 
-    def correct(self, offset=0):
-        assert self.freq + offset > 0
-        self.offset += offset
-
     def next(self):
         return self._sample() * self.gain
 
