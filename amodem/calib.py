@@ -12,8 +12,8 @@ sig = np.exp(2j * np.pi * config.Fc * t)
 sig_dump = common.dumps(sig)
 
 
-def send():
-    p = wave.play('-', stdin=wave.sp.PIPE, stderr=open('/dev/null'))
+def send(wave_play=wave.play):
+    p = wave_play('-', stdin=wave.sp.PIPE, stderr=open('/dev/null'))
     try:
         while True:
             try:
@@ -24,8 +24,8 @@ def send():
         p.kill()
 
 
-def recv():
-    p = wave.record('-', stdout=wave.sp.PIPE)
+def recv(wave_record=wave.record):
+    p = wave_record('-', stdout=wave.sp.PIPE)
     try:
         while True:
             data = p.stdout.read(len(sig_dump))
