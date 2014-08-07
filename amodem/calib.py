@@ -23,6 +23,7 @@ def send():
     except KeyboardInterrupt:
         p.kill()
 
+
 def recv():
     p = wave.record('-', stdout=wave.sp.PIPE)
     try:
@@ -37,13 +38,15 @@ def recv():
                 continue
             x = x - np.mean(x)
 
-            c = np.abs(np.dot(x, sig)) / (np.sqrt(0.5 * len(x)) * sigproc.norm(x))
+            normalization_factor = np.sqrt(0.5 * len(x)) * sigproc.norm(x)
+            coherence = np.abs(np.dot(x, sig)) / normalization_factor
             z = np.dot(x, sig.conj()) / (0.5 * len(x))
-            amp = np.abs(z)
+            amplitude = np.abs(z)
             phase = np.angle(z)
             peak = np.max(np.abs(x))
-            print('coherence={:.3f} amp={:.3f} phase={:.1f} peak={:.3f}'.format(
-                  c, amp, phase * 180 / np.pi, peak))
+
+            fmt = 'coherence={:.3f} amplitude={:.3f} phase={:+.1f} peak={:.3f}'
+            print(fmt.format(coherence, amplitude, phase * 180 / np.pi, peak))
     except KeyboardInterrupt:
         p.kill()
 
