@@ -13,6 +13,7 @@ import wave
 import common
 import config
 import sigproc
+import stream
 
 modem = sigproc.MODEM(config)
 
@@ -64,24 +65,6 @@ def modulate(fd, bits):
             break
 
 
-class Reader(object):
-    def __init__(self, fd, size):
-        self.fd = fd
-        self.size = size
-        self.total = 0
-
-    def __next__(self):
-        block = self.fd.read(self.size)
-        if block:
-            self.total += len(block)
-            return block
-        else:
-            raise StopIteration()
-
-    def __iter__(self):
-        return self
-
-
 def main(args):
     import ecc
     log.info('Running MODEM @ {:.1f} kbps'.format(modem.modem_bps / 1e3))
@@ -96,7 +79,7 @@ def main(args):
     log.info('%.3f seconds of training audio',
              training_size / wave.bytes_per_second)
 
-    reader = Reader(args.input, 64 << 10)
+    reader = stream.Reader(args.input, 64 << 10)
     data = itertools.chain.from_iterable(reader)
     encoded = itertools.chain.from_iterable(ecc.encode(data))
     modulate(args.output, bits=common.to_bits(encoded))
