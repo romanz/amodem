@@ -31,5 +31,5 @@ def test_read():
     try:
         for buf in f:
             pass
-    except IOError as e:
-        assert str(e) == 'timeout'
+    except stream.Timeout as e:
+        assert e.args == (f.timeout,)
