@@ -287,8 +287,10 @@ if __name__ == '__main__':
     p = argparse.ArgumentParser()
     p.add_argument('--skip', type=int, default=100,
                    help='skip initial N samples, due to spurious spikes')
-    p.add_argument('-i', '--input', type=argparse.FileType('r'), default=sys.stdin)
-    p.add_argument('-o', '--output', type=argparse.FileType('w'), default=sys.stdout)
+    p.add_argument('-i', '--input', type=argparse.FileType('rb'),
+                   default=sys.stdin)
+    p.add_argument('-o', '--output', type=argparse.FileType('wb'),
+                   default=sys.stdout)
     args = p.parse_args()
     try:
         main(args)

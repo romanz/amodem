@@ -1,14 +1,14 @@
 from amodem import stream
 import subprocess as sp
 
-script = r"""
+script = br"""
 import sys
 import time
 import os
 
 while True:
     time.sleep(0.1)
-    sys.stdout.write(b'\x00' * 6400)
+    sys.stdout.write('\x00' * 6400)
     sys.stderr.write('.')
 """
 

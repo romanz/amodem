@@ -34,7 +34,7 @@ class Writer(object):
 
     def write(self, fd, sym, n=1):
         data = common.dumps(sym, n)
-        fd.write(str(data))
+        fd.write(data)
         self.offset += len(data)
         if time.time() > self.last + 1:
             log.debug('%10.3f seconds of data audio',
@@ -99,9 +99,9 @@ if __name__ == '__main__':
     p = argparse.ArgumentParser()
     p.add_argument('--silence-start', type=float, default=1.0)
     p.add_argument('--silence-stop', type=float, default=1.0)
-    p.add_argument('-i', '--input', type=argparse.FileType('r'),
+    p.add_argument('-i', '--input', type=argparse.FileType('rb'),
                    default=sys.stdin)
-    p.add_argument('-o', '--output', type=argparse.FileType('w'),
+    p.add_argument('-o', '--output', type=argparse.FileType('wb'),
                    default=sys.stdout)
     args = p.parse_args()
     main(args)

@@ -18,18 +18,20 @@ class Args(object):
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
 
+
 def run(size, chan):
     tx_data = os.urandom(size)
-    tx_audio = StringIO()
-    send.main(Args(silence_start=1, silence_stop=1, input=StringIO(tx_data), output=tx_audio))
+    tx_audio = BytesIO()
+    send.main(Args(silence_start=1, silence_stop=1,
+              input=BytesIO(tx_data), output=tx_audio))
 
     data = tx_audio.getvalue()
     data = common.loads(data)
     data = chan(data)
     data = common.dumps(data * 1j)
-    rx_audio = StringIO(data)
+    rx_audio = BytesIO(data)
 
-    rx_data = StringIO()
+    rx_data = BytesIO()
     recv.main(Args(skip=100, input=rx_audio, output=rx_data))
     rx_data = rx_data.getvalue()
 
