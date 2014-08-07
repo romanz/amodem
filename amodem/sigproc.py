@@ -1,6 +1,8 @@
 import numpy as np
 from numpy import linalg
+import itertools
 
+from . import sampling
 from . import common
 from .config import Ts, Nsym
 
@@ -56,6 +58,21 @@ class QAM(object):
             if error_handler:
                 error_handler(received=s, decoded=S)
             yield self._dec[S]
+
+
+class FreqLoop(object):
+    def __init__(self, src, freqs):
+        interp = sampling.Interpolator()
+        self.sampler = sampling.Sampler(src, interp)
+        self.gens = []
+
+        samplers = itertools.tee(self.sampler, len(freqs))
+        for freq, generator in zip(freqs, samplers):
+            gen = extract_symbols(generator, freq)
+            self.gens.append(gen)
+
+    def __iter__(self):
+        return common.izip(*self.gens)
 
 
 class MODEM(object):

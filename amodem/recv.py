@@ -14,7 +14,6 @@ log = logging.getLogger(__name__)
 
 from . import stream
 from . import sigproc
-from . import loop
 from . import train
 from . import common
 from . import config
@@ -212,7 +211,7 @@ def demodulate(symbols, filters, freqs, sampler):
 
 
 def receive(signal, freqs, gain=1.0):
-    signal = loop.FreqLoop(signal, freqs)
+    signal = sigproc.FreqLoop(signal, freqs)
     signal.sampler.gain = gain
     symbols = iter(signal)
 
