@@ -8,21 +8,24 @@ import time
 import sys
 import os
 
+import bitarray
+
 log = logging.getLogger(__name__)
 
-import stream
-import sigproc
-import loop
-import train
-import common
-import config
+from . import stream
+from . import sigproc
+from . import loop
+from . import train
+from . import common
+from . import config
+from . import ecc
 
 modem = sigproc.MODEM(config)
 
 
 if os.environ.get('PYLAB') == '1':
-    import pylab
-    import show
+    from . import pylab
+    from . import show
     WIDTH = np.floor(np.sqrt(len(modem.freqs)))
     HEIGHT = np.ceil(len(modem.freqs) / float(WIDTH))
 else:
@@ -223,9 +226,6 @@ def receive(signal, freqs, gain=1.0):
 
 
 def decode(bits_iterator):
-    import bitarray
-    import ecc
-
     def blocks():
         while True:
             bits = itertools.islice(bits_iterator, 8 * ecc.BLOCK_SIZE)

@@ -1,6 +1,5 @@
 import time
 
-import wave
 
 
 class Reader(object):

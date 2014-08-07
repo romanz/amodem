@@ -7,13 +7,14 @@ import time
 
 log = logging.getLogger(__name__)
 
-import train
-import wave
+from . import train
+from . import wave
 
-import common
-import config
-import sigproc
-import stream
+from . import common
+from . import config
+from . import sigproc
+from . import stream
+from . import ecc
 
 modem = sigproc.MODEM(config)
 
@@ -66,7 +67,6 @@ def modulate(fd, bits):
 
 
 def main(args):
-    import ecc
     log.info('Running MODEM @ {:.1f} kbps'.format(modem.modem_bps / 1e3))
 
     # padding audio with silence

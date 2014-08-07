@@ -1,7 +1,7 @@
 ''' Reed-Solomon CODEC. '''
 from reedsolo import rs_encode_msg, rs_correct_msg
 
-import common
+from . import common
 
 import logging
 log = logging.getLogger(__name__)

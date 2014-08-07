@@ -1,8 +1,8 @@
 import numpy as np
 from numpy import linalg
 
-import common
-from config import Ts, Nsym
+from . import common
+from .config import Ts, Nsym
 
 
 class Filter(object):

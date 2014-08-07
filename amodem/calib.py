@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 import numpy as np
-import common
-import config
-import sigproc
-import wave
+
+from . import common
+from . import config
+from . import sigproc
+from . import wave
 
 Tsample = 1
 t = np.arange(int(Tsample * config.Fs)) * config.Ts

@@ -6,7 +6,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
-import config
+from . import config
 Fs = int(config.Fs)  # sampling rate
 
 bits_per_sample = 16

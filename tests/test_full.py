@@ -1,5 +1,9 @@
 import os
-from cStringIO import StringIO
+try:
+    from cStringIO import StringIO as BytesIO
+except ImportError:
+    from io import BytesIO  # Python 3
+
 import numpy as np
 
 from amodem import send
