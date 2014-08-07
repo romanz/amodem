@@ -25,13 +25,13 @@ def test_iterate():
 def test_split():
     L = [(i*2, i*2+1) for i in range(10)]
     iters = common.split(L, n=2)
-    assert zip(*iters) == L
+    assert list(zip(*iters)) == L
 
     for i in [0, 1]:
         iters = common.split(L, n=2)
-        iters[i].next()
+        next(iters[i])
         try:
-            iters[i].next()
+            next(iters[i])
             assert False
         except IndexError as e:
             assert e.args == (i,)
@@ -43,8 +43,8 @@ def test_icapture():
     z = []
     for i in common.icapture(x, result=y):
         z.append(i)
-    assert x == y
-    assert x == z
+    assert list(x) == y
+    assert list(x) == z
 
 
 def test_dumps_loads():

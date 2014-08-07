@@ -49,6 +49,8 @@ class Sampler(object):
     def next(self):
         return self._sample() * self.gain
 
+    __next__ = next
+
     def _sample(self):
         offset = self.offset
         # offset = k + (j / self.resolution)
@@ -58,7 +60,7 @@ class Sampler(object):
         end = k + self.width
         while self.index < end:
             self.buff[:-1] = self.buff[1:]
-            self.buff[-1] = self.src.next()  # throws StopIteration
+            self.buff[-1] = next(self.src)  # throws StopIteration
             self.index += 1
 
         self.offset += self.freq

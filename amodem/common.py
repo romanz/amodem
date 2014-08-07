@@ -83,7 +83,7 @@ class Splitter(object):
         while True:
             if all(self.read):
                 try:
-                    self.last = self.iterable.next()
+                    self.last = next(self.iterable)
                 except StopIteration:
                     return
 

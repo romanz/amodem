@@ -19,7 +19,7 @@ def test_read():
     p.stdin.close()
     f = stream.Reader(p.stdout)
 
-    result = zip(range(10), f)
+    result = list(zip(range(10), f))
     p.kill()
 
     j = 0

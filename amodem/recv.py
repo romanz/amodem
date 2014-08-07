@@ -193,7 +193,7 @@ def demodulate(symbols, filters, freqs, sampler):
     stats['rx_start'] = time.time()
 
     log.info('Demodulation started')
-    for i, block in enumerate(itertools.izip(*streams)):  # block per frequency
+    for i, block in enumerate(common.izip(*streams)):  # block per frequency
         for bits in block:
             stats['rx_bits'] = stats['rx_bits'] + len(bits)
             yield bits

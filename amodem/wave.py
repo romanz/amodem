@@ -27,7 +27,7 @@ def record(fname, **kwargs):
 
 
 def launch(*args, **kwargs):
-    args = map(str, args)
+    args = list(map(str, args))
     log.debug('$ %s', ' '.join(args))
     p = sp.Popen(args=args, **kwargs)
     p.stop = lambda: os.kill(p.pid, signal.SIGKILL)
