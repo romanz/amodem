@@ -6,7 +6,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
-import config
+from . import config
 Fs = int(config.Fs)  # sampling rate
 
 bits_per_sample = 16
@@ -27,7 +27,7 @@ def record(fname, **kwargs):
 
 
 def launch(*args, **kwargs):
-    args = map(str, args)
+    args = list(map(str, args))
     log.debug('$ %s', ' '.join(args))
     p = sp.Popen(args=args, **kwargs)
     p.stop = lambda: os.kill(p.pid, signal.SIGKILL)

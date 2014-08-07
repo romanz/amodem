@@ -41,7 +41,7 @@ def load(fileobj):
 
 
 def loads(data):
-    x = np.fromstring(data, dtype='int16')
+    x = np.frombuffer(data, dtype='int16')
     x = x / scaling
     return x
 
@@ -83,7 +83,7 @@ class Splitter(object):
         while True:
             if all(self.read):
                 try:
-                    self.last = self.iterable.next()
+                    self.last = next(self.iterable)
                 except StopIteration:
                     return
 
@@ -108,3 +108,9 @@ def icapture(iterable, result):
 
 def take(iterable, n):
     return np.array(list(itertools.islice(iterable, n)))
+
+
+try:
+    izip = itertools.izip
+except AttributeError:
+    izip = zip  # Python 3

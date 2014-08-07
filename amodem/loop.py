@@ -1,8 +1,9 @@
 import numpy as np
 import itertools
 
-import sampling
-import sigproc
+from . import sampling
+from . import sigproc
+from . import common
 
 
 class Filter(object):
@@ -33,4 +34,4 @@ class FreqLoop(object):
             self.gens.append(gen)
 
     def __iter__(self):
-        return itertools.izip(*self.gens)
+        return common.izip(*self.gens)

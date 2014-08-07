@@ -7,19 +7,22 @@ import time
 
 log = logging.getLogger(__name__)
 
-import train
-import wave
+from . import train
+from . import wave
 
-import common
-import config
-import sigproc
+from . import common
+from . import config
+from . import sigproc
+from . import stream
+from . import ecc
 
 modem = sigproc.MODEM(config)
 
 
 class Symbol(object):
-    t = np.arange(0, config.Nsym) * config.Ts
-    carrier = [np.exp(2j * np.pi * F * t) for F in modem.freqs]
+    def __init__(self):
+        t = np.arange(0, config.Nsym) * config.Ts
+        self.carrier = [np.exp(2j * np.pi * F * t) for F in modem.freqs]
 
 sym = Symbol()
 
@@ -63,26 +66,7 @@ def modulate(fd, bits):
             break
 
 
-class Reader(object):
-    def __init__(self, fd, size):
-        self.fd = fd
-        self.size = size
-        self.total = 0
-
-    def next(self):
-        block = self.fd.read(self.size)
-        if block:
-            self.total += len(block)
-            return block
-        else:
-            raise StopIteration()
-
-    def __iter__(self):
-        return self
-
-
 def main(args):
-    import ecc
     log.info('Running MODEM @ {:.1f} kbps'.format(modem.modem_bps / 1e3))
 
     # padding audio with silence
@@ -95,7 +79,7 @@ def main(args):
     log.info('%.3f seconds of training audio',
              training_size / wave.bytes_per_second)
 
-    reader = Reader(args.input, 64 << 10)
+    reader = stream.Reader(args.input, bufsize=(64 << 10), eof=True)
     data = itertools.chain.from_iterable(reader)
     encoded = itertools.chain.from_iterable(ecc.encode(data))
     modulate(args.output, bits=common.to_bits(encoded))
@@ -115,7 +99,9 @@ if __name__ == '__main__':
     p = argparse.ArgumentParser()
     p.add_argument('--silence-start', type=float, default=1.0)
     p.add_argument('--silence-stop', type=float, default=1.0)
-    p.add_argument('-i', '--input', type=argparse.FileType('r'), default=sys.stdin)
-    p.add_argument('-o', '--output', type=argparse.FileType('w'), default=sys.stdout)
+    p.add_argument('-i', '--input', type=argparse.FileType('rb'),
+                   default=sys.stdin)
+    p.add_argument('-o', '--output', type=argparse.FileType('wb'),
+                   default=sys.stdout)
     args = p.parse_args()
     main(args)

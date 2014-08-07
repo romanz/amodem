@@ -1,43 +1,57 @@
 import time
-import itertools
+import logging
 
-import common
-import wave
+log = logging.getLogger(__name__)
+
+
+class Timeout(Exception):
+    pass
 
 
 class Reader(object):
 
-    SAMPLES = 4096
-    BUFSIZE = int(SAMPLES * wave.bytes_per_sample)
-    WAIT = 0.1
-    TIMEOUT = 2.0
-
-    def __init__(self, fd):
+    def __init__(self, fd, data_type=None, bufsize=4096,
+                 eof=False, timeout=2.0, wait=0.2):
         self.fd = fd
+        self.data_type = data_type if (data_type is not None) else lambda x: x
+        self.bufsize = bufsize
+        self.eof = eof
+        self.timeout = timeout
+        self.wait = wait
+        self.total = 0
         self.check = None
 
     def __iter__(self):
         return self
 
+    def __next__(self):
+        return self.next()
+
     def next(self):
         block = bytearray()
-        finish_time = time.time() + self.TIMEOUT
+        if self.eof:
+            data = self.fd.read(self.bufsize)
+            if data:
+                self.total += len(data)
+                block.extend(data)
+                return block
+            else:
+                raise StopIteration()
+
+        finish_time = time.time() + self.timeout
         while time.time() <= finish_time:
-            left = self.BUFSIZE - len(block)
+            left = self.bufsize - len(block)
             data = self.fd.read(left)
             if data:
+                self.total += len(data)
                 block.extend(data)
 
-            if len(block) == self.BUFSIZE:
-                values = common.loads(str(block))
+            if len(block) == self.bufsize:
+                values = self.data_type(block)
                 if self.check:
                     self.check(values)
                 return values
 
-            time.sleep(self.WAIT)
+            time.sleep(self.wait)
 
-        raise IOError('timeout')
-
-
-def iread(fd):
-    return itertools.chain.from_iterable(Reader(fd))
+        raise Timeout(self.timeout)

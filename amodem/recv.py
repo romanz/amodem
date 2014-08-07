@@ -8,21 +8,24 @@ import time
 import sys
 import os
 
+import bitarray
+
 log = logging.getLogger(__name__)
 
-import stream
-import sigproc
-import loop
-import train
-import common
-import config
+from . import stream
+from . import sigproc
+from . import loop
+from . import train
+from . import common
+from . import config
+from . import ecc
 
 modem = sigproc.MODEM(config)
 
 
 if os.environ.get('PYLAB') == '1':
-    import pylab
-    import show
+    from . import pylab
+    from . import show
     WIDTH = np.floor(np.sqrt(len(modem.freqs)))
     HEIGHT = np.ceil(len(modem.freqs) / float(WIDTH))
 else:
@@ -190,7 +193,7 @@ def demodulate(symbols, filters, freqs, sampler):
     stats['rx_start'] = time.time()
 
     log.info('Demodulation started')
-    for i, block in enumerate(itertools.izip(*streams)):  # block per frequency
+    for i, block in enumerate(common.izip(*streams)):  # block per frequency
         for bits in block:
             stats['rx_bits'] = stats['rx_bits'] + len(bits)
             yield bits
@@ -223,9 +226,6 @@ def receive(signal, freqs, gain=1.0):
 
 
 def decode(bits_iterator):
-    import bitarray
-    import ecc
-
     def blocks():
         while True:
             bits = itertools.islice(bits_iterator, 8 * ecc.BLOCK_SIZE)
@@ -238,11 +238,16 @@ def decode(bits_iterator):
     return ecc.decode(blocks())
 
 
+def iread(fd):
+    reader = stream.Reader(fd, data_type=common.loads)
+    return itertools.chain.from_iterable(reader)
+
+
 def main(args):
 
     log.info('Running MODEM @ {:.1f} kbps'.format(modem.modem_bps / 1e3))
 
-    signal = stream.iread(args.input)
+    signal = iread(args.input)
     skipped = common.take(signal, args.skip)
     log.debug('Skipping first %.3f seconds', len(skipped) / float(modem.baud))
 
@@ -282,8 +287,10 @@ if __name__ == '__main__':
     p = argparse.ArgumentParser()
     p.add_argument('--skip', type=int, default=100,
                    help='skip initial N samples, due to spurious spikes')
-    p.add_argument('-i', '--input', type=argparse.FileType('r'), default=sys.stdin)
-    p.add_argument('-o', '--output', type=argparse.FileType('w'), default=sys.stdout)
+    p.add_argument('-i', '--input', type=argparse.FileType('rb'),
+                   default=sys.stdin)
+    p.add_argument('-o', '--output', type=argparse.FileType('wb'),
+                   default=sys.stdout)
     args = p.parse_args()
     try:
         main(args)

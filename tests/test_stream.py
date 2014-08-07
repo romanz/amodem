@@ -1,14 +1,14 @@
 from amodem import stream
 import subprocess as sp
 
-script = r"""
+script = br"""
 import sys
 import time
 import os
 
 while True:
     time.sleep(0.1)
-    sys.stdout.write(b'\x00' * 6400)
+    sys.stdout.write('\x00' * 6400)
     sys.stderr.write('.')
 """
 
@@ -19,17 +19,17 @@ def test_read():
     p.stdin.close()
     f = stream.Reader(p.stdout)
 
-    result = zip(range(10), f)
+    result = list(zip(range(10), f))
     p.kill()
 
     j = 0
     for i, buf in result:
         assert i == j
-        assert len(buf) == f.SAMPLES
+        assert len(buf) == f.bufsize
         j += 1
 
     try:
         for buf in f:
             pass
-    except IOError as e:
-        assert str(e) == 'timeout'
+    except stream.Timeout as e:
+        assert e.args == (f.timeout,)
