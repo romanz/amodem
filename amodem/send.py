@@ -79,7 +79,7 @@ def main(args):
     log.info('%.3f seconds of training audio',
              training_size / wave.bytes_per_second)
 
-    reader = stream.Reader(args.input, 64 << 10)
+    reader = stream.Reader(args.input, 64 << 10, eof=True)
     data = itertools.chain.from_iterable(reader)
     encoded = itertools.chain.from_iterable(ecc.encode(data))
     modulate(args.output, bits=common.to_bits(encoded))
