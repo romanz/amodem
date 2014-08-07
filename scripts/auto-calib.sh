@@ -1,7 +1,7 @@
 #!/bin/bash
 killall -q aplay arecord
-./calib.py send &
+python -m amodem.calib send &
 SENDER_PID=$!
-./calib.py recv
+python -m amodem.calib recv
 
 kill -INT $SENDER_PID
