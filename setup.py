@@ -17,7 +17,8 @@ setup(
     license="MIT",
     url="http://github.com/romanz/amodem",
     packages=['amodem'],
-    tests_require=['py.test'],
+    tests_require=['nose'],
+    test_suite='nose.collector',
     install_requires=['numpy', 'bitarray', 'reedsolo'],
     platforms=['POSIX'],
     classifiers=[
@@ -27,6 +28,7 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: POSIX",
         "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3.3",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: System :: Networking",
         "Topic :: Communications",
