@@ -25,7 +25,7 @@ def test_read():
     j = 0
     for i, buf in result:
         assert i == j
-        assert len(buf) == f.SAMPLES
+        assert len(buf) == f.bufsize
         j += 1
 
     try:

@@ -79,7 +79,7 @@ def main(args):
     log.info('%.3f seconds of training audio',
              training_size / wave.bytes_per_second)
 
-    reader = stream.Reader(args.input, 64 << 10, eof=True)
+    reader = stream.Reader(args.input, bufsize=(64 << 10), eof=True)
     data = itertools.chain.from_iterable(reader)
     encoded = itertools.chain.from_iterable(ecc.encode(data))
     modulate(args.output, bits=common.to_bits(encoded))
@@ -99,7 +99,9 @@ if __name__ == '__main__':
     p = argparse.ArgumentParser()
     p.add_argument('--silence-start', type=float, default=1.0)
     p.add_argument('--silence-stop', type=float, default=1.0)
-    p.add_argument('-i', '--input', type=argparse.FileType('r'), default=sys.stdin)
-    p.add_argument('-o', '--output', type=argparse.FileType('w'), default=sys.stdout)
+    p.add_argument('-i', '--input', type=argparse.FileType('r'),
+                   default=sys.stdin)
+    p.add_argument('-o', '--output', type=argparse.FileType('w'),
+                   default=sys.stdout)
     args = p.parse_args()
     main(args)

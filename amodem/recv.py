@@ -238,11 +238,16 @@ def decode(bits_iterator):
     return ecc.decode(blocks())
 
 
+def iread(fd):
+    reader = stream.Reader(fd, data_type=common.loads)
+    return itertools.chain.from_iterable(reader)
+
+
 def main(args):
 
     log.info('Running MODEM @ {:.1f} kbps'.format(modem.modem_bps / 1e3))
 
-    signal = stream.iread(args.input)
+    signal = iread(args.input)
     skipped = common.take(signal, args.skip)
     log.debug('Skipping first %.3f seconds', len(skipped) / float(modem.baud))
 

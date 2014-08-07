@@ -41,7 +41,7 @@ def load(fileobj):
 
 
 def loads(data):
-    x = np.fromstring(data, dtype='int16')
+    x = np.fromstring(str(data), dtype='int16')
     x = x / scaling
     return x
 
