@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import sys
 import numpy as np
 
 from . import common
@@ -10,6 +11,7 @@ Tsample = 1
 t = np.arange(int(Tsample * config.Fs)) * config.Ts
 sig = np.exp(2j * np.pi * config.Fc * t)
 sig_dump = common.dumps(sig)
+fmt = 'coherence={:.3f} amplitude={:.3f} phase={:+.1f} peak={:.3f}\n'
 
 
 def send(wave_play=wave.play):
@@ -24,7 +26,7 @@ def send(wave_play=wave.play):
         p.kill()
 
 
-def recv(wave_record=wave.record):
+def recv(wave_record=wave.record, reporter=sys.stdout.write):
     p = wave_record('-', stdout=wave.sp.PIPE)
     try:
         while True:
@@ -45,10 +47,10 @@ def recv(wave_record=wave.record):
             phase = np.angle(z)
             peak = np.max(np.abs(x))
 
-            fmt = 'coherence={:.3f} amplitude={:.3f} phase={:+.1f} peak={:.3f}'
-            print(fmt.format(coherence, amplitude, phase * 180 / np.pi, peak))
+            reporter(fmt.format(coherence, amplitude, phase * 180/np.pi, peak))
     except KeyboardInterrupt:
         p.kill()
+
 
 if __name__ == '__main__':
     import argparse
