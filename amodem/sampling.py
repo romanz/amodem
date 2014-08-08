@@ -47,11 +47,6 @@ class Sampler(object):
         return self
 
     def next(self):
-        return self._sample() * self.gain
-
-    __next__ = next
-
-    def _sample(self):
         offset = self.offset
         # offset = k + (j / self.resolution)
         k = int(offset)  # integer part
@@ -64,7 +59,10 @@ class Sampler(object):
             self.index += 1
 
         self.offset += self.freq
-        return np.dot(coeffs, self.buff)
+        return np.dot(coeffs, self.buff) * self.gain
+
+    __next__ = next
+
 
 if __name__ == '__main__':
     import common
