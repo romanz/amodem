@@ -1,8 +1,5 @@
 import os
-try:
-    from cStringIO import StringIO as BytesIO
-except ImportError:
-    from io import BytesIO  # Python 3
+from io import BytesIO
 
 import numpy as np
 
