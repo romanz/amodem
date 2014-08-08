@@ -49,5 +49,5 @@ def test_icapture():
 
 def test_dumps_loads():
     x = np.array([.1, .4, .2, .6, .3, .5])
-    y = common.loads(common.dumps(x * 1j))
+    y = common.loads(common.dumps(x))
     assert all(x == y)

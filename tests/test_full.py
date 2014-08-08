@@ -29,7 +29,7 @@ def run(size, chan):
     data = tx_audio.getvalue()
     data = common.loads(data)
     data = chan(data)
-    data = common.dumps(data * 1j)
+    data = common.dumps(data)
     rx_audio = BytesIO(data)
 
     rx_data = BytesIO()

@@ -47,7 +47,7 @@ def loads(data):
 
 
 def dumps(sym, n=1):
-    sym = sym.imag * scaling
+    sym = sym.real * scaling
     sym = sym.astype('int16')
     data = sym.tostring()
     return data * n

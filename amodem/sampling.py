@@ -76,5 +76,5 @@ if __name__ == '__main__':
     sampler = Sampler(x, Interpolator())
     sampler.freq += df
     y = np.array(list(sampler))
-    y = common.dumps(y*1j)
+    y = common.dumps(y)
     sys.stdout.write(y)
