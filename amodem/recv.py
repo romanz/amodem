@@ -18,6 +18,7 @@ from . import train
 from . import common
 from . import config
 from . import ecc
+from . import profiling
 
 modem = sigproc.MODEM(config)
 
@@ -290,9 +291,11 @@ if __name__ == '__main__':
                    default=sys.stdin)
     p.add_argument('-o', '--output', type=argparse.FileType('wb'),
                    default=sys.stdout)
+    p.add_argument('-p', '--profile', type=str)
     args = p.parse_args()
     try:
-        main(args)
+        with profiling.save(filename=args.profile):
+            main(args)
     except Exception as e:
         log.exception(e)
     finally:
