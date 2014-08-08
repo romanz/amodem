@@ -17,3 +17,5 @@ build/
 *.egg-info
 .coverage
 htmlcov
+*_ext.c
+*_ext.so
