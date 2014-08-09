@@ -23,7 +23,7 @@ from . import profiling
 modem = sigproc.MODEM(config)
 
 if os.environ.get('PYLAB') == '1':
-    from . import pylab
+    import pylab
 else:
     pylab = common.Dummy()
 
