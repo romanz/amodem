@@ -5,7 +5,6 @@ import itertools
 import functools
 import collections
 import time
-import sys
 import os
 
 import bitarray
@@ -18,7 +17,6 @@ from . import train
 from . import common
 from . import config
 from . import ecc
-from . import profiling
 
 modem = sigproc.MODEM(config)
 
@@ -239,39 +237,43 @@ def iread(fd):
 
 
 def main(args):
-
-    log.info('Running MODEM @ {:.1f} kbps'.format(modem.modem_bps / 1e3))
-
-    signal = iread(args.input)
-    skipped = common.take(signal, args.skip)
-    log.debug('Skipping first %.3f seconds', len(skipped) / float(modem.baud))
-
-    stream.check = common.check_saturation
-
-    size = 0
-    signal, amplitude = detect(signal, config.Fc)
-    bits = receive(signal, modem.freqs, gain=1.0/amplitude)
     try:
-        for chunk in decode(bits):
-            args.output.write(chunk)
-            size = size + len(chunk)
-    except Exception:
-        log.exception('Decoding failed')
+        log.info('Running MODEM @ {:.1f} kbps'.format(modem.modem_bps / 1e3))
 
-    duration = time.time() - stats['rx_start']
-    audio_time = stats['rx_bits'] / float(modem.modem_bps)
-    log.debug('Demodulated %.3f kB @ %.3f seconds (%.1f%% realtime)',
-              stats['rx_bits'] / 8e3, duration, 100 * duration / audio_time)
+        signal = iread(args.input)
+        skipped = common.take(signal, args.skip)
+        log.debug('Skipping %.3f seconds', len(skipped) / float(modem.baud))
 
-    log.info('Received %.3f kB @ %.3f seconds = %.3f kB/s',
-             size * 1e-3, duration, size * 1e-3 / duration)
+        stream.check = common.check_saturation
 
-    pylab.figure()
-    symbol_list = np.array(stats['symbol_list'])
-    for i, freq in enumerate(modem.freqs):
-        pylab.subplot(HEIGHT, WIDTH, i+1)
-        constellation(symbol_list[i], modem.qam.symbols,
-                      '$F_c = {} Hz$'.format(freq))
+        size = 0
+        signal, amplitude = detect(signal, config.Fc)
+        bits = receive(signal, modem.freqs, gain=1.0/amplitude)
+        try:
+            for chunk in decode(bits):
+                args.output.write(chunk)
+                size = size + len(chunk)
+        except Exception:
+            log.exception('Decoding failed')
+
+        duration = time.time() - stats['rx_start']
+        audio_time = stats['rx_bits'] / float(modem.modem_bps)
+        log.debug('Demodulated %.3f kB @ %.3f seconds (%.1f%% realtime)',
+                  stats['rx_bits'] / 8e3, duration, 100 * duration / audio_time)
+
+        log.info('Received %.3f kB @ %.3f seconds = %.3f kB/s',
+                 size * 1e-3, duration, size * 1e-3 / duration)
+
+        pylab.figure()
+        symbol_list = np.array(stats['symbol_list'])
+        for i, freq in enumerate(modem.freqs):
+            pylab.subplot(HEIGHT, WIDTH, i+1)
+            constellation(symbol_list[i], modem.qam.symbols,
+                          '$F_c = {} Hz$'.format(freq))
+    except Exception as e:
+        log.exception(e)
+    finally:
+        pylab.show()
 
 
 def constellation(y, symbols, title):
@@ -283,26 +285,3 @@ def constellation(y, symbols, title):
     pylab.grid('on')
     pylab.axis('equal')
     pylab.title(title)
-
-
-if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG,
-                        format='%(asctime)s %(levelname)-12s %(message)s')
-
-    import argparse
-    p = argparse.ArgumentParser()
-    p.add_argument('--skip', type=int, default=100,
-                   help='skip initial N samples, due to spurious spikes')
-    p.add_argument('-i', '--input', type=argparse.FileType('rb'),
-                   default=sys.stdin)
-    p.add_argument('-o', '--output', type=argparse.FileType('wb'),
-                   default=sys.stdout)
-    p.add_argument('-p', '--profile', type=str)
-    args = p.parse_args()
-    try:
-        with profiling.save(filename=args.profile):
-            main(args)
-    except Exception as e:
-        log.exception(e)
-    finally:
-        pylab.show()
