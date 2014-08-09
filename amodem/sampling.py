@@ -67,7 +67,7 @@ class Sampler(object):
 
 
 def resample(src, dst, df=0.0):
-    import common
+    from . import common
     x = common.load(src)
     sampler = Sampler(x, Interpolator())
     sampler.freq += df
