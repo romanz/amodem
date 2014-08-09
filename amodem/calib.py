@@ -50,16 +50,3 @@ def recv(wave_record=wave.record, reporter=sys.stdout.write):
             reporter(fmt.format(coherence, amplitude, phase * 180/np.pi, peak))
     except KeyboardInterrupt:
         p.kill()
-
-
-if __name__ == '__main__':
-    import argparse
-    p = argparse.ArgumentParser()
-    sub = p.add_subparsers()
-    sub.add_parser('send').set_defaults(func=send)
-    sub.add_parser('recv').set_defaults(func=recv)
-    args = p.parse_args()
-    try:
-        args.func()
-    except KeyboardInterrupt:
-        pass
