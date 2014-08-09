@@ -15,7 +15,7 @@ def test_resample():
     assert np.max(np.abs(err)) < 1e-4
 
     dst = BytesIO()
-    sampling.resample(src=BytesIO('\x00\x00'), dst=dst, df=0.0)
+    sampling.resample(src=BytesIO(b'\x00\x00'), dst=dst, df=0.0)
     assert dst.tell() == 0
 
 
