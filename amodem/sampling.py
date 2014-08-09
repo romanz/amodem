@@ -26,10 +26,8 @@ class Interpolator(object):
 
 
 class Sampler(object):
-    def __init__(self, src, interp=None):
+    def __init__(self, src, interp):
         self.freq = 1.0
-        if interp is None:
-            interp = Interpolator()
         self.interp = interp
         self.resolution = self.interp.resolution
         self.filt = self.interp.filt
