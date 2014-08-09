@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import sys
 import logging
 logging.basicConfig(level=logging.DEBUG,

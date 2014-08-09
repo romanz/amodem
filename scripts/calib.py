@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from amodem import calib
 
 import argparse
