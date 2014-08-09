@@ -1,14 +1,22 @@
 from amodem import sampling
+from amodem import common
+
 import numpy as np
+from io import BytesIO
 
 
 def test_resample():
-    x = np.arange(300)
-    s = sampling.Sampler(x, interp=sampling.Interpolator())
-    y = s.take(len(x) - s.interp.width - 1)
-
+    x = np.sin(2*np.pi * 10 * np.linspace(0, 1, 1001))
+    src = BytesIO(common.dumps(x))
+    dst = BytesIO()
+    sampling.resample(src=src, dst=dst, df=0.0)
+    y = common.loads(dst.getvalue())
     err = x[1:len(y)+1] - y
-    assert np.max(np.abs(err)) < 1e-10
+    assert np.max(np.abs(err)) < 1e-4
+
+    dst = BytesIO()
+    sampling.resample(src=BytesIO('\x00\x00'), dst=dst, df=0.0)
+    assert dst.tell() == 0
 
 
 def test_coeffs():

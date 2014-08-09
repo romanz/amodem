@@ -43,34 +43,33 @@ class Sampler(object):
 
     def take(self, size):
         frame = np.zeros(size)
+        count = 0
+        try:
+            for frame_index in range(size):
+                offset = self.offset
+                # offset = k + (j / self.resolution)
+                k = int(offset)  # integer part
+                j = int((offset - k) * self.resolution)  # fractional part
+                coeffs = self.filt[j]
+                end = k + self.width
+                while self.index < end:
+                    self.buff[:-1] = self.buff[1:]
+                    self.buff[-1] = next(self.src)  # throws StopIteration
+                    self.index += 1
 
-        for frame_index in range(size):
-            offset = self.offset
-            # offset = k + (j / self.resolution)
-            k = int(offset)  # integer part
-            j = int((offset - k) * self.resolution)  # fractional part
-            coeffs = self.filt[j]
-            end = k + self.width
-            while self.index < end:
-                self.buff[:-1] = self.buff[1:]
-                self.buff[-1] = next(self.src)  # throws StopIteration
-                self.index += 1
+                self.offset += self.freq
+                frame[frame_index] = np.dot(coeffs, self.buff) * self.gain
+                count = frame_index + 1
+        except StopIteration:
+            pass
 
-            self.offset += self.freq
-            frame[frame_index] = np.dot(coeffs, self.buff) * self.gain
-
-        return frame
+        return frame[:count]
 
 
-if __name__ == '__main__':
+def resample(src, dst, df=0.0):
     import common
-    import sys
-    df, = sys.argv[1:]
-    df = float(df)
-
-    x = common.load(sys.stdin)
+    x = common.load(src)
     sampler = Sampler(x, Interpolator())
     sampler.freq += df
-    y = np.array(list(sampler))
-    y = common.dumps(y)
-    sys.stdout.write(y)
+    y = sampler.take(len(x))
+    dst.write(common.dumps(y))
