@@ -73,7 +73,7 @@ class Demux(object):
         return self
 
     def next(self):
-        frame = common.take(self.sampler, Nsym)
+        frame = self.sampler.take(size=Nsym)
         return np.dot(self.filters, frame)
 
     __next__ = next

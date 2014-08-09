@@ -43,25 +43,25 @@ class Sampler(object):
         self.index = 0
         self.gain = 1.0
 
-    def __iter__(self):
-        return self
+    def take(self, size):
+        frame = np.zeros(size)
 
-    def next(self):
-        offset = self.offset
-        # offset = k + (j / self.resolution)
-        k = int(offset)  # integer part
-        j = int((offset - k) * self.resolution)  # fractional part
-        coeffs = self.filt[j]
-        end = k + self.width
-        while self.index < end:
-            self.buff[:-1] = self.buff[1:]
-            self.buff[-1] = next(self.src)  # throws StopIteration
-            self.index += 1
+        for frame_index in range(size):
+            offset = self.offset
+            # offset = k + (j / self.resolution)
+            k = int(offset)  # integer part
+            j = int((offset - k) * self.resolution)  # fractional part
+            coeffs = self.filt[j]
+            end = k + self.width
+            while self.index < end:
+                self.buff[:-1] = self.buff[1:]
+                self.buff[-1] = next(self.src)  # throws StopIteration
+                self.index += 1
 
-        self.offset += self.freq
-        return np.dot(coeffs, self.buff) * self.gain
+            self.offset += self.freq
+            frame[frame_index] = np.dot(coeffs, self.buff) * self.gain
 
-    __next__ = next
+        return frame
 
 
 if __name__ == '__main__':
