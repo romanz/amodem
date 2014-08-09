@@ -32,20 +32,20 @@ run_src dd if=/dev/urandom of=$TEST_DIR/data.send bs=125kB count=1 status=none
 SRC_HASH=`run_src sha256sum $TEST_DIR/data.send`
 
 # modulate data into audio file
-run_src "python -m amodem.send -i $TEST_DIR/data.send -o $TEST_DIR/audio.send"
+run_src "python scripts/send.py -i $TEST_DIR/data.send -o $TEST_DIR/audio.send"
 
 # stop old recording and start a new one
 run_src killall -q aplay || true
 run_dst killall -q arecord || true
 
-run_dst "python -m amodem.wave record $TEST_DIR/audio.recv" &
+run_dst "python scripts/wave.py record $TEST_DIR/audio.recv" &
 sleep 1  # let audio.recv be filled
 
 # play the modulated data
-run_src "python -m amodem.wave play   $TEST_DIR/audio.send" &
+run_src "python scripts/wave.py play   $TEST_DIR/audio.send" &
 
 # start the receiever
-run_dst "python -m amodem.recv -i $TEST_DIR/audio.recv -o $TEST_DIR/data.recv"
+run_dst "python scripts/recv.py -i $TEST_DIR/audio.recv -o $TEST_DIR/data.recv"
 
 # stop recording after playing is over
 run_src killall -q aplay || true
