@@ -212,16 +212,15 @@ def demodulate(symbols, filters, freqs, sampler):
 
 
 def receive(signal, freqs, gain=1.0):
-    signal = sigproc.FreqLoop(signal, freqs)
-    signal.sampler.gain = gain
-    symbols = iter(signal)
+    symbols = sigproc.Demux(signal, freqs)
+    symbols.sampler.gain = gain
 
     freq_err, offset_err = receive_prefix(symbols)
-    signal.sampler.offset -= offset_err
-    signal.sampler.freq -= freq_err
+    symbols.sampler.offset -= offset_err
+    symbols.sampler.freq -= freq_err
 
     filters = train_receiver(symbols, freqs)
-    data_bits = demodulate(symbols, filters, freqs, signal.sampler)
+    data_bits = demodulate(symbols, filters, freqs, symbols.sampler)
     return itertools.chain.from_iterable(data_bits)
 
 

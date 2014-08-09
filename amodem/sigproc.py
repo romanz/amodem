@@ -1,6 +1,8 @@
 import numpy as np
 from numpy import linalg
-import itertools
+import logging
+
+log = logging.getLogger(__name__)
 
 from . import sampling
 from . import common
@@ -60,19 +62,21 @@ class QAM(object):
             yield self._dec[S]
 
 
-class FreqLoop(object):
+class Demux(object):
     def __init__(self, src, freqs):
         interp = sampling.Interpolator()
         self.sampler = sampling.Sampler(src, interp)
-        self.gens = []
-
-        samplers = itertools.tee(self.sampler, len(freqs))
-        for freq, generator in zip(freqs, samplers):
-            gen = extract_symbols(generator, freq)
-            self.gens.append(gen)
+        self.filters = [exp_iwt(-f, Nsym) / (0.5*Nsym) for f in freqs]
+        self.filters = np.array(self.filters)
 
     def __iter__(self):
-        return common.izip(*self.gens)
+        return self
+
+    def next(self):
+        frame = common.take(self.sampler, Nsym)
+        return np.dot(self.filters, frame)
+
+    __next__ = next
 
 
 class MODEM(object):
@@ -109,13 +113,6 @@ def coherence(x, freq):
         return np.dot(Hc, x) / norm_x
     else:
         return 0.0
-
-
-def extract_symbols(x, freq, offset=0):
-    Hc = exp_iwt(-freq, Nsym) / (0.5*Nsym)
-
-    for _, symbol in common.iterate(x, Nsym):
-        yield np.dot(Hc, symbol)
 
 
 def linear_regression(x, y):
