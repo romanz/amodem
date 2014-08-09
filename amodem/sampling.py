@@ -58,12 +58,12 @@ class Sampler(object):
                     self.index += 1
 
                 self.offset += self.freq
-                frame[frame_index] = np.dot(coeffs, self.buff) * self.gain
+                frame[frame_index] = np.dot(coeffs, self.buff)
                 count = frame_index + 1
         except StopIteration:
             pass
 
-        return frame[:count]
+        return frame[:count] * self.gain
 
 
 def resample(src, dst, df=0.0):
