@@ -192,8 +192,8 @@ def demodulate(symbols, filters, freqs, sampler):
             yield bits
 
         if i and i % config.baud == 0:
-            mean_err = np.array([e for v in errors.values() for e in v])
-            correction = np.mean(np.angle(mean_err)) / (2*np.pi)
+            err = np.array([e for v in errors.values() for e in v])
+            correction = np.mean(np.angle(err)) / (2*np.pi) if len(err) else 0.0
             duration = time.time() - stats['rx_start']
             log.debug('%10.1f kB, realtime: %6.2f%%, sampling error: %+.3f%%',
                       stats['rx_bits'] / 8e3,
