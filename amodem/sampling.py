@@ -10,9 +10,9 @@ class Interpolator(object):
     def __init__(self, resolution=10000, width=128):
         self.width = width
         self.resolution = resolution
-        self.N = resolution * width
-        u = np.arange(-self.N, self.N, dtype=float)
-        window = (1 + np.cos(0.5 * np.pi * u / self.N)) / 2.0
+        N = resolution * width
+        u = np.arange(-N, N, dtype=float)
+        window = (1 + np.cos(0.5 * np.pi * u / N)) / 2.0
         h = np.sinc(u / resolution) * window
         self.filt = []
         for index in range(resolution):  # split into multiphase filters
