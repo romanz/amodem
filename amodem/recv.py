@@ -22,14 +22,14 @@ from . import profiling
 
 modem = sigproc.MODEM(config)
 
-
 if os.environ.get('PYLAB') == '1':
     from . import pylab
-    from . import show
-    WIDTH = np.floor(np.sqrt(len(modem.freqs)))
-    HEIGHT = np.ceil(len(modem.freqs) / float(WIDTH))
 else:
-    pylab = None
+    pylab = common.Dummy()
+
+# Plots' size (WIDTH x HEIGHT)
+HEIGHT = np.floor(np.sqrt(len(modem.freqs)))
+WIDTH = np.ceil(len(modem.freqs) / float(HEIGHT))
 
 COHERENCE_THRESHOLD = 0.95
 
@@ -99,9 +99,8 @@ def find_start(buf, length):
 def receive_prefix(symbols):
     S = common.take(symbols, len(train.prefix))[:, config.carrier_index]
     sliced = np.round(S)
-    if pylab:
-        pylab.figure()
-        show.constellation(S, sliced, 'Prefix')
+    pylab.figure()
+    constellation(S, sliced, 'Prefix')
 
     bits = np.array(np.abs(sliced), dtype=int)
     if any(bits != train.prefix):
@@ -132,9 +131,8 @@ def train_receiver(symbols, freqs):
     filters = {}
     scaling_factor = len(freqs)  # to avoid saturation
     training = np.array(train.equalizer)
-    if pylab:
-        pylab.figure()
 
+    pylab.figure()
     symbols = common.take(symbols, len(training) * len(freqs))
     for i, freq in enumerate(freqs):
         size = len(training)
@@ -146,11 +144,11 @@ def train_receiver(symbols, freqs):
 
         Y = list(filt(S))
         y = np.array(Y) / scaling_factor
-        if pylab:
-            pylab.subplot(HEIGHT, WIDTH, i+1)
-            show.constellation(y, modem.qam.symbols,
-                               'Train: $F_c = {}Hz$'.format(freq))
-            pylab.plot(S.real, S.imag, '.-')
+
+        pylab.subplot(HEIGHT, WIDTH, i+1)
+        constellation(y, modem.qam.symbols,
+                      'Train: $F_c = {}Hz$'.format(freq))
+        pylab.plot(S.real, S.imag, '.-')
 
         train_result = np.round(y)
         if not all(train_result == training):
@@ -177,12 +175,10 @@ def demodulate(symbols, filters, freqs, sampler):
 
     generators = common.split(symbols, n=len(freqs))
     for freq, S in zip(freqs, generators):
+        equalized = []
         S = filters[freq](S)
-
-        if pylab:
-            equalized = []
-            S = common.icapture(S, result=equalized)
-            symbol_list.append(equalized)
+        S = common.icapture(S, result=equalized)
+        symbol_list.append(equalized)
 
         freq_handler = functools.partial(error_handler, freq=freq)
         bits = modem.qam.decode(S, freq_handler)  # list of bit tuples
@@ -270,13 +266,24 @@ def main(args):
     log.info('Received %.3f kB @ %.3f seconds = %.3f kB/s',
              size * 1e-3, duration, size * 1e-3 / duration)
 
-    if pylab:
-        pylab.figure()
-        symbol_list = np.array(stats['symbol_list'])
-        for i, freq in enumerate(modem.freqs):
-            pylab.subplot(HEIGHT, WIDTH, i+1)
-            show.constellation(symbol_list[i], modem.qam.symbols,
-                               '$F_c = {} Hz$'.format(freq))
+    pylab.figure()
+    symbol_list = np.array(stats['symbol_list'])
+    for i, freq in enumerate(modem.freqs):
+        pylab.subplot(HEIGHT, WIDTH, i+1)
+        constellation(symbol_list[i], modem.qam.symbols,
+                      '$F_c = {} Hz$'.format(freq))
+
+
+def constellation(y, symbols, title):
+    theta = np.linspace(0, 2*np.pi, 1000)
+    pylab.plot(y.real, y.imag, '.')
+    pylab.plot(np.cos(theta), np.sin(theta), ':')
+    points = np.array(symbols)
+    pylab.plot(points.real, points.imag, '+')
+    pylab.grid('on')
+    pylab.axis('equal')
+    pylab.title(title)
+
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG,
@@ -298,5 +305,4 @@ if __name__ == '__main__':
     except Exception as e:
         log.exception(e)
     finally:
-        if pylab:
-            pylab.show()
+        pylab.show()

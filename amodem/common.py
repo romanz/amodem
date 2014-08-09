@@ -114,3 +114,12 @@ try:
     izip = itertools.izip
 except AttributeError:
     izip = zip  # Python 3
+
+
+class Dummy(object):
+
+    def __getattr__(self, name):
+        return self
+
+    def __call__(self, *args, **kwargs):
+        return self
