@@ -1,5 +1,8 @@
 # Audio Modem Communication Library
 
+[![Build Status](https://travis-ci.org/romanz/amodem.svg?branch=master)](https://travis-ci.org/romanz/amodem)
+[![Coverage Status](https://coveralls.io/repos/romanz/amodem/badge.png?branch=master)](https://coveralls.io/r/romanz/amodem?branch=master)
+
 ## Description
 
 This program can be used to transmit a specified file between 2 computers, using
@@ -27,9 +30,6 @@ This way, modem achieves 48kpbs bitrate = 6.0 kB/s.
 
 A simple Reed-Solomon ECC is used, with (255,245) rate = ~3.9% overhead.
 
-## Status
-[![Build Status](https://travis-ci.org/romanz/amodem.svg?branch=master)](https://travis-ci.org/romanz/amodem)
-[![Coverage Status](https://coveralls.io/repos/romanz/amodem/badge.png?branch=master)](https://coveralls.io/r/romanz/amodem?branch=master)
 
 # Installation
 
