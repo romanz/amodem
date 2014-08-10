@@ -51,13 +51,15 @@ class QAM(object):
 
         reals = np.array(list(sorted(set(symbols.real))))
         imags = np.array(list(sorted(set(symbols.imag))))
-        self.real_factor = 2.0 / np.mean(np.diff(reals))
-        self.imag_factor = 2.0 / np.mean(np.diff(imags))
+        self.real_factor = 1.0 / np.mean(np.diff(reals))
+        self.imag_factor = 1.0 / np.mean(np.diff(imags))
+        self.real_offset = reals[0]
+        self.imag_offset = imags[0]
 
         self.symbols_map = {}
         for S in symbols:
-            real_index = round(S.real * self.real_factor)
-            imag_index = round(S.imag * self.imag_factor)
+            real_index = round(S.real * self.real_factor + self.real_offset)
+            imag_index = round(S.imag * self.imag_factor + self.imag_offset)
             self.symbols_map[real_index, imag_index] = (S, self._dec[S])
 
     def encode(self, bits):
@@ -66,11 +68,15 @@ class QAM(object):
 
     def decode(self, symbols, error_handler=None):
         real_factor = self.real_factor
+        real_offset = self.real_offset
+
         imag_factor = self.imag_factor
+        imag_offset = self.imag_offset
+
         symbols_map = self.symbols_map
         for S in symbols:
-            real_index = round(S.real * real_factor)
-            imag_index = round(S.imag * imag_factor)
+            real_index = round(S.real * real_factor + real_offset)
+            imag_index = round(S.imag * imag_factor + imag_offset)
             decoded_symbol, bits = symbols_map[real_index, imag_index]
             if error_handler:
                 error_handler(received=S, decoded=decoded_symbol)
