@@ -49,18 +49,32 @@ class QAM(object):
         self.symbols = symbols
         self.bits_per_symbol = bits_per_symbol
 
+        reals = np.array(list(sorted(set(symbols.real))))
+        imags = np.array(list(sorted(set(symbols.imag))))
+        self.real_factor = 2.0 / np.mean(np.diff(reals))
+        self.imag_factor = 2.0 / np.mean(np.diff(imags))
+
+        self.symbols_map = {}
+        for S in symbols:
+            real_index = round(S.real * self.real_factor)
+            imag_index = round(S.imag * self.imag_factor)
+            self.symbols_map[real_index, imag_index] = (S, self._dec[S])
+
     def encode(self, bits):
         for _, bits_tuple in common.iterate(bits, self.bits_per_symbol, tuple):
             yield self._enc[bits_tuple]
 
     def decode(self, symbols, error_handler=None):
-        for s in symbols:
-            index = np.argmin(np.abs(s - self.symbols))
-            S = self.symbols[index]
+        real_factor = self.real_factor
+        imag_factor = self.imag_factor
+        symbols_map = self.symbols_map
+        for S in symbols:
+            real_index = round(S.real * real_factor)
+            imag_index = round(S.imag * imag_factor)
+            decoded_symbol, bits = symbols_map[real_index, imag_index]
             if error_handler:
-                error_handler(received=s, decoded=S)
-            yield self._dec[S]
-
+                error_handler(received=S, decoded=decoded_symbol)
+            yield bits
 
 class Demux(object):
     def __init__(self, src, freqs):
