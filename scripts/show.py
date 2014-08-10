@@ -13,8 +13,8 @@ def spectrogram(t, x, Fs, NFFT=256):
 
 if __name__ == '__main__':
     import sys
-    import common
-    from config import Fs, Ts
+    from amodem import common
+    from amodem.config import Fs, Ts
 
     for fname in sys.argv[1:]:
         x = common.load(open(fname, 'rb'))
