@@ -277,6 +277,7 @@ def main(args):
 
 def constellation(y, symbols, title):
     theta = np.linspace(0, 2*np.pi, 1000)
+    y = np.array(y)
     pylab.plot(y.real, y.imag, '.:')
     pylab.plot(np.cos(theta), np.sin(theta), ':')
     points = np.array(symbols)
