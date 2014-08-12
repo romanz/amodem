@@ -6,6 +6,7 @@ import numpy as np
 from amodem import send
 from amodem import recv
 from amodem import common
+from amodem import sigproc
 
 import logging
 logging.basicConfig(level=logging.DEBUG,
@@ -34,6 +35,19 @@ def run(size, chan):
     rx_data = rx_data.getvalue()
 
     assert rx_data == tx_data
+
+def apply_filter(b, a, x):
+    f = sigproc.Filter(b=b, a=a)
+    y = list(f(list(x)))
+    return np.array(y)
+
+
+def test_lowpass():
+    run(1024, lambda x: apply_filter(b=[0.8], a=[1.0, -0.2], x=x))
+
+
+def test_highpass():
+    run(1024, lambda x: apply_filter(b=[0.8], a=[1.0, 0.2], x=x))
 
 
 def test_small():
