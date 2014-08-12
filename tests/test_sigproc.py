@@ -23,3 +23,15 @@ def test_linreg():
     a_, b_ = sigproc.linear_regression(x, y)
     assert abs(a - a_) < 1e-10
     assert abs(b - b_) < 1e-10
+
+
+def test_filter():
+    f = sigproc.Filter(b=[1], a=[1])
+    x = range(10)
+    y = list(f(x))
+    assert [float(i) for i in x] == y
+
+    f = sigproc.Filter(b=[0.5], a=[1, -0.5])
+    x = [1] + [0] * 10
+    y = list(f(x))
+    assert y == [0.5 ** (i+1) for i in range(len(x))]

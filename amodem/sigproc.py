@@ -16,11 +16,14 @@ class Filter(object):
 
     def __call__(self, x):
         x_ = [0] * len(self.b)
-        y_ = [0] * len(self.a)
+        y_ = [0] * (len(self.a) + 1)
         for v in x:
             x_ = [v] + x_[:-1]
-            y = np.dot(x_, self.b) - np.dot(y_, self.a)
-            y_ = [y] + y_[1:]
+            y_ = y_[:-1]
+            num = np.dot(x_, self.b)
+            den = np.dot(y_, self.a)
+            y = num - den
+            y_ = [y] + y_
             yield y
 
 
