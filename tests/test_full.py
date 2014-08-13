@@ -43,11 +43,11 @@ def apply_filter(b, a, x):
 
 
 def test_lowpass():
-    run(1024, lambda x: apply_filter(b=[0.8], a=[1.0, -0.2], x=x))
+    run(1024, lambda x: apply_filter(b=[0.9], a=[1.0, -0.1], x=x))
 
 
 def test_highpass():
-    run(1024, lambda x: apply_filter(b=[0.8], a=[1.0, 0.2], x=x))
+    run(1024, lambda x: apply_filter(b=[0.9], a=[1.0, 0.1], x=x))
 
 
 def test_small():
