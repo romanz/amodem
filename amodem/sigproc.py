@@ -33,6 +33,20 @@ def lfilter(b, a, x):
     return np.array(y)
 
 
+def estimate(x, y, order, lookahead=0):
+    offset = order - 1
+    assert offset >= lookahead
+    b = y[offset-lookahead:len(x)-lookahead]
+
+    A = []  # columns of x
+    N = len(x) - order + 1
+    for i in range(order):
+        A.append(x[i:N+i])
+
+    # switch to rows for least-squares
+    h = linalg.lstsq(np.array(A).T, b)[0]
+    return h[::-1]
+
 def train(S, training):
     A = np.array([S[1:], S[:-1], training[:-1]]).T
     b = training[1:]

@@ -1,8 +1,10 @@
-from amodem import sigproc
-from amodem import config
-import numpy as np
 import random
 import itertools
+import numpy as np
+from numpy.linalg import norm
+
+from amodem import sigproc
+from amodem import config
 
 
 def test_qam():
@@ -33,3 +35,23 @@ def test_filter():
     x = [1] + [0] * 10
     y = sigproc.lfilter(b=[0.5], a=[1, -0.5], x=x)
     assert list(y) == [0.5 ** (i+1) for i in range(len(x))]
+
+def test_estimate():
+    r = np.random.RandomState(seed=0)
+    x = r.uniform(-1, 1, [1000])
+    x[:10] = 0
+    x[len(x)-10:] = 0
+
+    h = [0.1, 0.6, 0.9, 0.7, -0.2]
+    L = len(h) / 2
+
+    y = sigproc.lfilter(b=h, a=[1], x=x)
+    h_ = sigproc.estimate(
+        x=x[:len(x)-L], y=y[L:],
+        order=len(h), lookahead=L
+    )
+    y_ = sigproc.lfilter(b=h_, a=[1], x=x)
+
+    assert norm(y - y_) < 1e-12
+    assert norm(h - h_) < 1e-12
+
