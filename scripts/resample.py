@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from amodem.sampling import resample
 import sys
 
