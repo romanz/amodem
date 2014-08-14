@@ -36,18 +36,13 @@ def run(size, chan):
 
     assert rx_data == tx_data
 
-def apply_filter(b, a, x):
-    f = sigproc.Filter(b=b, a=a)
-    y = list(f(list(x)))
-    return np.array(y)
-
 
 def test_lowpass():
-    run(1024, lambda x: apply_filter(b=[0.9], a=[1.0, -0.1], x=x))
+    run(1024, lambda x: sigproc.lfilter(b=[0.9], a=[1.0, -0.1], x=x))
 
 
 def test_highpass():
-    run(1024, lambda x: apply_filter(b=[0.9], a=[1.0, 0.1], x=x))
+    run(1024, lambda x: sigproc.lfilter(b=[0.9], a=[1.0, 0.1], x=x))
 
 
 def test_small():

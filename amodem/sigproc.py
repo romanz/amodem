@@ -27,6 +27,12 @@ class Filter(object):
             yield y
 
 
+def lfilter(b, a, x):
+    f = Filter(b=b, a=a)
+    y = list(f(x))
+    return np.array(y)
+
+
 def train(S, training):
     A = np.array([S[1:], S[:-1], training[:-1]]).T
     b = training[1:]
