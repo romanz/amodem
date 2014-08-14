@@ -115,7 +115,8 @@ def receive_prefix(symbols):
     last_phase = a * indices[-1] + b
     log.debug('Current phase on carrier: %.3f', last_phase)
 
-    expected_phase, = set(np.angle(sliced[nonzeros]) / (2 * np.pi))
+    angle = np.mean(np.angle(S[nonzeros]))
+    expected_phase = round(angle / (0.5*np.pi)) * 0.25
     log.debug('Excepted phase on carrier: %.3f', expected_phase)
 
     sampling_err = (last_phase - expected_phase) * config.Nsym
