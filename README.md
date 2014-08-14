@@ -50,7 +50,7 @@ following scripts:
 
 - On the sender's side:
 ```
-~/sender/amodem $ ./calib.py send 
+~/sender/amodem $ ./calib.py send
 ```
 
 - On the receiver's side:
@@ -58,7 +58,7 @@ following scripts:
 ~/receiver/amodem $ ./calib.py recv
 ```
 
-The sender computer's output audio level should be increased, until the 
+The sender computer's output audio level should be increased, until the
 received **amplitude** and **peak** values are not higher than 0.5, while
 the **coherence** is 1.0 (to avoid saturation).
 
@@ -93,7 +93,7 @@ See http://youtu.be/94yS3IZmtho for usage demo.
 
 - Start the sender:
 ```
-~/sender/amodem $ ./wave.py play audio.pcm 
+~/sender/amodem $ ./wave.py play audio.pcm
 ```
 
 - The receiver should print similar messages during demodulation:
@@ -143,10 +143,10 @@ See http://youtu.be/94yS3IZmtho for usage demo.
 
 - Verify correctness and stop the recording:
 ```
-~/receiver/amodem $ sha256sum data.recv 
+~/receiver/amodem $ sha256sum data.recv
 008df57d4f3ed6e7a25d25afd57d04fc73140e8df604685bd34fcab58f5ddc01  data.recv
 ~/receiver/amodem $ killall arecord
-``` 
+```
 
 See https://www.dropbox.com/sh/2yai1xmntdqlwf1/AACvfzasKEHK0zVxdzI4jF7pa for complete sender
 and receiver snapshot data.
