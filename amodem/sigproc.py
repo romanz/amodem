@@ -76,14 +76,16 @@ class QAM(object):
         imags = np.array(list(sorted(set(symbols.imag))))
         self.real_factor = 1.0 / np.mean(np.diff(reals))
         self.imag_factor = 1.0 / np.mean(np.diff(imags))
-        self.real_offset = reals[0]
-        self.imag_offset = imags[0]
+        self.bias = reals[0] + 1j * imags[0]
 
         self.symbols_map = {}
         for S in symbols:
-            real_index = round(S.real * self.real_factor + self.real_offset)
-            imag_index = round(S.imag * self.imag_factor + self.imag_offset)
+            s = S - self.bias
+            real_index = round(s.real * self.real_factor)
+            imag_index = round(s.imag * self.imag_factor)
             self.symbols_map[real_index, imag_index] = (S, self._dec[S])
+        self.real_max = max(k[0] for k in self.symbols_map)
+        self.imag_max = max(k[1] for k in self.symbols_map)
 
     def encode(self, bits):
         for _, bits_tuple in common.iterate(bits, self.bits_per_symbol, tuple):
@@ -91,16 +93,18 @@ class QAM(object):
 
     def decode(self, symbols, error_handler=None):
         real_factor = self.real_factor
-        real_offset = self.real_offset
-
         imag_factor = self.imag_factor
-        imag_offset = self.imag_offset
+        real_max = self.real_max
+        imag_max = self.imag_max
+        bias = self.bias
 
         symbols_map = self.symbols_map
         for S in symbols:
-            real_index = round(S.real * real_factor + real_offset)
-            imag_index = round(S.imag * imag_factor + imag_offset)
-            decoded_symbol, bits = symbols_map[real_index, imag_index]
+            s = S - bias
+            real_index = min(max(s.real * real_factor, 0), real_max)
+            imag_index = min(max(s.imag * imag_factor, 0), imag_max)
+            key = (round(real_index), round(imag_index))
+            decoded_symbol, bits = symbols_map[key]
             if error_handler:
                 error_handler(received=S, decoded=decoded_symbol)
             yield bits
