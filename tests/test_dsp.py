@@ -3,12 +3,12 @@ import itertools
 import numpy as np
 from numpy.linalg import norm
 
-from amodem import sigproc
+from amodem import dsp
 from amodem import config
 
 
 def test_qam():
-    q = sigproc.QAM(config.symbols)
+    q = dsp.QAM(config.symbols)
     r = random.Random(0)
     m = q.bits_per_symbol
     bits = [tuple(r.randint(0, 1) for j in range(m)) for i in range(1024)]
@@ -32,7 +32,7 @@ def quantize(q, s):
 
 
 def test_overflow():
-    q = sigproc.QAM(config.symbols)
+    q = dsp.QAM(config.symbols)
     r = np.random.RandomState(seed=0)
     for i in range(10000):
         s = 10*(r.normal() + 1j * r.normal())
@@ -43,18 +43,18 @@ def test_linreg():
     x = np.array([1, 3, 2, 8, 4, 6, 9, 7, 0, 5])
     a, b = 12.3, 4.56
     y = a * x + b
-    a_, b_ = sigproc.linear_regression(x, y)
+    a_, b_ = dsp.linear_regression(x, y)
     assert abs(a - a_) < 1e-10
     assert abs(b - b_) < 1e-10
 
 
 def test_filter():
     x = range(10)
-    y = sigproc.lfilter(b=[1], a=[1], x=x)
+    y = dsp.lfilter(b=[1], a=[1], x=x)
     assert (np.array(x) == y).all()
 
     x = [1] + [0] * 10
-    y = sigproc.lfilter(b=[0.5], a=[1, -0.5], x=x)
+    y = dsp.lfilter(b=[0.5], a=[1, -0.5], x=x)
     assert list(y) == [0.5 ** (i+1) for i in range(len(x))]
 
 
@@ -77,8 +77,8 @@ def test_estimate():
     h = [0.1, 0.6, 0.9, 0.7, -0.2]
     L = len(h) // 2
 
-    y = sigproc.lfilter(b=h, a=[1], x=x)
-    h_ = sigproc.estimate(
+    y = dsp.lfilter(b=h, a=[1], x=x)
+    h_ = dsp.estimate(
         x=x[:len(x)-L], y=y[L:],
         order=len(h), lookahead=L
     )

@@ -10,11 +10,11 @@ from . import wave
 
 from . import common
 from . import config
-from . import sigproc
+from . import dsp
 from . import stream
 from . import ecc
 
-modem = sigproc.MODEM(config)
+modem = dsp.MODEM(config)
 
 
 class Symbol(object):

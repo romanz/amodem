@@ -6,7 +6,7 @@ import numpy as np
 from amodem import send
 from amodem import recv
 from amodem import common
-from amodem import sigproc
+from amodem import dsp
 from amodem import sampling
 
 import logging
@@ -54,11 +54,11 @@ def test_frequency_error():
 
 
 def test_lowpass():
-    run(1024, chan=lambda x: sigproc.lfilter(b=[0.9], a=[1.0, -0.1], x=x))
+    run(1024, chan=lambda x: dsp.lfilter(b=[0.9], a=[1.0, -0.1], x=x))
 
 
 def test_highpass():
-    run(1024, chan=lambda x: sigproc.lfilter(b=[0.9], a=[1.0, 0.1], x=x))
+    run(1024, chan=lambda x: dsp.lfilter(b=[0.9], a=[1.0, 0.1], x=x))
 
 
 def test_attenuation():

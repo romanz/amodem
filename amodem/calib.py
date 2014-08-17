@@ -3,7 +3,7 @@ import numpy as np
 
 from . import common
 from . import config
-from . import sigproc
+from . import dsp
 from . import wave
 
 Tsample = 1
@@ -39,7 +39,7 @@ def recv(wave_record=wave.record, reporter=sys.stdout.write):
                 continue
             x = x - np.mean(x)
 
-            normalization_factor = np.sqrt(0.5 * len(x)) * sigproc.norm(x)
+            normalization_factor = np.sqrt(0.5 * len(x)) * dsp.norm(x)
             coherence = np.abs(np.dot(x, sig)) / normalization_factor
             z = np.dot(x, sig.conj()) / (0.5 * len(x))
             amplitude = np.abs(z)

@@ -11,13 +11,13 @@ import bitarray
 log = logging.getLogger(__name__)
 
 from . import stream
-from . import sigproc
+from . import dsp
 from . import train
 from . import common
 from . import config
 from . import ecc
 
-modem = sigproc.MODEM(config)
+modem = dsp.MODEM(config)
 
 if os.environ.get('PYLAB') == '1':
     import pylab
@@ -37,13 +37,13 @@ SEARCH_WINDOW = 10  # symbols
 
 def report_carrier(bufs, begin):
     x = np.concatenate(tuple(bufs)[-CARRIER_THRESHOLD:-1])
-    Hc = sigproc.exp_iwt(-config.Fc, len(x))
+    Hc = dsp.exp_iwt(-config.Fc, len(x))
     Zc = np.dot(Hc, x) / (0.5*len(x))
     amp = abs(Zc)
     log.info('Carrier detected at ~%.1f ms @ %.1f kHz:'
              ' coherence=%.3f%%, amplitude=%.3f',
              begin * config.Tsym * 1e3 / config.Nsym, config.Fc / 1e3,
-             np.abs(sigproc.coherence(x, config.Fc)) * 100, amp)
+             np.abs(dsp.coherence(x, config.Fc)) * 100, amp)
     return amp
 
 
@@ -54,7 +54,7 @@ def detect(samples, freq):
     for offset, buf in common.iterate(samples, config.Nsym):
         bufs.append(buf)
 
-        coeff = sigproc.coherence(buf, config.Fc)
+        coeff = dsp.coherence(buf, config.Fc)
         if abs(coeff) > COHERENCE_THRESHOLD:
             counter += 1
         else:
@@ -87,7 +87,7 @@ def detect(samples, freq):
 
 
 def find_start(buf, length):
-    Hc = sigproc.exp_iwt(config.Fc, len(buf))
+    Hc = dsp.exp_iwt(config.Fc, len(buf))
     P = np.abs(Hc.conj() * buf) ** 2
     cumsumP = P.cumsum()
     return np.argmax(cumsumP[length:] - cumsumP[:-length])
@@ -109,7 +109,7 @@ def receive_prefix(symbols):
     pilot_tone = S[nonzeros]
     phase = np.unwrap(np.angle(pilot_tone)) / (2 * np.pi)
     indices = np.arange(len(phase))
-    a, b = sigproc.linear_regression(indices, phase)
+    a, b = dsp.linear_regression(indices, phase)
 
     freq_err = a / (config.Tsym * config.Fc)
     last_phase = a * indices[-1] + b
@@ -137,7 +137,7 @@ def train_receiver(symbols, freqs):
         offset = i * size
         S = symbols[offset:offset+size, i]
 
-        filt = sigproc.train(S, training * scaling_factor)
+        filt = dsp.train(S, training * scaling_factor)
         filters[freq] = filt
 
         Y = list(filt(S))
@@ -153,7 +153,7 @@ def train_receiver(symbols, freqs):
             raise ValueError('#{} training failed on {} Hz'.format(i, freq))
 
         noise = y - training
-        Pnoise = sigproc.power(noise)
+        Pnoise = dsp.power(noise)
         log.info('%10.1f kHz: Noise sigma=%.4f, SNR=%.1f dB',
                  freq/1e3, Pnoise**0.5, 10*np.log10(1/Pnoise))
 
@@ -206,7 +206,7 @@ def demodulate(symbols, filters, freqs, sampler):
 
 
 def receive(signal, freqs, gain=1.0):
-    symbols = sigproc.Demux(signal, freqs)
+    symbols = dsp.Demux(signal, freqs)
     symbols.sampler.gain = gain
 
     freq_err, offset_err = receive_prefix(symbols)
