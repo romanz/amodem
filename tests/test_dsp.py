@@ -66,12 +66,12 @@ def test_estimate():
 
     c = 1.23
     y = c * x
-    c_, = sigproc.estimate(x=x, y=y, order=1)
+    c_, = dsp.estimate(x=x, y=y, order=1)
     assert abs(c - c_) < 1e-12
 
     h = [1, 1]
-    y = sigproc.lfilter(b=h, a=[1], x=x)
-    h_ = sigproc.estimate(x=x, y=y, order=len(h))
+    y = dsp.lfilter(b=h, a=[1], x=x)
+    h_ = dsp.estimate(x=x, y=y, order=len(h))
     assert norm(h - h_) < 1e-12
 
     h = [0.1, 0.6, 0.9, 0.7, -0.2]
@@ -84,5 +84,5 @@ def test_estimate():
     )
     assert norm(h - h_) < 1e-12
 
-    y_ = sigproc.lfilter(b=h_, a=[1], x=x)
+    y_ = dsp.lfilter(b=h_, a=[1], x=x)
     assert norm(y - y_) < 1e-12
