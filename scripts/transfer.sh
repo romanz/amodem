@@ -23,7 +23,7 @@ run_dst() {
 	run "$*"
 }
 
-TEST_DIR=test_results
+TEST_DIR=results
 run_src mkdir -p $TEST_DIR
 run_dst mkdir -p $TEST_DIR
 
