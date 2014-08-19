@@ -121,7 +121,10 @@ class Demux(object):
 
     def next(self):
         frame = self.sampler.take(size=Nsym)
-        return np.dot(self.filters, frame)
+        if len(frame) == Nsym:
+            return np.dot(self.filters, frame)
+        else:
+            raise StopIteration
 
     __next__ = next
 
