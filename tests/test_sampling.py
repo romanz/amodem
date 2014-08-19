@@ -11,7 +11,7 @@ def test_resample():
     dst = BytesIO()
     sampling.resample(src=src, dst=dst, df=0.0)
     y = common.loads(dst.getvalue())
-    err = x[1:len(y)+1] - y
+    err = x[:len(y)] - y
     assert np.max(np.abs(err)) < 1e-4
 
     dst = BytesIO()

@@ -34,7 +34,7 @@ class Sampler(object):
         self.width = self.interp.width
 
         # TODO: explain indices arithmetic
-        padding = [0.0] * (self.interp.width - 1)
+        padding = [0.0] * self.interp.width
         self.src = itertools.chain(padding, src)
         self.offset = self.interp.width + 1
         self.buff = np.zeros(self.interp.coeff_len)
