@@ -48,7 +48,6 @@ def report_carrier(bufs, begin):
 
 
 def detect(samples, freq):
-
     counter = 0
     bufs = collections.deque([], maxlen=config.baud)  # 1 second of symbols
     for offset, buf in common.iterate(samples, config.Nsym):
