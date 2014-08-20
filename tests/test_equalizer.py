@@ -1,5 +1,5 @@
 from amodem import train, dsp, config, send
-from numpy.linalg import norm
+from numpy.linalg import norm, lstsq
 import numpy as np
 import itertools
 
@@ -25,7 +25,6 @@ def test_iir():
     assert norm(h_ - h_expected) < 1e-12
     assert (norm(tx - tx_) / norm(tx)) < 1e-12
 
-
 import random
 
 _constellation = [1, 1j, -1, -1j]
@@ -38,10 +37,11 @@ def train_symbols(length, seed=0):
 def modulator(length):
     symbols = train_symbols(length)
     carriers = send.sym.carrier
+    gain = 1.0 / len(carriers)
     result = []
     for s in symbols:
-        result.append(np.dot(s, carriers) / len(carriers))
-    result = np.concatenate(result).real
+        result.append(np.dot(s, carriers))
+    result = np.concatenate(result).real * gain
     assert np.max(np.abs(result)) <= 1
     return result
 
@@ -55,12 +55,39 @@ def test_training():
     t2 = train_symbols(L)
     assert (t1 == t2).all()
 
+def equalize(signal, carriers, symbols, order):
+    ''' symbols[k] = (signal * h) * filters[k] '''
+    signal = np.array(signal)
+    carriers = np.array(carriers).conj() * (2.0/config.Nsym)
+    symbol_stream = []
+    for i in range(len(signal) - config.Nsym + 1):
+        frame = signal[i:i+config.Nsym]
+        symbol_stream.append(np.dot(carriers, frame))
+    symbol_stream = np.array(symbol_stream)
+    LHS = []
+    RHS = []
+    offsets = range(0, len(symbol_stream) - order + 1, config.Nsym)
+    for j in range(config.Nfreq):
+        for i, offset in enumerate(offsets):
+            row = list(symbol_stream[offset:offset+order, j])
+            LHS.append(row)
+            RHS.append(symbols[i, j])
+
+    LHS = np.array(LHS)
+    RHS = np.array(RHS)
+    return lstsq(LHS, RHS)[0]
+
 def test_modem():
     L = 1000
-    x = modulator(L)
-    s = demodulator(x)
-    s = list(itertools.islice(s, L))
     sent = train_symbols(L)
-    received = np.array(s) * len(send.sym.carrier)
+    gain = len(send.sym.carrier)
+    x = modulator(L) * gain
+    h = [0, 1, 0]
+    y = dsp.lfilter(x=x, b=h, a=[1])
+    h_ = equalize(y, send.sym.carrier, sent, order=len(h))
+    assert norm(h - h_) < 1e-10
+
+    s = demodulator(x)
+    received = np.array(list(itertools.islice(s, L)))
     err = sent - received
-    assert norm(err) < 1e-12
+    assert norm(err) < 1e-10
