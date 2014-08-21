@@ -55,15 +55,31 @@ def test_training():
     t2 = train_symbols(L)
     assert (t1 == t2).all()
 
+def test_commutation():
+    x = np.random.RandomState(seed=0).normal(size=1000)
+    b = [1, 1j, -1, -1j]
+    a = [1, 0.1]
+    y = dsp.lfilter(x=x, b=b, a=a)
+    y1 = dsp.lfilter(x=dsp.lfilter(x=x, b=b, a=[1]), b=[1], a=a)
+    y2 = dsp.lfilter(x=dsp.lfilter(x=x, b=[1], a=a), b=b, a=[1])
+    assert norm(y - y1) < 1e-10
+    assert norm(y - y2) < 1e-10
+
+    z = dsp.lfilter(x=y, b=a, a=[1])
+    z_ = dsp.lfilter(x=x, b=b, a=[1])
+    assert norm(z - z_) < 1e-10
+
 def equalize(signal, carriers, symbols, order):
     ''' symbols[k] = (signal * h) * filters[k] '''
     signal = np.array(signal)
-    carriers = np.array(carriers).conj() * (2.0/config.Nsym)
+    scaling = (2.0/config.Nsym)
+    carriers = np.array(carriers).conj() * scaling
     symbol_stream = []
     for i in range(len(signal) - config.Nsym + 1):
         frame = signal[i:i+config.Nsym]
         symbol_stream.append(np.dot(carriers, frame))
     symbol_stream = np.array(symbol_stream)
+    assert symbol_stream.shape[1] == config.Nfreq
     LHS = []
     RHS = []
     offsets = range(0, len(symbol_stream) - order + 1, config.Nsym)
@@ -82,12 +98,12 @@ def test_modem():
     sent = train_symbols(L)
     gain = len(send.sym.carrier)
     x = modulator(L) * gain
-    h = [0, 1, 0]
-    y = dsp.lfilter(x=x, b=h, a=[1])
-    h_ = equalize(y, send.sym.carrier, sent, order=len(h))
-    assert norm(h - h_) < 1e-10
+    y = dsp.lfilter(x=x, b=[0, 4], a=[1])
+    h_ = equalize(signal=y, carriers=send.sym.carrier, symbols=sent, order=2)
+    assert norm(h_ - [0, 0.25]) < 1e-10
 
     s = demodulator(x)
     received = np.array(list(itertools.islice(s, L)))
     err = sent - received
     assert norm(err) < 1e-10
+
