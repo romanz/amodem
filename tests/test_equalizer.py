@@ -107,3 +107,28 @@ def test_modem():
     err = sent - received
     assert norm(err) < 1e-10
 
+def test_concept():
+    N = 32
+    s = [1] * 10 + [-1] * 10
+    x = [v for v in s for i in range(N)]
+    matched = [1.0 / N] * N
+    den = np.array([1, -0.1])
+    num = np.array([1])
+    y = dsp.lfilter(x=x, b=num, a=den)
+    y1 = dsp.lfilter(x=y, b=matched, a=[1])
+    #y2 = dsp.lfilter(x=y1, b=den/num, a=[1])
+    z = dsp.lfilter(x=x, b=matched, a=[1])
+    assert norm(z[N-1::N] - s) < 1e-12
+
+    A = []
+    b = []
+    r = 2
+    for i in range(len(s)):
+        offset = (i+1)*N
+        row = y1[offset-r:offset]
+        A.append(row)
+        b.append(s[i])
+    A = np.array(A)
+    b = np.array(b)
+    h = lstsq(A, b)[0][::-1]
+    assert norm(h - den) < 1e-12
