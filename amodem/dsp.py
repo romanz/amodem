@@ -47,6 +47,7 @@ def estimate(x, y, order, lookahead=0):
     h = linalg.lstsq(np.array(A).T, b)[0]
     return h[::-1]
 
+
 def train(S, training):
     A = np.array([S[1:], S[:-1], training[:-1]]).T
     b = training[1:]
@@ -108,6 +109,7 @@ class QAM(object):
             if error_handler:
                 error_handler(received=S, decoded=decoded_symbol)
             yield bits
+
 
 class Demux(object):
     def __init__(self, src, freqs):
