@@ -3,6 +3,8 @@ import numpy as np
 import itertools
 import logging
 
+from amodem import common
+
 log = logging.getLogger(__name__)
 
 
@@ -26,22 +28,27 @@ class Interpolator(object):
 
 
 class Sampler(object):
-    def __init__(self, src, interp):
+    def __init__(self, src, interp=None):
         self.freq = 1.0
-        self.interp = interp
-        self.resolution = self.interp.resolution
-        self.filt = self.interp.filt
-        self.width = self.interp.width
-
-        # TODO: explain indices arithmetic
-        padding = [0.0] * self.interp.width
-        self.src = itertools.chain(padding, src)
-        self.offset = self.interp.width + 1
-        self.buff = np.zeros(self.interp.coeff_len)
-        self.index = 0
         self.gain = 1.0
+        if interp is not None:
+            self.interp = interp
+            self.resolution = self.interp.resolution
+            self.filt = self.interp.filt
+            self.width = self.interp.width
 
-    def take(self, size):
+            # TODO: explain indices arithmetic
+            padding = [0.0] * self.interp.width
+            self.src = itertools.chain(padding, src)
+            self.offset = self.interp.width + 1
+            self.buff = np.zeros(self.interp.coeff_len)
+            self.index = 0
+            self.take = self._take
+        else:
+            # skip interpolation
+            self.take = lambda size: common.take(src, size)
+
+    def _take(self, size):
         frame = np.zeros(size)
         count = 0
         try:

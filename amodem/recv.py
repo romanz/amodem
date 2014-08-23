@@ -12,6 +12,7 @@ log = logging.getLogger(__name__)
 
 from . import stream
 from . import dsp
+from . import sampling
 from . import train
 from . import common
 from . import config
@@ -205,7 +206,8 @@ def demodulate(symbols, filters, freqs, sampler):
 
 
 def receive(signal, freqs, gain=1.0):
-    symbols = dsp.Demux(signal, freqs)
+    sampler = sampling.Sampler(signal, sampling.Interpolator())
+    symbols = dsp.Demux(signal, freqs, sampler)
     symbols.sampler.gain = gain
 
     freq_err, offset_err = receive_prefix(symbols)
