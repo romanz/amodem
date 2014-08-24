@@ -86,3 +86,13 @@ def test_estimate():
 
     y_ = dsp.lfilter(b=h_, a=[1], x=x)
     assert norm(y - y_) < 1e-12
+
+
+def test_demux():
+    freqs = [1e3, 2e3]
+    carriers = [dsp.exp_iwt(f, config.Nsym) for f in freqs]
+    syms = [3, 2j]
+    sig = np.dot(syms, carriers)
+    res = dsp.Demux(sig.real, freqs)
+    res = np.array(list(res))
+    assert np.max(np.abs(res - syms)) < 1e-12
