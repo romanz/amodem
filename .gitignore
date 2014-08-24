@@ -19,3 +19,4 @@ build/
 htmlcov
 *_ext.c
 *_ext.so
+/.tox
