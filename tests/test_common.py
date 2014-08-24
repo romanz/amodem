@@ -51,3 +51,12 @@ def test_dumps_loads():
     x = np.array([.1, .4, .2, .6, .3, .5])
     y = common.loads(common.dumps(x))
     assert all(x == y)
+
+
+def test_saturation():
+    x = np.array([1, -1, 1, -1]) * 1.01
+    try:
+        common.check_saturation(x)
+        assert False
+    except common.SaturationError as e:
+        assert e.args == (1.01,)
