@@ -139,10 +139,6 @@ class MODEM(object):
         self.modem_bps = self.baud * self.bits_per_baud
 
 
-def clip(x, lims):
-    return min(max(x, lims[0]), lims[1])
-
-
 def power(x):
     return np.dot(x.conj(), x).real / len(x)
 
