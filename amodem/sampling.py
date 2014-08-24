@@ -46,6 +46,7 @@ class Sampler(object):
             self.take = self._take
         else:
             # skip interpolation
+            src = iter(src)
             self.take = lambda size: common.take(src, size)
 
     def _take(self, size):
