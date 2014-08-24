@@ -32,11 +32,7 @@ def recv(wave_record=wave.record, reporter=sys.stdout.write):
             data = p.stdout.read(len(sig_dump))
             if len(data) < len(sig_dump):
                 return
-            try:
-                x = common.loads(data)
-            except common.SaturationError as e:
-                print('saturation: {}'.format(e))
-                continue
+            x = common.loads(data)
             x = x - np.mean(x)
 
             normalization_factor = np.sqrt(0.5 * len(x)) * dsp.norm(x)

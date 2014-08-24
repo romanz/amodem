@@ -1,6 +1,7 @@
-from amodem import calib
+from amodem import calib, config, common
 
 from io import BytesIO
+import numpy as np
 
 
 class ProcessMock(object):
@@ -33,3 +34,19 @@ def test():
     calib.send(p)
     p.buf.seek(0)
     calib.recv(p, reporter=verify)
+
+
+def test_errors():
+    p = ProcessMock()
+
+    def _write(data):
+        raise IOError()
+    p.write = _write
+    calib.send(p)
+    assert p.buf.tell() == 0
+
+    def _read(data):
+        raise KeyboardInterrupt()
+    p.read = _read
+    calib.recv(p)
+    assert p.buf.tell() == 0
