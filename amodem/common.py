@@ -17,14 +17,6 @@ def to_bits(bytes_list):
             mask = 1 << i
             yield (1 if (val & mask) else 0)
 
-bit_weights = [1 << i for i in range(8)]
-
-
-def to_byte(bits):
-    assert len(bits) == 8
-    byte = int(np.dot(bits, bit_weights))
-    return chr(byte)
-
 
 class SaturationError(ValueError):
     pass
