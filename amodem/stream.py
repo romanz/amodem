@@ -24,9 +24,6 @@ class Reader(object):
     def __iter__(self):
         return self
 
-    def __next__(self):
-        return self.next()
-
     def next(self):
         block = bytearray()
         if self.eof:
@@ -55,3 +52,5 @@ class Reader(object):
             time.sleep(self.wait)
 
         raise Timeout(self.timeout)
+
+    __next__ = next
