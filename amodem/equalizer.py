@@ -1,12 +1,13 @@
 import numpy as np
 from numpy.linalg import lstsq
 
-from amodem import dsp, config, send
+from amodem import dsp, config
 
 import itertools
 import random
 
 _constellation = [1, 1j, -1, -1j]
+modem = dsp.MODEM(config)
 
 
 def train_symbols(length, seed=0, Nfreq=config.Nfreq):
@@ -15,7 +16,7 @@ def train_symbols(length, seed=0, Nfreq=config.Nfreq):
     return np.array([choose() for i in range(length)])
 
 
-def modulator(symbols, carriers=send.sym.carrier):
+def modulator(symbols, carriers=modem.carriers):
     gain = 1.0 / len(carriers)
     result = []
     for s in symbols:
@@ -34,7 +35,7 @@ def demodulator(signal, size):
 def equalize(signal, symbols, order):
     Nsym = config.Nsym
     Nfreq = config.Nfreq
-    carriers = send.sym.carrier
+    carriers = modem.carriers
 
     assert symbols.shape[1] == Nfreq
     length = symbols.shape[0]

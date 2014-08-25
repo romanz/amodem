@@ -1,7 +1,7 @@
 from numpy.linalg import norm
 import numpy as np
 
-from amodem import train, dsp, config, send
+from amodem import train, dsp, config
 from amodem import equalizer
 
 
@@ -57,7 +57,7 @@ def test_commutation():
 def test_modem():
     L = 1000
     sent = equalizer.train_symbols(L)
-    gain = len(send.sym.carrier)
+    gain = config.Nfreq
     x = equalizer.modulator(sent) * gain
     received = equalizer.demodulator(x, L)
     assert_approx(sent, received)

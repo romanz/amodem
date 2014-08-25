@@ -17,14 +17,6 @@ from . import ecc
 modem = dsp.MODEM(config)
 
 
-class Symbol(object):
-    def __init__(self):
-        t = np.arange(0, config.Nsym) * config.Ts
-        self.carrier = [np.exp(2j * np.pi * F * t) for F in modem.freqs]
-
-sym = Symbol()
-
-
 class Writer(object):
     def __init__(self):
         self.last = time.time()
@@ -55,9 +47,9 @@ def training(fd, c):
 def modulate(fd, bits):
     symbols_iter = modem.qam.encode(bits)
     symbols_iter = itertools.chain(symbols_iter, itertools.repeat(0))
-    carriers = np.array(sym.carrier) / len(sym.carrier)
+    carriers = modem.carriers / config.Nfreq
     while True:
-        symbols = itertools.islice(symbols_iter, len(sym.carrier))
+        symbols = itertools.islice(symbols_iter, config.Nfreq)
         symbols = np.array(list(symbols))
         writer.write(fd, np.dot(symbols, carriers))
         if all(symbols == 0):  # EOF marker
@@ -70,8 +62,8 @@ def main(args):
     # padding audio with silence
     writer.write(args.output, np.zeros(int(config.Fs * args.silence_start)))
 
-    start(args.output, sym.carrier[config.carrier_index])
-    for c in sym.carrier:
+    start(args.output, modem.carriers[config.carrier_index])
+    for c in modem.carriers:
         training(args.output, c)
     training_size = writer.offset
     log.info('%.3f seconds of training audio',

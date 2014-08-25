@@ -137,6 +137,10 @@ class MODEM(object):
         self.freqs = config.frequencies
         self.bits_per_baud = self.qam.bits_per_symbol * len(self.freqs)
         self.modem_bps = self.baud * self.bits_per_baud
+        self.carriers = np.array([
+            np.exp(2j * np.pi * freq * np.arange(0, Nsym) * Ts)
+            for freq in self.freqs
+        ])
 
 
 def power(x):
