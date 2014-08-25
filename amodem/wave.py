@@ -2,6 +2,7 @@ import os
 import signal
 import subprocess as sp
 import logging
+import functools
 
 log = logging.getLogger(__name__)
 
@@ -15,19 +16,14 @@ bytes_per_second = bytes_per_sample * Fs
 audio_format = 'S{}_LE'.format(bits_per_sample)  # PCM signed little endian
 
 
-def play(fname, **kwargs):
-    args = ['aplay', fname, '-q', '-f', audio_format, '-c', '1', '-r', Fs]
-    return launch(*args, **kwargs)
-
-
-def record(fname, **kwargs):
-    args = ['arecord', fname, '-q', '-f', audio_format, '-c', '1', '-r', Fs]
-    return launch(*args, **kwargs)
-
-
-def launch(*args, **kwargs):
-    args = list(map(str, args))
-    log.debug('$ %s', ' '.join(args))
+def launch(tool, fname, **kwargs):
+    args = [tool, fname, '-q', '-f', audio_format, '-c', '1', '-r', str(Fs)]
+    log.debug('running: %r', args)
     p = sp.Popen(args=args, **kwargs)
     p.stop = lambda: os.kill(p.pid, signal.SIGKILL)
     return p
+
+
+# Use ALSA tools for audio playing/recording
+play = functools.partial(launch, tool='aplay')
+record = functools.partial(launch, tool='arecord')
