@@ -29,10 +29,10 @@ else:
 HEIGHT = np.floor(np.sqrt(len(modem.freqs)))
 WIDTH = np.ceil(len(modem.freqs) / float(HEIGHT))
 
-COHERENCE_THRESHOLD = 0.95
+COHERENCE_THRESHOLD = 0.99
 
 CARRIER_DURATION = sum(train.prefix)
-CARRIER_THRESHOLD = int(0.95 * CARRIER_DURATION)
+CARRIER_THRESHOLD = int(0.99 * CARRIER_DURATION)
 SEARCH_WINDOW = 10  # symbols
 
 
