@@ -38,7 +38,7 @@ def run(size, chan=None, df=0):
     rx_audio = BytesIO(data)
 
     rx_data = BytesIO()
-    recv.main(Args(skip=100, input=rx_audio, output=rx_data))
+    recv.main(Args(skip=0, input=rx_audio, output=rx_data))
     rx_data = rx_data.getvalue()
 
     assert rx_data == tx_data

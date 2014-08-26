@@ -6,7 +6,7 @@ logging.basicConfig(level=logging.DEBUG,
 
 import argparse
 p = argparse.ArgumentParser()
-p.add_argument('--skip', type=int, default=100,
+p.add_argument('--skip', type=int, default=128,
                help='skip initial N samples, due to spurious spikes')
 p.add_argument('-i', '--input', type=argparse.FileType('rb'),
                default=sys.stdin)
