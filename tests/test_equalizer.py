@@ -1,35 +1,13 @@
 from numpy.linalg import norm
 import numpy as np
 
-from amodem import train, dsp, config
+from amodem import dsp
+from amodem import config
 from amodem import equalizer
 
 
 def assert_approx(x, y, e=1e-12):
     assert norm(x - y) < e * norm(x)
-
-
-def test_fir():
-    a = [1, 0.8, -0.1, 0, 0]
-    tx = train.equalizer
-    rx = dsp.lfilter(x=tx, b=[1], a=a)
-    h_ = dsp.estimate(x=rx, y=tx, order=len(a))
-    tx_ = dsp.lfilter(x=rx, b=h_, a=[1])
-    assert_approx(h_, a)
-    assert_approx(tx, tx_)
-
-
-def test_iir():
-    alpha = 0.1
-    b = [1, -alpha]
-    tx = train.equalizer
-    rx = dsp.lfilter(x=tx, b=b, a=[1])
-    h_ = dsp.estimate(x=rx, y=tx, order=20)
-    tx_ = dsp.lfilter(x=rx, b=h_, a=[1])
-
-    h_expected = np.array([alpha ** i for i in range(len(h_))])
-    assert_approx(h_, h_expected)
-    assert_approx(tx, tx_)
 
 
 def test_training():
@@ -68,8 +46,8 @@ def test_isi():
     gain = float(config.Nfreq)
 
     symbols = equalizer.train_symbols(length=length)
-    x = equalizer.modulator(symbols)
-    assert_approx(equalizer.demodulator(gain * x, size=length), symbols)
+    x = equalizer.modulator(symbols) * gain
+    assert_approx(equalizer.demodulator(x, size=length), symbols)
 
     den = np.array([1, -0.6, 0.1])
     num = np.array([0.5])
@@ -79,5 +57,5 @@ def test_isi():
     assert_approx(h, den / num)
 
     y = dsp.lfilter(x=y, b=h, a=[1])
-    z = equalizer.demodulator(gain * y, size=length)
+    z = equalizer.demodulator(y, size=length)
     assert_approx(z, symbols)

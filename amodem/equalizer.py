@@ -1,7 +1,9 @@
 import numpy as np
 from numpy.linalg import lstsq
 
-from amodem import dsp, config
+from amodem import dsp
+from amodem import config
+from amodem import sampling
 
 import itertools
 import random
@@ -40,7 +42,7 @@ def equalize(signal, symbols, order):
     assert symbols.shape[1] == Nfreq
     length = symbols.shape[0]
 
-    matched = np.array(carriers) * Nfreq / (0.5*Nsym)
+    matched = np.array(carriers) / (0.5*Nsym)
     matched = matched[:, ::-1].transpose().conj()
     y = dsp.lfilter(x=signal, b=matched, a=[1])
 

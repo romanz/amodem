@@ -30,7 +30,7 @@ class Interpolator(object):
 class Sampler(object):
     def __init__(self, src, interp=None):
         self.freq = 1.0
-        self.gain = 1.0
+        self.equalizer = lambda x: x
         if interp is not None:
             self.interp = interp
             self.resolution = self.interp.resolution
@@ -71,7 +71,7 @@ class Sampler(object):
         except StopIteration:
             pass
 
-        return frame[:count] * self.gain
+        return self.equalizer(frame[:count])
 
 
 def resample(src, dst, df=0.0):
