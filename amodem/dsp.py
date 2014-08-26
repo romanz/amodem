@@ -13,10 +13,12 @@ class Filter(object):
     def __init__(self, b, a):
         self.b = np.array(b) / a[0]
         self.a = np.array(a[1:]) / a[0]
+        self.x_state = [0] * len(self.b)
+        self.y_state = [0] * (len(self.a) + 1)
+
 
     def __call__(self, x):
-        x_ = [0] * len(self.b)
-        y_ = [0] * (len(self.a) + 1)
+        x_, y_ = self.x_state, self.y_state
         for v in x:
             x_ = [v] + x_[:-1]
             y_ = y_[:-1]
@@ -25,6 +27,7 @@ class Filter(object):
             y = num - den
             y_ = [y] + y_
             yield y
+        self.x_state, self.y_state = x_, y_
 
 
 def lfilter(b, a, x):
