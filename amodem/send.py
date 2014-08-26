@@ -13,6 +13,7 @@ from . import config
 from . import dsp
 from . import stream
 from . import ecc
+from . import equalizer
 
 modem = dsp.MODEM(config)
 
@@ -23,6 +24,7 @@ class Writer(object):
         self.offset = 0
 
     def write(self, fd, sym, n=1):
+        sym = np.array(sym)
         data = common.dumps(sym, n)
         fd.write(data)
         self.offset += len(data)
@@ -38,10 +40,12 @@ def start(fd, c):
     for value in train.prefix:
         writer.write(fd, c * value)
 
-
-def training(fd, c):
-    for b in train.equalizer:
-        writer.write(fd, c * b)
+    silence = [0] * (train.silence_length * config.Nsym)
+    writer.write(fd, silence)
+    symbols = equalizer.train_symbols(train.equalizer_length)
+    signal = equalizer.modulator(symbols)
+    writer.write(fd, signal)
+    writer.write(fd, silence)
 
 
 def modulate(fd, bits):
@@ -63,8 +67,7 @@ def main(args):
     writer.write(args.output, np.zeros(int(config.Fs * args.silence_start)))
 
     start(args.output, modem.carriers[config.carrier_index])
-    for c in modem.carriers:
-        training(args.output, c)
+
     training_size = writer.offset
     log.info('%.3f seconds of training audio',
              training_size / wave.bytes_per_second)
