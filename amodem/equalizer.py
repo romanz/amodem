@@ -28,7 +28,7 @@ def modulator(symbols, carriers=modem.carriers):
 
 def demodulator(signal, size):
     signal = itertools.chain(signal, itertools.repeat(0))
-    symbols = dsp.Demux(signal, config.frequencies)
+    symbols = dsp.Demux(sampling.Sampler(signal), config.frequencies)
     return np.array(list(itertools.islice(symbols, size)))
 
 

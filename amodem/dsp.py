@@ -107,8 +107,8 @@ class QAM(object):
 
 
 class Demux(object):
-    def __init__(self, src, freqs, sampler=None):
-        self.sampler = sampling.Sampler(src) if sampler is None else sampler
+    def __init__(self, sampler, freqs):
+        self.sampler = sampler
         self.filters = [exp_iwt(-f, Nsym) / (0.5*Nsym) for f in freqs]
         self.filters = np.array(self.filters)
 

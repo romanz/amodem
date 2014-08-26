@@ -5,6 +5,7 @@ from numpy.linalg import norm
 
 from amodem import dsp
 from amodem import config
+from amodem import sampling
 
 
 def test_qam():
@@ -93,6 +94,6 @@ def test_demux():
     carriers = [dsp.exp_iwt(f, config.Nsym) for f in freqs]
     syms = [3, 2j]
     sig = np.dot(syms, carriers)
-    res = dsp.Demux(sig.real, freqs)
+    res = dsp.Demux(sampling.Sampler(sig.real), freqs)
     res = np.array(list(res))
     assert np.max(np.abs(res - syms)) < 1e-12
