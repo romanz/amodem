@@ -1,5 +1,9 @@
-from amodem import config, recv, train
 import numpy as np
+
+from amodem import config
+from amodem import recv
+from amodem import train
+from amodem import sampling
 
 def test_detect():
     P = sum(train.prefix)
@@ -16,13 +20,17 @@ def test_detect():
         pass
 
 def test_prefix():
-    symbols = [[i] for i in train.prefix]
-    freq_err, phase_err = recv.receive_prefix(symbols)
-    assert freq_err == 0
-    assert phase_err == 0
+    t = np.arange(config.Nsym) * config.Ts
+    symbol = np.cos(2 * np.pi * config.Fc * t)
+    signal = np.concatenate([c * symbol for c in train.prefix])
+
+    sampler = sampling.Sampler(signal)
+    freq_err = recv.receive_prefix(sampler, freq=config.Fc)
+    assert abs(freq_err) < 1e-16
 
     try:
-        recv.receive_prefix([[0]] * len(train.prefix))
+        silence = 0 * signal
+        recv.receive_prefix(sampling.Sampler(silence), freq=config.Fc)
         assert False
     except ValueError:
         pass
