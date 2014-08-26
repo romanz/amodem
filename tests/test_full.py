@@ -49,8 +49,9 @@ def test_small():
 
 
 def test_frequency_error():
-    for df in [1, -1, 10, -10]:
-        run(1024, df=df*1e-6)
+    for ppm in [0.1, 1, 10]:
+        for sign in [+1, -1]:
+            run(1024, df=sign*ppm*1e-6)
 
 
 def test_lowpass():
