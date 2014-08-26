@@ -4,7 +4,6 @@ import logging
 
 log = logging.getLogger(__name__)
 
-from . import sampling
 from . import common
 from .config import Ts, Nsym
 
@@ -49,13 +48,6 @@ def estimate(x, y, order, lookahead=0):
     # switch to rows for least-squares
     h = linalg.lstsq(np.array(A).T, b)[0]
     return h[::-1]
-
-
-def train(S, training):
-    A = np.array([S[1:], S[:-1], training[:-1]]).T
-    b = training[1:]
-    b0, b1, a1 = linalg.lstsq(A, b)[0]
-    return Filter(b=[b0, b1], a=[1, -a1])
 
 
 class QAM(object):
