@@ -20,8 +20,7 @@ def test_detect():
         pass
 
 def test_prefix():
-    t = np.arange(config.Nsym) * config.Ts
-    symbol = np.cos(2 * np.pi * config.Fc * t)
+    symbol = np.cos(2 * np.pi * config.Fc * np.arange(config.Nsym) * config.Ts)
     signal = np.concatenate([c * symbol for c in train.prefix])
 
     sampler = sampling.Sampler(signal)
@@ -34,3 +33,17 @@ def test_prefix():
         assert False
     except ValueError:
         pass
+
+def test_find_start():
+    sym = np.cos(2 * np.pi * config.Fc * np.arange(config.Nsym) * config.Ts)
+
+    length = 200
+    prefix = postfix = np.tile(0 * sym, 50)
+    carrier = np.tile(sym, length)
+    for offset in range(10):
+        prefix = [0] * offset
+        bufs = [prefix, prefix, carrier, postfix]
+        buf = np.concatenate(bufs)
+        start = recv.find_start(buf, length*config.Nsym)
+        expected = offset + len(prefix)
+        assert expected == start

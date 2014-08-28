@@ -17,6 +17,7 @@ from . import train
 from . import common
 from . import config
 from . import ecc
+from . import equalizer
 
 modem = dsp.MODEM(config)
 
@@ -70,31 +71,30 @@ def detect(samples, freq):
 
     log.debug('Buffered %d ms of audio', len(bufs))
 
-    to_append = SEARCH_WINDOW + (CARRIER_DURATION - CARRIER_THRESHOLD)
-    bufs_iterator = common.iterate(samples, config.Nsym)
-    for _, buf in itertools.islice(bufs_iterator, to_append):
-        bufs.append(buf)
+    bufs = list(bufs)[-CARRIER_THRESHOLD-SEARCH_WINDOW:]
+    trailing = list(itertools.islice(samples, SEARCH_WINDOW*config.Nsym))
+    bufs.append(np.array(trailing))
 
-    bufs = tuple(bufs)[-CARRIER_DURATION-2*SEARCH_WINDOW:]
     buf = np.concatenate(bufs)
-
-    offset = find_start(buf, length=config.Nsym*CARRIER_DURATION)
-    start = begin - config.Nsym * SEARCH_WINDOW + offset
+    offset = find_start(buf, CARRIER_DURATION*config.Nsym)
     log.info('Carrier starts at %.3f ms',
-             start * config.Tsym * 1e3 / config.Nsym)
+             offset * config.Tsym * 1e3 / config.Nsym)
 
     return itertools.chain(buf[offset:], samples), amplitude
 
 
 def find_start(buf, length):
-    Hc = dsp.exp_iwt(config.Fc, len(buf))
-    P = np.abs(Hc.conj() * buf) ** 2
-    cumsumP = P.cumsum()
-    return np.argmax(cumsumP[length:] - cumsumP[:-length])
+    N = len(buf)
+    carrier = dsp.exp_iwt(config.Fc, N)
+    z = np.cumsum(buf * carrier)
+    z = np.concatenate([[0], z])
+    correlations = np.abs(z[length:] - z[:-length])
+    return np.argmax(correlations)
 
 
-def receive_prefix(symbols):
-    S = common.take(symbols, len(train.prefix))[:, config.carrier_index]
+def receive_prefix(sampler, freq, gain=1.0, skip=5):
+    symbols = dsp.Demux(sampler, [freq])
+    S = common.take(symbols, len(train.prefix)).squeeze() * gain
     sliced = np.round(S)
     pylab.figure()
     constellation(S, sliced, 'Prefix')
@@ -109,61 +109,63 @@ def receive_prefix(symbols):
     pilot_tone = S[nonzeros]
     phase = np.unwrap(np.angle(pilot_tone)) / (2 * np.pi)
     indices = np.arange(len(phase))
-    a, b = dsp.linear_regression(indices, phase)
+    a, b = dsp.linear_regression(indices[skip:-skip], phase[skip:-skip])
+    pylab.figure()
+    pylab.plot(indices, phase, ':')
+    pylab.plot(indices, a * indices + b)
 
     freq_err = a / (config.Tsym * config.Fc)
     last_phase = a * indices[-1] + b
     log.debug('Current phase on carrier: %.3f', last_phase)
 
-    angle = np.mean(np.angle(S[nonzeros]))
-    expected_phase = round(angle / (0.5*np.pi)) * 0.25
-    log.debug('Excepted phase on carrier: %.3f', expected_phase)
-
-    sampling_err = (last_phase - expected_phase) * config.Nsym
     log.info('Frequency error: %.2f ppm', freq_err * 1e6)
-    log.info('Sampling error: %.2f samples', sampling_err)
-    return freq_err, sampling_err
+    pylab.title('Frequency drift: {:.3f} ppm'.format(freq_err * 1e6))
+    return freq_err
 
 
-def train_receiver(symbols, freqs):
-    filters = {}
-    scaling_factor = len(freqs)  # to avoid saturation
-    training = np.array(train.equalizer)
+def train_receiver(sampler, order, lookahead):
+    train_symbols = equalizer.train_symbols(train.equalizer_length)
+    prefix = postfix = train.silence_length * config.Nsym
+    signal_length = (train.equalizer_length * config.Nsym) + prefix + postfix
+
+    signal = sampler.take(signal_length + lookahead)
+    unequalized = signal[prefix:-postfix]
+
+    coeffs = equalizer.equalize(unequalized, train_symbols, order, lookahead)
+    log.debug('Equalization filter coeffs: %r', coeffs)
+
+    equalization_filter = dsp.Filter(b=coeffs, a=[1])
+    equalized = list(equalization_filter(signal))[prefix+lookahead:-postfix+lookahead]
+
+    symbols = equalizer.demodulator(equalized, train.equalizer_length)
+    sliced = np.array(symbols).round()
+    errors = np.array(sliced - train_symbols, dtype=np.bool)
+    error_rate = errors.sum() / errors.size
+
+    errors = np.array(symbols - train_symbols)
+    rms = lambda x: (np.mean(np.abs(x) ** 2, axis=0) ** 0.5)
+
+    noise_rms = rms(errors)
+    signal_rms = rms(train_symbols)
+    SNRs = 20.0 * np.log10(signal_rms / noise_rms)
 
     pylab.figure()
-    symbols = common.take(symbols, len(training) * len(freqs))
-    for i, freq in enumerate(freqs):
-        size = len(training)
-        offset = i * size
-        S = symbols[offset:offset+size, i]
-
-        filt = dsp.train(S, training * scaling_factor)
-        filters[freq] = filt
-
-        Y = list(filt(S))
-        y = np.array(Y) / scaling_factor
-
+    for i, freq, snr in zip(range(config.Nfreq), config.frequencies, SNRs):
+        log.debug('%5.1f kHz: SNR = %5.2f dB', freq / 1e3, snr)
         pylab.subplot(HEIGHT, WIDTH, i+1)
-        constellation(y, modem.qam.symbols,
-                      'Train: $F_c = {}Hz$'.format(freq))
-        pylab.plot(S.real, S.imag, '.-')
+        constellation(symbols[:, i], train_symbols[:, i],
+                      '$F_c = {} Hz$'.format(freq))
 
-        train_result = np.round(y)
-        if not all(train_result == training):
-            raise ValueError('#{} training failed on {} Hz'.format(i, freq))
 
-        noise = y - training
-        Pnoise = dsp.power(noise)
-        log.info('%10.1f kHz: Noise sigma=%.4f, SNR=%.1f dB',
-                 freq/1e3, Pnoise**0.5, 10*np.log10(1/Pnoise))
+    assert error_rate == 0, error_rate
 
-    return filters
+    return equalization_filter
 
 
 stats = {}
 
 
-def demodulate(symbols, filters, freqs, sampler):
+def demodulate(sampler, freqs):
     streams = []
     symbol_list = []
     errors = {}
@@ -171,10 +173,10 @@ def demodulate(symbols, filters, freqs, sampler):
     def error_handler(received, decoded, freq):
         errors.setdefault(freq, []).append(received / decoded)
 
+    symbols = dsp.Demux(sampler, freqs)
     generators = common.split(symbols, n=len(freqs))
     for freq, S in zip(freqs, generators):
         equalized = []
-        S = filters[freq](S)
         S = common.icapture(S, result=equalized)
         symbol_list.append(equalized)
 
@@ -207,15 +209,14 @@ def demodulate(symbols, filters, freqs, sampler):
 
 def receive(signal, freqs, gain=1.0):
     sampler = sampling.Sampler(signal, sampling.Interpolator())
-    symbols = dsp.Demux(signal, freqs, sampler)
-    symbols.sampler.gain = gain
 
-    freq_err, offset_err = receive_prefix(symbols)
-    symbols.sampler.offset -= offset_err
-    symbols.sampler.freq -= freq_err
+    freq_err = receive_prefix(sampler, freq=freqs[0], gain=gain)
+    sampler.freq -= freq_err
 
-    filters = train_receiver(symbols, freqs)
-    data_bits = demodulate(symbols, filters, freqs, symbols.sampler)
+    filt = train_receiver(sampler, order=11, lookahead=5)
+    sampler.equalizer = lambda x: list(filt(x))
+
+    data_bits = demodulate(sampler, freqs)
     return itertools.chain.from_iterable(data_bits)
 
 
