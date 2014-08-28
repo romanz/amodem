@@ -132,8 +132,6 @@ def train_receiver(sampler, order, lookahead):
     unequalized = signal[prefix:-postfix]
 
     coeffs = equalizer.equalize(unequalized, train_symbols, order, lookahead)
-    log.debug('Equalization filter coeffs: %r', coeffs)
-
     equalization_filter = dsp.Filter(b=coeffs, a=[1])
     equalized = list(equalization_filter(signal))[prefix+lookahead:-postfix+lookahead]
 
