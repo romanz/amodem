@@ -14,7 +14,7 @@ fmt = 'coherence={:.3f} amplitude={:.3f} phase={:+.1f} peak={:.3f}\n'
 
 
 def send(wave_play=wave.play):
-    p = wave_play('-', stdin=wave.sp.PIPE, stderr=open('/dev/null'))
+    p = wave_play(stdin=wave.sp.PIPE, stderr=open('/dev/null'))
     try:
         while True:
             try:
@@ -26,7 +26,7 @@ def send(wave_play=wave.play):
 
 
 def recv(wave_record=wave.record, reporter=sys.stdout.write):
-    p = wave_record('-', stdout=wave.sp.PIPE)
+    p = wave_record(stdout=wave.sp.PIPE)
     try:
         while True:
             data = p.stdout.read(len(sig_dump))

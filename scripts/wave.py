@@ -21,7 +21,7 @@ player.add_argument(
 player.set_defaults(func=wave.play)
 
 args = parser.parse_args()
-p = args.func(args.filename)
+p = args.func(fname=args.filename)
 
 import sys
 exitcode = 0
