@@ -154,7 +154,6 @@ def train_receiver(sampler, order, lookahead):
         constellation(symbols[:, i], train_symbols[:, i],
                       '$F_c = {} Hz$'.format(freq))
 
-
     assert error_rate == 0, error_rate
 
     return equalization_filter
