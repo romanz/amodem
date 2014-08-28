@@ -20,10 +20,10 @@ def test_errors():
     data = bytearray(range(244))
     blocks = list(ecc.encode(data))
     assert len(blocks) == 2
-    for i in range(ecc.DEFAULT_NSYM/2):
+    for i in range(ecc.DEFAULT_NSYM // 2):
         blocks[0][i] = blocks[0][i] ^ 0xFF
 
-    i = ecc.DEFAULT_NSYM/2
+    i = ecc.DEFAULT_NSYM // 2
     try:
         blocks[0][i] = blocks[0][i] ^ 0xFF
         concat(ecc.decode(blocks))
