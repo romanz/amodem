@@ -102,12 +102,6 @@ def take(iterable, n):
     return np.array(list(itertools.islice(iterable, n)))
 
 
-try:
-    izip = itertools.izip
-except AttributeError:
-    izip = zip  # Python 3
-
-
 class Dummy(object):
 
     def __getattr__(self, name):
