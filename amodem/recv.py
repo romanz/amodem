@@ -237,19 +237,22 @@ def decode(bits_iterator):
     return ecc.decode(blocks())
 
 
-def iread(fd):
-    check = common.check_saturation
-    reader = stream.Reader(fd, data_type=common.loads, check=check)
-    return itertools.chain.from_iterable(reader)
+def iread(fd, skip):
+    reader = stream.Reader(fd, data_type=common.loads)
+    signal = itertools.chain.from_iterable(reader)
+
+    skipped = common.take(signal, skip)
+    log.debug('Skipping %.3f seconds', len(skipped) / float(modem.baud))
+
+    reader.check = common.check_saturation
+    return signal
 
 
 def main(args):
     try:
         log.info('Running MODEM @ {:.1f} kbps'.format(modem.modem_bps / 1e3))
 
-        signal = iread(args.input)
-        skipped = common.take(signal, args.skip)
-        log.debug('Skipping %.3f seconds', len(skipped) / float(modem.baud))
+        signal = iread(args.input, args.skip)
 
         size = 0
         signal, amplitude = detect(signal, config.Fc)

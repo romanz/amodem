@@ -6,7 +6,7 @@ import logging
 log = logging.getLogger(__name__)
 
 scaling = 32000.0  # out of 2**15
-SATURATION_THRESHOLD = 1.0
+SATURATION_THRESHOLD = (2**15 - 1) / scaling
 
 LENGTH_FORMAT = '<I'
 
@@ -24,7 +24,7 @@ class SaturationError(ValueError):
 
 def check_saturation(x):
     peak = np.max(np.abs(x))
-    if peak > SATURATION_THRESHOLD:
+    if peak >= SATURATION_THRESHOLD:
         raise SaturationError(peak)
 
 

@@ -54,9 +54,9 @@ def test_dumps_loads():
 
 
 def test_saturation():
-    x = np.array([1, -1, 1, -1]) * 1.01
+    x = np.array([1, -1, 1, -1]) * 1e10
     try:
         common.check_saturation(x)
         assert False
     except common.SaturationError as e:
-        assert e.args == (1.01,)
+        assert e.args == (max(x),)
