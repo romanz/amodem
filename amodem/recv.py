@@ -249,39 +249,36 @@ def iread(fd, skip):
 
 
 def main(args):
+    log.info('Running MODEM @ {:.1f} kbps'.format(modem.modem_bps / 1e3))
+
+    signal = iread(args.input, args.skip)
+
+    size = 0
+    signal, amplitude = detect(signal, config.Fc)
+    bits = receive(signal, modem.freqs, gain=1.0/amplitude)
     try:
-        log.info('Running MODEM @ {:.1f} kbps'.format(modem.modem_bps / 1e3))
+        for chunk in decode(bits):
+            args.output.write(chunk)
+            size = size + len(chunk)
+    except Exception:
+        log.exception('Decoding failed')
 
-        signal = iread(args.input, args.skip)
+    duration = time.time() - stats['rx_start']
+    audio_time = stats['rx_bits'] / float(modem.modem_bps)
+    log.debug('Demodulated %.3f kB @ %.3f seconds (%.1f%% realtime)',
+              stats['rx_bits'] / 8e3, duration, 100 * duration / audio_time)
 
-        size = 0
-        signal, amplitude = detect(signal, config.Fc)
-        bits = receive(signal, modem.freqs, gain=1.0/amplitude)
-        try:
-            for chunk in decode(bits):
-                args.output.write(chunk)
-                size = size + len(chunk)
-        except Exception:
-            log.exception('Decoding failed')
+    log.info('Received %.3f kB @ %.3f seconds = %.3f kB/s',
+             size * 1e-3, duration, size * 1e-3 / duration)
 
-        duration = time.time() - stats['rx_start']
-        audio_time = stats['rx_bits'] / float(modem.modem_bps)
-        log.debug('Demodulated %.3f kB @ %.3f seconds (%.1f%% realtime)',
-                  stats['rx_bits'] / 8e3, duration, 100 * duration / audio_time)
+    pylab.figure()
+    symbol_list = np.array(stats['symbol_list'])
+    for i, freq in enumerate(modem.freqs):
+        pylab.subplot(HEIGHT, WIDTH, i+1)
+        constellation(symbol_list[i], modem.qam.symbols,
+                      '$F_c = {} Hz$'.format(freq))
 
-        log.info('Received %.3f kB @ %.3f seconds = %.3f kB/s',
-                 size * 1e-3, duration, size * 1e-3 / duration)
-
-        pylab.figure()
-        symbol_list = np.array(stats['symbol_list'])
-        for i, freq in enumerate(modem.freqs):
-            pylab.subplot(HEIGHT, WIDTH, i+1)
-            constellation(symbol_list[i], modem.qam.symbols,
-                          '$F_c = {} Hz$'.format(freq))
-    except Exception as e:
-        log.exception(e)
-    finally:
-        pylab.show()
+    pylab.show()
 
 
 def constellation(y, symbols, title):
