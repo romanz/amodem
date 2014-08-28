@@ -42,7 +42,6 @@ def decode(blocks, nsym=DEFAULT_NSYM):
 
         size = chunk[0]
         payload = chunk[1:]
-        if size > len(payload):
-            raise ValueError('Invalid chunk', size, len(payload), payload)
+        assert size <= len(payload)
 
         yield payload[:size]
