@@ -133,7 +133,8 @@ def train_receiver(sampler, order, lookahead):
 
     coeffs = equalizer.equalize(unequalized, train_symbols, order, lookahead)
     equalization_filter = dsp.Filter(b=coeffs, a=[1])
-    equalized = list(equalization_filter(signal))[prefix+lookahead:-postfix+lookahead]
+    equalized = list(equalization_filter(signal))
+    equalized = equalized[prefix+lookahead:-postfix+lookahead]
 
     symbols = equalizer.demodulator(equalized, train.equalizer_length)
     sliced = np.array(symbols).round()
@@ -237,7 +238,8 @@ def decode(bits_iterator):
 
 
 def iread(fd):
-    reader = stream.Reader(fd, data_type=common.loads)
+    check = common.check_saturation
+    reader = stream.Reader(fd, data_type=common.loads, check=check)
     return itertools.chain.from_iterable(reader)
 
 
@@ -248,8 +250,6 @@ def main(args):
         signal = iread(args.input)
         skipped = common.take(signal, args.skip)
         log.debug('Skipping %.3f seconds', len(skipped) / float(modem.baud))
-
-        stream.check = common.check_saturation
 
         size = 0
         signal, amplitude = detect(signal, config.Fc)
