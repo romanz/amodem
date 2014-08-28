@@ -19,7 +19,7 @@ class Args(object):
         self.__dict__.update(kwargs)
 
 
-def run(size, chan=None, df=0):
+def run(size, chan=None, df=0, success=True):
     tx_data = os.urandom(size)
     tx_audio = BytesIO()
     send.main(Args(silence_start=1, silence_stop=1,
@@ -38,14 +38,21 @@ def run(size, chan=None, df=0):
     rx_audio = BytesIO(data)
 
     rx_data = BytesIO()
-    recv.main(Args(skip=0, input=rx_audio, output=rx_data))
+    result = recv.main(Args(skip=0, input=rx_audio, output=rx_data))
     rx_data = rx_data.getvalue()
 
-    assert rx_data == tx_data
+    assert result == success
+    if success:
+        assert rx_data == tx_data
 
 
 def test_small():
     run(1024, chan=lambda x: x)
+
+
+def test_error():
+    skip = 1 * send.config.Fs  # remove trailing silence
+    run(1024, chan=lambda x: x[:-skip], success=False)
 
 
 def test_frequency_error():
@@ -78,4 +85,3 @@ def test_medium_noise():
 
 def test_large():
     run(54321, chan=lambda x: x)
-

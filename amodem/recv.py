@@ -256,10 +256,12 @@ def main(args):
     size = 0
     signal, amplitude = detect(signal, config.Fc)
     bits = receive(signal, modem.freqs, gain=1.0/amplitude)
+    success = False
     try:
         for chunk in decode(bits):
             args.output.write(chunk)
             size = size + len(chunk)
+        success = True
     except Exception:
         log.exception('Decoding failed')
 
@@ -279,6 +281,7 @@ def main(args):
                       '$F_c = {} Hz$'.format(freq))
 
     pylab.show()
+    return success
 
 
 def constellation(y, symbols, title):
