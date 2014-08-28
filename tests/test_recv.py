@@ -5,6 +5,7 @@ from amodem import recv
 from amodem import train
 from amodem import sampling
 
+
 def test_detect():
     P = sum(train.prefix)
     t = np.arange(P * config.Nsym) * config.Ts
@@ -18,6 +19,7 @@ def test_detect():
         assert False
     except ValueError:
         pass
+
 
 def test_prefix():
     symbol = np.cos(2 * np.pi * config.Fc * np.arange(config.Nsym) * config.Ts)
@@ -34,6 +36,7 @@ def test_prefix():
     except ValueError:
         pass
 
+
 def test_find_start():
     sym = np.cos(2 * np.pi * config.Fc * np.arange(config.Nsym) * config.Ts)
 
@@ -47,3 +50,7 @@ def test_find_start():
         start = recv.find_start(buf, length*config.Nsym)
         expected = offset + len(prefix)
         assert expected == start
+
+
+def test_decode():
+    assert list(recv.decode([])) == []
