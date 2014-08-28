@@ -15,7 +15,6 @@ class Filter(object):
         self.x_state = [0] * len(self.b)
         self.y_state = [0] * (len(self.a) + 1)
 
-
     def __call__(self, x):
         x_, y_ = self.x_state, self.y_state
         for v in x:
@@ -136,10 +135,6 @@ class MODEM(object):
             np.exp(2j * np.pi * freq * np.arange(0, Nsym) * Ts)
             for freq in self.freqs
         ])
-
-
-def power(x):
-    return np.dot(x.conj(), x).real / len(x)
 
 
 def exp_iwt(freq, n):
