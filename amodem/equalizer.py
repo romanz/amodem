@@ -34,7 +34,7 @@ def demodulator(signal, size):
     return np.array(list(itertools.islice(symbols, size)))
 
 
-def equalize(signal, symbols, order):
+def equalize(signal, symbols, order, lookahead=0):
     Nsym = config.Nsym
     Nfreq = config.Nfreq
     carriers = modem.carriers
@@ -44,18 +44,19 @@ def equalize(signal, symbols, order):
 
     matched = np.array(carriers) / (0.5*Nsym)
     matched = matched[:, ::-1].transpose().conj()
+    signal = np.concatenate([signal, np.zeros(lookahead)])
     y = dsp.lfilter(x=signal, b=matched, a=[1])
 
-    A = np.zeros([symbols.size, order], dtype=np.complex128)
-    b = np.zeros([symbols.size], dtype=np.complex128)
+    A = []
+    b = []
 
     index = 0
     for j in range(Nfreq):
         for i in range(length):
             offset = (i+1)*Nsym
-            row = y[offset-order:offset, j]
-            A[index, :] = row
-            b[index] = symbols[i, j]
+            row = y[offset-order:offset+lookahead, j]
+            A.append(row)
+            b.append(symbols[i, j])
             index += 1
 
     A = np.array(A)

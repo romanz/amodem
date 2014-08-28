@@ -53,9 +53,11 @@ def test_isi():
     num = np.array([0.5])
     y = dsp.lfilter(x=x, b=num, a=den)
 
-    h = equalizer.equalize(y, symbols, order=len(den))
-    assert_approx(h, den / num)
+    lookahead = 2
+    h = equalizer.equalize(y, symbols, order=len(den), lookahead=lookahead)
+    assert norm(h[:lookahead]) < 1e-12
+    assert_approx(h[lookahead:], den / num)
 
-    y = dsp.lfilter(x=y, b=h, a=[1])
+    y = dsp.lfilter(x=y, b=h[lookahead:], a=[1])
     z = equalizer.demodulator(y, size=length)
     assert_approx(z, symbols)
