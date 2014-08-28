@@ -8,7 +8,7 @@ from . import common
 from .config import Ts, Nsym
 
 
-class Filter(object):
+class IIR(object):
     def __init__(self, b, a):
         self.b = np.array(b) / a[0]
         self.a = np.array(a[1:]) / a[0]
@@ -28,8 +28,22 @@ class Filter(object):
         self.x_state, self.y_state = x_, y_
 
 
+class FIR(object):
+    def __init__(self, h):
+        self.h = np.array(h)
+        self.x_state = [0] * len(self.h)
+
+    def __call__(self, x):
+        x_ = self.x_state
+        h = self.h
+        for v in x:
+            x_ = [v] + x_[:-1]
+            yield np.dot(x_, h)
+        self.x_state = x_
+
+
 def lfilter(b, a, x):
-    f = Filter(b=b, a=a)
+    f = IIR(b=b, a=a)
     y = list(f(x))
     return np.array(y)
 
