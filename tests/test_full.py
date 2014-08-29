@@ -17,6 +17,7 @@ logging.basicConfig(level=logging.DEBUG,
 class Args(object):
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
+        self.pylab = None
 
 
 def run(size, chan=None, df=0, success=True):

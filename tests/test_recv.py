@@ -26,12 +26,13 @@ def test_prefix():
     signal = np.concatenate([c * symbol for c in train.prefix])
 
     sampler = sampling.Sampler(signal)
-    freq_err = recv.receive_prefix(sampler, freq=config.Fc)
+    r = recv.Receiver()
+    freq_err = r._prefix(sampler, freq=config.Fc)
     assert abs(freq_err) < 1e-16
 
     try:
         silence = 0 * signal
-        recv.receive_prefix(sampling.Sampler(silence), freq=config.Fc)
+        r._prefix(sampling.Sampler(silence), freq=config.Fc)
         assert False
     except ValueError:
         pass
@@ -52,5 +53,5 @@ def test_find_start():
         assert expected == start
 
 
-def test_decode():
-    assert list(recv.decode([])) == []
+def test_blocks():
+    assert list(recv._blocks([])) == []
