@@ -97,9 +97,13 @@ class Receiver(object):
         S = common.take(symbols, len(train.prefix)).squeeze() * gain
         sliced = np.round(S)
         self.pylab.figure()
+        self.pylab.subplot(121)
         self._constellation(S, sliced, 'Prefix')
 
         bits = np.array(np.abs(sliced), dtype=int)
+        self.pylab.subplot(122)
+        self.pylab.plot(np.abs(S))
+        self.pylab.plot(train.prefix)
         if any(bits != train.prefix):
             raise ValueError('Incorrect prefix')
 
