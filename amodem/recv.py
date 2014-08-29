@@ -219,22 +219,22 @@ class Receiver(object):
             self.size = self.size + len(chunk)
 
     def report(self):
-        duration = time.time() - self.stats['rx_start']
-        audio_time = self.stats['rx_bits'] / float(modem.modem_bps)
-        log.debug('Demodulated %.3f kB @ %.3f seconds (%.1f%% realtime)',
-                  self.stats['rx_bits'] / 8e3, duration,
-                  100 * duration / audio_time)
+        if self.stats:
+            duration = time.time() - self.stats['rx_start']
+            audio_time = self.stats['rx_bits'] / float(modem.modem_bps)
+            log.debug('Demodulated %.3f kB @ %.3f seconds (%.1f%% realtime)',
+                      self.stats['rx_bits'] / 8e3, duration,
+                      100 * duration / audio_time)
 
-        log.info('Received %.3f kB @ %.3f seconds = %.3f kB/s',
-                 self.size * 1e-3, duration, self.size * 1e-3 / duration)
+            log.info('Received %.3f kB @ %.3f seconds = %.3f kB/s',
+                     self.size * 1e-3, duration, self.size * 1e-3 / duration)
 
-        self.pylab.figure()
-        symbol_list = np.array(self.stats['symbol_list'])
-        for i, freq in enumerate(modem.freqs):
-            self.pylab.subplot(HEIGHT, WIDTH, i+1)
-            self._constellation(symbol_list[i], modem.qam.symbols,
-                                '$F_c = {} Hz$'.format(freq))
-
+            self.pylab.figure()
+            symbol_list = np.array(self.stats['symbol_list'])
+            for i, freq in enumerate(modem.freqs):
+                self.pylab.subplot(HEIGHT, WIDTH, i+1)
+                self._constellation(symbol_list[i], modem.qam.symbols,
+                                    '$F_c = {} Hz$'.format(freq))
         self.pylab.show()
 
     def _constellation(self, y, symbols, title):
@@ -275,11 +275,11 @@ def main(args):
 
     reader.check = common.check_saturation
 
-    signal, amplitude = detect(signal, config.Fc)
     receiver = Receiver(args.pylab)
-    receiver.start(signal, modem.freqs, gain=1.0/amplitude)
     success = False
     try:
+        signal, amplitude = detect(signal, config.Fc)
+        receiver.start(signal, modem.freqs, gain=1.0/amplitude)
         receiver.decode(args.output)
         success = True
     except Exception:
