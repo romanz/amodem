@@ -83,8 +83,10 @@ class QAM(object):
 
         reals = np.array(list(sorted(set(symbols.real))))
         imags = np.array(list(sorted(set(symbols.imag))))
-        self.real_factor = 1.0 / np.mean(np.diff(reals))
-        self.imag_factor = 1.0 / np.mean(np.diff(imags))
+
+        _mean = lambda u: float(sum(u))/len(u) if len(u) else 1.0
+        self.real_factor = 1.0 / _mean(np.diff(reals))
+        self.imag_factor = 1.0 / _mean(np.diff(imags))
         self.bias = reals[0] + 1j * imags[0]
 
         self.symbols_map = {}
