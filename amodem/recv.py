@@ -129,12 +129,16 @@ class Receiver(object):
     def _train(self, sampler, order, lookahead):
         train_symbols = equalizer.train_symbols(train.equalizer_length)
         prefix = postfix = train.silence_length * config.Nsym
-        signal_length = (train.equalizer_length * config.Nsym) + prefix + postfix
+        signal_length = train.equalizer_length * config.Nsym + prefix + postfix
 
         signal = sampler.take(signal_length + lookahead)
-        unequalized = signal[prefix:-postfix]
 
-        coeffs = equalizer.equalize(unequalized, train_symbols, order, lookahead)
+        coeffs = equalizer.equalize(
+            signal=signal[prefix:-postfix],
+            symbols=train_symbols,
+            order=order, lookahead=lookahead
+        )
+
         equalization_filter = dsp.FIR(h=coeffs)
         equalized = list(equalization_filter(signal))
         equalized = equalized[prefix+lookahead:-postfix+lookahead]
