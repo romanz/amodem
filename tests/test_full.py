@@ -13,6 +13,8 @@ import logging
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(levelname)-12s %(message)s')
 
+import pytest
+
 
 class Args(object):
     def __init__(self, **kwargs):
@@ -56,10 +58,13 @@ def test_error():
     run(1024, chan=lambda x: x[:-skip], success=False)
 
 
-def test_frequency_error():
-    for ppm in [0.1, 1, 10]:
-        for sign in [+1, -1]:
-            run(1024, df=sign*ppm*1e-6)
+@pytest.fixture(params=[s*x for s in (+1, -1) for x in (0.1, 1, 10)])
+def freq_err(request):
+    return request.param * 1e-6
+
+
+def test_timing(freq_err):
+    run(1024, df=freq_err)
 
 
 def test_lowpass():
