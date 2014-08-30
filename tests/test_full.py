@@ -19,7 +19,9 @@ import pytest
 class Args(object):
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
-        self.pylab = None
+
+    def __getattr__(self, name):
+        return None
 
 
 def run(size, chan=None, df=0, success=True):

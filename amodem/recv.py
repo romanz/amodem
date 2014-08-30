@@ -90,20 +90,20 @@ class Receiver(object):
 
     def __init__(self, pylab=None):
         self.stats = {}
-        self.pylab = pylab or common.Dummy()
+        self.plt = pylab or common.Dummy()
 
     def _prefix(self, sampler, freq, gain=1.0, skip=5):
         symbols = dsp.Demux(sampler, [freq])
         S = common.take(symbols, len(train.prefix)).squeeze() * gain
         sliced = np.round(S)
-        self.pylab.figure()
-        self.pylab.subplot(121)
+        self.plt.figure()
+        self.plt.subplot(121)
         self._constellation(S, sliced, 'Prefix')
 
         bits = np.array(np.abs(sliced), dtype=int)
-        self.pylab.subplot(122)
-        self.pylab.plot(np.abs(S))
-        self.pylab.plot(train.prefix)
+        self.plt.subplot(122)
+        self.plt.plot(np.abs(S))
+        self.plt.plot(train.prefix)
         if any(bits != train.prefix):
             raise ValueError('Incorrect prefix')
 
@@ -114,16 +114,16 @@ class Receiver(object):
         phase = np.unwrap(np.angle(pilot_tone)) / (2 * np.pi)
         indices = np.arange(len(phase))
         a, b = dsp.linear_regression(indices[skip:-skip], phase[skip:-skip])
-        self.pylab.figure()
-        self.pylab.plot(indices, phase, ':')
-        self.pylab.plot(indices, a * indices + b)
+        self.plt.figure()
+        self.plt.plot(indices, phase, ':')
+        self.plt.plot(indices, a * indices + b)
 
         freq_err = a / (config.Tsym * config.Fc)
         last_phase = a * indices[-1] + b
         log.debug('Current phase on carrier: %.3f', last_phase)
 
         log.info('Frequency error: %.2f ppm', freq_err * 1e6)
-        self.pylab.title('Frequency drift: {:.3f} ppm'.format(freq_err * 1e6))
+        self.plt.title('Frequency drift: {:.3f} ppm'.format(freq_err * 1e6))
         return freq_err
 
     def _train(self, sampler, order, lookahead):
@@ -151,10 +151,10 @@ class Receiver(object):
         signal_rms = rms(train_symbols)
         SNRs = 20.0 * np.log10(signal_rms / noise_rms)
 
-        self.pylab.figure()
+        self.plt.figure()
         for i, freq, snr in zip(range(config.Nfreq), config.frequencies, SNRs):
             log.debug('%5.1f kHz: SNR = %5.2f dB', freq / 1e3, snr)
-            self.pylab.subplot(HEIGHT, WIDTH, i+1)
+            self.plt.subplot(HEIGHT, WIDTH, i+1)
             self._constellation(symbols[:, i], train_symbols[:, i],
                                 '$F_c = {} Hz$'.format(freq))
 
@@ -233,24 +233,24 @@ class Receiver(object):
             log.info('Received %.3f kB @ %.3f seconds = %.3f kB/s',
                      self.size * 1e-3, duration, self.size * 1e-3 / duration)
 
-            self.pylab.figure()
+            self.plt.figure()
             symbol_list = np.array(self.stats['symbol_list'])
             for i, freq in enumerate(modem.freqs):
-                self.pylab.subplot(HEIGHT, WIDTH, i+1)
+                self.plt.subplot(HEIGHT, WIDTH, i+1)
                 self._constellation(symbol_list[i], modem.qam.symbols,
                                     '$F_c = {} Hz$'.format(freq))
-        self.pylab.show()
+        self.plt.show()
 
     def _constellation(self, y, symbols, title):
         theta = np.linspace(0, 2*np.pi, 1000)
         y = np.array(y)
-        self.pylab.plot(y.real, y.imag, '.')
-        self.pylab.plot(np.cos(theta), np.sin(theta), ':')
+        self.plt.plot(y.real, y.imag, '.')
+        self.plt.plot(np.cos(theta), np.sin(theta), ':')
         points = np.array(symbols)
-        self.pylab.plot(points.real, points.imag, '+')
-        self.pylab.grid('on')
-        self.pylab.axis('equal')
-        self.pylab.title(title)
+        self.plt.plot(points.real, points.imag, '+')
+        self.plt.grid('on')
+        self.plt.axis('equal')
+        self.plt.title(title)
 
 
 def _blocks(bits):
@@ -279,7 +279,7 @@ def main(args):
 
     reader.check = common.check_saturation
 
-    receiver = Receiver(args.pylab)
+    receiver = Receiver(args.plt)
     success = False
     try:
         signal, amplitude = detect(signal, config.Fc)

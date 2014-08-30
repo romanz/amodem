@@ -8,7 +8,7 @@ import argparse
 p = argparse.ArgumentParser()
 p.add_argument('--skip', type=int, default=128,
                help='skip initial N samples, due to spurious spikes')
-p.add_argument('--pylab', action='store_true', default=False,
+p.add_argument('--plot', dest='plt', action='store_true', default=False,
                help='plot results using pylab module')
 p.add_argument('-i', '--input', type=argparse.FileType('rb'),
                default=sys.stdin)
@@ -17,7 +17,8 @@ p.add_argument('-o', '--output', type=argparse.FileType('wb'),
 args = p.parse_args()
 
 from amodem.recv import main
-if args.pylab:
-    import pylab
-    args.pylab = pylab
+if args.plt:
+    from matplotlib import pyplot
+    args.plt = pyplot
+
 main(args)
