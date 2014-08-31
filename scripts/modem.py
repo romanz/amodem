@@ -7,20 +7,16 @@ else:
     _stdin = sys.stdin.buffer
     _stdout = sys.stdout.buffer
 import logging
-logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s %(levelname)-12s %(message)s')
+format = '%(asctime)s %(levelname)-10s %(message)-100s %(filename)s:%(lineno)d'
+logging.basicConfig(level=logging.DEBUG, format=format)
 
 import amodem.recv
 import amodem.send
 
 import argparse
 p = argparse.ArgumentParser()
-p.add_argument('-i', '--input',
-               type=argparse.FileType('rb'),
-               default=_stdin)
-p.add_argument('-o', '--output',
-               type=argparse.FileType('wb'),
-               default=_stdout)
+p.add_argument('-i', '--input', type=argparse.FileType('rb'), default=_stdin)
+p.add_argument('-o', '--output', type=argparse.FileType('wb'), default=_stdout)
 
 sub = p.add_subparsers()
 
