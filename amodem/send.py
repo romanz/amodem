@@ -12,7 +12,7 @@ from . import common
 from . import config
 from . import dsp
 from . import stream
-from . import ecc
+from . import framing
 from . import equalizer
 
 modem = dsp.MODEM(config)
@@ -73,7 +73,7 @@ def main(args):
 
     reader = stream.Reader(args.input, bufsize=(64 << 10), eof=True)
     data = itertools.chain.from_iterable(reader)
-    encoded = itertools.chain.from_iterable(ecc.encode(data))
+    encoded = itertools.chain.from_iterable(framing.encode(data))
     writer.modulate(bits=common.to_bits(encoded))
 
     data_size = writer.offset - training_size

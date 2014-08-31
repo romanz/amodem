@@ -15,7 +15,7 @@ from . import sampling
 from . import train
 from . import common
 from . import config
-from . import ecc
+from . import framing
 from . import equalizer
 
 modem = dsp.MODEM(config)
@@ -220,7 +220,7 @@ class Receiver(object):
         self.bits = itertools.chain.from_iterable(data_bits)
 
     def decode(self, output):
-        chunks = ecc.decode(_blocks(self.bits))
+        chunks = framing.decode(_blocks(self.bits))
         self.size = 0
         for chunk in chunks:
             output.write(chunk)
@@ -260,7 +260,7 @@ class Receiver(object):
 def _blocks(bits):
     while True:
         block = bitarray.bitarray(endian='little')
-        block.extend(itertools.islice(bits, 8 * ecc.BLOCK_SIZE))
+        block.extend(itertools.islice(bits, 8 * framing.BLOCK_SIZE))
         if not block:
             break
         yield bytearray(block.tobytes())
