@@ -10,7 +10,7 @@ pwd = os.path.dirname(__file__)
 
 setup(
     name="amodem",
-    version="1.0",
+    version="1.1",
     description="Audio Modem Communication Library",
     author="Roman Zeyde",
     author_email="roman.zeyde@gmail.com",
