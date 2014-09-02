@@ -38,12 +38,13 @@ def FileType(mode, process=None):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument('-i', '--input')
-    p.add_argument('-o', '--output')
-
     sub = p.add_subparsers()
 
     send = sub.add_parser('send')
+    send.add_argument('-i', '--input', help='input file (use "-" for stdin).')
+    send.add_argument('-o', '--output', help='output file (use "-" for stdout).'
+        ' if not specified, `aplay` tool will be used.')
+
     send.add_argument('--silence-start', type=float, default=1.0,
                       help='seconds of silence before transmission starts')
     send.add_argument('--silence-stop', type=float, default=1.0,
@@ -55,6 +56,9 @@ def main():
     )
 
     recv = sub.add_parser('recv')
+    recv.add_argument('-i', '--input', help='input file (use "-" for stdin).'
+        ' if not specified, `arecord` tool will be used.')
+    recv.add_argument('-o', '--output', help='output file (use "-" for stdout).')
     recv.add_argument('--skip', type=int, default=128,
                       help='skip initial N samples, due to spurious spikes')
     recv.add_argument('--plot', dest='plt', action='store_true', default=False,
