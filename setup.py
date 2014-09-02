@@ -33,4 +33,5 @@ setup(
         "Topic :: System :: Networking",
         "Topic :: Communications",
     ],
+    scripts=['scripts/amodem'],
 )
