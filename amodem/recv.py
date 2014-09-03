@@ -195,17 +195,18 @@ class Receiver(object):
                 self.stats['rx_bits'] = self.stats['rx_bits'] + len(bits)
                 yield bits
 
-            if i and i % config.baud == 0:
+            if i > 0 and i % config.baud == 0:
                 err = np.array([e for v in errors.values() for e in v])
-                correction = np.mean(np.angle(err)) / (2*np.pi) if len(err) else 0.0
-                duration = time.time() - self.stats['rx_start']
-                log.debug('%10.1f kB, realtime: %6.2f%%, sampling error: %+.3f%%',
-                          self.stats['rx_bits'] / 8e3,
-                          duration * 100.0 / (i*config.Tsym),
-                          correction * 1e2)
+                correction = np.mean(np.angle(err))/(2*np.pi) if len(err) else 0
                 errors.clear()
+
+                duration = time.time() - self.stats['rx_start']
                 sampler.freq -= 0.01 * correction / config.Fc
                 sampler.offset -= correction
+                log.debug('%10.1f kB, CPU: %6.2f%%, drift: %+5.2f ppm',
+                          self.stats['rx_bits'] / 8e3,
+                          duration * 100.0 / (i*config.Tsym),
+                          (1.0 - sampler.freq) * 1e6)
 
     def start(self, signal, freqs, gain=1.0):
         sampler = sampling.Sampler(signal, sampling.Interpolator())
