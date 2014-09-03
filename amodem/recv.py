@@ -95,12 +95,12 @@ class Receiver(object):
     def _prefix(self, sampler, freq, gain=1.0, skip=5):
         symbols = dsp.Demux(sampler, [freq])
         S = common.take(symbols, len(train.prefix)).squeeze() * gain
-        sliced = np.round(S)
+        sliced = np.round(np.abs(S))
         self.plt.figure()
         self.plt.subplot(121)
         self._constellation(S, sliced, 'Prefix')
 
-        bits = np.array(np.abs(sliced), dtype=int)
+        bits = np.array(sliced, dtype=int)
         self.plt.subplot(122)
         self.plt.plot(np.abs(S))
         self.plt.plot(train.prefix)
