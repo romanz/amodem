@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+import sys
 
 try:
     from setuptools import setup
@@ -7,6 +8,16 @@ except ImportError:
     from distutils.core import setup
 
 pwd = os.path.dirname(__file__)
+
+from setuptools.command.test import test as TestCommand
+
+class PyTest(TestCommand):
+    def finalize_options(self):
+        self.test_args = []
+        self.test_suite = True
+    def run_tests(self):
+        import pytest
+        sys.exit(pytest.main(['tests']))
 
 setup(
     name="amodem",
@@ -17,8 +28,8 @@ setup(
     license="MIT",
     url="http://github.com/romanz/amodem",
     packages=['amodem'],
-    tests_require=['nose'],
-    test_suite='nose.collector',
+    tests_require=['pytest'],
+    cmdclass = {'test': PyTest},
     install_requires=['numpy', 'bitarray', 'reedsolo'],
     platforms=['POSIX'],
     classifiers=[
