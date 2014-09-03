@@ -18,6 +18,8 @@ from amodem import wave
 import argparse
 from functools import partial
 
+null = open('/dev/null', 'wb')
+
 def FileType(mode, process=None):
     def opener(fname):
         assert 'r' in mode or 'w' in mode
@@ -25,8 +27,8 @@ def FileType(mode, process=None):
             fname = '-'
 
         if fname is None:
-            if 'r' in mode: return process(stdout=wave.sp.PIPE).stdout
-            if 'w' in mode: return process(stdin=wave.sp.PIPE).stdin
+            if 'r' in mode: return process(stdout=wave.sp.PIPE, stderr=null).stdout
+            if 'w' in mode: return process(stdin=wave.sp.PIPE, stderr=null).stdin
 
         if fname == '-':
             if 'r' in mode: return _stdin
@@ -92,6 +94,9 @@ def main():
         args.input = args.input_type(args.input)
     if hasattr(args, 'output_type'):
         args.output = args.output_type(args.output)
+    if getattr(args, 'plt', 'None'):
+        import pylab
+        args.plt = pylab
     args.main(args)
 
 def run(args, process):
