@@ -8,6 +8,8 @@
 *.csv
 *.recv
 *.send
+*.rx
+*.tx
 *.prof
 *.log
 *.ogv
