@@ -142,7 +142,10 @@ class Receiver(object):
             order=order, lookahead=lookahead
         )
 
-        log.debug('Equalization filter: [%s]', ', '.join('{:.2f}'.format(c) for c in coeffs))
+        log.debug(
+            'Equalization filter: [%s]',
+            ', '.join('{:.2f}'.format(c) for c in coeffs)
+        )
         equalization_filter = dsp.FIR(h=coeffs)
         equalized = list(equalization_filter(signal))
         equalized = equalized[prefix+lookahead:-postfix+lookahead]
@@ -201,12 +204,12 @@ class Receiver(object):
 
             if i > 0 and i % config.baud == 0:
                 err = np.array([e for v in errors.values() for e in v])
-                correction = np.mean(np.angle(err))/(2*np.pi) if len(err) else 0
+                err = np.mean(np.angle(err))/(2*np.pi) if len(err) else 0
                 errors.clear()
 
                 duration = time.time() - self.stats['rx_start']
-                sampler.freq -= 0.01 * correction / config.Fc
-                sampler.offset -= correction
+                sampler.freq -= 0.01 * err / config.Fc
+                sampler.offset -= err
                 log.debug('%10.1f kB, CPU: %6.2f%%, drift: %+5.2f ppm',
                           self.stats['rx_bits'] / 8e3,
                           duration * 100.0 / (i*config.Tsym),

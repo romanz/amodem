@@ -74,8 +74,8 @@ class QAM(object):
         bits_per_symbol = int(bits_per_symbol)
 
         for i, v in enumerate(symbols):
-            bits = tuple(int(i & (1 << j) != 0) for j in range(bits_per_symbol))
-            self._enc[bits] = v
+            bits = [int(i & (1 << j) != 0) for j in range(bits_per_symbol)]
+            self._enc[tuple(bits)] = v
 
         self._dec = {v: k for k, v in self._enc.items()}
         self.symbols = symbols

@@ -57,6 +57,7 @@ class Writer(object):
             if all(symbols == 0):  # EOF marker
                 break
 
+
 def main(args):
     log.info('Running MODEM @ {:.1f} kbps'.format(modem.modem_bps / 1e3))
 

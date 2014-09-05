@@ -23,6 +23,7 @@ from functools import partial
 
 null = open('/dev/null', 'wb')
 
+
 def FileType(mode, process=None):
     def opener(fname):
         assert 'r' in mode or 'w' in mode
@@ -30,16 +31,31 @@ def FileType(mode, process=None):
             fname = '-'
 
         if fname is None:
-            if 'r' in mode: return process(stdout=wave.sp.PIPE, stderr=null).stdout
-            if 'w' in mode: return process(stdin=wave.sp.PIPE, stderr=null).stdin
+            if 'r' in mode:
+                return process(stdout=wave.sp.PIPE, stderr=null).stdout
+            if 'w' in mode:
+                return process(stdin=wave.sp.PIPE, stderr=null).stdin
 
         if fname == '-':
-            if 'r' in mode: return _stdin
-            if 'w' in mode: return _stdout
+            if 'r' in mode:
+                return _stdin
+            if 'w' in mode:
+                return _stdout
 
         return open(fname, mode)
 
     return opener
+
+
+def _run(args, process):
+    p = process(fname=args.filename)
+    exitcode = 0
+    try:
+        exitcode = p.wait()
+    except KeyboardInterrupt:
+        p.kill()
+        exitcode = p.wait()
+    sys.exit(exitcode)
 
 
 def main():
@@ -47,31 +63,43 @@ def main():
     subparsers = p.add_subparsers()
 
     # Modulator
-    sender = subparsers.add_parser('send', help='modulate binary data into audio signal.')
-    sender.add_argument('-i', '--input', help='input file (use "-" for stdin).')
-    sender.add_argument('-o', '--output', help='output file (use "-" for stdout).'
+    sender = subparsers.add_parser(
+        'send', help='modulate binary data into audio signal.')
+    sender.add_argument(
+        '-i', '--input', help='input file (use "-" for stdin).')
+    sender.add_argument(
+        '-o', '--output', help='output file (use "-" for stdout).'
         ' if not specified, `aplay` tool will be used.')
 
-    sender.add_argument('--silence-start', type=float, default=1.0,
-                      help='seconds of silence before transmission starts')
-    sender.add_argument('--silence-stop', type=float, default=1.0,
-                      help='seconds of silence after transmission stops')
+    sender.add_argument(
+        '--silence-start', type=float, default=1.0,
+        help='seconds of silence before transmission starts')
+    sender.add_argument(
+        '--silence-stop', type=float, default=1.0,
+        help='seconds of silence after transmission stops')
 
-    sender.set_defaults(main=send.main,
+    sender.set_defaults(
+        main=send.main,
         input_type=FileType('rb'),
         output_type=FileType('wb', wave.play)
     )
 
     # Demodulator
-    receiver = subparsers.add_parser('recv', help='demodulate audio signal into binary data.')
-    receiver.add_argument('-i', '--input', help='input file (use "-" for stdin).'
+    receiver = subparsers.add_parser(
+        'recv', help='demodulate audio signal into binary data.')
+    receiver.add_argument(
+        '-i', '--input', help='input file (use "-" for stdin).'
         ' if not specified, `arecord` tool will be used.')
-    receiver.add_argument('-o', '--output', help='output file (use "-" for stdout).')
-    receiver.add_argument('--skip', type=int, default=128,
-                      help='skip initial N samples, due to spurious spikes')
-    receiver.add_argument('--plot', dest='plt', action='store_true', default=False,
-                      help='plot results using pylab module')
-    receiver.set_defaults(main=recv.main,
+    receiver.add_argument(
+        '-o', '--output', help='output file (use "-" for stdout).')
+    receiver.add_argument(
+        '--skip', type=int, default=128,
+        help='skip initial N samples, due to spurious spikes')
+    receiver.add_argument(
+        '--plot', dest='plt', action='store_true', default=False,
+        help='plot results using pylab module')
+    receiver.set_defaults(
+        main=recv.main,
         input_type=FileType('rb', wave.record),
         output_type=FileType('wb')
     )
@@ -82,14 +110,14 @@ def main():
     recorder.add_argument(
         'filename', default='-',
         help='path to the audio file to record (otherwise, use stdout)')
-    recorder.set_defaults(main=partial(run, process=wave.record))
+    recorder.set_defaults(main=partial(_run, process=wave.record))
 
     # Audio playing tool
     player = subparsers.add_parser('play', help='play ' + fmt)
     player.add_argument(
         'filename', default='-',
         help='path to the audio file to play (otherwise, use stdin)')
-    player.set_defaults(main=partial(run, process=wave.play))
+    player.set_defaults(main=partial(_run, process=wave.play))
 
     # Parsing and execution
     args = p.parse_args()
@@ -104,15 +132,6 @@ def main():
     log.debug('MODEM settings: %r', config.settings)
     args.main(args)
 
-def run(args, process):
-    p = process(fname=args.filename)
-    exitcode = 0
-    try:
-        exitcode = p.wait()
-    except KeyboardInterrupt:
-        p.kill()
-        exitcode = p.wait()
-    sys.exit(exitcode)
 
 if __name__ == '__main__':
     main()
