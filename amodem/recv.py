@@ -127,18 +127,22 @@ class Receiver(object):
         return freq_err
 
     def _train(self, sampler, order, lookahead):
+        gain = config.Nfreq
         train_symbols = equalizer.train_symbols(train.equalizer_length)
+        train_signal = equalizer.modulator(train_symbols) * gain
+
         prefix = postfix = train.silence_length * config.Nsym
         signal_length = train.equalizer_length * config.Nsym + prefix + postfix
 
         signal = sampler.take(signal_length + lookahead)
 
-        coeffs = equalizer.equalize_symbols(
+        coeffs = equalizer.equalize_signal(
             signal=signal[prefix:-postfix],
-            symbols=train_symbols,
+            expected=train_signal,
             order=order, lookahead=lookahead
         )
 
+        log.debug('Equalization filter: [%s]', ', '.join('{:.2f}'.format(c) for c in coeffs))
         equalization_filter = dsp.FIR(h=coeffs)
         equalized = list(equalization_filter(signal))
         equalized = equalized[prefix+lookahead:-postfix+lookahead]
