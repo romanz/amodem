@@ -1,5 +1,3 @@
-import os
-import signal
 import subprocess as sp
 import logging
 import functools
@@ -20,7 +18,6 @@ def launch(tool, fname='-', **kwargs):
     args = [tool, fname, '-q', '-f', audio_format, '-c', '1', '-r', str(Fs)]
     log.debug('Running: %r', args)
     p = sp.Popen(args=args, **kwargs)
-    p.stop = lambda: os.kill(p.pid, signal.SIGKILL)
     return p
 
 
