@@ -71,8 +71,8 @@ def detect(samples, freq):
 
     buf = np.concatenate(bufs)
     offset = find_start(buf, CARRIER_DURATION*config.Nsym)
-    log.info('Carrier starts at %.3f ms',
-             offset * config.Tsym * 1e3 / config.Nsym)
+    log.debug('Carrier starts at %.3f ms',
+              offset * config.Tsym * 1e3 / config.Nsym)
 
     return itertools.chain(buf[offset:], samples), amplitude
 
@@ -107,7 +107,7 @@ class Receiver(object):
         if any(bits != train.prefix):
             raise ValueError('Incorrect prefix')
 
-        log.info('Prefix OK')
+        log.debug('Prefix OK')
 
         nonzeros = np.array(train.prefix, dtype=bool)
         pilot_tone = S[nonzeros]
@@ -122,7 +122,7 @@ class Receiver(object):
         last_phase = a * indices[-1] + b
         log.debug('Current phase on carrier: %.3f', last_phase)
 
-        log.info('Frequency error: %.2f ppm', freq_err * 1e6)
+        log.debug('Frequency error: %.2f ppm', freq_err * 1e6)
         self.plt.title('Frequency drift: {:.3f} ppm'.format(freq_err * 1e6))
         return freq_err
 
