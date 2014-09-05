@@ -34,7 +34,7 @@ def demodulator(signal, size):
     return np.array(list(itertools.islice(symbols, size)))
 
 
-def equalize(signal, symbols, order, lookahead=0):
+def equalize_symbols(signal, symbols, order, lookahead=0):
     Nsym = config.Nsym
     Nfreq = config.Nfreq
     carriers = modem.carriers
@@ -50,18 +50,36 @@ def equalize(signal, symbols, order, lookahead=0):
     A = []
     b = []
 
-    index = 0
     for j in range(Nfreq):
         for i in range(length):
             offset = (i+1)*Nsym
             row = y[offset-order:offset+lookahead, j]
             A.append(row)
             b.append(symbols[i, j])
-            index += 1
 
     A = np.array(A)
     b = np.array(b)
     h, residuals, rank, sv = lstsq(A, b)
     h = h[::-1].real
 
+    return h
+
+
+def equalize_signal(signal, expected, order, lookahead=0):
+    signal = np.concatenate([np.zeros(order-1), signal, np.zeros(lookahead)])
+    length = len(expected)
+
+    A = []
+    b = []
+
+    for i in range(length - order):
+        offset = order + i
+        row = signal[offset-order:offset+lookahead]
+        A.append(np.array(row, ndmin=2))
+        b.append(expected[i])
+
+    A = np.concatenate(A, axis=0)
+    b = np.array(b)
+    h, residuals, rank, sv = lstsq(A, b)
+    h = h[::-1].real
     return h

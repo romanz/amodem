@@ -133,7 +133,7 @@ class Receiver(object):
 
         signal = sampler.take(signal_length + lookahead)
 
-        coeffs = equalizer.equalize(
+        coeffs = equalizer.equalize_symbols(
             signal=signal[prefix:-postfix],
             symbols=train_symbols,
             order=order, lookahead=lookahead
