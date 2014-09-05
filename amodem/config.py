@@ -1,15 +1,24 @@
-import numpy as np
-
-## Parameters
 Fs = 32000.0  # sampling frequency [Hz]
-Nfreq = 8  # number of frequencies used
 Tsym = 0.001  # symbol duration [seconds]
+Nfreq = 8     # number of frequencies used
 Nx = 8
 Ny = 8
+F0 = 1e3
+
+# Update default configuration from environment variables
+settings = {k: v for k, v in locals().items() if not k.startswith('_')}
+
+import os
+for k in settings.keys():
+    v = settings[k]
+    settings[k] = type(v)(os.environ.get(k, v))
+locals().update(settings)
+
+import numpy as np
 
 Ts = 1.0 / Fs
-
-frequencies = (1 + np.arange(Nfreq)) * 1e3
+Fsym = 1 / Tsym
+frequencies = F0 + np.arange(Nfreq) * Fsym
 carrier_index = 0
 Fc = frequencies[carrier_index]
 Tc = 1.0 / Fc
