@@ -51,7 +51,3 @@ def test_find_start():
         start = recv.find_start(buf, length*config.Nsym)
         expected = offset + len(prefix)
         assert expected == start
-
-
-def test_blocks():
-    assert list(recv._blocks([])) == []

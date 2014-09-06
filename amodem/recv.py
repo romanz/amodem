@@ -224,15 +224,16 @@ class Receiver(object):
         filt = self._train(sampler, order=11, lookahead=5)
         sampler.equalizer = lambda x: list(filt(x))
 
-        data_bits = self._demodulate(sampler, freqs)
-        self.bits = itertools.chain.from_iterable(data_bits)
+        bitstream = self._demodulate(sampler, freqs)
+        self.bitstream = itertools.chain.from_iterable(bitstream)
 
-    def decode(self, output):
-        chunks = framing.decode(_blocks(self.bits))
+    def run(self, output):
+        data = framing.decode(self.bitstream)
         self.size = 0
-        for chunk in chunks:
+        for _, chunk in common.iterate(data=data, size=256,
+                                       truncate=False, func=bytearray):
             output.write(chunk)
-            self.size = self.size + len(chunk)
+            self.size += len(chunk)
 
     def report(self):
         if self.stats:
@@ -265,15 +266,6 @@ class Receiver(object):
         self.plt.title(title)
 
 
-def _blocks(bits):
-    while True:
-        block = bitarray.bitarray(endian='little')
-        block.extend(itertools.islice(bits, 8 * framing.BLOCK_SIZE))
-        if not block:
-            break
-        yield bytearray(block.tobytes())
-
-
 def izip(streams):
     iters = [iter(s) for s in streams]
     while True:
@@ -296,7 +288,7 @@ def main(args):
     try:
         signal, amplitude = detect(signal, config.Fc)
         receiver.start(signal, modem.freqs, gain=1.0/amplitude)
-        receiver.decode(args.output)
+        receiver.run(args.output)
         success = True
     except Exception:
         log.exception('Decoding failed')

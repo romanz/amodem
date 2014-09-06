@@ -51,8 +51,13 @@ def run(size, chan=None, df=0, success=True):
         assert rx_data == tx_data
 
 
-def test_small():
-    run(1024, chan=lambda x: x)
+@pytest.fixture(params=[0, 1, 3, 10, 42, 123])
+def small_size(request):
+    return request.param
+
+
+def test_small(small_size):
+    run(small_size, chan=lambda x: x)
 
 
 def test_error():

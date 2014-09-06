@@ -8,15 +8,6 @@ log = logging.getLogger(__name__)
 scaling = 32000.0  # out of 2**15
 SATURATION_THRESHOLD = (2**15 - 1) / scaling
 
-LENGTH_FORMAT = '<I'
-
-
-def to_bits(bytes_list):
-    for val in bytes_list:
-        for i in range(8):
-            mask = 1 << i
-            yield (1 if (val & mask) else 0)
-
 
 class SaturationError(ValueError):
     pass

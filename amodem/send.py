@@ -47,15 +47,13 @@ class Writer(object):
         self.write(silence)
 
     def modulate(self, bits):
+        padding = [0] * modem.bits_per_baud
+        bits = itertools.chain(bits, padding)
         symbols_iter = modem.qam.encode(bits)
-        symbols_iter = itertools.chain(symbols_iter, itertools.repeat(0))
         carriers = modem.carriers / config.Nfreq
-        while True:
-            symbols = itertools.islice(symbols_iter, config.Nfreq)
+        for _, symbols in common.iterate(symbols_iter, size=config.Nfreq):
             symbols = np.array(list(symbols))
             self.write(np.dot(symbols, carriers))
-            if all(symbols == 0):  # EOF marker
-                break
 
 
 def main(args):
@@ -73,9 +71,10 @@ def main(args):
     log.info('%.3f seconds of training audio', training_duration)
 
     reader = stream.Reader(args.input, bufsize=(64 << 10), eof=True)
-    data = itertools.chain.from_iterable(reader)
-    encoded = itertools.chain.from_iterable(framing.encode(data))
-    writer.modulate(bits=common.to_bits(encoded))
+    data = list(itertools.chain.from_iterable(reader))
+    bits = list(framing.encode(data))
+    data_ = list(framing.decode(bits))
+    writer.modulate(bits=bits)
 
     data_size = writer.offset - training_size
     log.info('%.3f seconds of data audio, for %.3f kB of data',
