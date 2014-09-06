@@ -4,10 +4,6 @@ import logging
 log = logging.getLogger(__name__)
 
 
-class Timeout(Exception):
-    pass
-
-
 class Reader(object):
 
     def __init__(self, fd, data_type=None, bufsize=4096,
@@ -51,6 +47,6 @@ class Reader(object):
 
             time.sleep(self.wait)
 
-        raise Timeout(self.timeout)
+        raise IOError('timeout')
 
     __next__ = next
