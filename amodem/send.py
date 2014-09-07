@@ -57,8 +57,6 @@ class Writer(object):
 
 
 def main(args):
-    log.info('Running MODEM @ {:.1f} kbps'.format(modem.modem_bps / 1e3))
-
     writer = Writer(args.output)
 
     # pre-padding audio with silence
@@ -68,17 +66,17 @@ def main(args):
 
     training_size = writer.offset
     training_duration = training_size / wave.bytes_per_second
-    log.info('%.3f seconds of training audio', training_duration)
+    log.info('Sending %.3f seconds of training audio', training_duration)
 
     reader = stream.Reader(args.input, bufsize=(64 << 10), eof=True)
-    data = list(itertools.chain.from_iterable(reader))
-    bits = list(framing.encode(data))
-    data_ = list(framing.decode(bits))
+    data = itertools.chain.from_iterable(reader)
+    bits = framing.encode(data)
+    log.info('Starting modulation: %s', modem)
     writer.modulate(bits=bits)
 
     data_size = writer.offset - training_size
-    log.info('%.3f seconds of data audio, for %.3f kB of data',
-             data_size / wave.bytes_per_second, reader.total / 1e3)
+    log.info('Sent %.3f kB @ %.3f seconds',
+             reader.total / 1e3, data_size / wave.bytes_per_second)
 
     # post-padding audio with silence
     writer.write(np.zeros(int(config.Fs * args.silence_stop)))

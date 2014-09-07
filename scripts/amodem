@@ -17,8 +17,10 @@ from amodem import recv
 from amodem import send
 from amodem import wave
 from amodem import calib
+from amodem import dsp
 
 
+modem = dsp.MODEM(config)
 null = open('/dev/null', 'wb')
 
 
@@ -46,7 +48,11 @@ def FileType(mode, process=None):
 
 
 def main():
-    p = argparse.ArgumentParser()
+    description = 'Audio MODEM @ {:.1f} kB/s'.format(modem.modem_bps / 1e3)
+    p = argparse.ArgumentParser(description=description)
+    g = p.add_mutually_exclusive_group()
+    g.add_argument('-v', '--verbose', default=0, action='count')
+    g.add_argument('-q', '--quiet', default=False, action='store_true')
     subparsers = p.add_subparsers()
 
     # Modulator
@@ -99,10 +105,16 @@ def main():
     )
 
     args = p.parse_args()
-    logging.basicConfig(
-        level='DEBUG', filename='amodem.log',
-        format=('%(asctime)s %(levelname)-10s %(message)-100s '
-                '%(filename)s:%(lineno)d'))
+    if args.verbose == 0:
+        level, format = 'INFO', '%(message)s'
+    elif args.verbose == 1:
+        level, format = 'DEBUG', '%(message)s'
+    elif args.verbose >= 2:
+        level, format = ('DEBUG', '%(asctime)s %(levelname)-10s %(message)-100s '
+                                  '%(filename)s:%(lineno)d')
+    if args.quiet:
+        level, format = 'WARNING', '%(message)s'
+    logging.basicConfig(level=level, format=format)
 
     # Parsing and execution
     log.debug('MODEM settings: %r', config.settings)

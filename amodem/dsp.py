@@ -152,6 +152,12 @@ class MODEM(object):
             for freq in self.freqs
         ])
 
+    def __repr__(self):
+        return '<{:.3f} kbps, {:d}-QAM, {:d} carriers>'.format(
+            self.modem_bps / 1e3, len(self.qam.symbols), len(self.carriers))
+
+    __str__ = __repr__
+
 
 def exp_iwt(freq, n):
     iwt = 2j * np.pi * freq * np.arange(n) * Ts

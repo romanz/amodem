@@ -5,8 +5,6 @@ import functools
 import collections
 import time
 
-import bitarray
-
 log = logging.getLogger(__name__)
 
 from . import stream
@@ -196,7 +194,7 @@ class Receiver(object):
         self.stats['rx_bits'] = 0
         self.stats['rx_start'] = time.time()
 
-        log.info('Demodulation started')
+        log.info('Starting demodulation: %s', modem)
         for i, block in enumerate(izip(streams)):  # block per frequency
             for bits in block:
                 self.stats['rx_bits'] = self.stats['rx_bits'] + len(bits)
@@ -273,8 +271,6 @@ def izip(streams):
 
 
 def main(args):
-    log.info('Running MODEM @ {:.1f} kbps'.format(modem.modem_bps / 1e3))
-
     reader = stream.Reader(args.input, data_type=common.loads)
     signal = itertools.chain.from_iterable(reader)
 
@@ -286,6 +282,7 @@ def main(args):
     receiver = Receiver(args.plt)
     success = False
     try:
+        log.info('Waiting for carrier tone: %.1f kHz', config.Fc / 1e3)
         signal, amplitude = detect(signal, config.Fc)
         receiver.start(signal, modem.freqs, gain=1.0/amplitude)
         receiver.run(args.output)
