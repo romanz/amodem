@@ -60,3 +60,8 @@ def test_saturation():
         assert False
     except common.SaturationError as e:
         assert e.args == (max(x),)
+
+def test_izip():
+    x = range(10)
+    y = range(-10, 0)
+    assert list(common.izip([x, y])) == list(zip(x, y))

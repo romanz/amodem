@@ -195,7 +195,7 @@ class Receiver(object):
         self.stats['rx_start'] = time.time()
 
         log.info('Starting demodulation: %s', modem)
-        for i, block in enumerate(izip(streams)):  # block per frequency
+        for i, block in enumerate(common.izip(streams)):  # block per frequency
             for bits in block:
                 self.stats['rx_bits'] = self.stats['rx_bits'] + len(bits)
                 yield bits
@@ -262,12 +262,6 @@ class Receiver(object):
         self.plt.grid('on')
         self.plt.axis('equal')
         self.plt.title(title)
-
-
-def izip(streams):
-    iters = [iter(s) for s in streams]
-    while True:
-        yield [next(i) for i in iters]
 
 
 def main(args):

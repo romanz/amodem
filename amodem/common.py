@@ -93,6 +93,13 @@ def take(iterable, n):
     return np.array(list(itertools.islice(iterable, n)))
 
 
+# "Python 3" zip re-implementation for Python 2
+def izip(iterables):
+    iterables = [iter(iterable) for iterable in iterables]
+    while True:
+        yield tuple([next(iterable) for iterable in iterables])
+
+
 class Dummy(object):
 
     def __getattr__(self, name):
