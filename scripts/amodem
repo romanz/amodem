@@ -120,7 +120,7 @@ def main():
 
     # Parsing and execution
     log.debug('MODEM settings: %r', config.settings)
-    if args.plot:
+    if getattr(args, 'plot', False):
         import pylab
         args.plot = pylab
     args.main(args)
