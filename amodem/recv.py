@@ -86,9 +86,9 @@ def find_start(buf, length):
 
 class Receiver(object):
 
-    def __init__(self, pylab=None):
+    def __init__(self, plt=None):
         self.stats = {}
-        self.plt = pylab or common.Dummy()
+        self.plt = plt or common.Dummy()
 
     def _prefix(self, sampler, freq, gain=1.0, skip=5):
         symbols = dsp.Demux(sampler, [freq])
@@ -273,7 +273,7 @@ def main(args):
 
     reader.check = common.check_saturation
 
-    receiver = Receiver(args.plt)
+    receiver = Receiver(plt=args.plot)
     success = False
     try:
         log.info('Waiting for carrier tone: %.1f kHz', config.Fc / 1e3)

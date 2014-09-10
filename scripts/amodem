@@ -98,7 +98,7 @@ def main():
         '--skip', type=int, default=128,
         help='skip initial N samples, due to spurious spikes')
     receiver.add_argument(
-        '--plot', dest='plt', action='store_true', default=False,
+        '--plot', action='store_true', default=False,
         help='plot results using pylab module')
     receiver.set_defaults(
         main=run_recv,
@@ -120,6 +120,9 @@ def main():
 
     # Parsing and execution
     log.debug('MODEM settings: %r', config.settings)
+    if args.plot:
+        import pylab
+        args.plot = pylab
     args.main(args)
 
 
