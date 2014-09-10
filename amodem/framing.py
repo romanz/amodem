@@ -64,13 +64,13 @@ class Framer(object):
         length = struct.calcsize(fmt)
         chunk = bytearray(itertools.islice(data, length))
         if len(chunk) < length:
-            raise StopIteration()
+            raise ValueError('missing prefix data')
         return struct.unpack(fmt, chunk)
 
     def _take_len(self, data, length):
         chunk = bytearray(itertools.islice(data, length))
         if len(chunk) < length:
-            raise StopIteration()
+            raise ValueError('missing payload data')
         return chunk
 
 

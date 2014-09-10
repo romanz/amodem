@@ -33,3 +33,17 @@ def test_main(data):
     encoded = framing.encode(data)
     decoded = framing.decode(encoded)
     assert bytearray(decoded) == data
+
+def test_fail():
+    encoded = list(framing.encode(''))
+    encoded[-1] = not encoded[-1]
+    with pytest.raises(ValueError):
+        list(framing.decode(encoded))
+
+def test_missing():
+    f = framing.Framer()
+    with pytest.raises(ValueError):
+        list(f.decode(b'\x00'))
+    with pytest.raises(ValueError):
+        list(f.decode(b'\x01\x02\x03\x04'))
+
