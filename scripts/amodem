@@ -48,7 +48,9 @@ def FileType(mode, process=None):
 
 
 def main():
-    description = 'Audio MODEM @ {:.1f} kB/s'.format(modem.modem_bps / 1e3)
+    description = ('Audio OFDM MODEM: {:.1f} kb/s ({:d}-QAM x {:d} carriers) '
+                   'Fs={:.1f} kHz').format(modem.modem_bps / 1e3,
+                   len(config.symbols), config.Nfreq, config.Fs / 1e3)
     p = argparse.ArgumentParser(description=description)
     g = p.add_mutually_exclusive_group()
     g.add_argument('-v', '--verbose', default=0, action='count')
