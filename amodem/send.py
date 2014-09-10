@@ -1,7 +1,6 @@
 import numpy as np
 import logging
 import itertools
-import time
 
 log = logging.getLogger(__name__)
 
@@ -20,7 +19,6 @@ modem = dsp.MODEM(config)
 
 class Writer(object):
     def __init__(self, fd):
-        self.last_timestamp = time.time()
         self.offset = 0
         self.fd = fd
 
@@ -29,10 +27,6 @@ class Writer(object):
         data = common.dumps(sym, n)
         self.fd.write(data)
         self.offset += len(data)
-        if time.time() > self.last_timestamp + 1:
-            data_duration = self.offset / wave.bytes_per_second
-            log.debug('%10.3f seconds of data audio sent', data_duration)
-            self.last_timestamp += 1
 
     def start(self):
         carrier = modem.carriers[config.carrier_index]
@@ -51,9 +45,14 @@ class Writer(object):
         bits = itertools.chain(bits, padding)
         symbols_iter = modem.qam.encode(bits)
         carriers = modem.carriers / config.Nfreq
-        for _, symbols in common.iterate(symbols_iter, size=config.Nfreq):
+        for i, symbols in common.iterate(symbols_iter, size=config.Nfreq):
             symbols = np.array(list(symbols))
             self.write(np.dot(symbols, carriers))
+
+            data_duration = (i / config.Nfreq + 1) * config.Tsym
+            if data_duration % 1 == 0:
+                bits_size = data_duration * modem.modem_bps
+                log.debug('Sent %8.1f kB', bits_size / 8e3)
 
 
 def main(args):
