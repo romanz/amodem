@@ -48,9 +48,10 @@ def FileType(mode, process=None):
 
 
 def main():
-    description = ('Audio OFDM MODEM: {:.1f} kb/s ({:d}-QAM x {:d} carriers) '
-                   'Fs={:.1f} kHz').format(modem.modem_bps / 1e3,
-                   len(config.symbols), config.Nfreq, config.Fs / 1e3)
+    fmt = ('Audio OFDM MODEM: {:.1f} kb/s ({:d}-QAM x {:d} carriers) '
+           'Fs={:.1f} kHz')
+    description = fmt.format(modem.modem_bps / 1e3, len(config.symbols),
+                             config.Nfreq, config.Fs / 1e3)
     p = argparse.ArgumentParser(description=description)
     g = p.add_mutually_exclusive_group()
     g.add_argument('-v', '--verbose', default=0, action='count')
@@ -112,7 +113,8 @@ def main():
     elif args.verbose == 1:
         level, format = 'DEBUG', '%(message)s'
     elif args.verbose >= 2:
-        level, format = ('DEBUG', '%(asctime)s %(levelname)-10s %(message)-100s '
+        level, format = ('DEBUG', '%(asctime)s %(levelname)-10s '
+                                  '%(message)-100s '
                                   '%(filename)s:%(lineno)d')
     if args.quiet:
         level, format = 'WARNING', '%(message)s'

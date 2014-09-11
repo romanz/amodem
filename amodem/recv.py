@@ -208,10 +208,12 @@ class Receiver(object):
                 duration = time.time() - self.stats['rx_start']
                 sampler.freq -= 0.01 * err / config.Fc
                 sampler.offset -= err
-                log.debug('Got  %8.1f kB, realtime: %6.2f%%, drift: %+5.2f ppm',
-                          self.stats['rx_bits'] / 8e3,
-                          duration * 100.0 / (i*config.Tsym),
-                          (1.0 - sampler.freq) * 1e6)
+                log.debug(
+                    'Got  %8.1f kB, realtime: %6.2f%%, drift: %+5.2f ppm',
+                    self.stats['rx_bits'] / 8e3,
+                    duration * 100.0 / (i*config.Tsym),
+                    (1.0 - sampler.freq) * 1e6
+                )
 
     def start(self, signal, freqs, gain=1.0):
         sampler = sampling.Sampler(signal, sampling.Interpolator())
