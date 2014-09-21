@@ -27,7 +27,8 @@ class Checksum(object):
         payload = data[self.size:]
         expected = self.func(payload)
         if received != expected:
-            raise ValueError('invalid checksum')
+            log.warning('Invalid checksum: %04x != %04x', received, expected)
+            raise ValueError('Invalid checksum')
         return payload
 
 
@@ -56,6 +57,7 @@ class Framer(object):
             frame = self._take_len(data, length)
             block = self.checksum.decode(frame)
             if block == self.EOF:
+                log.debug('EOF frame detected')
                 return
 
             yield block
