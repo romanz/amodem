@@ -36,7 +36,7 @@ def dumps(sym, n=1):
     return data * n
 
 
-def iterate(data, size, func=None, truncate=True):
+def iterate(data, size, func=None, truncate=True, enumerate=False):
     offset = 0
     data = iter(data)
 
@@ -49,7 +49,7 @@ def iterate(data, size, func=None, truncate=True):
             done = True
 
         result = func(buf) if func else np.array(buf)
-        yield offset, result
+        yield (offset, result) if enumerate else result
         offset += size
 
 

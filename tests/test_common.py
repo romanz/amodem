@@ -4,7 +4,10 @@ import numpy as np
 
 def iterlist(x, *args, **kwargs):
     x = np.array(x)
-    return list((i, list(x)) for i, x in common.iterate(x, *args, **kwargs))
+    return list(
+        (i, list(x))
+        for i, x in common.iterate(x, enumerate=True, *args, **kwargs)
+    )
 
 
 def test_iterate():

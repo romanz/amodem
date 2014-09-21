@@ -45,8 +45,8 @@ class Framer(object):
         return struct.pack(self.prefix_fmt, len(frame)) + frame
 
     def encode(self, data):
-        for _, block in common.iterate(data=data, size=self.block_size,
-                                       func=bytearray, truncate=False):
+        for block in common.iterate(data=data, size=self.block_size,
+                                    func=bytearray, truncate=False):
             yield self._pack(block=block)
         yield self._pack(block=self.EOF)
 
@@ -95,8 +95,8 @@ def encode(data, framer=None):
 
 @chain_wrapper
 def _to_bytes(bits, block_size=1):
-    for _, chunk in common.iterate(data=bits, size=8*block_size,
-                                   func=lambda x: x, truncate=True):
+    for chunk in common.iterate(data=bits, size=8*block_size,
+                                func=lambda x: x, truncate=True):
         yield bitarray.bitarray(chunk, endian='little').tobytes()
 
 

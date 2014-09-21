@@ -45,7 +45,8 @@ class Writer(object):
         bits = itertools.chain(bits, padding)
         symbols_iter = modem.qam.encode(bits)
         carriers = modem.carriers / config.Nfreq
-        for i, symbols in common.iterate(symbols_iter, size=config.Nfreq):
+        for i, symbols in common.iterate(symbols_iter,
+                                         size=config.Nfreq, enumerate=True):
             symbols = np.array(list(symbols))
             self.write(np.dot(symbols, carriers))
 

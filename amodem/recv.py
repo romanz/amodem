@@ -44,7 +44,7 @@ def report_carrier(bufs, begin):
 def detect(samples, freq):
     counter = 0
     bufs = collections.deque([], maxlen=config.baud)  # 1 second of symbols
-    for offset, buf in common.iterate(samples, config.Nsym):
+    for offset, buf in common.iterate(samples, config.Nsym, enumerate=True):
         bufs.append(buf)
 
         coeff = dsp.coherence(buf, config.Fc)
@@ -230,8 +230,8 @@ class Receiver(object):
     def run(self, output):
         data = framing.decode(self.bitstream)
         self.size = 0
-        for _, chunk in common.iterate(data=data, size=256,
-                                       truncate=False, func=bytearray):
+        for chunk in common.iterate(data=data, size=256,
+                                    truncate=False, func=bytearray):
             output.write(chunk)
             self.size += len(chunk)
 
