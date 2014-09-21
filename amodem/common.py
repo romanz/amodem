@@ -53,35 +53,13 @@ def iterate(data, size, func=None, truncate=True):
         offset += size
 
 
-class Splitter(object):
-
-    def __init__(self, iterable, n):
-        self.iterable = iter(iterable)
-        self.read = [True] * n
-        self.last = None
-        self.generators = [functools.partial(self._gen, i)() for i in range(n)]
-        self.n = n
-
-    def _gen(self, index):
-        while True:
-            if all(self.read):
-                try:
-                    self.last = next(self.iterable)
-                except StopIteration:
-                    return
-
-                assert len(self.last) == self.n
-                self.read = [False] * self.n
-
-            if self.read[index]:
-                raise IndexError(index)
-            self.read[index] = True
-            yield self.last[index]
-
-
 def split(iterable, n):
-    return Splitter(iterable, n).generators
+    def _gen(it, index):
+        for item in it:
+            yield item[index]
 
+    iterables = itertools.tee(iterable, n)
+    return [_gen(it, index) for index, it in enumerate(iterables)]
 
 def icapture(iterable, result):
     for i in iter(iterable):

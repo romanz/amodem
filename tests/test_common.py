@@ -27,15 +27,6 @@ def test_split():
     iters = common.split(L, n=2)
     assert list(zip(*iters)) == L
 
-    for i in [0, 1]:
-        iters = common.split(L, n=2)
-        next(iters[i])
-        try:
-            next(iters[i])
-            assert False
-        except IndexError as e:
-            assert e.args == (i,)
-
 
 def test_icapture():
     x = range(100)
