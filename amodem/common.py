@@ -61,6 +61,7 @@ def split(iterable, n):
     iterables = itertools.tee(iterable, n)
     return [_gen(it, index) for index, it in enumerate(iterables)]
 
+
 def icapture(iterable, result):
     for i in iter(iterable):
         result.append(i)
