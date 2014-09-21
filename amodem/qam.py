@@ -3,6 +3,9 @@ from . import common
 
 
 class QAM(object):
+
+    buf_size = 16
+
     def __init__(self, symbols):
         self._enc = {}
         symbols = np.array(list(symbols))
@@ -33,28 +36,24 @@ class QAM(object):
             s = S - self.bias
             real_index = round(s.real * self.real_factor)
             imag_index = round(s.imag * self.imag_factor)
-            self.symbols_map[real_index, imag_index] = (S, self._dec[S])
-        self.real_max = max(k[0] for k in self.symbols_map)
-        self.imag_max = max(k[1] for k in self.symbols_map)
+            self.symbols_map[real_index + 1j * imag_index] = (S, self._dec[S])
+        self.real_max = max(k.real for k in self.symbols_map)
+        self.imag_max = max(k.imag for k in self.symbols_map)
 
     def encode(self, bits):
-        for _, bits_tuple in common.iterate(bits, self.bits_per_symbol, tuple):
+        for bits_tuple in common.iterate(bits, self.bits_per_symbol, tuple):
             yield self._enc[bits_tuple]
 
     def decode(self, symbols, error_handler=None):
-        real_factor = self.real_factor
-        imag_factor = self.imag_factor
-        real_max = self.real_max
-        imag_max = self.imag_max
-        bias = self.bias
-
         symbols_map = self.symbols_map
-        for S in symbols:
-            s = S - bias
-            real_index = min(max(s.real * real_factor, 0), real_max)
-            imag_index = min(max(s.imag * imag_factor, 0), imag_max)
-            key = (round(real_index), round(imag_index))
-            decoded_symbol, bits = symbols_map[key]
-            if error_handler:
-                error_handler(received=S, decoded=decoded_symbol)
-            yield bits
+        for syms in common.iterate(symbols, self.buf_size, truncate=False):
+            s = syms - self.bias
+            real_index = np.clip(s.real * self.real_factor, 0, self.real_max)
+            imag_index = np.clip(s.imag * self.imag_factor, 0, self.imag_max)
+
+            keys = np.round(real_index + 1j * imag_index)
+            for key, received in zip(keys, syms):
+                decoded_symbol, bits = symbols_map[key]
+                if error_handler:
+                    error_handler(received=received, decoded=decoded_symbol)
+                yield bits
