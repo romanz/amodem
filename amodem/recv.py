@@ -241,7 +241,7 @@ class Receiver(object):
             audio_time = self.stats['rx_bits'] / float(modem.modem_bps)
             log.debug('Demodulated %.3f kB @ %.3f seconds (%.1f%% realtime)',
                       self.stats['rx_bits'] / 8e3, duration,
-                      100 * duration / audio_time)
+                      100 * duration / audio_time if audio_time else 0)
 
             log.info('Received %.3f kB @ %.3f seconds = %.3f kB/s',
                      self.size * 1e-3, duration, self.size * 1e-3 / duration)
