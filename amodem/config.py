@@ -1,8 +1,7 @@
 Fs = 32000.0  # sampling frequency [Hz]
 Tsym = 0.001  # symbol duration [seconds]
 Nfreq = 8     # number of frequencies used
-Nx = 8
-Ny = 8
+Npoints = 64
 F0 = 1e3
 
 # Update default configuration from environment variables
@@ -23,12 +22,13 @@ carrier_index = 0
 Fc = frequencies[carrier_index]
 Tc = 1.0 / Fc
 
-assert Nx == 2 ** round(np.log2(Nx))
-assert Ny == 2 ** round(np.log2(Ny))
-
-xs = np.linspace(-1, 1, Nx) if Nx > 1 else [0.0]
-ys = np.linspace(-1, 1, Ny) if Ny > 1 else [0.0]
-symbols = np.array([complex(x, y) for x in xs for y in ys])
+# Hexagonal symbol constellation (optimal "sphere packing")
+I = np.arange(-Npoints, Npoints+1)
+imag_factor = np.exp(1j * np.pi / 3.0)
+offset = 0.5
+symbols = [(x + y*imag_factor + offset) for x in I for y in I]
+symbols.sort(key=lambda z: (z*z.conjugate()).real)
+symbols = np.array(symbols[:Npoints])
 symbols = symbols / np.max(np.abs(symbols))
 
 Nsym = int(Tsym / Ts)
