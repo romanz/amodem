@@ -16,11 +16,11 @@ from . import config
 from . import framing
 from . import equalizer
 
-modem = dsp.MODEM(config)
+modem = dsp.MODEM(config.symbols)
 
 # Plots' size (WIDTH x HEIGHT)
-HEIGHT = np.floor(np.sqrt(len(modem.freqs)))
-WIDTH = np.ceil(len(modem.freqs) / float(HEIGHT))
+HEIGHT = np.floor(np.sqrt(config.Nfreq))
+WIDTH = np.ceil(config.Nfreq / float(HEIGHT))
 
 COHERENCE_THRESHOLD = 0.99
 
@@ -187,7 +187,7 @@ class Receiver(object):
             symbol_list.append(equalized)
 
             freq_handler = functools.partial(error_handler, freq=freq)
-            bits = modem.qam.decode(S, freq_handler)  # list of bit tuples
+            bits = modem.decode(S, freq_handler)  # list of bit tuples
             streams.append(bits)  # stream per frequency
 
         self.stats['symbol_list'] = symbol_list
@@ -238,7 +238,7 @@ class Receiver(object):
     def report(self):
         if self.stats:
             duration = time.time() - self.stats['rx_start']
-            audio_time = self.stats['rx_bits'] / float(modem.modem_bps)
+            audio_time = self.stats['rx_bits'] / float(config.modem_bps)
             log.debug('Demodulated %.3f kB @ %.3f seconds (%.1f%% realtime)',
                       self.stats['rx_bits'] / 8e3, duration,
                       100 * duration / audio_time if audio_time else 0)
@@ -248,9 +248,9 @@ class Receiver(object):
 
             self.plt.figure()
             symbol_list = np.array(self.stats['symbol_list'])
-            for i, freq in enumerate(modem.freqs):
+            for i, freq in enumerate(config.frequencies):
                 self.plt.subplot(HEIGHT, WIDTH, i+1)
-                self._constellation(symbol_list[i], modem.qam.symbols,
+                self._constellation(symbol_list[i], config.symbols,
                                     '$F_c = {} Hz$'.format(freq))
         self.plt.show()
 
@@ -263,6 +263,7 @@ class Receiver(object):
         self.plt.plot(points.real, points.imag, '+')
         self.plt.grid('on')
         self.plt.axis('equal')
+        self.plt.axis(np.array([-1, 1, -1, 1])*1.1)
         self.plt.title(title)
 
 
@@ -271,7 +272,7 @@ def main(args):
     signal = itertools.chain.from_iterable(reader)
 
     skipped = common.take(signal, args.skip)
-    log.debug('Skipping %.3f seconds', len(skipped) / float(modem.baud))
+    log.debug('Skipping %.3f seconds', len(skipped) / float(config.baud))
 
     reader.check = common.check_saturation
 
@@ -280,7 +281,7 @@ def main(args):
     try:
         log.info('Waiting for carrier tone: %.1f kHz', config.Fc / 1e3)
         signal, amplitude = detect(signal, config.Fc)
-        receiver.start(signal, modem.freqs, gain=1.0/amplitude)
+        receiver.start(signal, config.frequencies, gain=1.0/amplitude)
         receiver.run(args.output)
         success = True
     except Exception:

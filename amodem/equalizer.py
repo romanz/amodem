@@ -9,7 +9,6 @@ import itertools
 import random
 
 _constellation = [1, 1j, -1, -1j]
-modem = dsp.MODEM(config)
 
 
 def train_symbols(length, seed=0, Nfreq=config.Nfreq):
@@ -18,7 +17,8 @@ def train_symbols(length, seed=0, Nfreq=config.Nfreq):
     return np.array([choose() for i in range(length)])
 
 
-def modulator(symbols, carriers=modem.carriers):
+def modulator(symbols):
+    carriers = config.carriers
     gain = 1.0 / len(carriers)
     result = []
     for s in symbols:
@@ -37,7 +37,7 @@ def demodulator(signal, size):
 def equalize_symbols(signal, symbols, order, lookahead=0):
     Nsym = config.Nsym
     Nfreq = config.Nfreq
-    carriers = modem.carriers
+    carriers = config.carriers
 
     assert symbols.shape[1] == Nfreq
     length = symbols.shape[0]

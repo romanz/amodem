@@ -4,8 +4,8 @@ import logging
 
 log = logging.getLogger(__name__)
 
-from .config import Ts, Nsym
-from .qam import QAM
+from . import config
+from . import common
 
 
 class IIR(object):
@@ -65,16 +65,17 @@ def estimate(x, y, order, lookahead=0):
 
 class Demux(object):
     def __init__(self, sampler, freqs):
-        self.sampler = sampler
+        Nsym = config.Nsym
         self.filters = [exp_iwt(-f, Nsym) / (0.5*Nsym) for f in freqs]
         self.filters = np.array(self.filters)
+        self.sampler = sampler
 
     def __iter__(self):
         return self
 
     def next(self):
-        frame = self.sampler.take(size=Nsym)
-        if len(frame) == Nsym:
+        frame = self.sampler.take(size=config.Nsym)
+        if len(frame) == config.Nsym:
             return np.dot(self.filters, frame)
         else:
             raise StopIteration
@@ -82,27 +83,8 @@ class Demux(object):
     __next__ = next
 
 
-class MODEM(object):
-    def __init__(self, config):
-        self.qam = QAM(config.symbols)
-        self.baud = config.baud
-        self.freqs = config.frequencies
-        self.bits_per_baud = self.qam.bits_per_symbol * len(self.freqs)
-        self.modem_bps = self.baud * self.bits_per_baud
-        self.carriers = np.array([
-            np.exp(2j * np.pi * freq * np.arange(0, Nsym) * Ts)
-            for freq in self.freqs
-        ])
-
-    def __repr__(self):
-        return '<{:.3f} kbps, {:d}-QAM, {:d} carriers>'.format(
-            self.modem_bps / 1e3, len(self.qam.symbols), len(self.carriers))
-
-    __str__ = __repr__
-
-
 def exp_iwt(freq, n):
-    iwt = 2j * np.pi * freq * np.arange(n) * Ts
+    iwt = 2j * np.pi * freq * np.arange(n) * config.Ts
     return np.exp(iwt)
 
 
@@ -128,3 +110,50 @@ def linear_regression(x, y):
     M = np.array([x, ones]).T
     a, b = linalg.lstsq(M, y)[0]
     return a, b
+
+
+class MODEM(object):
+
+    buf_size = 16
+
+    def __init__(self, symbols):
+        self.encode_map = {}
+        symbols = np.array(list(symbols))
+        bits_per_symbol = np.log2(len(symbols))
+        bits_per_symbol = np.round(bits_per_symbol)
+        N = (2 ** bits_per_symbol)
+        assert N == len(symbols)
+        bits_per_symbol = int(bits_per_symbol)
+
+        for i, v in enumerate(symbols):
+            bits = [int(i & (1 << j) != 0) for j in range(bits_per_symbol)]
+            self.encode_map[tuple(bits)] = v
+
+        self.symbols = symbols
+        self.bits_per_symbol = bits_per_symbol
+
+        bits_map = {symbol: bits for bits, symbol in self.encode_map.items()}
+        self.decode_list = [(s, bits_map[s]) for s in self.symbols]
+
+    def encode(self, bits):
+        for bits_tuple in common.iterate(bits, self.bits_per_symbol, tuple):
+            yield self.encode_map[bits_tuple]
+
+    def decode(self, symbols, error_handler=None):
+        ''' Maximum-likelihood decoding, using naive nearest-neighbour. '''
+        symbols_vec = self.symbols
+        _dec = self.decode_list
+        for syms in common.iterate(symbols, self.buf_size, truncate=False):
+            for received in syms:
+                error = np.abs(symbols_vec - received)
+                index = np.argmin(error)
+                decoded, bits = _dec[index]
+                if error_handler:
+                    error_handler(received=received, decoded=decoded)
+                yield bits
+
+    def __repr__(self):
+        return '<{:.3f} kbps, {:d}-QAM, {:d} carriers>'.format(
+            config.modem_bps / 1e3, len(self.symbols), len(config.carriers))
+
+    __str__ = __repr__

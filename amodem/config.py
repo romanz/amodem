@@ -33,3 +33,10 @@ symbols = symbols / np.max(np.abs(symbols))
 
 Nsym = int(Tsym / Ts)
 baud = int(1/Tsym)
+
+bits_per_symbol = np.log2(Npoints)
+bits_per_baud = bits_per_symbol * Nfreq
+modem_bps = baud * bits_per_baud
+carriers = np.array([
+    np.exp(2j * np.pi * f * np.arange(0, Nsym) * Ts) for f in frequencies
+])

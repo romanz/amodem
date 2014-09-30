@@ -9,12 +9,12 @@ from . import wave
 
 from . import common
 from . import config
-from . import dsp
 from . import stream
 from . import framing
 from . import equalizer
+from . import dsp
 
-modem = dsp.MODEM(config)
+modem = dsp.MODEM(config.symbols)
 
 
 class Writer(object):
@@ -29,7 +29,7 @@ class Writer(object):
         self.offset += len(data)
 
     def start(self):
-        carrier = modem.carriers[config.carrier_index]
+        carrier = config.carriers[config.carrier_index]
         for value in train.prefix:
             self.write(carrier * value)
 
@@ -41,10 +41,10 @@ class Writer(object):
         self.write(silence)
 
     def modulate(self, bits):
-        padding = [0] * modem.bits_per_baud
+        padding = [0] * config.bits_per_baud
         bits = itertools.chain(bits, padding)
-        symbols_iter = modem.qam.encode(bits)
-        carriers = modem.carriers / config.Nfreq
+        symbols_iter = modem.encode(bits)
+        carriers = config.carriers / config.Nfreq
         for i, symbols in common.iterate(symbols_iter,
                                          size=config.Nfreq, enumerate=True):
             symbols = np.array(list(symbols))
@@ -52,7 +52,7 @@ class Writer(object):
 
             data_duration = (i / config.Nfreq + 1) * config.Tsym
             if data_duration % 1 == 0:
-                bits_size = data_duration * modem.modem_bps
+                bits_size = data_duration * config.modem_bps
                 log.debug('Sent %8.1f kB', bits_size / 8e3)
 
 

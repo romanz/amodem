@@ -17,10 +17,7 @@ from amodem import recv
 from amodem import send
 from amodem import wave
 from amodem import calib
-from amodem import dsp
 
-
-modem = dsp.MODEM(config)
 null = open('/dev/null', 'wb')
 
 
@@ -50,7 +47,7 @@ def FileType(mode, process=None):
 def main():
     fmt = ('Audio OFDM MODEM: {:.1f} kb/s ({:d}-QAM x {:d} carriers) '
            'Fs={:.1f} kHz')
-    description = fmt.format(modem.modem_bps / 1e3, len(config.symbols),
+    description = fmt.format(config.modem_bps / 1e3, len(config.symbols),
                              config.Nfreq, config.Fs / 1e3)
     p = argparse.ArgumentParser(description=description)
     g = p.add_mutually_exclusive_group()
