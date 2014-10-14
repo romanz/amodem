@@ -9,8 +9,8 @@ from . import config
 from . import wave
 
 CALIBRATION_SYMBOLS = int(1.0 * config.Fs)
-
 ALLOWED_EXCEPTIONS = (IOError, KeyboardInterrupt)
+
 
 def send(wave_play=wave.play):
     t = np.arange(0, CALIBRATION_SYMBOLS) * config.Ts
@@ -30,6 +30,7 @@ def send(wave_play=wave.play):
 
 FRAME_LENGTH = 100 * config.Nsym
 
+
 def recorder(process):
     frame_size = int(wave.bytes_per_sample * FRAME_LENGTH)
     fd = process.stdout
@@ -45,6 +46,7 @@ def recorder(process):
         pass
     finally:
         process.kill()
+
 
 def recv(wave_record=wave.record, log=sys.stdout.write):
     t = np.arange(0, FRAME_LENGTH) * config.Ts
