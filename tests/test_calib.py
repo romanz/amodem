@@ -43,5 +43,5 @@ def test_errors():
     def _read(data):
         raise KeyboardInterrupt()
     p.read = _read
-    calib.recv(p)
+    calib.recv(p, verbose=True)
     assert p.buf.tell() == 0

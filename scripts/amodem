@@ -148,7 +148,7 @@ def run_modem(args, func):
 
 def run_send(args):
     if args.calibrate:
-        calib.send()
+        calib.send(verbose=args.verbose)
     elif args.wave:
         join_process(wave.play(fname=args.input))
     else:
@@ -157,7 +157,7 @@ def run_send(args):
 
 def run_recv(args):
     if args.calibrate:
-        calib.recv()
+        calib.recv(verbose=args.verbose)
     elif args.wave:
         join_process(wave.record(fname=args.output))
     else:
