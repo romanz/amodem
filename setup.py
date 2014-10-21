@@ -33,7 +33,7 @@ setup(
     packages=['amodem'],
     tests_require=['pytest'],
     cmdclass={'test': PyTest},
-    install_requires=['numpy', 'bitarray', 'reedsolo'],
+    install_requires=['numpy', 'bitarray', 'argcomplete'],
     platforms=['POSIX'],
     classifiers=[
         "Development Status :: 4 - Beta",
