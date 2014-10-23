@@ -1,6 +1,5 @@
 import numpy as np
 import logging
-import sys
 
 log = logging.getLogger(__name__)
 
