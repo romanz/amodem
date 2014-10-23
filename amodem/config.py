@@ -7,10 +7,11 @@ F0 = 1e3
 # Update default configuration from environment variables
 settings = {k: v for k, v in locals().items() if not k.startswith('_')}
 
+_prefix = 'AMODEM_'
 import os
 for k in settings.keys():
     v = settings[k]
-    settings[k] = type(v)(os.environ.get(k, v))
+    settings[k] = type(v)(os.environ.get(_prefix + k, v))
 locals().update(settings)
 
 import numpy as np
