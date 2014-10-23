@@ -33,13 +33,48 @@ A simple CRC-32 checksum is used for data integrity verification on each 1KB dat
 
 # Installation
 
+## via git (for developers)
+
+Make sure that `numpy` and `bitarray` Python packages are installed.
+
+    $ sudo pip install numpy bitarray
+
+Clone and setup relevant path variables:
+
+    $ git clone https://github.com/romanz/amodem.git
+    $ cd amodem
+    $ export PYTHONPATH=`pwd`
+    $ export PATH=$PATH:`pwd`/scripts
+
+## via pip (for users)
+
 Run the following command (will also download and install `numpy` and `bitarray` packages):
 
-	$ sudo pip install amodem
+    $ sudo pip install amodem
 
 For graphs and visualization (optional), install:
 
-	$ sudo pip install matplotlib
+    $ sudo pip install matplotlib
+
+## validation
+
+Run:
+
+    $ amodem -h
+    usage: amodem [-h] [-v | -q] {send,recv} ...
+
+    Audio OFDM MODEM: 48.0 kb/s (64-QAM x 8 carriers) Fs=32.0 kHz
+
+    positional arguments:
+      {send,recv}
+        send         modulate binary data into audio signal.
+        recv         demodulate audio signal into binary data.
+
+    optional arguments:
+      -h, --help     show this help message and exit
+      -v, --verbose
+      -q, --quiet
+
 
 # Calibration
 
