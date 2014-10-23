@@ -140,10 +140,9 @@ class Receiver(object):
             order=order, lookahead=lookahead
         )
 
-        log.debug(
-            'Equalization filter: [%s]',
-            ', '.join('{:.2f}'.format(c) for c in coeffs)
-        )
+        self.plt.figure()
+        self.plt.plot(np.arange(-lookahead, order), coeffs)
+
         equalization_filter = dsp.FIR(h=coeffs)
         equalized = list(equalization_filter(signal))
         equalized = equalized[prefix+lookahead:-postfix+lookahead]
