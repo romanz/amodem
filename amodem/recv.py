@@ -141,7 +141,7 @@ class Receiver(object):
         )
 
         self.plt.figure()
-        self.plt.plot(np.arange(-lookahead, order), coeffs)
+        self.plt.plot(np.arange(order+lookahead), coeffs)
 
         equalization_filter = dsp.FIR(h=coeffs)
         equalized = list(equalization_filter(signal))
@@ -220,7 +220,7 @@ class Receiver(object):
         freq_err = self._prefix(sampler, freq=freqs[0], gain=gain)
         sampler.freq -= freq_err
 
-        filt = self._train(sampler, order=11, lookahead=5)
+        filt = self._train(sampler, order=11, lookahead=6)
         sampler.equalizer = lambda x: list(filt(x))
 
         bitstream = self._demodulate(sampler, freqs)
