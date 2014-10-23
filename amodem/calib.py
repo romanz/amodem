@@ -81,7 +81,7 @@ def recorder(process):
 fmt = '{freq:6.0f} Hz: {message:s}{extra:s}'
 fields = ['peak', 'total', 'rms', 'coherency']
 
-def recv(wave_record=wave.record, printer=sys.stdout.write, verbose=False):
+def recv(wave_record=wave.record, verbose=False, output=None):
     extra = ''
     if verbose:
         extra = ''.join(', {0}={{{0}:.4f}}'.format(f) for f in fields)
