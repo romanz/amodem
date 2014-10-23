@@ -26,7 +26,7 @@ The modem is using OFDM over an audio cable with the following parameters:
 - Symbol modulation: 64-QAM
 - Carriers: (1,2,3,4,5,6,7,8) kHz
 
-This way, modem achieves 48kpbs bitrate = 6.0 kB/s.
+This way, modem achieves 48kbps bitrate = 6.0 kB/s.
 
 A simple CRC-32 checksum is used for data integrity verification on each 1KB data frame.
 
