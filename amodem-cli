@@ -108,9 +108,6 @@ def main():
         output_type=FileType('wb')
     )
 
-    # Configuration
-    subparsers.add_parser('config').set_defaults(main=config.dump)
-
     argcomplete.autocomplete(p)
     args = p.parse_args()
     if args.verbose == 0:

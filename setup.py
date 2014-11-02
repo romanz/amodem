@@ -48,5 +48,5 @@ setup(
         "Topic :: System :: Networking",
         "Topic :: Communications",
     ],
-    scripts=['scripts/amodem'],
+    scripts=['amodem-cli'],
 )

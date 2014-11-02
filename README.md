@@ -42,9 +42,7 @@ Make sure that `numpy` and `bitarray` Python packages are installed.
 Clone and setup relevant path variables:
 
     $ git clone https://github.com/romanz/amodem.git
-    $ cd amodem
-    $ export PYTHONPATH=`pwd`
-    $ export PATH=$PATH:`pwd`/scripts
+    $ export PATH=$PATH:$PWD/amodem
 
 ## via pip (for users)
 
@@ -60,8 +58,8 @@ For graphs and visualization (optional), install:
 
 Run:
 
-    $ amodem -h
-    usage: amodem [-h] [-v | -q] {send,recv} ...
+    $ amodem-cli -h
+    usage: amodem-cli [-h] [-v | -q] {send,recv} ...
 
     Audio OFDM MODEM: 48.0 kb/s (64-QAM x 8 carriers) Fs=32.0 kHz
 
@@ -83,12 +81,12 @@ following scripts:
 
 - On the sender's side:
 ```
-~/sender $ amodem send --calibrate
+~/sender $ amodem-cli send --calibrate
 ```
 
 - On the receiver's side:
 ```
-~/receiver $ amodem recv --calibrate
+~/receiver $ amodem-cli recv --calibrate
 ```
 
 Change the sender computer's output audio level, until
@@ -110,7 +108,7 @@ If the signal is "too strong", decrease the sender's output audio level.
 
 If the signal is "too noisy", please re-run the receiver for at least 10 seconds:
 ```
-~/receiver $ amodem recv --wave >recording.raw
+~/receiver $ amodem-cli recv --wave >recording.raw
 ```
 and please send me `recording.raw` file for debugging.
 
@@ -127,12 +125,12 @@ and please send me `recording.raw` file for debugging.
 
 - Start the receiver, which will wait for the sender to start:
 ```
-~/receiver $ amodem -vv recv >data.rx
+~/receiver $ amodem-cli -vv recv >data.rx
 ```
 
 - Start the sender, which will modulate the data and start the transmission:
 ```
-~/sender $ amodem -vv send <data.tx
+~/sender $ amodem-cli -vv send <data.tx
 ```
 
 - A similar log should be emitted by the sender:
@@ -184,5 +182,5 @@ and please send me `recording.raw` file for debugging.
 Make sure that `matplotlib` package is installed, and run (at the receiver side):
 
 ```
- ~/receiver $ amodem recv --plot >data.rx
+ ~/receiver $ amodem-cli recv --plot >data.rx
 ```
