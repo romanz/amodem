@@ -28,11 +28,9 @@ def loads(data):
     return x
 
 
-def dumps(sym, n=1):
+def dumps(sym):
     sym = sym.real * scaling
-    sym = sym.astype('int16')
-    data = sym.tostring()
-    return data * n
+    return sym.astype('int16').tostring()
 
 
 def iterate(data, size, func=None, truncate=True, enumerate=False):

@@ -59,11 +59,12 @@ def test_estimate():
 
 
 def test_demux():
-    freqs = [1e3, 2e3]
-    carriers = [dsp.exp_iwt(f, config.Nsym) for f in freqs]
+    freqs = np.array([1e3, 2e3])
+    omegas = 2 * np.pi * freqs / config.Fs
+    carriers = [dsp.exp_iwt(2*np.pi*f/config.Fs, config.Nsym) for f in freqs]
     syms = [3, 2j]
     sig = np.dot(syms, carriers)
-    res = dsp.Demux(sampling.Sampler(sig.real), freqs)
+    res = dsp.Demux(sampling.Sampler(sig.real), omegas, config.Nsym)
     res = np.array(list(res))
     assert np.max(np.abs(res - syms)) < 1e-12
 

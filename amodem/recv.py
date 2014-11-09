@@ -12,87 +12,97 @@ from . import dsp
 from . import sampling
 from . import train
 from . import common
-from . import config
 from . import framing
 from . import equalizer
 
-modem = dsp.MODEM(config.symbols)
+class Detector(object):
 
-# Plots' size (WIDTH x HEIGHT)
-HEIGHT = np.floor(np.sqrt(config.Nfreq))
-WIDTH = np.ceil(config.Nfreq / float(HEIGHT))
+    COHERENCE_THRESHOLD = 0.99
 
-COHERENCE_THRESHOLD = 0.99
+    CARRIER_DURATION = sum(train.prefix)
+    CARRIER_THRESHOLD = int(0.99 * CARRIER_DURATION)
+    SEARCH_WINDOW = 10  # symbols
 
-CARRIER_DURATION = sum(train.prefix)
-CARRIER_THRESHOLD = int(0.99 * CARRIER_DURATION)
-SEARCH_WINDOW = 10  # symbols
+    def __init__(self, config):
+        self.freq = config.Fc
+        self.omega = 2 * np.pi * self.freq / config.Fs
+        self.Nsym = config.Nsym
+        self.Tsym = config.Tsym
+        self.maxlen = config.baud  # 1 second of symbols
 
+    def run(self, samples):
+        counter = 0
+        bufs = collections.deque([], maxlen=self.maxlen)
+        for offset, buf in common.iterate(samples, self.Nsym, enumerate=True):
+            bufs.append(buf)
 
-def report_carrier(bufs, begin):
-    x = np.concatenate(tuple(bufs)[-CARRIER_THRESHOLD:-1])
-    Hc = dsp.exp_iwt(-config.Fc, len(x))
-    Zc = np.dot(Hc, x) / (0.5*len(x))
-    amp = abs(Zc)
-    log.info('Carrier detected at ~%.1f ms @ %.1f kHz:'
-             ' coherence=%.3f%%, amplitude=%.3f',
-             begin * config.Tsym * 1e3 / config.Nsym, config.Fc / 1e3,
-             np.abs(dsp.coherence(x, config.Fc)) * 100, amp)
-    return amp
+            coeff = dsp.coherence(buf, self.omega)
+            if abs(coeff) > self.COHERENCE_THRESHOLD:
+                counter += 1
+            else:
+                counter = 0
 
-
-def detect(samples, freq):
-    counter = 0
-    bufs = collections.deque([], maxlen=config.baud)  # 1 second of symbols
-    for offset, buf in common.iterate(samples, config.Nsym, enumerate=True):
-        bufs.append(buf)
-
-        coeff = dsp.coherence(buf, config.Fc)
-        if abs(coeff) > COHERENCE_THRESHOLD:
-            counter += 1
+            if counter == self.CARRIER_THRESHOLD:
+                length = (self.CARRIER_THRESHOLD - 1) * self.Nsym
+                begin = offset - length
+                amplitude = self.report_carrier(bufs, begin=begin)
+                break
         else:
-            counter = 0
+            raise ValueError('No carrier detected')
 
-        if counter == CARRIER_THRESHOLD:
-            length = (CARRIER_THRESHOLD - 1) * config.Nsym
-            begin = offset - length
-            amplitude = report_carrier(bufs, begin=begin)
-            break
-    else:
-        raise ValueError('No carrier detected')
+        log.debug('Buffered %d ms of audio', len(bufs))
 
-    log.debug('Buffered %d ms of audio', len(bufs))
+        bufs = list(bufs)[-self.CARRIER_THRESHOLD-self.SEARCH_WINDOW:]
+        trailing = list(itertools.islice(samples, self.SEARCH_WINDOW*self.Nsym))
+        bufs.append(np.array(trailing))
 
-    bufs = list(bufs)[-CARRIER_THRESHOLD-SEARCH_WINDOW:]
-    trailing = list(itertools.islice(samples, SEARCH_WINDOW*config.Nsym))
-    bufs.append(np.array(trailing))
+        buf = np.concatenate(bufs)
+        offset = self.find_start(buf, self.CARRIER_DURATION*self.Nsym)
+        log.debug('Carrier starts at %.3f ms',
+                  offset * self.Tsym * 1e3 / self.Nsym)
 
-    buf = np.concatenate(bufs)
-    offset = find_start(buf, CARRIER_DURATION*config.Nsym)
-    log.debug('Carrier starts at %.3f ms',
-              offset * config.Tsym * 1e3 / config.Nsym)
-
-    return itertools.chain(buf[offset:], samples), amplitude
+        return itertools.chain(buf[offset:], samples), amplitude
 
 
-def find_start(buf, length):
-    N = len(buf)
-    carrier = dsp.exp_iwt(config.Fc, N)
-    z = np.cumsum(buf * carrier)
-    z = np.concatenate([[0], z])
-    correlations = np.abs(z[length:] - z[:-length])
-    return np.argmax(correlations)
+    def report_carrier(self, bufs, begin):
+        x = np.concatenate(tuple(bufs)[-self.CARRIER_THRESHOLD:-1])
+        Hc = dsp.exp_iwt(-self.omega, len(x))
+        Zc = np.dot(Hc, x) / (0.5*len(x))
+        amp = abs(Zc)
+        log.info('Carrier detected at ~%.1f ms @ %.1f kHz:'
+                 ' coherence=%.3f%%, amplitude=%.3f',
+                 begin * self.Tsym * 1e3 / self.Nsym, self.freq / 1e3,
+                 np.abs(dsp.coherence(x, self.omega)) * 100, amp)
+        return amp
+
+
+    def find_start(self, buf, length):
+        N = len(buf)
+        carrier = dsp.exp_iwt(self.omega, N)
+        z = np.cumsum(buf * carrier)
+        z = np.concatenate([[0], z])
+        correlations = np.abs(z[length:] - z[:-length])
+        return np.argmax(correlations)
 
 
 class Receiver(object):
 
-    def __init__(self, plt=None):
+    def __init__(self, config, plt=None):
         self.stats = {}
         self.plt = plt or common.Dummy()
+        self.modem = dsp.MODEM(config.symbols)
+        self.frequencies = np.array(config.frequencies)
+        self.omegas = 2 * np.pi * self.frequencies / config.Fs
+        self.Nsym = config.Nsym
+        self.Tsym = config.Tsym
+        self.iters_per_report = config.baud  # report once per second
+        self.modem_bitrate = config.modem_bps
+        self.equalizer = equalizer.Equalizer(config)
+        self.carrier_index = config.carrier_index
 
-    def _prefix(self, sampler, freq, gain=1.0, skip=5):
-        symbols = dsp.Demux(sampler, [freq])
-        S = common.take(symbols, len(train.prefix)).squeeze() * gain
+    def _prefix(self, symbols, gain=1.0, skip=5):
+        S = common.take(symbols, len(train.prefix))
+        S = S[:, self.carrier_index] * gain
         sliced = np.round(np.abs(S))
         self.plt.figure()
         self.plt.subplot(121)
@@ -116,7 +126,7 @@ class Receiver(object):
         self.plt.plot(indices, phase, ':')
         self.plt.plot(indices, a * indices + b)
 
-        freq_err = a / (config.Tsym * config.Fc)
+        freq_err = a / (self.Tsym * self.frequencies[self.carrier_index])
         last_phase = a * indices[-1] + b
         log.debug('Current phase on carrier: %.3f', last_phase)
 
@@ -125,16 +135,16 @@ class Receiver(object):
         return freq_err
 
     def _train(self, sampler, order, lookahead):
-        gain = config.Nfreq
-        train_symbols = equalizer.train_symbols(train.equalizer_length)
-        train_signal = equalizer.modulator(train_symbols) * gain
+        Nfreq = len(self.frequencies)
+        train_symbols = self.equalizer.train_symbols(train.equalizer_length)
+        train_signal = self.equalizer.modulator(train_symbols) * Nfreq
 
-        prefix = postfix = train.silence_length * config.Nsym
-        signal_length = train.equalizer_length * config.Nsym + prefix + postfix
+        prefix = postfix = train.silence_length * self.Nsym
+        signal_length = train.equalizer_length * self.Nsym + prefix + postfix
 
         signal = sampler.take(signal_length + lookahead)
 
-        coeffs = equalizer.equalize_signal(
+        coeffs = self.equalizer.equalize_signal(
             signal=signal[prefix:-postfix],
             expected=train_signal,
             order=order, lookahead=lookahead
@@ -147,7 +157,7 @@ class Receiver(object):
         equalized = list(equalization_filter(signal))
         equalized = equalized[prefix+lookahead:-postfix+lookahead]
 
-        symbols = equalizer.demodulator(equalized, train.equalizer_length)
+        symbols = self.equalizer.demodulator(equalized, train.equalizer_length)
         sliced = np.array(symbols).round()
         errors = np.array(sliced - train_symbols, dtype=np.bool)
         error_rate = errors.sum() / errors.size
@@ -160,17 +170,15 @@ class Receiver(object):
         SNRs = 20.0 * np.log10(signal_rms / noise_rms)
 
         self.plt.figure()
-        for i, freq, snr in zip(range(config.Nfreq), config.frequencies, SNRs):
+        for (i, freq), snr in zip(enumerate(self.frequencies), SNRs):
             log.debug('%5.1f kHz: SNR = %5.2f dB', freq / 1e3, snr)
-            self.plt.subplot(HEIGHT, WIDTH, i+1)
             self._constellation(symbols[:, i], train_symbols[:, i],
-                                '$F_c = {} Hz$'.format(freq))
-
+                                '$F_c = {} Hz$'.format(freq), index=i)
         assert error_rate == 0, error_rate
 
         return equalization_filter
 
-    def _demodulate(self, sampler, freqs):
+    def _demodulate(self, sampler, symbols):
         streams = []
         symbol_list = []
         errors = {}
@@ -178,52 +186,51 @@ class Receiver(object):
         def error_handler(received, decoded, freq):
             errors.setdefault(freq, []).append(received / decoded)
 
-        symbols = dsp.Demux(sampler, freqs)
-        generators = common.split(symbols, n=len(freqs))
-        for freq, S in zip(freqs, generators):
+        generators = common.split(symbols, n=len(self.omegas))
+        for freq, S in zip(self.frequencies, generators):
             equalized = []
             S = common.icapture(S, result=equalized)
             symbol_list.append(equalized)
 
             freq_handler = functools.partial(error_handler, freq=freq)
-            bits = modem.decode(S, freq_handler)  # list of bit tuples
+            bits = self.modem.decode(S, freq_handler)  # list of bit tuples
             streams.append(bits)  # stream per frequency
 
         self.stats['symbol_list'] = symbol_list
         self.stats['rx_bits'] = 0
         self.stats['rx_start'] = time.time()
 
-        log.info('Starting demodulation: %s', modem)
-        for i, block in enumerate(common.izip(streams)):  # block per frequency
+        log.info('Starting demodulation: %s', self.modem)
+        for i, block in enumerate(common.izip(streams), 1):
             for bits in block:
                 self.stats['rx_bits'] = self.stats['rx_bits'] + len(bits)
                 yield bits
 
-            if i > 0 and i % config.baud == 0:
+            if i % self.iters_per_report == 0:
                 err = np.array([e for v in errors.values() for e in v])
                 err = np.mean(np.angle(err))/(2*np.pi) if len(err) else 0
                 errors.clear()
 
                 duration = time.time() - self.stats['rx_start']
-                sampler.freq -= 0.01 * err / config.Fc
+                sampler.freq -= 0.01 * err * self.Tsym
                 sampler.offset -= err
                 log.debug(
                     'Got  %8.1f kB, realtime: %6.2f%%, drift: %+5.2f ppm',
                     self.stats['rx_bits'] / 8e3,
-                    duration * 100.0 / (i*config.Tsym),
+                    duration * 100.0 / (i*self.Tsym),
                     (1.0 - sampler.freq) * 1e6
                 )
 
-    def start(self, signal, freqs, gain=1.0):
+    def start(self, signal, gain=1.0):
         sampler = sampling.Sampler(signal, sampling.Interpolator())
-
-        freq_err = self._prefix(sampler, freq=freqs[0], gain=gain)
+        symbols = dsp.Demux(sampler=sampler, omegas=self.omegas, Nsym=self.Nsym)
+        freq_err = self._prefix(symbols, gain=gain)
         sampler.freq -= freq_err
 
         filt = self._train(sampler, order=11, lookahead=6)
         sampler.equalizer = lambda x: list(filt(x))
 
-        bitstream = self._demodulate(sampler, freqs)
+        bitstream = self._demodulate(sampler, symbols)
         self.bitstream = itertools.chain.from_iterable(bitstream)
 
     def run(self, output):
@@ -237,7 +244,7 @@ class Receiver(object):
     def report(self):
         if self.stats:
             duration = time.time() - self.stats['rx_start']
-            audio_time = self.stats['rx_bits'] / float(config.modem_bps)
+            audio_time = self.stats['rx_bits'] / float(self.modem_bitrate)
             log.debug('Demodulated %.3f kB @ %.3f seconds (%.1f%% realtime)',
                       self.stats['rx_bits'] / 8e3, duration,
                       100 * duration / audio_time if audio_time else 0)
@@ -247,13 +254,18 @@ class Receiver(object):
 
             self.plt.figure()
             symbol_list = np.array(self.stats['symbol_list'])
-            for i, freq in enumerate(config.frequencies):
-                self.plt.subplot(HEIGHT, WIDTH, i+1)
-                self._constellation(symbol_list[i], config.symbols,
-                                    '$F_c = {} Hz$'.format(freq))
+            for i, freq in enumerate(self.frequencies):
+                self._constellation(symbol_list[i], self.modem.symbols,
+                                    '$F_c = {} Hz$'.format(freq), index=i)
         self.plt.show()
 
-    def _constellation(self, y, symbols, title):
+    def _constellation(self, y, symbols, title, index=None):
+        if index is not None:
+            Nfreq = len(self.frequencies)
+            height = np.floor(np.sqrt(Nfreq))
+            width = np.ceil(Nfreq / float(height))
+            self.plt.subplot(height, width, index + 1)
+
         theta = np.linspace(0, 2*np.pi, 1000)
         y = np.array(y)
         self.plt.plot(y.real, y.imag, '.')
@@ -267,6 +279,7 @@ class Receiver(object):
 
 
 def main(args):
+    config = args.config
     reader = stream.Reader(args.input, data_type=common.loads)
     signal = itertools.chain.from_iterable(reader)
 
@@ -275,12 +288,13 @@ def main(args):
 
     reader.check = common.check_saturation
 
-    receiver = Receiver(plt=args.plot)
+    detector = Detector(config=config)
+    receiver = Receiver(config=config, plt=args.plot)
     success = False
     try:
         log.info('Waiting for carrier tone: %.1f kHz', config.Fc / 1e3)
-        signal, amplitude = detect(signal, config.Fc)
-        receiver.start(signal, config.frequencies, gain=1.0/amplitude)
+        signal, amplitude = detector.run(signal)
+        receiver.start(signal, gain=1.0/amplitude)
         receiver.run(args.output)
         success = True
     except Exception:

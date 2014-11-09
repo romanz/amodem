@@ -1,6 +1,7 @@
 import numpy as np
 
 from amodem import config
+from amodem import dsp
 from amodem import recv
 from amodem import train
 from amodem import sampling
@@ -10,29 +11,34 @@ def test_detect():
     P = sum(train.prefix)
     t = np.arange(P * config.Nsym) * config.Ts
     x = np.cos(2 * np.pi * config.Fc * t)
-    samples, amp = recv.detect(x, config.Fc)
+
+    detector = recv.Detector(config)
+    samples, amp = detector.run(x)
     assert abs(1 - amp) < 1e-12
 
     x = np.cos(2 * np.pi * (2*config.Fc) * t)
     try:
-        recv.detect(x, config.Fc)
+        detector.run(x)
         assert False
     except ValueError:
         pass
 
 
 def test_prefix():
-    symbol = np.cos(2 * np.pi * config.Fc * np.arange(config.Nsym) * config.Ts)
+    omega = 2 * np.pi * config.Fc / config.Fs
+    symbol = np.cos(omega * np.arange(config.Nsym))
     signal = np.concatenate([c * symbol for c in train.prefix])
 
-    sampler = sampling.Sampler(signal)
-    r = recv.Receiver()
-    freq_err = r._prefix(sampler, freq=config.Fc)
+    def symbols_stream(signal):
+        sampler = sampling.Sampler(signal)
+        return dsp.Demux(sampler=sampler, omegas=[omega], Nsym=config.Nsym)
+    r = recv.Receiver(config)
+    freq_err = r._prefix(symbols_stream(signal))
     assert abs(freq_err) < 1e-16
 
     try:
         silence = 0 * signal
-        r._prefix(sampling.Sampler(silence), freq=config.Fc)
+        r._prefix(symbols_stream(silence))
         assert False
     except ValueError:
         pass
@@ -40,6 +46,7 @@ def test_prefix():
 
 def test_find_start():
     sym = np.cos(2 * np.pi * config.Fc * np.arange(config.Nsym) * config.Ts)
+    detector = recv.Detector(config)
 
     length = 200
     prefix = postfix = np.tile(0 * sym, 50)
@@ -48,6 +55,6 @@ def test_find_start():
         prefix = [0] * offset
         bufs = [prefix, prefix, carrier, postfix]
         buf = np.concatenate(bufs)
-        start = recv.find_start(buf, length*config.Nsym)
+        start = detector.find_start(buf, length*config.Nsym)
         expected = offset + len(prefix)
         assert expected == start

@@ -1,4 +1,5 @@
 from amodem import calib
+from amodem import config
 
 from io import BytesIO
 
@@ -8,9 +9,12 @@ class ProcessMock(object):
         self.buf = BytesIO()
         self.stdin = self
         self.stdout = self
+        self.bytes_per_sample = 2
 
-    def __call__(self, *args, **kwargs):
+    def launch(self, *args, **kwargs):
         return self
+
+    __call__ = launch
 
     def kill(self):
         pass
@@ -26,9 +30,9 @@ class ProcessMock(object):
 
 def test_success():
     p = ProcessMock()
-    calib.send(p)
+    calib.send(config, p)
     p.buf.seek(0)
-    calib.recv(p)
+    calib.recv(config, p)
 
 
 def test_errors():
@@ -37,11 +41,11 @@ def test_errors():
     def _write(data):
         raise IOError()
     p.write = _write
-    calib.send(p)
+    calib.send(config, p)
     assert p.buf.tell() == 0
 
     def _read(data):
         raise KeyboardInterrupt()
     p.read = _read
-    calib.recv(p, verbose=True)
+    calib.recv(config, p, verbose=True)
     assert p.buf.tell() == 0

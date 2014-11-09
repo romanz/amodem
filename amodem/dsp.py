@@ -4,7 +4,6 @@ import logging
 
 log = logging.getLogger(__name__)
 
-from . import config
 from . import common
 
 
@@ -64,9 +63,9 @@ def estimate(x, y, order, lookahead=0):
 
 
 class Demux(object):
-    def __init__(self, sampler, freqs):
-        Nsym = config.Nsym
-        self.filters = [exp_iwt(-f, Nsym) / (0.5*Nsym) for f in freqs]
+    def __init__(self, sampler, omegas, Nsym):
+        self.Nsym = Nsym
+        self.filters = [exp_iwt(-w, Nsym) / (0.5*self.Nsym) for w in omegas]
         self.filters = np.array(self.filters)
         self.sampler = sampler
 
@@ -74,8 +73,8 @@ class Demux(object):
         return self
 
     def next(self):
-        frame = self.sampler.take(size=config.Nsym)
-        if len(frame) == config.Nsym:
+        frame = self.sampler.take(size=self.Nsym)
+        if len(frame) == self.Nsym:
             return np.dot(self.filters, frame)
         else:
             raise StopIteration
@@ -83,18 +82,17 @@ class Demux(object):
     __next__ = next
 
 
-def exp_iwt(freq, n):
-    iwt = 2j * np.pi * freq * np.arange(n) * config.Ts
-    return np.exp(iwt)
+def exp_iwt(omega, n):
+    return np.exp(1j * omega * np.arange(n))
 
 
 def norm(x):
     return np.sqrt(np.dot(x.conj(), x).real)
 
 
-def coherence(x, freq):
+def coherence(x, omega):
     n = len(x)
-    Hc = exp_iwt(-freq, n) / np.sqrt(0.5*n)
+    Hc = exp_iwt(-omega, n) / np.sqrt(0.5*n)
     norm_x = norm(x)
     if norm_x:
         return np.dot(Hc, x) / norm_x
@@ -151,9 +149,3 @@ class MODEM(object):
                 if error_handler:
                     error_handler(received=received, decoded=decoded)
                 yield bits
-
-    def __repr__(self):
-        return '<{:.3f} kbps, {:d}-QAM, {:d} carriers>'.format(
-            config.modem_bps / 1e3, len(self.symbols), len(config.carriers))
-
-    __str__ = __repr__

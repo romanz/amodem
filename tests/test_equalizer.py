@@ -13,8 +13,9 @@ def assert_approx(x, y, e=1e-12):
 
 def test_training():
     L = 1000
-    t1 = equalizer.train_symbols(L)
-    t2 = equalizer.train_symbols(L)
+    e = equalizer.Equalizer(config)
+    t1 = e.train_symbols(L)
+    t2 = e.train_symbols(L)
     assert (t1 == t2).all()
 
 
@@ -35,10 +36,11 @@ def test_commutation():
 
 def test_modem():
     L = 1000
-    sent = equalizer.train_symbols(L)
+    e = equalizer.Equalizer(config)
+    sent = e.train_symbols(L)
     gain = config.Nfreq
-    x = equalizer.modulator(sent) * gain
-    received = equalizer.demodulator(x, L)
+    x = e.modulator(sent) * gain
+    received = e.demodulator(x, L)
     assert_approx(sent, received)
 
 
@@ -46,23 +48,24 @@ def test_symbols():
     length = 100
     gain = float(config.Nfreq)
 
-    symbols = equalizer.train_symbols(length=length)
-    x = equalizer.modulator(symbols) * gain
-    assert_approx(equalizer.demodulator(x, size=length), symbols)
+    e = equalizer.Equalizer(config)
+    symbols = e.train_symbols(length=length)
+    x = e.modulator(symbols) * gain
+    assert_approx(e.demodulator(x, size=length), symbols)
 
     den = np.array([1, -0.6, 0.1])
     num = np.array([0.5])
     y = dsp.lfilter(x=x, b=num, a=den)
 
     lookahead = 2
-    h = equalizer.equalize_symbols(
+    h = e.equalize_symbols(
         signal=y, symbols=symbols, order=len(den), lookahead=lookahead
     )
     assert norm(h[:lookahead]) < 1e-12
     assert_approx(h[lookahead:], den / num)
 
     y = dsp.lfilter(x=y, b=h[lookahead:], a=[1])
-    z = equalizer.demodulator(y, size=length)
+    z = e.demodulator(y, size=length)
     assert_approx(z, symbols)
 
 
@@ -72,9 +75,10 @@ def test_signal():
     den = np.array([1, -0.6, 0.1])
     num = np.array([0.5])
     y = dsp.lfilter(x=x, b=num, a=den)
+    e = equalizer.Equalizer(config)
 
     lookahead = 2
-    h = equalizer.equalize_signal(
+    h = e.equalize_signal(
         signal=y, expected=x, order=len(den), lookahead=lookahead)
     assert norm(h[:lookahead]) < 1e-12
 

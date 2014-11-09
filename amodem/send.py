@@ -5,78 +5,72 @@ import itertools
 log = logging.getLogger(__name__)
 
 from . import train
-from . import wave
 
 from . import common
-from . import config
 from . import stream
 from . import framing
 from . import equalizer
 from . import dsp
 
-modem = dsp.MODEM(config.symbols)
-
-
-class Writer(object):
-    def __init__(self, fd):
+class Sender(object):
+    def __init__(self, fd, config):
         self.offset = 0
         self.fd = fd
+        self.modem = dsp.MODEM(config.symbols)
+        self.carriers = config.carriers / config.Nfreq
+        self.pilot = config.carriers[config.carrier_index]
+        self.silence = np.zeros(train.silence_length * config.Nsym)
+        self.iters_per_report = config.baud  # report once per second
+        self.padding = [0] * config.bits_per_baud
+        self.equalizer = equalizer.Equalizer(config)
 
-    def write(self, sym, n=1):
+    def write(self, sym):
         sym = np.array(sym)
-        data = common.dumps(sym, n)
+        data = common.dumps(sym)
         self.fd.write(data)
-        self.offset += len(data)
+        self.offset += len(sym)
 
     def start(self):
-        carrier = config.carriers[config.carrier_index]
         for value in train.prefix:
-            self.write(carrier * value)
+            self.write(self.pilot * value)
 
-        silence = np.zeros(train.silence_length * config.Nsym)
-        symbols = equalizer.train_symbols(train.equalizer_length)
-        signal = equalizer.modulator(symbols)
-        self.write(silence)
+        symbols = self.equalizer.train_symbols(train.equalizer_length)
+        signal = self.equalizer.modulator(symbols)
+        self.write(self.silence)
         self.write(signal)
-        self.write(silence)
+        self.write(self.silence)
 
     def modulate(self, bits):
-        padding = [0] * config.bits_per_baud
-        bits = itertools.chain(bits, padding)
-        symbols_iter = modem.encode(bits)
-        carriers = config.carriers / config.Nfreq
-        for i, symbols in common.iterate(symbols_iter,
-                                         size=config.Nfreq, enumerate=True):
-            symbols = np.array(list(symbols))
-            self.write(np.dot(symbols, carriers))
-
-            data_duration = (i / config.Nfreq + 1) * config.Tsym
-            if data_duration % 1 == 0:
-                bits_size = data_duration * config.modem_bps
-                log.debug('Sent %8.1f kB', bits_size / 8e3)
-
+        bits = itertools.chain(bits, self.padding)
+        Nfreq = len(self.carriers)
+        symbols_iter = common.iterate(self.modem.encode(bits), size=Nfreq)
+        for i, symbols in enumerate(symbols_iter, 1):
+            self.write(np.dot(symbols, self.carriers))
+            if i % self.iters_per_report == 0:
+                total_bits = i * Nfreq * self.modem.bits_per_symbol
+                log.debug('Sent %8.1f kB', total_bits / 8e3)
 
 def main(args):
-    writer = Writer(args.output)
+    sender = Sender(args.output, config=args.config)
+    Fs = args.config.Fs
 
     # pre-padding audio with silence
-    writer.write(np.zeros(int(config.Fs * args.silence_start)))
+    sender.write(np.zeros(int(Fs * args.silence_start)))
 
-    writer.start()
+    sender.start()
 
-    training_size = writer.offset
-    training_duration = training_size / wave.bytes_per_second
-    log.info('Sending %.3f seconds of training audio', training_duration)
+    training_duration = sender.offset
+    log.info('Sending %.3f seconds of training audio', training_duration / Fs)
 
     reader = stream.Reader(args.input, bufsize=(64 << 10), eof=True)
     data = itertools.chain.from_iterable(reader)
     bits = framing.encode(data)
-    log.info('Starting modulation: %s', modem)
-    writer.modulate(bits=bits)
+    log.info('Starting modulation: %s', sender.modem)
+    sender.modulate(bits=bits)
 
-    data_size = writer.offset - training_size
+    data_duration = sender.offset - training_duration
     log.info('Sent %.3f kB @ %.3f seconds',
-             reader.total / 1e3, data_size / wave.bytes_per_second)
+        reader.total / 1e3, data_duration / Fs)
 
     # post-padding audio with silence
-    writer.write(np.zeros(int(config.Fs * args.silence_stop)))
+    sender.write(np.zeros(int(Fs * args.silence_stop)))

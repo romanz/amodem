@@ -19,7 +19,7 @@ log = logging.getLogger('__name__')
 from amodem import config
 from amodem import recv
 from amodem import send
-from amodem import wave
+from amodem import audio
 from amodem import calib
 
 null = open('/dev/null', 'wb')
@@ -32,10 +32,11 @@ def FileType(mode, process=None):
             fname = '-'
 
         if fname is None:
+            assert process is not None
             if 'r' in mode:
-                return process(stdout=wave.sp.PIPE, stderr=null).stdout
+                return process.launch(stdout=audio.sp.PIPE, stderr=null).stdout
             if 'w' in mode:
-                return process(stdin=wave.sp.PIPE, stderr=null).stdin
+                return process.launch(stdin=audio.sp.PIPE, stderr=null).stdin
 
         if fname == '-':
             if 'r' in mode:
@@ -81,7 +82,7 @@ def main():
     sender.set_defaults(
         main=run_send,
         input_type=FileType('rb'),
-        output_type=FileType('wb', wave.play)
+        output_type=FileType('wb', audio.play(Fs=config.Fs))
     )
 
     # Demodulator
@@ -104,7 +105,7 @@ def main():
         help='plot results using pylab module')
     receiver.set_defaults(
         main=run_recv,
-        input_type=FileType('rb', wave.record),
+        input_type=FileType('rb', audio.record(Fs=config.Fs)),
         output_type=FileType('wb')
     )
 
@@ -127,6 +128,7 @@ def main():
     if getattr(args, 'plot', False):
         import pylab
         args.plot = pylab
+    args.config = config
     args.main(args)
 
 
@@ -148,18 +150,18 @@ def run_modem(args, func):
 
 def run_send(args):
     if args.calibrate:
-        calib.send(verbose=args.verbose)
+        calib.send(config=config, verbose=args.verbose)
     elif args.wave:
-        join_process(wave.play(fname=args.input))
+        join_process(audio.play(Fs=config.Fs).launch(fname=args.input))
     else:
         run_modem(args, send.main)
 
 
 def run_recv(args):
     if args.calibrate:
-        calib.recv(verbose=args.verbose)
+        calib.recv(config=config, verbose=args.verbose)
     elif args.wave:
-        join_process(wave.record(fname=args.output))
+        join_process(audio.record(Fs=config.Fs).launch(fname=args.output))
     else:
         run_modem(args, recv.main)
 

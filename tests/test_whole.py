@@ -8,6 +8,7 @@ from amodem import recv
 from amodem import common
 from amodem import dsp
 from amodem import sampling
+from amodem import config
 
 import logging
 logging.basicConfig(level=logging.DEBUG,
@@ -27,7 +28,7 @@ class Args(object):
 def run(size, chan=None, df=0, success=True):
     tx_data = os.urandom(size)
     tx_audio = BytesIO()
-    send.main(Args(silence_start=1, silence_stop=1,
+    send.main(Args(config=config, silence_start=1, silence_stop=1,
               input=BytesIO(tx_data), output=tx_audio))
 
     data = tx_audio.getvalue()
@@ -43,7 +44,8 @@ def run(size, chan=None, df=0, success=True):
     rx_audio = BytesIO(data)
 
     rx_data = BytesIO()
-    result = recv.main(Args(skip=0, input=rx_audio, output=rx_data))
+    result = recv.main(Args(config=config,
+                            skip=0, input=rx_audio, output=rx_data))
     rx_data = rx_data.getvalue()
 
     assert result == success
@@ -61,7 +63,7 @@ def test_small(small_size):
 
 
 def test_error():
-    skip = 1 * send.config.Fs  # remove trailing silence
+    skip = 32000  # remove trailing silence
     run(1024, chan=lambda x: x[:-skip], success=False)
 
 

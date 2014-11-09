@@ -3,20 +3,21 @@ import logging
 
 log = logging.getLogger(__name__)
 
+from subprocess import PIPE
 from . import common
-from . import config
-from . import wave
+from . import audio
 
-CALIBRATION_SYMBOLS = int(1.0 * config.Fs)
 ALLOWED_EXCEPTIONS = (IOError, KeyboardInterrupt)
 
 
-def send(wave_play=wave.play, verbose=False):
-    t = np.arange(0, CALIBRATION_SYMBOLS) * config.Ts
+def send(config, audio_play=audio.play, verbose=False):
+    calibration_symbols = int(1.0 * config.Fs)
+    t = np.arange(0, calibration_symbols) * config.Ts
     signal = [np.sin(2 * np.pi * f * t) for f in config.frequencies]
     signal = common.dumps(np.concatenate(signal))
 
-    p = wave_play(stdin=wave.sp.PIPE)
+    player = audio_play(Fs=config.Fs)
+    p = player.launch(stdin=PIPE)
     fd = p.stdin
     try:
         while True:
@@ -27,16 +28,17 @@ def send(wave_play=wave.play, verbose=False):
         p.kill()
 
 
-FRAME_LENGTH = 200 * config.Nsym
+def run_recorder(config, recorder):
 
+    FRAME_LENGTH = 200 * config.Nsym
+    process = recorder.launch(stdout=PIPE)
+    frame_size = int(recorder.bytes_per_sample * FRAME_LENGTH)
 
-def recorder(process):
     t = np.arange(0, FRAME_LENGTH) * config.Ts
     scaling_factor = 0.5 * len(t)
     carriers = [np.exp(2j * np.pi * f * t) for f in config.frequencies]
     carriers = np.array(carriers) / scaling_factor
 
-    frame_size = int(wave.bytes_per_sample * FRAME_LENGTH)
     fd = process.stdout
 
     states = [True]
@@ -80,13 +82,15 @@ def recorder(process):
 fmt = '{freq:6.0f} Hz: {message:s}{extra:s}'
 fields = ['peak', 'total', 'rms', 'coherency']
 
-def recv(wave_record=wave.record, verbose=False, output=None):
+def recv(config, audio_record=audio.record, verbose=False):
     extra = ''
     if verbose:
         extra = ''.join(', {0}={{{0}:.4f}}'.format(f) for f in fields)
-    for r in recorder(wave_record(stdout=wave.sp.PIPE)):
-        msg = fmt.format(extra=extra.format(**r), **r)
-        if not r['error']:
+
+    recorder = audio_record(Fs=config.Fs)
+    for result in run_recorder(config=config, recorder=recorder):
+        msg = fmt.format(extra=extra.format(**result), **result)
+        if not result['error']:
             log.info(msg)
         else:
             log.error(msg)
