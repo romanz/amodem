@@ -124,7 +124,7 @@ def main():
     logging.basicConfig(level=level, format=format)
 
     # Parsing and execution
-    log.debug('MODEM settings: %r', config.settings)
+    log.debug(description)
     if getattr(args, 'plot', False):
         import pylab
         args.plot = pylab

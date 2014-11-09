@@ -65,7 +65,7 @@ def main(args):
     reader = stream.Reader(args.input, bufsize=(64 << 10), eof=True)
     data = itertools.chain.from_iterable(reader)
     bits = framing.encode(data)
-    log.info('Starting modulation: %s', sender.modem)
+    log.info('Starting modulation')
     sender.modulate(bits=bits)
 
     data_duration = sender.offset - training_duration

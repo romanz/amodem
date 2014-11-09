@@ -200,7 +200,7 @@ class Receiver(object):
         self.stats['rx_bits'] = 0
         self.stats['rx_start'] = time.time()
 
-        log.info('Starting demodulation: %s', self.modem)
+        log.info('Starting demodulation')
         for i, block in enumerate(common.izip(streams), 1):
             for bits in block:
                 self.stats['rx_bits'] = self.stats['rx_bits'] + len(bits)
