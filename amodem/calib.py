@@ -59,7 +59,7 @@ def run_recorder(config, recorder):
             freq = config.frequencies[max_index]
             rms = abs(coeffs[max_index])
             coherency = rms / total
-            flags = [rms > 0.1, peak < 1.0, coherency > 0.9999]
+            flags = [rms > 0.1, peak < 1.0, coherency > 0.99]
 
             states.append(all(flags))
             states = states[-2:]
