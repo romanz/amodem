@@ -23,21 +23,20 @@ carrier_index = 0
 Fc = frequencies[carrier_index]
 Tc = 1.0 / Fc
 
-# Hexagonal symbol constellation (optimal "sphere packing")
-I = np.arange(-Npoints, Npoints+1)
-imag_factor = np.exp(1j * np.pi / 3.0)
-offset = 0.5
-symbols = [(x + y*imag_factor + offset) for x in I for y in I]
-symbols.sort(key=lambda z: (z*z.conjugate()).real)
-symbols = np.array(symbols[:Npoints])
-symbols = symbols / np.max(np.abs(symbols))
-
 Nsym = int(Tsym / Ts)
-baud = int(1/Tsym)
+baud = int(1 / Tsym)
 
 bits_per_symbol = np.log2(Npoints)
+assert int(bits_per_symbol) == bits_per_symbol
 bits_per_baud = bits_per_symbol * Nfreq
 modem_bps = baud * bits_per_baud
 carriers = np.array([
     np.exp(2j * np.pi * f * np.arange(0, Nsym) * Ts) for f in frequencies
 ])
+
+# Hexagonal symbol constellation (optimal "sphere packing")
+Nx = 2 ** int(np.ceil(bits_per_symbol / 2))
+Ny = Npoints // Nx
+symbols = np.array([complex(x, y) for x in range(Nx) for y in range(Ny)])
+symbols = symbols - symbols[-1]/2
+symbols = symbols / np.max(np.abs(symbols))
