@@ -39,6 +39,10 @@ Make sure that `numpy` and `bitarray` Python packages are installed.
 
     $ pip install numpy bitarray
 
+or, on Debian/Ubuntu:
+
+    $ apt-get install python-numpy python-bitarray
+
 Clone and setup relevant path variables:
 
     $ git clone https://github.com/romanz/amodem.git
