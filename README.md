@@ -37,7 +37,7 @@ A simple CRC-32 checksum is used for data integrity verification on each 1KB dat
 
 Make sure that `numpy` and `bitarray` Python packages are installed.
 
-    $ sudo pip install numpy bitarray
+    $ pip install numpy bitarray
 
 Clone and setup relevant path variables:
 
@@ -46,13 +46,18 @@ Clone and setup relevant path variables:
 
 ## via pip (for users)
 
-Run the following command (will also download and install `numpy` and `bitarray` packages):
+Run the following command to install latest release from PyPI
+(will also download and install `numpy` and `bitarray` packages):
 
-    $ sudo pip install amodem
+    $ pip install amodem
+
+or, for latest development version:
+
+    $ pip install https://github.com/romanz/amodem/archive/master.zip
 
 For graphs and visualization (optional), install:
 
-    $ sudo pip install matplotlib
+    $ pip install matplotlib
 
 ## validation
 
