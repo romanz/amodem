@@ -98,7 +98,7 @@ def main():
     receiver.add_argument(
         '-w', '--wave', default=False, action='store_true')
     receiver.add_argument(
-        '--skip', type=int, default=128,
+        '--skip', type=int, default=320,
         help='skip initial N samples, due to spurious spikes')
     receiver.add_argument(
         '--plot', action='store_true', default=False,

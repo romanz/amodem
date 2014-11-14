@@ -15,13 +15,14 @@ from . import common
 from . import framing
 from . import equalizer
 
+
 class Detector(object):
 
-    COHERENCE_THRESHOLD = 0.99
+    COHERENCE_THRESHOLD = 0.9
 
     CARRIER_DURATION = sum(train.prefix)
-    CARRIER_THRESHOLD = int(0.99 * CARRIER_DURATION)
-    SEARCH_WINDOW = 10  # symbols
+    CARRIER_THRESHOLD = int(0.9 * CARRIER_DURATION)
+    SEARCH_WINDOW = int(0.1 * CARRIER_DURATION)
 
     def __init__(self, config):
         self.freq = config.Fc
@@ -43,38 +44,36 @@ class Detector(object):
                 counter = 0
 
             if counter == self.CARRIER_THRESHOLD:
-                length = (self.CARRIER_THRESHOLD - 1) * self.Nsym
-                begin = offset - length
-                amplitude = self.report_carrier(bufs, begin=begin)
                 break
         else:
             raise ValueError('No carrier detected')
 
+        length = (self.CARRIER_THRESHOLD - 1) * self.Nsym
+        begin = offset - length
+
+        x = np.concatenate(tuple(bufs)[-self.CARRIER_THRESHOLD:-1])
+        Hc = dsp.exp_iwt(-self.omega, len(x))
+        Zc = np.dot(Hc, x) / (0.5*len(x))
+        amplitude = abs(Zc)
+        start_time = begin * self.Tsym / self.Nsym
+        log.info('Carrier detected at ~%.1f ms @ %.1f kHz:'
+                 ' coherence=%.3f%%, amplitude=%.3f',
+                 start_time * 1e3, self.freq / 1e3,
+                 np.abs(dsp.coherence(x, self.omega)) * 100, amplitude)
+
         log.debug('Buffered %d ms of audio', len(bufs))
 
         bufs = list(bufs)[-self.CARRIER_THRESHOLD-self.SEARCH_WINDOW:]
-        trailing = list(itertools.islice(samples, self.SEARCH_WINDOW*self.Nsym))
+        n = self.SEARCH_WINDOW + self.CARRIER_DURATION - self.CARRIER_THRESHOLD
+        trailing = list(itertools.islice(samples, n * self.Nsym))
         bufs.append(np.array(trailing))
 
         buf = np.concatenate(bufs)
         offset = self.find_start(buf, self.CARRIER_DURATION*self.Nsym)
-        log.debug('Carrier starts at %.3f ms',
-                  offset * self.Tsym * 1e3 / self.Nsym)
+        start_time += (offset / self.Nsym - self.SEARCH_WINDOW) * self.Tsym
+        log.debug('Carrier starts at %.3f ms', start_time * 1e3)
 
         return itertools.chain(buf[offset:], samples), amplitude
-
-
-    def report_carrier(self, bufs, begin):
-        x = np.concatenate(tuple(bufs)[-self.CARRIER_THRESHOLD:-1])
-        Hc = dsp.exp_iwt(-self.omega, len(x))
-        Zc = np.dot(Hc, x) / (0.5*len(x))
-        amp = abs(Zc)
-        log.info('Carrier detected at ~%.1f ms @ %.1f kHz:'
-                 ' coherence=%.3f%%, amplitude=%.3f',
-                 begin * self.Tsym * 1e3 / self.Nsym, self.freq / 1e3,
-                 np.abs(dsp.coherence(x, self.omega)) * 100, amp)
-        return amp
-
 
     def find_start(self, buf, length):
         N = len(buf)
