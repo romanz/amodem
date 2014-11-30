@@ -10,7 +10,10 @@ else:
     _stdout = sys.stdout.buffer
 
 import argparse
-import argcomplete
+try:
+    import argcomplete
+except ImportError:
+    argcomplete = None
 
 import logging
 
@@ -109,7 +112,8 @@ def main():
         output_type=FileType('wb')
     )
 
-    argcomplete.autocomplete(p)
+    if argcomplete:
+        argcomplete.autocomplete(p)
     args = p.parse_args()
     if args.verbose == 0:
         level, format = 'INFO', '%(message)s'
