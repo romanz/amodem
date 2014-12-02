@@ -2,8 +2,9 @@ import numpy as np
 from numpy.linalg import norm
 
 from amodem import dsp
-from amodem import config
 from amodem import sampling
+from amodem import config
+config = config.fastest()
 
 import random
 import itertools

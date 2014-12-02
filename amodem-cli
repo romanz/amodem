@@ -19,13 +19,17 @@ import logging
 
 log = logging.getLogger('__name__')
 
-from amodem import config
+from amodem.config import bitrates
 from amodem import recv
 from amodem import send
 from amodem import audio
 from amodem import calib
 
 null = open('/dev/null', 'wb')
+
+import os
+bitrate = os.environ.get('BITRATE', 1)
+config = bitrates.get(int(bitrate))
 
 
 def FileType(mode, process=None):

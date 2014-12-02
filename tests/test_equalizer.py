@@ -3,9 +3,9 @@ from numpy.random import RandomState
 import numpy as np
 
 from amodem import dsp
-from amodem import config
 from amodem import equalizer
-
+from amodem import config
+config = config.fastest()
 
 def assert_approx(x, y, e=1e-12):
     assert norm(x - y) < e * norm(x)

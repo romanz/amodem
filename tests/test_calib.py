@@ -1,5 +1,6 @@
 from amodem import calib
 from amodem import config
+config = config.fastest()
 
 from io import BytesIO
 

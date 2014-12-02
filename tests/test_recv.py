@@ -1,10 +1,11 @@
 import numpy as np
 
-from amodem import config
 from amodem import dsp
 from amodem import recv
 from amodem import train
 from amodem import sampling
+from amodem import config
+config = config.fastest()
 
 
 def test_detect():

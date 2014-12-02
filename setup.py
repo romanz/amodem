@@ -1,14 +1,5 @@
 #!/usr/bin/env python
-import os
-import sys
-
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
-
-pwd = os.path.dirname(__file__)
-
+from setuptools import setup
 from setuptools.command.test import test as TestCommand
 
 
@@ -19,12 +10,13 @@ class PyTest(TestCommand):
         self.test_suite = True
 
     def run_tests(self):
+        import sys
         import pytest
         sys.exit(pytest.main(['tests']))
 
 setup(
     name="amodem",
-    version="1.3",
+    version="1.4",
     description="Audio Modem Communication Library",
     author="Roman Zeyde",
     author_email="roman.zeyde@gmail.com",

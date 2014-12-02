@@ -1,42 +1,51 @@
-Fs = 32000.0  # sampling frequency [Hz]
-Tsym = 0.001  # symbol duration [seconds]
-Nfreq = 8     # number of frequencies used
-Npoints = 64
-F0 = 1e3
-
-# Update default configuration from environment variables
-settings = {k: v for k, v in locals().items() if not k.startswith('_')}
-
-_prefix = 'AMODEM_'
-import os
-for k in settings.keys():
-    v = settings[k]
-    settings[k] = type(v)(os.environ.get(_prefix + k, v))
-locals().update(settings)
-
 import numpy as np
 
-Ts = 1.0 / Fs
-Fsym = 1 / Tsym
-frequencies = F0 + np.arange(Nfreq) * Fsym
-carrier_index = 0
-Fc = frequencies[carrier_index]
-Tc = 1.0 / Fc
 
-Nsym = int(Tsym / Ts)
-baud = int(1 / Tsym)
+class Configuration(object):
+    Fs = 32000.0  # sampling frequency [Hz]
+    Tsym = 0.001  # symbol duration [seconds]
+    Nfreq = 8     # number of frequencies used
+    Npoints = 64
+    F0 = 1e3
 
-bits_per_symbol = np.log2(Npoints)
-assert int(bits_per_symbol) == bits_per_symbol
-bits_per_baud = bits_per_symbol * Nfreq
-modem_bps = baud * bits_per_baud
-carriers = np.array([
-    np.exp(2j * np.pi * f * np.arange(0, Nsym) * Ts) for f in frequencies
-])
+    def __init__(self, **kwargs):
+        self.__dict__.update(**kwargs)
 
-# Hexagonal symbol constellation (optimal "sphere packing")
-Nx = 2 ** int(np.ceil(bits_per_symbol / 2))
-Ny = Npoints // Nx
-symbols = np.array([complex(x, y) for x in range(Nx) for y in range(Ny)])
-symbols = symbols - symbols[-1]/2
-symbols = symbols / np.max(np.abs(symbols))
+        self.Ts = 1.0 / self.Fs
+        self.Fsym = 1 / self.Tsym
+        self.frequencies = self.F0 + np.arange(self.Nfreq) * self.Fsym
+        self.carrier_index = 0
+        self.Fc = self.frequencies[self.carrier_index]
+
+        self.Nsym = int(self.Tsym / self.Ts)
+        self.baud = int(1.0 / self.Tsym)
+
+        bits_per_symbol = np.log2(self.Npoints)
+        assert int(bits_per_symbol) == bits_per_symbol
+        self.bits_per_baud = bits_per_symbol * self.Nfreq
+        self.modem_bps = self.baud * self.bits_per_baud
+        self.carriers = np.array([
+            np.exp(2j * np.pi * f * np.arange(0, self.Nsym) * self.Ts)
+            for f in self.frequencies
+        ])
+
+        # QAM constellation
+        Nx = 2 ** int(np.ceil(bits_per_symbol / 2))
+        Ny = self.Npoints // Nx
+        symbols = np.array([complex(x, y) for x in range(Nx) for y in range(Ny)])
+        symbols = symbols - symbols[-1]/2
+        self.symbols = symbols / np.max(np.abs(symbols))
+
+# MODEM configurations for various bitrates [kbps]
+bitrates = {
+    1: Configuration(F0=8e3, Npoints=2, Nfreq=1),
+    2: Configuration(F0=8e3, Npoints=4, Nfreq=1),
+    4: Configuration(F0=8e3, Npoints=16, Nfreq=1),
+    8: Configuration(F0=8e3, Npoints=16, Nfreq=2),
+    16: Configuration(F0=6e3, Npoints=16, Nfreq=4),
+    32: Configuration(F0=3e3, Npoints=16, Nfreq=8),
+    48: Configuration(F0=3e3, Npoints=64, Nfreq=8),
+}
+
+fastest = lambda: bitrates[max(bitrates)]
+slowest = lambda: bitrates[min(bitrates)]

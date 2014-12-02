@@ -9,6 +9,7 @@ from amodem import common
 from amodem import dsp
 from amodem import sampling
 from amodem import config
+config = config.fastest()
 
 import logging
 logging.basicConfig(level=logging.DEBUG,
