@@ -193,3 +193,11 @@ Make sure that `matplotlib` package is installed, and run (at the receiver side)
 ```
  ~/receiver $ amodem-cli recv --plot >data.rx
 ```
+
+
+# Donations
+
+Want to donate? Feel free. 
+Send to [1C1snTrkHAHM5XnnfuAtiTBaA11HBxjJyv](https://blockchain.info/address/1C1snTrkHAHM5XnnfuAtiTBaA11HBxjJyv).
+
+Thanks :)
