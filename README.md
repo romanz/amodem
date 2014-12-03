@@ -67,6 +67,7 @@ For graphs and visualization (optional), install:
 
 Run:
 
+    $ export BITRATE=48  # explicitly select highest MODEM bit rate (assuming good SNR).
     $ amodem-cli -h
     usage: amodem-cli [-h] [-v | -q] {send,recv} ...
 
@@ -90,13 +91,17 @@ following scripts:
 
 - On the sender's side:
 ```
+~/sender $ export BITRATE=48  # explicitly select highest MODEM bit rate (assuming good SNR).
 ~/sender $ amodem-cli send --calibrate
 ```
 
 - On the receiver's side:
 ```
+~/receiver $ export BITRATE=48  # explicitly select highest MODEM bit rate (assuming good SNR).
 ~/receiver $ amodem-cli recv --calibrate
 ```
+
+If BITRATE is not set, the MODEM will use 1 kbps settings (single frequency with BPSK modulation).
 
 Change the sender computer's output audio level, until
 all frequencies are received well:
