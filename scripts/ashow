@@ -14,13 +14,14 @@ def spectrogram(t, x, Fs, NFFT=256):
 if __name__ == '__main__':
     import sys
     from amodem import common
-    from amodem.config import Fs, Ts
+    from amodem.config import Configuration
+    config = Configuration()
 
     for fname in sys.argv[1:]:
         x = common.load(open(fname, 'rb'))
-        t = np.arange(len(x)) * Ts
+        t = np.arange(len(x)) * config.Ts
         pylab.figure()
         pylab.title(fname)
-        spectrogram(t, x, Fs)
+        spectrogram(t, x, config.Fs)
 
     pylab.show()
