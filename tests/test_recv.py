@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from amodem import dsp
 from amodem import recv
@@ -18,11 +19,12 @@ def test_detect():
     assert abs(1 - amp) < 1e-12
 
     x = np.cos(2 * np.pi * (2*config.Fc) * t)
-    try:
+    with pytest.raises(ValueError):
         detector.run(x)
-        assert False
-    except ValueError:
-        pass
+
+    with pytest.raises(ValueError):
+        detector.max_offset = 0
+        detector.run(x)
 
 
 def test_prefix():
@@ -37,12 +39,9 @@ def test_prefix():
     freq_err = r._prefix(symbols_stream(signal))
     assert abs(freq_err) < 1e-16
 
-    try:
+    with pytest.raises(ValueError):
         silence = 0 * signal
         r._prefix(symbols_stream(silence))
-        assert False
-    except ValueError:
-        pass
 
 
 def test_find_start():

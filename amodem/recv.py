@@ -24,17 +24,22 @@ class Detector(object):
     CARRIER_THRESHOLD = int(0.9 * CARRIER_DURATION)
     SEARCH_WINDOW = int(0.1 * CARRIER_DURATION)
 
+    TIMEOUT = 10.0  # [seconds]
+
     def __init__(self, config):
         self.freq = config.Fc
         self.omega = 2 * np.pi * self.freq / config.Fs
         self.Nsym = config.Nsym
         self.Tsym = config.Tsym
         self.maxlen = config.baud  # 1 second of symbols
+        self.max_offset = self.TIMEOUT * config.Fs
 
     def run(self, samples):
         counter = 0
         bufs = collections.deque([], maxlen=self.maxlen)
         for offset, buf in common.iterate(samples, self.Nsym, enumerate=True):
+            if offset > self.max_offset:
+                raise ValueError('Timeout waiting for carrier')
             bufs.append(buf)
 
             coeff = dsp.coherence(buf, self.omega)
