@@ -3,6 +3,7 @@ import pytest
 
 from amodem import dsp
 from amodem import recv
+from amodem import detect
 from amodem import train
 from amodem import sampling
 from amodem import config
@@ -14,7 +15,7 @@ def test_detect():
     t = np.arange(P * config.Nsym) * config.Ts
     x = np.cos(2 * np.pi * config.Fc * t)
 
-    detector = recv.Detector(config)
+    detector = detect.Detector(config)
     samples, amp = detector.run(x)
     assert abs(1 - amp) < 1e-12
 
@@ -46,7 +47,7 @@ def test_prefix():
 
 def test_find_start():
     sym = np.cos(2 * np.pi * config.Fc * np.arange(config.Nsym) * config.Ts)
-    detector = recv.Detector(config)
+    detector = detect.Detector(config)
 
     length = 200
     prefix = postfix = np.tile(0 * sym, 50)
