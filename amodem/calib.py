@@ -68,7 +68,7 @@ def run_recorder(config, recorder):
             error = not any(states)
             if error:
                 error_index = flags.index(False)
-                message = 'too {} signal'.format(errors[error_index])
+                message = 'too {0} signal'.format(errors[error_index])
 
             yield dict(
                 freq=freq, rms=rms, peak=peak, coherency=coherency,

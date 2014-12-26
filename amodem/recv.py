@@ -135,7 +135,7 @@ class Receiver(object):
         log.debug('Current phase on carrier: %.3f', last_phase)
 
         log.debug('Frequency error: %.2f ppm', freq_err * 1e6)
-        self.plt.title('Frequency drift: {:.3f} ppm'.format(freq_err * 1e6))
+        self.plt.title('Frequency drift: {0:.3f} ppm'.format(freq_err * 1e6))
         return freq_err
 
     def _train(self, sampler, order, lookahead):
@@ -177,7 +177,7 @@ class Receiver(object):
         for (i, freq), snr in zip(enumerate(self.frequencies), SNRs):
             log.debug('%5.1f kHz: SNR = %5.2f dB', freq / 1e3, snr)
             self._constellation(symbols[:, i], train_symbols[:, i],
-                                '$F_c = {} Hz$'.format(freq), index=i)
+                                '$F_c = {0} Hz$'.format(freq), index=i)
         assert error_rate == 0, error_rate
 
         return equalization_filter
@@ -260,7 +260,7 @@ class Receiver(object):
             symbol_list = np.array(self.stats['symbol_list'])
             for i, freq in enumerate(self.frequencies):
                 self._constellation(symbol_list[i], self.modem.symbols,
-                                    '$F_c = {} Hz$'.format(freq), index=i)
+                                    '$F_c = {0} Hz$'.format(freq), index=i)
         self.plt.show()
 
     def _constellation(self, y, symbols, title, index=None):

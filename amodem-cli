@@ -57,8 +57,8 @@ def FileType(mode, process=None):
 
 
 def main():
-    fmt = ('Audio OFDM MODEM: {:.1f} kb/s ({:d}-QAM x {:d} carriers) '
-           'Fs={:.1f} kHz')
+    fmt = ('Audio OFDM MODEM: {0:.1f} kb/s ({1:d}-QAM x {2:d} carriers) '
+           'Fs={3:.1f} kHz')
     description = fmt.format(config.modem_bps / 1e3, len(config.symbols),
                              config.Nfreq, config.Fs / 1e3)
     p = argparse.ArgumentParser(description=description)

@@ -11,7 +11,7 @@ class ALSA(object):
         self.bytes_per_sample = self.bits_per_sample / 8.0
         self.bytes_per_second = self.bytes_per_sample * self.Fs
         # PCM signed little endian
-        self.audio_format = 'S{}_LE'.format(self.bits_per_sample)
+        self.audio_format = 'S{0}_LE'.format(self.bits_per_sample)
         self.audio_tool = tool
 
     def launch(self, fname=None, **kwargs):
