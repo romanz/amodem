@@ -9,6 +9,7 @@ python:
 install:
   - pip install .
   - pip install coveralls
+  - pip install pep8
 
 script:
   - pep8 amodem/ scripts/ tests/ amodem-cli
