@@ -9,6 +9,7 @@ import random
 
 _constellation = [1, 1j, -1, -1j]
 
+
 class Equalizer(object):
 
     def __init__(self, config):
@@ -21,7 +22,6 @@ class Equalizer(object):
         r = random.Random(seed)
         choose = lambda: [r.choice(_constellation) for j in range(self.Nfreq)]
         return np.array([choose() for i in range(length)])
-
 
     def modulator(self, symbols):
         gain = 1.0 / len(self.carriers)
@@ -65,7 +65,8 @@ class Equalizer(object):
         return h
 
     def equalize_signal(self, signal, expected, order, lookahead=0):
-        signal = np.concatenate([np.zeros(order-1), signal, np.zeros(lookahead)])
+        signal = [np.zeros(order-1), signal, np.zeros(lookahead)]
+        signal = np.concatenate(signal)
         length = len(expected)
 
         A = []

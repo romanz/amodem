@@ -4,6 +4,7 @@ import functools
 
 log = logging.getLogger(__name__)
 
+
 class ALSA(object):
     def __init__(self, tool, Fs):
         self.Fs = int(Fs)  # sampling rate

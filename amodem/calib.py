@@ -82,6 +82,7 @@ def run_recorder(config, recorder):
 fmt = '{freq:6.0f} Hz: {message:s}{extra:s}'
 fields = ['peak', 'total', 'rms', 'coherency']
 
+
 def recv(config, audio_record=audio.record, verbose=False):
     extra = ''
     if verbose:

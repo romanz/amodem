@@ -154,7 +154,7 @@ class Receiver(object):
 
     def start(self, signal, gain=1.0):
         sampler = sampling.Sampler(signal, sampling.Interpolator())
-        symbols = dsp.Demux(sampler=sampler, omegas=self.omegas, Nsym=self.Nsym)
+        symbols = dsp.Demux(sampler, omegas=self.omegas, Nsym=self.Nsym)
         freq_err = self._prefix(symbols, gain=gain)
         sampler.freq -= freq_err
 

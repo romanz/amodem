@@ -130,7 +130,7 @@ class MODEM(object):
         self.symbols = symbols
         self.bits_per_symbol = bits_per_symbol
 
-        bits_map = dict((symbol, bits) for bits, symbol in self.encode_map.items())
+        bits_map = dict(item[::-1] for item in self.encode_map.items())
         self.decode_list = [(s, bits_map[s]) for s in self.symbols]
 
     def encode(self, bits):

@@ -12,6 +12,7 @@ from . import framing
 from . import equalizer
 from . import dsp
 
+
 class Sender(object):
     def __init__(self, fd, config):
         self.offset = 0
@@ -50,6 +51,7 @@ class Sender(object):
                 total_bits = i * Nfreq * self.modem.bits_per_symbol
                 log.debug('Sent %8.1f kB', total_bits / 8e3)
 
+
 def main(args):
     sender = Sender(args.output, config=args.config)
     Fs = args.config.Fs
@@ -70,7 +72,7 @@ def main(args):
 
     data_duration = sender.offset - training_duration
     log.info('Sent %.3f kB @ %.3f seconds',
-        reader.total / 1e3, data_duration / Fs)
+             reader.total / 1e3, data_duration / Fs)
 
     # post-padding audio with silence
     sender.write(np.zeros(int(Fs * args.silence_stop)))
