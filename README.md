@@ -142,12 +142,12 @@ and please send me `recording.raw` file for debugging.
 
 - Start the receiver, which will wait for the sender to start:
 ```
-~/receiver $ amodem-cli -vv recv >data.rx
+~/receiver $ amodem-cli recv -vv >data.rx
 ```
 
 - Start the sender, which will modulate the data and start the transmission:
 ```
-~/sender $ amodem-cli -vv send <data.tx
+~/sender $ amodem-cli send -vv <data.tx
 ```
 
 - A similar log should be emitted by the sender:
