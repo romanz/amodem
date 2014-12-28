@@ -209,24 +209,24 @@ class Receiver(object):
         self.plt.title(title)
 
 
-def main(args):
-    config = args.config
-    reader = stream.Reader(args.input, data_type=common.loads)
+def main(config, src, dst, plt=None):
+    reader = stream.Reader(src, data_type=common.loads)
     signal = itertools.chain.from_iterable(reader)
 
-    skipped = common.take(signal, args.skip)
-    log.debug('Skipping %.3f seconds', len(skipped) / float(config.baud))
+    to_skip = int(config.skip_start * config.Fs)
+    log.debug('Skipping %.3f seconds', config.skip_start)
+    common.take(signal, to_skip)
 
     reader.check = common.check_saturation
 
     detector = detect.Detector(config=config)
-    receiver = Receiver(config=config, plt=args.plot)
+    receiver = Receiver(config=config, plt=plt)
     success = False
     try:
         log.info('Waiting for carrier tone: %.1f kHz', config.Fc / 1e3)
         signal, amplitude = detector.run(signal)
         receiver.start(signal, gain=1.0/amplitude)
-        receiver.run(args.output)
+        receiver.run(dst)
         success = True
     except Exception:
         log.exception('Decoding failed')

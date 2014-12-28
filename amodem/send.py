@@ -52,19 +52,19 @@ class Sender(object):
                 log.debug('Sent %8.1f kB', total_bits / 8e3)
 
 
-def main(args):
-    sender = Sender(args.output, config=args.config)
-    Fs = args.config.Fs
+def main(config, src, dst):
+    sender = Sender(dst, config=config)
+    Fs = config.Fs
 
     # pre-padding audio with silence
-    sender.write(np.zeros(int(Fs * args.silence_start)))
+    sender.write(np.zeros(int(Fs * config.silence_start)))
 
     sender.start()
 
     training_duration = sender.offset
     log.info('Sending %.3f seconds of training audio', training_duration / Fs)
 
-    reader = stream.Reader(args.input, bufsize=(64 << 10), eof=True)
+    reader = stream.Reader(src, bufsize=(64 << 10), eof=True)
     data = itertools.chain.from_iterable(reader)
     bits = framing.encode(data)
     log.info('Starting modulation')
@@ -75,4 +75,4 @@ def main(args):
              reader.total / 1e3, data_duration / Fs)
 
     # post-padding audio with silence
-    sender.write(np.zeros(int(Fs * args.silence_stop)))
+    sender.write(np.zeros(int(Fs * config.silence_stop)))

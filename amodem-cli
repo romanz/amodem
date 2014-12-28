@@ -19,11 +19,8 @@ import logging
 
 log = logging.getLogger('__name__')
 
+from amodem import recv, send, audio, calib
 from amodem.config import bitrates
-from amodem import recv
-from amodem import send
-from amodem import audio
-from amodem import calib
 
 null = open('/dev/null', 'wb')
 
@@ -76,12 +73,6 @@ def main():
         '-c', '--calibrate', default=False, action='store_true')
     sender.add_argument(
         '-w', '--wave', default=False, action='store_true')
-    sender.add_argument(
-        '--silence-start', type=float, default=1.0,
-        help='seconds of silence before transmission starts')
-    sender.add_argument(
-        '--silence-stop', type=float, default=1.0,
-        help='seconds of silence after transmission stops')
 
     sender.set_defaults(
         main=run_send,
@@ -101,9 +92,6 @@ def main():
         '-c', '--calibrate', default=False, action='store_true')
     receiver.add_argument(
         '-w', '--wave', default=False, action='store_true')
-    receiver.add_argument(
-        '--skip', type=int, default=320,
-        help='skip initial N samples, due to spurious spikes')
     receiver.add_argument(
         '--plot', action='store_true', default=False,
         help='plot results using pylab module')
@@ -152,10 +140,10 @@ def join_process(process):
     sys.exit(exitcode)
 
 
-def run_modem(args, func):
-    args.input = args.input_type(args.input)
-    args.output = args.output_type(args.output)
-    func(args)
+def run_modem(args, main_func, **kwargs):
+    src = args.input_type(args.input)
+    dst = args.output_type(args.output)
+    main_func(args.config, src, dst, **kwargs)
 
 
 def run_send(args):
@@ -173,7 +161,7 @@ def run_recv(args):
     elif args.wave:
         join_process(audio.record(Fs=config.Fs).launch(fname=args.output))
     else:
-        run_modem(args, recv.main)
+        run_modem(args, recv.main, plt=args.plot)
 
 
 if __name__ == '__main__':

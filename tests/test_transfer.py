@@ -29,8 +29,7 @@ class Args(object):
 def run(size, chan=None, df=0, success=True):
     tx_data = os.urandom(size)
     tx_audio = BytesIO()
-    send.main(Args(config=config, silence_start=1, silence_stop=1,
-              input=BytesIO(tx_data), output=tx_audio))
+    send.main(config=config, src=BytesIO(tx_data), dst=tx_audio)
 
     data = tx_audio.getvalue()
     data = common.loads(data)
@@ -45,8 +44,7 @@ def run(size, chan=None, df=0, success=True):
     rx_audio = BytesIO(data)
 
     rx_data = BytesIO()
-    result = recv.main(Args(config=config,
-                            skip=0, input=rx_audio, output=rx_data))
+    result = recv.main(config=config, src=rx_audio, dst=rx_data)
     rx_data = rx_data.getvalue()
 
     assert result == success

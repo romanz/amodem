@@ -8,6 +8,13 @@ class Configuration(object):
     Npoints = 64
     F0 = 1e3
 
+    # sender config
+    silence_start = 1.0
+    silence_stop = 1.0
+
+    # receiver config
+    skip_start = 0.1
+
     def __init__(self, **kwargs):
         self.__dict__.update(**kwargs)
 
