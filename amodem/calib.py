@@ -3,49 +3,40 @@ import logging
 
 log = logging.getLogger(__name__)
 
-from subprocess import PIPE
 from . import common
-from . import audio
 
 ALLOWED_EXCEPTIONS = (IOError, KeyboardInterrupt)
 
 
-def send(config, audio_play=audio.play, verbose=False):
+def send(config, dst, src=None, verbose=False):
     calibration_symbols = int(1.0 * config.Fs)
     t = np.arange(0, calibration_symbols) * config.Ts
     signal = [np.sin(2 * np.pi * f * t) for f in config.frequencies]
     signal = common.dumps(np.concatenate(signal))
 
-    player = audio_play(Fs=config.Fs)
-    p = player.launch(stdin=PIPE)
-    fd = p.stdin
     try:
         while True:
-            fd.write(signal)
+            dst.write(signal)
     except ALLOWED_EXCEPTIONS:
         pass
-    finally:
-        p.kill()
 
 
 def run_recorder(config, recorder):
 
-    FRAME_LENGTH = 200 * config.Nsym
-    process = recorder.launch(stdout=PIPE)
-    frame_size = int(recorder.bytes_per_sample * FRAME_LENGTH)
+    frame_length = 200 * config.Nsym
+    frame_size = frame_length * config.sample_size
 
-    t = np.arange(0, FRAME_LENGTH) * config.Ts
+    t = np.arange(0, frame_length) * config.Ts
+
     scaling_factor = 0.5 * len(t)
     carriers = [np.exp(2j * np.pi * f * t) for f in config.frequencies]
     carriers = np.array(carriers) / scaling_factor
-
-    fd = process.stdout
 
     states = [True]
     errors = ['weak', 'strong', 'noisy']
     try:
         while True:
-            data = fd.read(frame_size)
+            data = recorder.read(frame_size)
             if len(data) < frame_size:
                 return
             data = common.loads(data)
@@ -76,20 +67,17 @@ def run_recorder(config, recorder):
             )
     except ALLOWED_EXCEPTIONS:
         pass
-    finally:
-        process.kill()
 
 fmt = '{freq:6.0f} Hz: {message:s}{extra:s}'
 fields = ['peak', 'total', 'rms', 'coherency']
 
 
-def recv(config, audio_record=audio.record, verbose=False):
+def recv(config, src, dst=None, verbose=False):
     extra = ''
     if verbose:
         extra = ''.join(', {0}={{{0}:.4f}}'.format(f) for f in fields)
 
-    recorder = audio_record(Fs=config.Fs)
-    for result in run_recorder(config=config, recorder=recorder):
+    for result in run_recorder(config=config, recorder=src):
         msg = fmt.format(extra=extra.format(**result), **result)
         if not result['error']:
             log.info(msg)

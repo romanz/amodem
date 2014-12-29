@@ -8,6 +8,11 @@ class Configuration(object):
     Npoints = 64
     F0 = 1e3
 
+    # audio config
+    bits_per_sample = 16
+    sample_size = bits_per_sample // 8
+    samples_per_buffer = 1024
+
     # sender config
     silence_start = 1.0
     silence_stop = 1.0

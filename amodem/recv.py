@@ -18,9 +18,9 @@ from . import detect
 
 class Receiver(object):
 
-    def __init__(self, config, plt=None):
+    def __init__(self, config, pylab=None):
         self.stats = {}
-        self.plt = plt or common.Dummy()
+        self.plt = pylab or common.Dummy()
         self.modem = dsp.MODEM(config.symbols)
         self.frequencies = np.array(config.frequencies)
         self.omegas = 2 * np.pi * self.frequencies / config.Fs
@@ -209,7 +209,7 @@ class Receiver(object):
         self.plt.title(title)
 
 
-def main(config, src, dst, plt=None):
+def main(config, src, dst, pylab=None):
     reader = stream.Reader(src, data_type=common.loads)
     signal = itertools.chain.from_iterable(reader)
 
@@ -220,7 +220,7 @@ def main(config, src, dst, plt=None):
     reader.check = common.check_saturation
 
     detector = detect.Detector(config=config)
-    receiver = Receiver(config=config, plt=plt)
+    receiver = Receiver(config=config, pylab=pylab)
     success = False
     try:
         log.info('Waiting for carrier tone: %.1f kHz', config.Fc / 1e3)

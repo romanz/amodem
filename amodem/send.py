@@ -52,7 +52,7 @@ class Sender(object):
                 log.debug('Sent %8.1f kB', total_bits / 8e3)
 
 
-def main(config, src, dst):
+def main(config, src, dst, pylab=None):
     sender = Sender(dst, config=config)
     Fs = config.Fs
 

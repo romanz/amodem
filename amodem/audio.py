@@ -1,31 +1,35 @@
-import subprocess as sp
+import pyaudio
 import logging
-import functools
 
 log = logging.getLogger(__name__)
 
 
-class ALSA(object):
-    def __init__(self, tool, Fs):
-        self.Fs = int(Fs)  # sampling rate
-        self.bits_per_sample = 16
-        self.bytes_per_sample = self.bits_per_sample / 8.0
-        self.bytes_per_second = self.bytes_per_sample * self.Fs
-        # PCM signed little endian
-        self.audio_format = 'S{0}_LE'.format(self.bits_per_sample)
-        self.audio_tool = tool
+class Interface(object):
+    def __init__(self, config, library=pyaudio):
+        self.p = library.PyAudio()
+        format = getattr(library, 'paInt{0}'.format(config.bits_per_sample))
+        self.sample_size = config.sample_size
+        self.kwargs = dict(
+            channels=1, rate=int(config.Fs), format=format,
+            frames_per_buffer=config.samples_per_buffer
+        )
 
-    def launch(self, fname=None, **kwargs):
-        if fname is None:
-            fname = '-'  # use stdin/stdout if filename not specified
-        args = [self.audio_tool, fname, '-q',
-                '-f', self.audio_format,
-                '-c', '1',
-                '-r', str(self.Fs)]
-        log.debug('Running: %r', ' '.join(args))
-        p = sp.Popen(args=args, **kwargs)
-        return p
+    def __del__(self):
+        self.p.terminate()
 
-# Use ALSA tools for audio playing/recording
-play = functools.partial(ALSA, tool='aplay')
-record = functools.partial(ALSA, tool='arecord')
+    def player(self):
+        return self.p.open(output=True, **self.kwargs)
+
+    def recorder(self):
+        stream = self.p.open(input=True, **self.kwargs)
+        return _Recorder(stream, sample_size=self.sample_size)
+
+
+class _Recorder(object):
+    def __init__(self, stream, sample_size):
+        self.stream = stream
+        self.sample_size = sample_size
+
+    def read(self, size):
+        assert size % self.sample_size == 0
+        return self.stream.read(size // self.sample_size)

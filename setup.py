@@ -25,7 +25,7 @@ setup(
     packages=['amodem'],
     tests_require=['pytest'],
     cmdclass={'test': PyTest},
-    install_requires=['numpy', 'bitarray', 'argcomplete'],
+    install_requires=['numpy', 'bitarray', 'argcomplete', 'pyaudio'],
     platforms=['POSIX'],
     classifiers=[
         "Development Status :: 4 - Beta",
