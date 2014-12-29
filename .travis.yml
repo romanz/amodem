@@ -9,6 +9,7 @@ before_install:
   - sudo apt-get install portaudio19-dev
 
 install:
+  - pip install git+http://people.csail.mit.edu/hubert/git/pyaudio.git
   - pip install .
   - pip install coveralls pep8 mock
 
