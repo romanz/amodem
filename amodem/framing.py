@@ -33,8 +33,8 @@ class Checksum(object):
 
 
 class Framer(object):
-    block_size = 1024
-    prefix_fmt = '>L'
+    block_size = 250
+    prefix_fmt = '>B'
     prefix_len = struct.calcsize(prefix_fmt)
     checksum = Checksum()
 
