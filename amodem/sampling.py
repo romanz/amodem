@@ -1,11 +1,8 @@
 #!/usr/bin/env python
 import numpy as np
 import itertools
-import logging
 
 from amodem import common
-
-log = logging.getLogger(__name__)
 
 
 class Interpolator(object):

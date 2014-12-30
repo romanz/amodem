@@ -16,13 +16,10 @@ except ImportError:
     argcomplete = None
 
 import logging
-
 log = logging.getLogger('__name__')
 
 from amodem import recv, send, calib, audio
 from amodem.config import bitrates
-
-null = open('/dev/null', 'wb')
 
 import os
 bitrate = os.environ.get('BITRATE', 1)

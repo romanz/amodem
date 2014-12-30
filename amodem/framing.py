@@ -1,4 +1,3 @@
-''' Reed-Solomon CODEC. '''
 from . import common
 import bitarray
 

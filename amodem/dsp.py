@@ -1,8 +1,5 @@
 import numpy as np
 from numpy import linalg
-import logging
-
-log = logging.getLogger(__name__)
 
 from . import common
 
