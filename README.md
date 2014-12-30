@@ -12,11 +12,11 @@ This program can be used to transmit a specified file between 2 computers, using
 a simple audio cable (for better SNR and higher speeds) or a simple headset,
 allowing true air-gapped communication (via a speaker and a microphone).
 
-The sender modulates an input binary data file into an 32kHz audio file,
-which is played to the sound card, using `aplay` Linux utility.
+The sender modulates an input binary data file into an 32kHz audio,
+which is played to the sound card.
 
-The receiver side uses `arecord` Linux utility to record the transmitted audio
-to an audio file, which is demodulated concurrently into an output binary data file.
+The receiver side records the transmitted audio,
+which is demodulated concurrently into an output binary data file.
 
 The process requires a single manual calibration step: the transmitter has to
 find maximal output volume for its sound card, which will not saturate the
@@ -31,36 +31,25 @@ The modem is using OFDM over an audio cable with the following parameters:
 
 This way, modem achieves 48kbps bitrate = 6.0 kB/s.
 
-A simple CRC-32 checksum is used for data integrity verification on each 1KB data frame.
+A simple CRC-32 checksum is used for data integrity verification
+on each 250 byte data frame.
 
 
 # Installation
 
-## via git (for developers)
-
-Make sure that `numpy` and `bitarray` Python packages are installed.
+Make sure that `numpy`, `bitarray` and `PyAudio` Python packages are installed.
 
     $ pip install numpy bitarray
+    $ pip install git+http://people.csail.mit.edu/hubert/git/pyaudio.git  # requires portaudio19-dev package
 
 or, on Debian/Ubuntu:
 
-    $ apt-get install python-numpy python-bitarray
+    $ sudo apt-get install python-numpy python-bitarray python-pyaudio
 
-Clone and setup relevant path variables:
+Clone and install latest version:
 
     $ git clone https://github.com/romanz/amodem.git
-    $ export PATH=$PATH:$PWD/amodem
-
-## via pip (for users)
-
-Run the following command to install latest release from PyPI
-(will also download and install `numpy` and `bitarray` packages):
-
-    $ pip install amodem
-
-or, for latest development version:
-
-    $ pip install https://github.com/romanz/amodem/archive/master.zip
+    $ pip install --user -e amodem
 
 For graphs and visualization (optional), install:
 
@@ -72,7 +61,7 @@ Run:
 
     $ export BITRATE=48  # explicitly select highest MODEM bit rate (assuming good SNR).
     $ amodem-cli -h
-    usage: amodem-cli [-h] [-v | -q] {send,recv} ...
+    usage: amodem-cli [-h] {send,recv} ...
 
     Audio OFDM MODEM: 48.0 kb/s (64-QAM x 8 carriers) Fs=32.0 kHz
 
@@ -83,8 +72,6 @@ Run:
 
     optional arguments:
       -h, --help     show this help message and exit
-      -v, --verbose
-      -q, --quiet
 
 
 # Calibration
@@ -123,12 +110,8 @@ If the signal is "too weak", increase the sender's output audio level.
 
 If the signal is "too strong", decrease the sender's output audio level.
 
-If the signal is "too noisy", please re-run the receiver for at least 10 seconds:
-```
-~/receiver $ amodem-cli recv --wave >recording.raw
-```
-and please send me `recording.raw` file for debugging.
-
+If the signal is "too noisy", the SNR is probably too low: decrease the
+background noise or increase the signal (without causing saturation).
 
 # Testing
 
@@ -205,7 +188,7 @@ Make sure that `matplotlib` package is installed, and run (at the receiver side)
 
 # Donations
 
-Want to donate? Feel free. 
+Want to donate? Feel free.
 Send to [1C1snTrkHAHM5XnnfuAtiTBaA11HBxjJyv](https://blockchain.info/address/1C1snTrkHAHM5XnnfuAtiTBaA11HBxjJyv).
 
 Thanks :)
