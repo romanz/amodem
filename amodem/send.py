@@ -76,3 +76,4 @@ def main(config, src, dst, pylab=None):
 
     # post-padding audio with silence
     sender.write(np.zeros(int(Fs * config.silence_stop)))
+    return True
