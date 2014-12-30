@@ -45,6 +45,8 @@ def test_fail():
 def test_missing():
     f = framing.Framer()
     with pytest.raises(ValueError):
-        list(f.decode(b'\x00'))
+        list(f.decode(b''))
     with pytest.raises(ValueError):
-        list(f.decode(b'\x01\x02\x03\x04'))
+        list(f.decode(b'\x01'))
+    with pytest.raises(ValueError):
+        list(f.decode(b'\xff'))
