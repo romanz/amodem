@@ -130,8 +130,9 @@ def main():
     if args.calibrate:
         args.calibration(config=config, src=src, dst=dst, verbose=args.verbose)
     else:
-        args.main(config=config, src=src, dst=dst, pylab=pylab)
+        return args.main(config=config, src=src, dst=dst, pylab=pylab)
 
 
 if __name__ == '__main__':
-    main()
+    success = main()
+    sys.exit(0 if success else 1)
