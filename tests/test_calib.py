@@ -37,16 +37,16 @@ def test_success():
 
 
 def test_errors():
-    p = ProcessMock()
-
-    def _write(data):
-        raise IOError()
-    p.write = _write
+    class WriteError(ProcessMock):
+        def write(self, data):
+            raise IOError()
+    p = WriteError()
     calib.send(config, p)
     assert p.buf.tell() == 0
 
-    def _read(data):
-        raise KeyboardInterrupt()
-    p.read = _read
+    class ReadError(ProcessMock):
+        def read(self, n):
+            raise KeyboardInterrupt()
+    p = ReadError()
     calib.recv(config, p, verbose=True)
     assert p.buf.tell() == 0
