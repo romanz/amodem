@@ -64,7 +64,7 @@ def main(config, src, dst, pylab=None):
     training_duration = sender.offset
     log.info('Sending %.3f seconds of training audio', training_duration / Fs)
 
-    reader = stream.Reader(src, bufsize=(64 << 10), eof=True)
+    reader = stream.Reader(src, eof=True)
     data = itertools.chain.from_iterable(reader)
     bits = framing.encode(data)
     log.info('Starting modulation')

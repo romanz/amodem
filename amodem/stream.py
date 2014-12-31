@@ -3,14 +3,14 @@ import time
 
 class Reader(object):
 
-    def __init__(self, fd, data_type=None, bufsize=4096,
-                 eof=False, timeout=2.0, wait=0.2):
+    wait = 0.2
+    timeout = 2.0
+    bufsize = 4096
+
+    def __init__(self, fd, data_type=None, eof=False):
         self.fd = fd
         self.data_type = data_type if (data_type is not None) else lambda x: x
-        self.bufsize = bufsize
         self.eof = eof
-        self.timeout = timeout
-        self.wait = wait
         self.total = 0
 
     def __iter__(self):
