@@ -7,10 +7,10 @@ log = logging.getLogger(__name__)
 class Interface(object):
     def __init__(self, config, library=pyaudio):
         self.p = library.PyAudio()
-        format = getattr(library, 'paInt{0}'.format(config.bits_per_sample))
+        fmt = getattr(library, 'paInt{0}'.format(config.bits_per_sample))
         self.sample_size = config.sample_size
         self.kwargs = dict(
-            channels=1, rate=int(config.Fs), format=format,
+            channels=1, rate=int(config.Fs), format=fmt,
             frames_per_buffer=config.samples_per_buffer
         )
 
