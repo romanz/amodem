@@ -44,8 +44,8 @@ class Detector(object):
 
             if counter == self.CARRIER_THRESHOLD:
                 return offset, bufs
-        else:
-            raise ValueError('No carrier detected')
+
+        raise ValueError('No carrier detected')
 
     def run(self, samples):
         offset, bufs = self._wait(samples)
