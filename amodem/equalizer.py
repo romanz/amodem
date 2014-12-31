@@ -80,6 +80,6 @@ class Equalizer(object):
 
         A = np.concatenate(A, axis=0)
         b = np.array(b)
-        h, residuals, rank, sv = lstsq(A, b)
+        h = lstsq(A, b)[0]
         h = h[::-1].real
         return h
