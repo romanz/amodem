@@ -81,12 +81,14 @@ def chain_wrapper(func):
         return itertools.chain.from_iterable(result)
     return wrapped
 
+
 class BitPacker(object):
-    word_size = 8
+    byte_size = 8
+
     def __init__(self):
         bits_list = []
-        for index in range(2 ** self.word_size):
-            bits = [index & (2 ** k) for k in range(self.word_size)]
+        for index in range(2 ** self.byte_size):
+            bits = [index & (2 ** k) for k in range(self.byte_size)]
             bits_list.append(tuple((1 if b else 0) for b in bits))
 
         self.to_bits = dict((i, bits) for i, bits in enumerate(bits_list))
