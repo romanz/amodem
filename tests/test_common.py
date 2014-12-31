@@ -6,7 +6,7 @@ def iterlist(x, *args, **kwargs):
     x = np.array(x)
     return list(
         (i, list(x))
-        for i, x in common.iterate(x, enumerate=True, *args, **kwargs)
+        for i, x in common.iterate(x, index=True, *args, **kwargs)
     )
 
 

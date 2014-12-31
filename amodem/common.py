@@ -22,7 +22,7 @@ def dumps(sym):
     return sym.astype('int16').tostring()
 
 
-def iterate(data, size, func=None, truncate=True, enumerate=False):
+def iterate(data, size, func=None, truncate=True, index=False):
     offset = 0
     data = iter(data)
 
@@ -35,7 +35,7 @@ def iterate(data, size, func=None, truncate=True, enumerate=False):
             done = True
 
         result = func(buf) if func else np.array(buf)
-        yield (offset, result) if enumerate else result
+        yield (offset, result) if index else result
         offset += size
 
 

@@ -31,7 +31,7 @@ class Detector(object):
     def run(self, samples):
         counter = 0
         bufs = collections.deque([], maxlen=self.maxlen)
-        for offset, buf in common.iterate(samples, self.Nsym, enumerate=True):
+        for offset, buf in common.iterate(samples, self.Nsym, index=True):
             if offset > self.max_offset:
                 raise ValueError('Timeout waiting for carrier')
             bufs.append(buf)
