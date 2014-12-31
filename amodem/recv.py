@@ -217,8 +217,6 @@ def main(config, src, dst, pylab=None):
     log.debug('Skipping %.3f seconds', config.skip_start)
     common.take(signal, to_skip)
 
-    reader.check = common.check_saturation
-
     detector = detect.Detector(config=config)
     receiver = Receiver(config=config, pylab=pylab)
     success = False

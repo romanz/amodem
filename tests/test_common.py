@@ -47,15 +47,6 @@ def test_dumps_loads():
     assert all(x == y)
 
 
-def test_saturation():
-    x = np.array([1, -1, 1, -1]) * 1e10
-    try:
-        common.check_saturation(x)
-        assert False
-    except common.SaturationError as e:
-        assert e.args == (max(x),)
-
-
 def test_izip():
     x = range(10)
     y = range(-10, 0)

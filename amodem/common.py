@@ -5,17 +5,6 @@ import logging
 log = logging.getLogger(__name__)
 
 scaling = 32000.0  # out of 2**15
-SATURATION_THRESHOLD = (2**15 - 1) / scaling
-
-
-class SaturationError(ValueError):
-    pass
-
-
-def check_saturation(x):
-    peak = np.max(np.abs(x))
-    if peak >= SATURATION_THRESHOLD:
-        raise SaturationError(peak)
 
 
 def load(fileobj):

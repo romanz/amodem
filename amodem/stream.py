@@ -12,7 +12,6 @@ class Reader(object):
         self.timeout = timeout
         self.wait = wait
         self.total = 0
-        self.check = None
 
     def __iter__(self):
         return self
@@ -37,10 +36,7 @@ class Reader(object):
                 block.extend(data)
 
             if len(block) == self.bufsize:
-                values = self.data_type(block)
-                if self.check:
-                    self.check(values)
-                return values
+                return self.data_type(block)
 
             time.sleep(self.wait)
 
