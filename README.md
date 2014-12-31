@@ -38,14 +38,14 @@ on each 250 byte data frame.
 
 # Installation
 
-Make sure that `numpy`, `bitarray` and `PyAudio` Python packages are installed.
+Make sure that `numpy` and `PyAudio` Python packages are installed.
 
-    $ pip install numpy bitarray
-    $ pip install git+http://people.csail.mit.edu/hubert/git/pyaudio.git  # requires portaudio19-dev package
+    $ pip install numpy
+    $ pip install git+http://people.csail.mit.edu/hubert/git/pyaudio.git
 
 or, on Debian/Ubuntu:
 
-    $ sudo apt-get install python-numpy python-bitarray python-pyaudio
+    $ sudo apt-get install python-numpy python-pyaudio
 
 Clone and install latest version:
 

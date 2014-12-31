@@ -1,5 +1,4 @@
 from . import common
-import bitarray
 
 import functools
 import itertools
@@ -41,7 +40,7 @@ class Framer(object):
 
     def _pack(self, block):
         frame = self.checksum.encode(block)
-        return struct.pack(self.prefix_fmt, len(frame)) + frame
+        return bytearray(struct.pack(self.prefix_fmt, len(frame)) + frame)
 
     def encode(self, data):
         for block in common.iterate(data=data, size=self.block_size,
@@ -82,21 +81,33 @@ def chain_wrapper(func):
         return itertools.chain.from_iterable(result)
     return wrapped
 
+class BitPacker(object):
+    word_size = 8
+    def __init__(self):
+        bits_list = []
+        for index in range(2 ** self.word_size):
+            bits = [index & (2 ** k) for k in range(self.word_size)]
+            bits_list.append(tuple((1 if b else 0) for b in bits))
+
+        self.to_bits = dict((i, bits) for i, bits in enumerate(bits_list))
+        self.to_byte = dict((bits, i) for i, bits in enumerate(bits_list))
+
 
 @chain_wrapper
 def encode(data, framer=None):
+    converter = BitPacker()
     framer = framer or Framer()
     for frame in framer.encode(data):
-        bits = bitarray.bitarray(endian='little')
-        bits.frombytes(bytes(frame))
-        yield bits
+        for byte in frame:
+            yield converter.to_bits[byte]
 
 
 @chain_wrapper
-def _to_bytes(bits, block_size=1):
-    for chunk in common.iterate(data=bits, size=8*block_size,
-                                func=lambda x: x, truncate=True):
-        yield bitarray.bitarray(chunk, endian='little').tobytes()
+def _to_bytes(bits):
+    converter = BitPacker()
+    for chunk in common.iterate(data=bits, size=8,
+                                func=tuple, truncate=True):
+        yield [converter.to_byte[chunk]]
 
 
 @chain_wrapper
