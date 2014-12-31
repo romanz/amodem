@@ -28,7 +28,7 @@ class Detector(object):
         self.maxlen = config.baud  # 1 second of symbols
         self.max_offset = self.TIMEOUT * config.Fs
 
-    def run(self, samples):
+    def _wait(self, samples):
         counter = 0
         bufs = collections.deque([], maxlen=self.maxlen)
         for offset, buf in common.iterate(samples, self.Nsym, index=True):
@@ -43,9 +43,12 @@ class Detector(object):
                 counter = 0
 
             if counter == self.CARRIER_THRESHOLD:
-                break
+                return offset, bufs
         else:
             raise ValueError('No carrier detected')
+
+    def run(self, samples):
+        offset, bufs = self._wait(samples)
 
         length = (self.CARRIER_THRESHOLD - 1) * self.Nsym
         begin = offset - length
