@@ -21,7 +21,7 @@ class Equalizer(object):
     def train_symbols(self, length, seed=0):
         r = random.Random(seed)
         choose = lambda: [r.choice(_constellation) for j in range(self.Nfreq)]
-        return np.array([choose() for i in range(length)])
+        return np.array([choose() for _ in range(length)])
 
     def modulator(self, symbols):
         gain = 1.0 / len(self.carriers)
@@ -59,7 +59,7 @@ class Equalizer(object):
 
         A = np.array(A)
         b = np.array(b)
-        h, residuals, rank, sv = lstsq(A, b)
+        h = lstsq(A, b)[0]
         h = h[::-1].real
 
         return h
