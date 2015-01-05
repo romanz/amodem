@@ -7,7 +7,7 @@ import struct
 import logging
 log = logging.getLogger(__name__)
 
-_crc32 = lambda x, mask: binascii.crc32(x) & mask
+_crc32 = lambda x, mask: binascii.crc32(bytes(x)) & mask
 # (so the result will be unsigned on Python 2/3)
 
 
@@ -21,7 +21,7 @@ class Checksum(object):
         return struct.pack(self.fmt, checksum) + payload
 
     def decode(self, data):
-        received, = struct.unpack(self.fmt, data[:self.size])
+        received, = struct.unpack(self.fmt, bytes(data[:self.size]))
         payload = data[self.size:]
         expected = self.func(payload)
         if received != expected:
@@ -65,7 +65,7 @@ class Framer(object):
         chunk = bytearray(itertools.islice(data, length))
         if len(chunk) < length:
             raise ValueError('missing prefix data')
-        return struct.unpack(fmt, chunk)
+        return struct.unpack(fmt, bytes(chunk))
 
     def _take_len(self, data, length):
         chunk = bytearray(itertools.islice(data, length))
