@@ -4,9 +4,10 @@ import logging
 log = logging.getLogger(__name__)
 
 
-class Library(object):
-    def __init__(self, name):
+class Interface(object):
+    def __init__(self, name, config):
         self.lib = ctypes.CDLL(name)
+        self.config = config
         self.streams = []
         assert self._error_string(0) == 'Success'
 
@@ -32,10 +33,10 @@ class Library(object):
         self.call('Terminate')
 
     def recorder(self):
-        return Stream(self, read=True)
+        return Stream(lib=self, config=self.config, read=True)
 
     def player(self):
-        return Stream(self, write=True)
+        return Stream(lib=self, config=self.config, write=True)
 
 
 class Stream(object):
@@ -46,29 +47,23 @@ class Stream(object):
             ('channelCount', ctypes.c_int),
             ('sampleFormat', ctypes.c_ulong),
             ('suggestedLatency', ctypes.c_double),
-            ('hostApiSpecificStreamInfo', ctypes.POINTER(None)),
+            ('hostApiSpecificStreamInfo', ctypes.POINTER(None))
         ]
 
-    sample_rate = 32000.0
-    frames_per_buffer = 4096
-    suggested_latency = 0.1
-    channel_count = 1
-    sample_format = 0x00000008  # 16-bit samples (paInt16)
-    bytes_per_sample = 2
-    flags = 0  # no flags (paNoFlag)
-
-    def __init__(self, lib, read=False, write=False):
+    def __init__(self, lib, config, read=False, write=False):
         self.lib = lib
         self.stream = ctypes.POINTER(ctypes.c_void_p)()
         self.user_data = ctypes.c_void_p(None)
         self.stream_callback = ctypes.c_void_p(None)
+        self.bytes_per_sample = config.sample_size
+        assert config.bits_per_sample == 16  # just to make sure :)
 
         index = lib.call('GetDefaultInputDevice', restype=ctypes.c_int)
         self.params = Stream.Parameters(
-            device=index,
-            channelCount=self.channel_count,
-            sampleFormat=self.sample_format,
-            suggestedLatency=self.suggested_latency,
+            device=index,               # choose default device
+            channelCount=1,             # mono audio
+            sampleFormat=0x00000008,    # 16-bit samples (paInt16)
+            suggestedLatency=0.1,       # 100ms should be good enough
             hostApiSpecificStreamInfo=None)
 
         self.lib.call(
@@ -76,9 +71,9 @@ class Stream(object):
             ctypes.byref(self.stream),
             ctypes.byref(self.params) if read else None,
             ctypes.byref(self.params) if write else None,
-            ctypes.c_double(self.sample_rate),
-            ctypes.c_ulong(self.frames_per_buffer),
-            ctypes.c_ulong(self.flags),
+            ctypes.c_double(config.Fs),
+            ctypes.c_ulong(config.samples_per_buffer),
+            ctypes.c_ulong(0),  # no flags (paNoFlag)
             self.stream_callback,
             self.user_data)
 

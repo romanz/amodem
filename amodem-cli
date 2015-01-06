@@ -55,7 +55,7 @@ def main():
            'Fs={3:.1f} kHz')
     description = fmt.format(config.modem_bps / 1e3, len(config.symbols),
                              config.Nfreq, config.Fs / 1e3)
-    interface = audio.Library('libportaudio.so')
+    interface = audio.Interface('libportaudio.so', config=config)
 
     p = argparse.ArgumentParser(description=description)
     subparsers = p.add_subparsers()

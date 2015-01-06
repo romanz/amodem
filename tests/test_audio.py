@@ -1,4 +1,4 @@
-from amodem import audio
+from amodem import audio, config
 
 import mock
 import pytest
@@ -13,7 +13,7 @@ def test():
         lib.Pa_GetDefaultInputDevice.return_value = 1
         lib.Pa_OpenStream.return_value = 0
         cdll.return_value = lib
-        interface = audio.Library('portaudio')
+        interface = audio.Interface(name='portaudio', config=config.fastest())
         with interface:
             s = interface.player()
             s.stream = 1  # simulate non-zero output stream handle

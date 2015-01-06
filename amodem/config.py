@@ -11,7 +11,7 @@ class Configuration(object):
     # audio config
     bits_per_sample = 16
     sample_size = bits_per_sample // 8
-    samples_per_buffer = 1024
+    samples_per_buffer = 4096
 
     # sender config
     silence_start = 1.0
