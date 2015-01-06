@@ -1,33 +1,30 @@
 from amodem import audio
-from amodem import config
 
 import mock
+import pytest
 
 
-def test_pyaudio_mock():
-    m = mock.Mock()
-    m.paInt16 = 8
-    m.PyAudio.return_value = m
-    m.open.return_value = m
+def test():
+    length = 1024
+    data = b'\x12\x34' * length
+    with mock.patch('ctypes.CDLL') as cdll:
+        lib = mock.Mock()
+        lib.Pa_GetErrorText = lambda code: 'Error' if code else 'Success'
+        lib.Pa_GetDefaultInputDevice.return_value = 1
+        lib.Pa_OpenStream.return_value = 0
+        cdll.return_value = lib
+        interface = audio.Library('portaudio')
+        with interface:
+            s = interface.player()
+            s.stream = 1  # simulate non-zero output stream handle
+            s.write(data=data)
+            s.close()
 
-    cfg = config.fastest()
-    interface = audio.Interface(config=cfg, library=m)
-    recorder = interface.recorder()
-    n = 1024
-    data = recorder.read(n)
+        with interface:
+            s = interface.recorder()
+            s.stream = 2  # simulate non-zero input stream handle
+            s.read(len(data))
+            s.close()
 
-    data = '\x00' * n
-    player = interface.player()
-    player.write(data)
-
-    kwargs = dict(
-        channels=1, frames_per_buffer=cfg.samples_per_buffer,
-        rate=cfg.Fs, format=m.paInt16
-    )
-    assert m.mock_calls == [
-        mock.call.PyAudio(),
-        mock.call.open(input=True, **kwargs),
-        mock.call.read(n // cfg.sample_size),
-        mock.call.open(output=True, **kwargs),
-        mock.call.write(data)
-    ]
+        with pytest.raises(Exception):
+            interface._error_check(1)

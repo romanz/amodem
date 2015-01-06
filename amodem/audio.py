@@ -7,11 +7,11 @@ log = logging.getLogger(__name__)
 class Library(object):
     def __init__(self, name):
         self.lib = ctypes.CDLL(name)
-        self.lib.Pa_GetVersionText.restype = ctypes.c_char_p
-        log.debug('Library version: "%s"', self.lib.Pa_GetVersionText())
-        self.lib.Pa_GetErrorText.restype = ctypes.c_char_p
-        assert self.lib.Pa_GetErrorText(0) == 'Success'
         self.streams = []
+        assert self._error_string(0) == 'Success'
+
+    def _error_string(self, code):
+        return self.call('GetErrorText', code, restype=ctypes.c_char_p)
 
     def call(self, name, *args, **kwargs):
         func = getattr(self.lib, 'Pa_{0}'.format(name))
@@ -20,7 +20,7 @@ class Library(object):
 
     def _error_check(self, res):
         if res != 0:
-            raise Exception(res, self.lib.Pa_GetErrorText(res))
+            raise Exception(res, self._error_string(res))
 
     def __enter__(self):
         self.call('Initialize')
