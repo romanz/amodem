@@ -11,12 +11,13 @@ ALLOWED_EXCEPTIONS = (IOError, KeyboardInterrupt)
 def send(config, dst, src=None, verbose=False):
     calibration_symbols = int(1.0 * config.Fs)
     t = np.arange(0, calibration_symbols) * config.Ts
-    signal = [np.sin(2 * np.pi * f * t) for f in config.frequencies]
-    signal = common.dumps(np.concatenate(signal))
+    signals = [np.sin(2 * np.pi * f * t) for f in config.frequencies]
+    signals = map(common.dumps, signals)
 
     try:
         while True:
-            dst.write(signal)
+            for signal in signals:
+                dst.write(signal)
     except ALLOWED_EXCEPTIONS:
         pass
 
