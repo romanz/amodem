@@ -1,4 +1,5 @@
 import numpy as np
+import itertools
 import logging
 
 log = logging.getLogger(__name__)
@@ -15,9 +16,8 @@ def send(config, dst, src=None, verbose=False):
     signals = map(common.dumps, signals)
 
     try:
-        while True:
-            for signal in signals:
-                dst.write(signal)
+        for signal in itertools.cycle(signals):
+            dst.write(signal)
     except ALLOWED_EXCEPTIONS:
         pass
 
