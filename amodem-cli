@@ -55,7 +55,8 @@ def main():
            'Fs={3:.1f} kHz')
     description = fmt.format(config.modem_bps / 1e3, len(config.symbols),
                              config.Nfreq, config.Fs / 1e3)
-    interface = audio.Interface(config)
+    interface = audio.Library('libportaudio.so')
+
     p = argparse.ArgumentParser(description=description)
     subparsers = p.add_subparsers()
 
@@ -102,32 +103,35 @@ def main():
 
     if argcomplete:
         argcomplete.autocomplete(p)
-    args = p.parse_args()
-    if args.verbose == 0:
-        level, format = 'INFO', '%(message)s'
-    elif args.verbose == 1:
-        level, format = 'DEBUG', '%(message)s'
-    elif args.verbose >= 2:
-        level, format = ('DEBUG', '%(asctime)s %(levelname)-10s '
-                                  '%(message)-100s '
-                                  '%(filename)s:%(lineno)d')
-    if args.quiet:
-        level, format = 'WARNING', '%(message)s'
-    logging.basicConfig(level=level, format=format)
 
-    # Parsing and execution
-    log.debug(description)
-    if getattr(args, 'plot', False):
-        import pylab
-    else:
-        pylab = None
+    with interface:
+        args = p.parse_args()
+        if args.verbose == 0:
+            level, format = 'INFO', '%(message)s'
+        elif args.verbose == 1:
+            level, format = 'DEBUG', '%(message)s'
+        elif args.verbose >= 2:
+            level, format = ('DEBUG', '%(asctime)s %(levelname)-10s '
+                                      '%(message)-100s '
+                                      '%(filename)s:%(lineno)d')
+        if args.quiet:
+            level, format = 'WARNING', '%(message)s'
+        logging.basicConfig(level=level, format=format)
 
-    src = args.input_type(args.input)
-    dst = args.output_type(args.output)
-    if args.calibrate:
-        args.calibration(config=config, src=src, dst=dst, verbose=args.verbose)
-    else:
-        return args.main(config=config, src=src, dst=dst, pylab=pylab)
+        # Parsing and execution
+        log.debug(description)
+        if getattr(args, 'plot', False):
+            import pylab
+        else:
+            pylab = None
+
+        src = args.input_type(args.input)
+        dst = args.output_type(args.output)
+        if args.calibrate:
+            args.calibration(config=config, src=src, dst=dst,
+                             verbose=args.verbose)
+        else:
+            return args.main(config=config, src=src, dst=dst, pylab=pylab)
 
 
 if __name__ == '__main__':
