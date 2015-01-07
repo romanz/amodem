@@ -87,7 +87,10 @@ class Receiver(object):
         equalization_filter = dsp.FIR(h=coeffs)
         equalized = list(equalization_filter(signal))
         equalized = equalized[prefix+lookahead:-postfix+lookahead]
+        self._verify_training(equalized, train_symbols)
+        return equalization_filter
 
+    def _verify_training(self, equalized, train_symbols):
         symbols = self.equalizer.demodulator(equalized, train.equalizer_length)
         sliced = np.array(symbols).round()
         errors = np.array(sliced - train_symbols, dtype=np.bool)
@@ -106,8 +109,6 @@ class Receiver(object):
             self._constellation(symbols[:, i], train_symbols[:, i],
                                 '$F_c = {0} Hz$'.format(freq), index=i)
         assert error_rate == 0, error_rate
-
-        return equalization_filter
 
     def _demodulate(self, sampler, symbols):
         streams = []
