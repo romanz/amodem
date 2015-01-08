@@ -38,22 +38,23 @@ class Equalizer(object):
                             omegas=self.omegas, Nsym=self.Nsym)
         return np.array(list(itertools.islice(symbols, size)))
 
-    def equalize_signal(self, signal, expected, order, lookahead=0):
-        signal = [np.zeros(order-1), signal, np.zeros(lookahead)]
-        signal = np.concatenate(signal)
-        length = len(expected)
 
-        A = []
-        b = []
+def train(signal, expected, order, lookahead=0):
+    signal = [np.zeros(order-1), signal, np.zeros(lookahead)]
+    signal = np.concatenate(signal)
+    length = len(expected)
 
-        for i in range(length - order):
-            offset = order + i
-            row = signal[offset-order:offset+lookahead]
-            A.append(np.array(row, ndmin=2))
-            b.append(expected[i])
+    A = []
+    b = []
 
-        A = np.concatenate(A, axis=0)
-        b = np.array(b)
-        h = lstsq(A, b)[0]
-        h = h[::-1].real
-        return h
+    for i in range(length - order):
+        offset = order + i
+        row = signal[offset-order:offset+lookahead]
+        A.append(np.array(row, ndmin=2))
+        b.append(expected[i])
+
+    A = np.concatenate(A, axis=0)
+    b = np.array(b)
+    h = lstsq(A, b)[0]
+    h = h[::-1].real
+    return h

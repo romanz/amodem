@@ -51,10 +51,9 @@ def test_signal():
     den = np.array([1, -0.6, 0.1])
     num = np.array([0.5])
     y = dsp.lfilter(x=x, b=num, a=den)
-    e = equalizer.Equalizer(config)
 
     lookahead = 2
-    h = e.equalize_signal(
+    h = equalizer.train(
         signal=y, expected=x, order=len(den), lookahead=lookahead)
     assert norm(h[:lookahead]) < 1e-12
 

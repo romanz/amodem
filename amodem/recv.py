@@ -75,7 +75,7 @@ class Receiver(object):
 
         signal = sampler.take(signal_length + lookahead)
 
-        coeffs = self.equalizer.equalize_signal(
+        coeffs = equalizer.train(
             signal=signal[prefix:-postfix],
             expected=train_signal,
             order=order, lookahead=lookahead
