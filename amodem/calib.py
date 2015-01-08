@@ -22,8 +22,7 @@ def send(config, dst):
         pass
 
 
-def run_recorder(config, recorder):
-
+def frame_iter(config, src):
     frame_length = 200 * config.Nsym
     frame_size = frame_length * config.sample_size
 
@@ -33,20 +32,25 @@ def run_recorder(config, recorder):
     carriers = [np.exp(2j * np.pi * f * t) for f in config.frequencies]
     carriers = np.array(carriers) / scaling_factor
 
+    while True:
+        data = src.read(frame_size)
+        if len(data) < frame_size:
+            return
+        data = common.loads(data)
+        frame = data - np.mean(data)
+
+        coeffs = np.dot(carriers, frame)
+        peak = np.max(np.abs(frame))
+        total = np.sqrt(np.dot(frame, frame) / scaling_factor)
+        yield coeffs, peak, total
+
+
+def detector(config, src):
+
     states = [True]
     errors = ['weak', 'strong', 'noisy']
     try:
-        while True:
-            data = recorder.read(frame_size)
-            if len(data) < frame_size:
-                return
-            data = common.loads(data)
-            frame = data - np.mean(data)
-
-            coeffs = np.dot(carriers, frame)
-            peak = np.max(np.abs(frame))
-            total = np.sqrt(np.dot(frame, frame) / scaling_factor)
-
+        for coeffs, peak, total in frame_iter(config, src):
             max_index = np.argmax(np.abs(coeffs))
             freq = config.frequencies[max_index]
             rms = abs(coeffs[max_index])
@@ -78,7 +82,7 @@ def recv(config, src, verbose=False):
     if verbose:
         extra = ''.join(', {0}={{{0}:.4f}}'.format(f) for f in fields)
 
-    for result in run_recorder(config=config, recorder=src):
+    for result in detector(config=config, src=src):
         msg = fmt.format(extra=extra.format(**result), **result)
         if not result['error']:
             log.info(msg)
