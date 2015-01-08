@@ -5,7 +5,8 @@ log = logging.getLogger(__name__)
 
 
 class Interface(object):
-    def __init__(self, name, config):
+    def __init__(self, name, config, debug=False):
+        self.debug = bool(debug)
         self.lib = ctypes.CDLL(name)
         self.config = config
         self.streams = []
@@ -15,7 +16,10 @@ class Interface(object):
         return self.call('GetErrorText', code, restype=ctypes.c_char_p)
 
     def call(self, name, *args, **kwargs):
-        func = getattr(self.lib, 'Pa_{0}'.format(name))
+        func_name = 'Pa_{0}'.format(name)
+        if self.debug:
+            log.debug('API: %s%s', name, args)
+        func = getattr(self.lib, func_name)
         func.restype = kwargs.get('restype', self._error_check)
         return func(*args)
 
