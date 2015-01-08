@@ -72,7 +72,12 @@ def main():
         '-c', '--calibrate', default=False, action='store_true')
 
     sender.set_defaults(
-        main=send.main, calibration=calib.send,
+        main=lambda config, args: send.main(
+            config, src=args.src, dst=args.dst
+        ),
+        calib=lambda config, args: calib.send(
+            config, dst=args.dst
+        ),
         input_type=FileType('rb'),
         output_type=FileType('wb', interface)
     )
@@ -91,7 +96,12 @@ def main():
         '--plot', action='store_true', default=False,
         help='plot results using pylab module')
     receiver.set_defaults(
-        main=recv.main, calibration=calib.recv,
+        main=lambda config, args: recv.main(
+            config, src=args.src, dst=args.dst, pylab=args.pylab
+        ),
+        calib=lambda config, args: calib.recv(
+            config, src=args.src, verbose=args.verbose
+        ),
         input_type=FileType('rb', interface),
         output_type=FileType('wb')
     )
@@ -120,18 +130,18 @@ def main():
 
         # Parsing and execution
         log.debug(description)
+
+        args.pylab = None
         if getattr(args, 'plot', False):
             import pylab
-        else:
-            pylab = None
+            args.pylab = pylab
 
-        src = args.input_type(args.input)
-        dst = args.output_type(args.output)
+        args.src = args.input_type(args.input)
+        args.dst = args.output_type(args.output)
         if args.calibrate:
-            args.calibration(config=config, src=src, dst=dst,
-                             verbose=args.verbose)
+            args.calib(config=config, args=args)
         else:
-            return args.main(config=config, src=src, dst=dst, pylab=pylab)
+            return args.main(config=config, args=args)
 
 
 if __name__ == '__main__':

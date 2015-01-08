@@ -9,7 +9,7 @@ from . import common
 ALLOWED_EXCEPTIONS = (IOError, KeyboardInterrupt)
 
 
-def send(config, dst, src=None, verbose=False):
+def send(config, dst):
     calibration_symbols = int(1.0 * config.Fs)
     t = np.arange(0, calibration_symbols) * config.Ts
     signals = [np.sin(2 * np.pi * f * t) for f in config.frequencies]
@@ -73,7 +73,7 @@ fmt = '{freq:6.0f} Hz: {message:s}{extra:s}'
 fields = ['peak', 'total', 'rms', 'coherency']
 
 
-def recv(config, src, dst=None, verbose=False):
+def recv(config, src, verbose=False):
     extra = ''
     if verbose:
         extra = ''.join(', {0}={{{0}:.4f}}'.format(f) for f in fields)
