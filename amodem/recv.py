@@ -30,6 +30,7 @@ class Receiver(object):
         self.modem_bitrate = config.modem_bps
         self.equalizer = equalizer.Equalizer(config)
         self.carrier_index = config.carrier_index
+        self.output_size = 0  # number of bytes written to output stream
 
     def _prefix(self, symbols, gain=1.0, skip=5):
         S = common.take(symbols, len(train.prefix))
@@ -156,7 +157,7 @@ class Receiver(object):
             (1.0 - sampler.freq) * 1e6
         )
 
-    def start(self, signal, gain=1.0):
+    def run(self, signal, gain, output):
         sampler = sampling.Sampler(signal, sampling.Interpolator())
         symbols = dsp.Demux(sampler, omegas=self.omegas, Nsym=self.Nsym)
         freq_err = self._prefix(symbols, gain=gain)
@@ -166,15 +167,13 @@ class Receiver(object):
         sampler.equalizer = lambda x: list(filt(x))
 
         bitstream = self._demodulate(sampler, symbols)
-        self.bitstream = itertools.chain.from_iterable(bitstream)
+        bitstream = itertools.chain.from_iterable(bitstream)
 
-    def run(self, output):
-        data = framing.decode(self.bitstream)
-        self.size = 0
+        data = framing.decode(bitstream)
         for chunk in common.iterate(data=data, size=256,
                                     truncate=False, func=bytearray):
             output.write(chunk)
-            self.size += len(chunk)
+            self.output_size += len(chunk)
 
     def report(self):
         if self.stats:
@@ -185,7 +184,8 @@ class Receiver(object):
                       100 * duration / audio_time if audio_time else 0)
 
             log.info('Received %.3f kB @ %.3f seconds = %.3f kB/s',
-                     self.size * 1e-3, duration, self.size * 1e-3 / duration)
+                     self.output_size * 1e-3, duration,
+                     self.output_size * 1e-3 / duration)
 
             self.plt.figure()
             symbol_list = np.array(self.stats['symbol_list'])
@@ -227,8 +227,7 @@ def main(config, src, dst, pylab=None):
     try:
         log.info('Waiting for carrier tone: %.1f kHz', config.Fc / 1e3)
         signal, amplitude = detector.run(signal)
-        receiver.start(signal, gain=1.0/amplitude)
-        receiver.run(dst)
+        receiver.run(signal, gain=1.0/amplitude, output=dst)
         success = True
     except Exception:
         log.exception('Decoding failed')
