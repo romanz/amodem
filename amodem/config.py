@@ -58,6 +58,8 @@ bitrates = {
     16: Configuration(F0=6e3, Npoints=16, Nfreq=4),
     32: Configuration(F0=3e3, Npoints=16, Nfreq=8),
     48: Configuration(F0=3e3, Npoints=64, Nfreq=8),
+    54: Configuration(F0=3e3, Npoints=64, Nfreq=9),
+    60: Configuration(F0=2e3, Npoints=64, Nfreq=10),
 }
 
 fastest = lambda: bitrates[max(bitrates)]
