@@ -13,7 +13,7 @@ def send(config, dst, src=None, verbose=False):
     calibration_symbols = int(1.0 * config.Fs)
     t = np.arange(0, calibration_symbols) * config.Ts
     signals = [np.sin(2 * np.pi * f * t) for f in config.frequencies]
-    signals = map(common.dumps, signals)
+    signals = [common.dumps(s) for s in signals]
 
     try:
         for signal in itertools.cycle(signals):

@@ -18,7 +18,7 @@ class Interpolator(object):
             filt = h[index::resolution]
             filt = filt[::-1]
             self.filt.append(filt)
-        lengths = map(len, self.filt)
+        lengths = [len(f) for f in self.filt]
         self.coeff_len = 2*width
         assert set(lengths) == set([self.coeff_len])
         assert len(self.filt) == resolution
