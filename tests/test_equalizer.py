@@ -45,31 +45,6 @@ def test_modem():
     assert_approx(sent, received)
 
 
-def test_symbols():
-    length = 100
-    gain = float(config.Nfreq)
-
-    e = equalizer.Equalizer(config)
-    symbols = e.train_symbols(length=length)
-    x = e.modulator(symbols) * gain
-    assert_approx(e.demodulator(x, size=length), symbols)
-
-    den = np.array([1, -0.6, 0.1])
-    num = np.array([0.5])
-    y = dsp.lfilter(x=x, b=num, a=den)
-
-    lookahead = 2
-    h = e.equalize_symbols(
-        signal=y, symbols=symbols, order=len(den), lookahead=lookahead
-    )
-    assert norm(h[:lookahead]) < 1e-12
-    assert_approx(h[lookahead:], den / num)
-
-    y = dsp.lfilter(x=y, b=h[lookahead:], a=[1])
-    z = e.demodulator(y, size=length)
-    assert_approx(z, symbols)
-
-
 def test_signal():
     length = 100
     x = np.sign(RandomState(0).normal(size=length))

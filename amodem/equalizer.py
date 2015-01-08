@@ -38,32 +38,6 @@ class Equalizer(object):
                             omegas=self.omegas, Nsym=self.Nsym)
         return np.array(list(itertools.islice(symbols, size)))
 
-    def equalize_symbols(self, signal, symbols, order, lookahead=0):
-        assert symbols.shape[1] == self.Nfreq
-        length = symbols.shape[0]
-
-        matched = np.array(self.carriers) / (0.5*self.Nsym)
-        matched = matched[:, ::-1].transpose().conj()
-        signal = np.concatenate([signal, np.zeros(lookahead)])
-        y = dsp.lfilter(x=signal, b=matched, a=[1])
-
-        A = []
-        b = []
-
-        for j in range(self.Nfreq):
-            for i in range(length):
-                offset = (i+1)*self.Nsym
-                row = y[offset-order:offset+lookahead, j]
-                A.append(row)
-                b.append(symbols[i, j])
-
-        A = np.array(A)
-        b = np.array(b)
-        h = lstsq(A, b)[0]
-        h = h[::-1].real
-
-        return h
-
     def equalize_signal(self, signal, expected, order, lookahead=0):
         signal = [np.zeros(order-1), signal, np.zeros(lookahead)]
         signal = np.concatenate(signal)
