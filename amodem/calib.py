@@ -77,6 +77,7 @@ fmt = '{freq:6.0f} Hz: {message:s}{extra:s}'
 fields = ['peak', 'total', 'rms', 'coherency']
 
 
+# pylint: disable=star-args
 def recv(config, src, verbose=False):
     extra = ''
     if verbose:
