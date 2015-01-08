@@ -7,23 +7,22 @@ import struct
 import logging
 log = logging.getLogger(__name__)
 
-_crc32 = lambda x, mask: binascii.crc32(bytes(x)) & mask
+_checksum_func = lambda x: binascii.crc32(bytes(x)) & 0xFFFFFFFF
 # (so the result will be unsigned on Python 2/3)
 
 
 class Checksum(object):
     fmt = '>L'  # unsigned longs (32-bit)
     size = struct.calcsize(fmt)
-    func = functools.partial(_crc32, mask=0xFFFFFFFF)
 
     def encode(self, payload):
-        checksum = self.func(payload)
+        checksum = _checksum_func(payload)
         return struct.pack(self.fmt, checksum) + payload
 
     def decode(self, data):
         received, = struct.unpack(self.fmt, bytes(data[:self.size]))
         payload = data[self.size:]
-        expected = self.func(payload)
+        expected = _checksum_func(payload)
         if received != expected:
             log.warning('Invalid checksum: %04x != %04x', received, expected)
             raise ValueError('Invalid checksum')
@@ -51,8 +50,8 @@ class Framer(object):
     def decode(self, data):
         data = iter(data)
         while True:
-            length, = self._take_fmt(data, self.prefix_fmt)
-            frame = self._take_len(data, length)
+            length, = _take_fmt(data, self.prefix_fmt)
+            frame = _take_len(data, length)
             block = self.checksum.decode(frame)
             if block == self.EOF:
                 log.debug('EOF frame detected')
@@ -60,18 +59,20 @@ class Framer(object):
 
             yield block
 
-    def _take_fmt(self, data, fmt):
-        length = struct.calcsize(fmt)
-        chunk = bytearray(itertools.islice(data, length))
-        if len(chunk) < length:
-            raise ValueError('missing prefix data')
-        return struct.unpack(fmt, bytes(chunk))
 
-    def _take_len(self, data, length):
-        chunk = bytearray(itertools.islice(data, length))
-        if len(chunk) < length:
-            raise ValueError('missing payload data')
-        return chunk
+def _take_fmt(data, fmt):
+    length = struct.calcsize(fmt)
+    chunk = bytearray(itertools.islice(data, length))
+    if len(chunk) < length:
+        raise ValueError('missing prefix data')
+    return struct.unpack(fmt, bytes(chunk))
+
+
+def _take_len(data, length):
+    chunk = bytearray(itertools.islice(data, length))
+    if len(chunk) < length:
+        raise ValueError('missing payload data')
+    return chunk
 
 
 def chain_wrapper(func):
