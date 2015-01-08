@@ -26,11 +26,11 @@ receiving microphone.
 The modem is using OFDM over an audio cable with the following parameters:
 
 - Sampling rate: 32 kHz
-- BAUD rate: 1 kHz
-- Symbol modulation: 64-QAM
-- Carriers: (1,2,3,4,5,6,7,8) kHz
+- Baud rate: 1 kHz
+- Symbol modulation: BPSK, 4-PSK, 16-QAM ,64-QAM
+- Carriers: 2-11 kHz
 
-This way, modem achieves 48kbps bitrate = 6.0 kB/s.
+This way, modem may achieve 60kbps bitrate = 7.5 kB/s.
 
 A simple CRC-32 checksum is used for data integrity verification
 on each 250 byte data frame.
@@ -38,14 +38,9 @@ on each 250 byte data frame.
 
 # Installation
 
-Make sure that `numpy` and `PyAudio` Python packages are installed.
+Make sure that `numpy` and `PortAudio v19` packages are installed (on Debian):
 
-    $ pip install numpy
-    $ pip install git+http://people.csail.mit.edu/hubert/git/pyaudio.git
-
-or, on Debian/Ubuntu:
-
-    $ sudo apt-get install python-numpy python-pyaudio
+    $ sudo apt-get install python-numpy portaudio19-dev
 
 Clone and install latest version:
 
@@ -60,7 +55,7 @@ For graphs and visualization (optional), install:
 
 Run:
 
-    $ export BITRATE=48  # explicitly select highest MODEM bit rate (assuming good SNR).
+    $ export BITRATE=16  # explicitly select high MODEM bit rate (assuming good SNR).
     $ amodem-cli -h
     usage: amodem-cli [-h] {send,recv} ...
 
@@ -82,13 +77,13 @@ following scripts:
 
 - On the sender's side:
 ```
-~/sender $ export BITRATE=48  # explicitly select highest MODEM bit rate (assuming good SNR).
+~/sender $ export BITRATE=48  # explicitly select high MODEM bit rate (assuming good SNR).
 ~/sender $ amodem-cli send --calibrate
 ```
 
 - On the receiver's side:
 ```
-~/receiver $ export BITRATE=48  # explicitly select highest MODEM bit rate (assuming good SNR).
+~/receiver $ export BITRATE=48  # explicitly select high MODEM bit rate (assuming good SNR).
 ~/receiver $ amodem-cli recv --calibrate
 ```
 
@@ -126,12 +121,12 @@ background noise or increase the signal (without causing saturation).
 
 - Start the receiver, which will wait for the sender to start:
 ```
-~/receiver $ amodem-cli recv -vv >data.rx
+~/receiver $ amodem-cli recv -vv -i data.rx
 ```
 
 - Start the sender, which will modulate the data and start the transmission:
 ```
-~/sender $ amodem-cli send -vv <data.tx
+~/sender $ amodem-cli send -vv -o data.tx
 ```
 
 - A similar log should be emitted by the sender:
@@ -183,7 +178,7 @@ background noise or increase the signal (without causing saturation).
 Make sure that `matplotlib` package is installed, and run (at the receiver side):
 
 ```
- ~/receiver $ amodem-cli recv --plot >data.rx
+ ~/receiver $ amodem-cli recv --plot -o data.rx
 ```
 
 
