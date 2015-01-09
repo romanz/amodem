@@ -47,13 +47,9 @@ Clone and install latest version:
     $ git clone https://github.com/romanz/amodem.git
     $ pip install --user -e amodem
 
-For graphs and visualization (optional), install:
+For graphs and visualization (optional), install `matplotlib` Python package.
 
-    $ pip install matplotlib
-
-## validation
-
-Run:
+For validation, run:
 
     $ export BITRATE=16  # explicitly select high MODEM bit rate (assuming good SNR).
     $ amodem-cli -h
