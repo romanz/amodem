@@ -6,7 +6,7 @@ import collections
 log = logging.getLogger(__name__)
 
 from . import dsp
-from . import train
+from . import equalizer
 from . import common
 
 
@@ -14,7 +14,7 @@ class Detector(object):
 
     COHERENCE_THRESHOLD = 0.9
 
-    CARRIER_DURATION = sum(train.prefix)
+    CARRIER_DURATION = sum(equalizer.prefix)
     CARRIER_THRESHOLD = int(0.9 * CARRIER_DURATION)
     SEARCH_WINDOW = int(0.1 * CARRIER_DURATION)
 

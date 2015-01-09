@@ -9,7 +9,6 @@ log = logging.getLogger(__name__)
 from . import stream
 from . import dsp
 from . import sampling
-from . import train
 from . import common
 from . import framing
 from . import equalizer
@@ -33,7 +32,7 @@ class Receiver(object):
         self.output_size = 0  # number of bytes written to output stream
 
     def _prefix(self, symbols, gain=1.0, skip=5):
-        S = common.take(symbols, len(train.prefix))
+        S = common.take(symbols, len(equalizer.prefix))
         S = S[:, self.carrier_index] * gain
         sliced = np.round(np.abs(S))
         self.plt.figure()
@@ -43,13 +42,13 @@ class Receiver(object):
         bits = np.array(sliced, dtype=int)
         self.plt.subplot(122)
         self.plt.plot(np.abs(S))
-        self.plt.plot(train.prefix)
-        if any(bits != train.prefix):
+        self.plt.plot(equalizer.prefix)
+        if any(bits != equalizer.prefix):
             raise ValueError('Incorrect prefix')
 
         log.debug('Prefix OK')
 
-        nonzeros = np.array(train.prefix, dtype=bool)
+        nonzeros = np.array(equalizer.prefix, dtype=bool)
         pilot_tone = S[nonzeros]
         phase = np.unwrap(np.angle(pilot_tone)) / (2 * np.pi)
         indices = np.arange(len(phase))
@@ -68,11 +67,12 @@ class Receiver(object):
 
     def _train(self, sampler, order, lookahead):
         Nfreq = len(self.frequencies)
-        train_symbols = self.equalizer.train_symbols(train.equalizer_length)
+        equalizer_length = equalizer.equalizer_length
+        train_symbols = self.equalizer.train_symbols(equalizer_length)
         train_signal = self.equalizer.modulator(train_symbols) * Nfreq
 
-        prefix = postfix = train.silence_length * self.Nsym
-        signal_length = train.equalizer_length * self.Nsym + prefix + postfix
+        prefix = postfix = equalizer.silence_length * self.Nsym
+        signal_length = equalizer_length * self.Nsym + prefix + postfix
 
         signal = sampler.take(signal_length + lookahead)
 
@@ -92,7 +92,8 @@ class Receiver(object):
         return equalization_filter
 
     def _verify_training(self, equalized, train_symbols):
-        symbols = self.equalizer.demodulator(equalized, train.equalizer_length)
+        equalizer_length = equalizer.equalizer_length
+        symbols = self.equalizer.demodulator(equalized, equalizer_length)
         sliced = np.array(symbols).round()
         errors = np.array(sliced - train_symbols, dtype=np.bool)
         error_rate = errors.sum() / errors.size

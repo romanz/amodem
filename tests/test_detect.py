@@ -4,14 +4,14 @@ import pytest
 from amodem import dsp
 from amodem import recv
 from amodem import detect
-from amodem import train
+from amodem import equalizer
 from amodem import sampling
 from amodem import config
 config = config.fastest()
 
 
 def test_detect():
-    P = sum(train.prefix)
+    P = sum(equalizer.prefix)
     t = np.arange(P * config.Nsym) * config.Ts
     x = np.cos(2 * np.pi * config.Fc * t)
 
@@ -31,7 +31,7 @@ def test_detect():
 def test_prefix():
     omega = 2 * np.pi * config.Fc / config.Fs
     symbol = np.cos(omega * np.arange(config.Nsym))
-    signal = np.concatenate([c * symbol for c in train.prefix])
+    signal = np.concatenate([c * symbol for c in equalizer.prefix])
 
     def symbols_stream(signal):
         sampler = sampling.Sampler(signal)

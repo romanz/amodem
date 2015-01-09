@@ -4,8 +4,6 @@ import itertools
 
 log = logging.getLogger(__name__)
 
-from . import train
-
 from . import common
 from . import stream
 from . import framing
@@ -20,7 +18,7 @@ class Sender(object):
         self.modem = dsp.MODEM(config.symbols)
         self.carriers = config.carriers / config.Nfreq
         self.pilot = config.carriers[config.carrier_index]
-        self.silence = np.zeros(train.silence_length * config.Nsym)
+        self.silence = np.zeros(equalizer.silence_length * config.Nsym)
         self.iters_per_report = config.baud  # report once per second
         self.padding = [0] * config.bits_per_baud
         self.equalizer = equalizer.Equalizer(config)
@@ -32,10 +30,10 @@ class Sender(object):
         self.offset += len(sym)
 
     def start(self):
-        for value in train.prefix:
+        for value in equalizer.prefix:
             self.write(self.pilot * value)
 
-        symbols = self.equalizer.train_symbols(train.equalizer_length)
+        symbols = self.equalizer.train_symbols(equalizer.equalizer_length)
         signal = self.equalizer.modulator(symbols)
         self.write(self.silence)
         self.write(signal)

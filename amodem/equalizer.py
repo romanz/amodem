@@ -58,3 +58,8 @@ def train(signal, expected, order, lookahead=0):
     h = lstsq(A, b)[0]
     h = h[::-1].real
     return h
+
+
+prefix = [1]*400 + [0]*50
+equalizer_length = 500
+silence_length = 100
