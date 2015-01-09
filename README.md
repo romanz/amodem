@@ -104,9 +104,9 @@ If the signal is "too strong", decrease the sender's output audio level.
 If the signal is "too noisy", the SNR is probably too low: decrease the
 background noise or increase the signal (without causing saturation).
 
-# Testing
+# Usage
 
-- Prepare the sender (generate random binary data file to be sent):
+- Prepare the sender (generate a random binary data file to be sent):
 
 ```
 ~/sender $ dd if=/dev/urandom of=data.tx bs=16kB count=1 status=none
@@ -114,12 +114,12 @@ background noise or increase the signal (without causing saturation).
 008df57d4f3ed6e7a25d25afd57d04fc73140e8df604685bd34fcab58f5ddc01  data.tx
 ```
 
-- Start the receiver, which will wait for the sender to start:
+- Start the receiver (will wait for the sender to start):
 ```
 ~/receiver $ amodem-cli recv -vv -i data.rx
 ```
 
-- Start the sender, which will modulate the data and start the transmission:
+- Start the sender (will modulate the data and start the transmission):
 ```
 ~/sender $ amodem-cli send -vv -o data.tx
 ```
@@ -163,7 +163,7 @@ background noise or increase the signal (without causing saturation).
 2014-10-23 09:46:41,306 INFO       Received 16.384 kB @ 2.329 seconds = 7.034 kB/s                                                      recv.py:247
 ```
 
-- After the receiver has finished, verify that the file's hash is the same:
+- After the receiver has finished, verify the received file's hash:
 ```
 ~/receiver $ sha256sum data.rx
 008df57d4f3ed6e7a25d25afd57d04fc73140e8df604685bd34fcab58f5ddc01  data.rx
