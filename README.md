@@ -2,7 +2,6 @@
 
 [![Build Status](https://travis-ci.org/romanz/amodem.svg?branch=master)](https://travis-ci.org/romanz/amodem)
 [![Coverage Status](https://coveralls.io/repos/romanz/amodem/badge.png?branch=master)](https://coveralls.io/r/romanz/amodem?branch=master)
-[![Downloads](https://pypip.in/download/amodem/badge.svg)](https://pypi.python.org/pypi/amodem/)
 [![Code Health](https://landscape.io/github/romanz/amodem/master/landscape.svg)](https://landscape.io/github/romanz/amodem/master)
 [![Supported Python versions](https://pypip.in/py_versions/amodem/badge.svg)](https://pypi.python.org/pypi/amodem/)
 [![License](https://pypip.in/license/amodem/badge.svg)](https://pypi.python.org/pypi/amodem/)
