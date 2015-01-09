@@ -232,5 +232,6 @@ def main(config, src, dst, pylab=None):
     except Exception:
         log.exception('Decoding failed')
 
+    dst.flush()
     receiver.report()
     return success
