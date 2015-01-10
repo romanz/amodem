@@ -62,7 +62,13 @@ class Stream(object):
         self.bytes_per_sample = config.sample_size
         assert config.bits_per_sample == 16  # just to make sure :)
 
-        index = lib.call('GetDefaultInputDevice', restype=ctypes.c_int)
+        read = bool(read)
+        write = bool(write)
+        assert read != write
+
+        direction = 'Input' if read else 'Output'
+        api_name = 'GetDefault{0}Device'.format(direction)
+        index = lib.call(api_name, restype=ctypes.c_int)
         self.params = Stream.Parameters(
             device=index,               # choose default device
             channelCount=1,             # mono audio
