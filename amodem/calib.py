@@ -66,26 +66,28 @@ def detector(config, src):
                 error_index = flags.index(False)
                 message = 'too {0} signal'.format(errors[error_index])
 
-            yield dict(
+            yield AttributeHolder(dict(
                 freq=freq, rms=rms, peak=peak, coherency=coherency,
                 total=total, error=error, message=message
-            )
+            ))
     except ALLOWED_EXCEPTIONS:
         pass
 
-fmt = '{freq:6.0f} Hz: {message:s}{extra:s}'
-fields = ['peak', 'total', 'rms', 'coherency']
+
+class AttributeHolder(object):
+    def __init__(self, d):
+        self.__dict__.update(d)
 
 
-# pylint: disable=star-args
 def recv(config, src, verbose=False):
-    extra = ''
+    fmt = '{0.freq:6.0f} Hz: {0.message:s}'
     if verbose:
-        extra = ''.join(', {0}={{{0}:.4f}}'.format(f) for f in fields)
+        fields = ['peak', 'total', 'rms', 'coherency']
+        fmt += ''.join(', {0}={{0.{0}:.4f}}'.format(f) for f in fields)
 
     for result in detector(config=config, src=src):
-        msg = fmt.format(extra=extra.format(**result), **result)
-        if not result['error']:
+        msg = fmt.format(result)
+        if not result.error:
             log.info(msg)
         else:
             log.error(msg)
