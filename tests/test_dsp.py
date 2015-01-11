@@ -29,36 +29,6 @@ def test_filter():
     assert list(y) == [0.5 ** (i+1) for i in range(len(x))]
 
 
-def test_estimate():
-    r = np.random.RandomState(seed=0)
-    x = r.uniform(-1, 1, [1000])
-    x[:10] = 0
-    x[len(x)-10:] = 0
-
-    c = 1.23
-    y = c * x
-    c_, = dsp.estimate(x=x, y=y, order=1)
-    assert abs(c - c_) < 1e-12
-
-    h = [1, 1]
-    y = dsp.lfilter(b=h, a=[1], x=x)
-    h_ = dsp.estimate(x=x, y=y, order=len(h))
-    assert norm(h - h_) < 1e-12
-
-    h = [0.1, 0.6, 0.9, 0.7, -0.2]
-    L = len(h) // 2
-
-    y = dsp.lfilter(b=h, a=[1], x=x)
-    h_ = dsp.estimate(
-        x=x[:len(x)-L], y=y[L:],
-        order=len(h), lookahead=L
-    )
-    assert norm(h - h_) < 1e-12
-
-    y_ = dsp.lfilter(b=h_, a=[1], x=x)
-    assert norm(y - y_) < 1e-12
-
-
 def test_demux():
     freqs = np.array([1e3, 2e3])
     omegas = 2 * np.pi * freqs / config.Fs

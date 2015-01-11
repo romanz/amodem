@@ -4,6 +4,20 @@ from numpy import linalg
 from . import common
 
 
+class FIR(object):
+    def __init__(self, h):
+        self.h = np.array(h)
+        self.x_state = [0] * len(self.h)
+
+    def __call__(self, x):
+        x_ = self.x_state
+        h = self.h
+        for v in x:
+            x_ = [v] + x_[:-1]
+            yield np.dot(x_, h)
+        self.x_state = x_
+
+
 class IIR(object):
     def __init__(self, b, a):
         self.b = np.array(b) / a[0]
@@ -24,39 +38,10 @@ class IIR(object):
         self.x_state, self.y_state = x_, y_
 
 
-class FIR(object):
-    def __init__(self, h):
-        self.h = np.array(h)
-        self.x_state = [0] * len(self.h)
-
-    def __call__(self, x):
-        x_ = self.x_state
-        h = self.h
-        for v in x:
-            x_ = [v] + x_[:-1]
-            yield np.dot(x_, h)
-        self.x_state = x_
-
-
 def lfilter(b, a, x):
     f = IIR(b=b, a=a)
     y = list(f(x))
     return np.array(y)
-
-
-def estimate(x, y, order, lookahead=0):
-    offset = order - 1
-    assert offset >= lookahead
-    b = y[offset-lookahead:len(x)-lookahead]
-
-    A = []  # columns of x
-    N = len(x) - order + 1
-    for i in range(order):
-        A.append(x[i:N+i])
-
-    # switch to rows for least-squares
-    h = linalg.lstsq(np.array(A).T, b)[0]
-    return h[::-1]
 
 
 class Demux(object):
