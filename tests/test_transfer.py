@@ -44,8 +44,10 @@ def run(size, chan=None, df=0, success=True):
     rx_audio = BytesIO(data)
 
     rx_data = BytesIO()
-    result = recv.main(config=config, src=rx_audio, dst=rx_data)
+    d = BytesIO()
+    result = recv.main(config=config, src=rx_audio, dst=rx_data, dump_audio=d)
     rx_data = rx_data.getvalue()
+    assert data.startswith(d.getvalue())
 
     assert result == success
     if success:

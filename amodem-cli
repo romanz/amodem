@@ -125,12 +125,15 @@ def main():
     receiver.add_argument(
         '-c', '--calibrate', default=False, action='store_true')
     receiver.add_argument(
+        '-d', '--dump', type=FileType('wb'),
+        help='Filename to save recorded audio')
+    receiver.add_argument(
         '--plot', action='store_true', default=False,
         help='plot results using pylab module')
     receiver.set_defaults(
         main=lambda config, args: recv.main(
             config, src=args.src, dst=wrap(Decompressor, args.dst, args.zip),
-            pylab=args.pylab
+            pylab=args.pylab, dump_audio=args.dump
         ),
         calib=lambda config, args: calib.recv(
             config, src=args.src, verbose=args.verbose

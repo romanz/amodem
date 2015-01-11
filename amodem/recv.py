@@ -214,7 +214,20 @@ class Receiver(object):
         self.plt.title(title)
 
 
-def main(config, src, dst, pylab=None):
+class Dumper(object):
+    def __init__(self, src, dst):
+        self.src = src
+        self.dst = dst
+
+    def read(self, size):
+        data = self.src.read(size)
+        self.dst.write(data)
+        return data
+
+
+def main(config, src, dst, dump_audio=None, pylab=None):
+    if dump_audio:
+        src = Dumper(src, dump_audio)
     reader = stream.Reader(src, data_type=common.loads)
     signal = itertools.chain.from_iterable(reader)
 
