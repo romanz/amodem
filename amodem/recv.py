@@ -25,7 +25,7 @@ class Receiver(object):
         self.omegas = 2 * np.pi * self.frequencies / config.Fs
         self.Nsym = config.Nsym
         self.Tsym = config.Tsym
-        self.iters_per_update = config.baud  # update sampler once per second
+        self.iters_per_update = 100  # [ms]
         self.modem_bitrate = config.modem_bps
         self.equalizer = equalizer.Equalizer(config)
         self.carrier_index = config.carrier_index
@@ -164,7 +164,7 @@ class Receiver(object):
         freq_err = self._prefix(symbols, gain=gain)
         sampler.freq -= freq_err
 
-        filt = self._train(sampler, order=11, lookahead=6)
+        filt = self._train(sampler, order=11, lookahead=11)
         sampler.equalizer = lambda x: list(filt(x))
 
         bitstream = self._demodulate(sampler, symbols)

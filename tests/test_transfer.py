@@ -68,8 +68,8 @@ def test_error():
     run(1024, chan=lambda x: x[:-skip], success=False)
 
 
-@pytest.fixture(params=[sign * drift for sign in (+1, -1)
-                        for drift in (0.1, 1, 10, 100)])
+@pytest.fixture(params=[sign * (10.0 ** exp) for sign in (+1, -1)
+                        for exp in (-1, 0, 1, 2, 3)])
 def freq_err(request):
     return request.param * 1e-6
 
