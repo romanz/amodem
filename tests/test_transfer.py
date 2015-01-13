@@ -68,13 +68,14 @@ def test_error():
     run(1024, chan=lambda x: x[:-skip], success=False)
 
 
-@pytest.fixture(params=[s*x for s in (+1, -1) for x in (0.1, 1, 10)])
+@pytest.fixture(params=[sign * drift for sign in (+1, -1)
+                        for drift in (0.1, 1, 10, 100)])
 def freq_err(request):
     return request.param * 1e-6
 
 
 def test_timing(freq_err):
-    run(1024, df=freq_err)
+    run(8192, df=freq_err)
 
 
 def test_lowpass():
