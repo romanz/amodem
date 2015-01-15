@@ -56,8 +56,7 @@ class Detector(object):
 
         x = np.concatenate(tuple(bufs)[-self.CARRIER_THRESHOLD:-1])
         Hc = dsp.exp_iwt(-self.omega, len(x))
-        Zc = np.dot(Hc, x) / (0.5*len(x))
-        amplitude = abs(Zc)
+        amplitude = np.abs(np.dot(Hc, x) / (0.5 * len(x)))
         start_time = begin * self.Tsym / self.Nsym
         log.info('Carrier detected at ~%.1f ms @ %.1f kHz:'
                  ' coherence=%.3f%%, amplitude=%.3f',

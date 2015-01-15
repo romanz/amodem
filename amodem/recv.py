@@ -211,9 +211,8 @@ def main(config, src, dst, dump_audio=None, pylab=None):
     reader = stream.Reader(src, data_type=common.loads)
     signal = itertools.chain.from_iterable(reader)
 
-    to_skip = int(config.skip_start * config.Fs)
     log.debug('Skipping %.3f seconds', config.skip_start)
-    common.take(signal, to_skip)
+    common.take(signal, int(config.skip_start * config.Fs))
 
     pylab = pylab or common.Dummy()
     detector = detect.Detector(config=config, pylab=pylab)
