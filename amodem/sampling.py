@@ -31,8 +31,8 @@ class Interpolator(object):
 
 
 class Sampler(object):
-    def __init__(self, src, interp=None):
-        self.freq = 1.0  # normalized
+    def __init__(self, src, interp=None, freq=1.0):
+        self.freq = freq
         self.equalizer = lambda x: x  # LTI equalization filter
         if interp is not None:
             self.interp = interp

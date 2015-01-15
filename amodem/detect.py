@@ -20,13 +20,14 @@ class Detector(object):
 
     TIMEOUT = 10.0  # [seconds]
 
-    def __init__(self, config):
+    def __init__(self, config, pylab):
         self.freq = config.Fc
         self.omega = 2 * np.pi * self.freq / config.Fs
         self.Nsym = config.Nsym
         self.Tsym = config.Tsym
         self.maxlen = config.baud  # 1 second of symbols
         self.max_offset = self.TIMEOUT * config.Fs
+        self.plt = pylab
 
     def _wait(self, samples):
         counter = 0
@@ -71,16 +72,46 @@ class Detector(object):
         bufs.append(np.array(trailing))
 
         buf = np.concatenate(bufs)
-        offset = self.find_start(buf, self.CARRIER_DURATION*self.Nsym)
+        offset = self.find_start(buf, duration=self.CARRIER_DURATION)
         start_time += (offset / self.Nsym - self.SEARCH_WINDOW) * self.Tsym
         log.debug('Carrier starts at %.3f ms', start_time * 1e3)
 
-        return itertools.chain(buf[offset:], samples), amplitude
+        buf = buf[offset:]
 
-    def find_start(self, buf, length):
-        N = len(buf)
-        carrier = dsp.exp_iwt(self.omega, N)
-        z = np.cumsum(buf * carrier)
-        z = np.concatenate([[0], z])
-        correlations = np.abs(z[length:] - z[:-length])
-        return np.argmax(correlations)
+        prefix_length = self.CARRIER_DURATION * self.Nsym
+        amplitude, freq_err = self.estimate(buf[:prefix_length])
+        return itertools.chain(buf, samples), amplitude, freq_err
+
+    def find_start(self, buf, duration):
+        filt = dsp.FIR(dsp.exp_iwt(self.omega, self.Nsym))
+        p = np.abs(list(filt(buf))) ** 2
+        p = np.cumsum(p)[self.Nsym-1:]
+        p = np.concatenate([[0], p])
+        length = (duration - 1) * self.Nsym
+        correlations = np.abs(p[length:] - p[:-length])
+        offset = np.argmax(correlations)
+        return offset
+
+    def estimate(self, buf, skip=5):
+        filt = dsp.exp_iwt(-self.omega, self.Nsym) / (0.5 * self.Nsym)
+        frames = common.iterate(buf, self.Nsym)
+        symbols = [np.dot(filt, frame) for frame in frames]
+        symbols = np.array(symbols[skip:-skip])
+
+        amplitude = np.mean(np.abs(symbols))
+        log.debug('Carrier symbols amplitude : %.3f', amplitude)
+
+        phase = np.unwrap(np.angle(symbols)) / (2 * np.pi)
+        indices = np.arange(len(phase))
+        a, b = dsp.linear_regression(indices, phase)
+        self.plt.figure()
+        self.plt.plot(indices, phase, ':')
+        self.plt.plot(indices, a * indices + b)
+
+        freq_err = a / (self.Tsym * self.freq)
+        last_phase = a * indices[-1] + b
+        log.debug('Current phase on carrier: %.3f', last_phase)
+        log.debug('Frequency error: %.2f ppm', freq_err * 1e6)
+        self.plt.title('Frequency drift: {0:.3f} ppm'.format(freq_err * 1e6))
+
+        return amplitude, freq_err

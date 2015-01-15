@@ -19,7 +19,7 @@ class Receiver(object):
 
     def __init__(self, config, pylab=None):
         self.stats = {}
-        self.plt = pylab or common.Dummy()
+        self.plt = pylab
         self.modem = dsp.MODEM(config.symbols)
         self.frequencies = np.array(config.frequencies)
         self.omegas = 2 * np.pi * self.frequencies / config.Fs
@@ -31,7 +31,7 @@ class Receiver(object):
         self.carrier_index = config.carrier_index
         self.output_size = 0  # number of bytes written to output stream
 
-    def _prefix(self, symbols, gain=1.0, skip=5):
+    def _prefix(self, symbols, gain=1.0):
         S = common.take(symbols, len(equalizer.prefix))
         S = S[:, self.carrier_index] * gain
         sliced = np.round(np.abs(S))
@@ -45,25 +45,7 @@ class Receiver(object):
         self.plt.plot(equalizer.prefix)
         if any(bits != equalizer.prefix):
             raise ValueError('Incorrect prefix')
-
         log.debug('Prefix OK')
-
-        nonzeros = np.array(equalizer.prefix, dtype=bool)
-        pilot_tone = S[nonzeros]
-        phase = np.unwrap(np.angle(pilot_tone)) / (2 * np.pi)
-        indices = np.arange(len(phase))
-        a, b = dsp.linear_regression(indices[skip:-skip], phase[skip:-skip])
-        self.plt.figure()
-        self.plt.plot(indices, phase, ':')
-        self.plt.plot(indices, a * indices + b)
-
-        freq_err = a / (self.Tsym * self.frequencies[self.carrier_index])
-        last_phase = a * indices[-1] + b
-        log.debug('Current phase on carrier: %.3f', last_phase)
-
-        log.debug('Frequency error: %.2f ppm', freq_err * 1e6)
-        self.plt.title('Frequency drift: {0:.3f} ppm'.format(freq_err * 1e6))
-        return freq_err
 
     def _train(self, sampler, order, lookahead):
         Nfreq = len(self.frequencies)
@@ -158,13 +140,11 @@ class Receiver(object):
             (1.0 - sampler.freq) * 1e6
         )
 
-    def run(self, signal, gain, output):
-        sampler = sampling.Sampler(signal, sampling.Interpolator())
+    def run(self, sampler, gain, output):
         symbols = dsp.Demux(sampler, omegas=self.omegas, Nsym=self.Nsym)
-        freq_err = self._prefix(symbols, gain=gain)
-        sampler.freq -= freq_err
+        self._prefix(symbols, gain=gain)
 
-        filt = self._train(sampler, order=11, lookahead=11)
+        filt = self._train(sampler, order=20, lookahead=20)
         sampler.equalizer = lambda x: list(filt(x))
 
         bitstream = self._demodulate(sampler, symbols)
@@ -235,13 +215,22 @@ def main(config, src, dst, dump_audio=None, pylab=None):
     log.debug('Skipping %.3f seconds', config.skip_start)
     common.take(signal, to_skip)
 
-    detector = detect.Detector(config=config)
+    pylab = pylab or common.Dummy()
+    detector = detect.Detector(config=config, pylab=pylab)
     receiver = Receiver(config=config, pylab=pylab)
     success = False
     try:
         log.info('Waiting for carrier tone: %.1f kHz', config.Fc / 1e3)
-        signal, amplitude = detector.run(signal)
-        receiver.run(signal, gain=1.0/amplitude, output=dst)
+        signal, amplitude, freq_error = detector.run(signal)
+
+        freq = 1 / (1.0 + freq_error)  # receiver's compensated frequency
+        log.debug('Frequency correction: %.3f ppm', (freq - 1) * 1e6)
+
+        gain = 1.0 / amplitude
+        log.debug('Gain correction: %.3f', gain)
+
+        sampler = sampling.Sampler(signal, sampling.Interpolator(), freq=freq)
+        receiver.run(sampler, gain=1.0/amplitude, output=dst)
         success = True
     except Exception:
         log.exception('Decoding failed')

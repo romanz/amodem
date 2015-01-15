@@ -45,7 +45,8 @@ def run(size, chan=None, df=0, success=True):
 
     rx_data = BytesIO()
     d = BytesIO()
-    result = recv.main(config=config, src=rx_audio, dst=rx_data, dump_audio=d)
+    result = recv.main(config=config, src=rx_audio, dst=rx_data,
+                       dump_audio=d)
     rx_data = rx_data.getvalue()
     assert data.startswith(d.getvalue())
 
@@ -68,8 +69,8 @@ def test_error():
     run(1024, chan=lambda x: x[:-skip], success=False)
 
 
-@pytest.fixture(params=[sign * (10.0 ** exp) for sign in (+1, -1)
-                        for exp in (-1, 0, 1, 2, 3)])
+@pytest.fixture(params=[sign * mag for sign in (+1, -1)
+                        for mag in (0.1, 1, 10, 100, 1e3, 2e3)])
 def freq_err(request):
     return request.param * 1e-6
 

@@ -7,6 +7,7 @@ from amodem import detect
 from amodem import equalizer
 from amodem import sampling
 from amodem import config
+from amodem import common
 config = config.fastest()
 
 
@@ -15,9 +16,10 @@ def test_detect():
     t = np.arange(P * config.Nsym) * config.Ts
     x = np.cos(2 * np.pi * config.Fc * t)
 
-    detector = detect.Detector(config)
-    samples, amp = detector.run(x)
+    detector = detect.Detector(config, pylab=common.Dummy())
+    samples, amp, freq_err = detector.run(x)
     assert abs(1 - amp) < 1e-12
+    assert abs(freq_err) < 1e-16
 
     x = np.cos(2 * np.pi * (2*config.Fc) * t)
     with pytest.raises(ValueError):
@@ -36,9 +38,8 @@ def test_prefix():
     def symbols_stream(signal):
         sampler = sampling.Sampler(signal)
         return dsp.Demux(sampler=sampler, omegas=[omega], Nsym=config.Nsym)
-    r = recv.Receiver(config)
-    freq_err = r._prefix(symbols_stream(signal))
-    assert abs(freq_err) < 1e-16
+    r = recv.Receiver(config, pylab=common.Dummy())
+    r._prefix(symbols_stream(signal))
 
     with pytest.raises(ValueError):
         silence = 0 * signal
@@ -47,15 +48,14 @@ def test_prefix():
 
 def test_find_start():
     sym = np.cos(2 * np.pi * config.Fc * np.arange(config.Nsym) * config.Ts)
-    detector = detect.Detector(config)
+    detector = detect.Detector(config, pylab=common.Dummy())
 
     length = 200
     prefix = postfix = np.tile(0 * sym, 50)
     carrier = np.tile(sym, length)
-    for offset in range(10):
-        prefix = [0] * offset
-        bufs = [prefix, prefix, carrier, postfix]
+    for offset in range(32):
+        bufs = [prefix, [0] * offset, carrier, postfix]
         buf = np.concatenate(bufs)
-        start = detector.find_start(buf, length*config.Nsym)
+        start = detector.find_start(buf, length)
         expected = offset + len(prefix)
         assert expected == start
