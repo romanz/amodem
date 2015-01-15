@@ -47,7 +47,7 @@ class Sender(object):
             self.write(np.dot(symbols, self.carriers))
             if i % self.iters_per_report == 0:
                 total_bits = i * Nfreq * self.modem.bits_per_symbol
-                log.debug('Sent %8.1f kB', total_bits / 8e3)
+                log.debug('Sent %10.3f kB', total_bits / 8e3)
 
 
 def main(config, src, dst):

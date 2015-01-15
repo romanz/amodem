@@ -152,7 +152,7 @@ class Receiver(object):
         sampler.freq -= 0.01 * err * self.Tsym
         sampler.offset -= err
         log.debug(
-            'Got  %8.1f kB, realtime: %6.2f%%, drift: %+5.2f ppm',
+            'Got  %10.3f kB, realtime: %6.2f%%, drift: %+5.2f ppm',
             self.stats['rx_bits'] / 8e3,
             duration * 100.0 / (iter_index * self.Tsym),
             (1.0 - sampler.freq) * 1e6
