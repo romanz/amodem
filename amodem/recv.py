@@ -217,7 +217,6 @@ def main(config, src, dst, dump_audio=None, pylab=None):
     pylab = pylab or common.Dummy()
     detector = detect.Detector(config=config, pylab=pylab)
     receiver = Receiver(config=config, pylab=pylab)
-    success = False
     try:
         log.info('Waiting for carrier tone: %.1f kHz', config.Fc / 1e3)
         signal, amplitude, freq_error = detector.run(signal)
@@ -230,10 +229,10 @@ def main(config, src, dst, dump_audio=None, pylab=None):
 
         sampler = sampling.Sampler(signal, sampling.Interpolator(), freq=freq)
         receiver.run(sampler, gain=1.0/amplitude, output=dst)
-        success = True
+        return True
     except Exception:
         log.exception('Decoding failed')
-
-    dst.flush()
-    receiver.report()
-    return success
+        return False
+    finally:
+        dst.flush()
+        receiver.report()
