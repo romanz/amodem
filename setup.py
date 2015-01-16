@@ -16,7 +16,7 @@ class PyTest(TestCommand):
 
 setup(
     name="amodem",
-    version="1.6",
+    version="1.7",
     description="Audio Modem Communication Library",
     author="Roman Zeyde",
     author_email="roman.zeyde@gmail.com",
