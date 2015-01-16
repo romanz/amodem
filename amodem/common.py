@@ -82,4 +82,4 @@ class AttributeHolder(object):
     def __repr__(self):
         items = sorted(self.__dict__.items())
         args = ', '.join('{0}={1}'.format(k, v) for k, v in items)
-        return '{}({})'.format(self.__class__.__name__, args)
+        return '{0}({1})'.format(self.__class__.__name__, args)
