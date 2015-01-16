@@ -66,17 +66,12 @@ def detector(config, src):
                 error_index = flags.index(False)
                 message = 'too {0} signal'.format(errors[error_index])
 
-            yield AttributeHolder(dict(
+            yield common.AttributeHolder(dict(
                 freq=freq, rms=rms, peak=peak, coherency=coherency,
                 total=total, error=error, message=message
             ))
     except ALLOWED_EXCEPTIONS:
         pass
-
-
-class AttributeHolder(object):
-    def __init__(self, d):
-        self.__dict__.update(d)
 
 
 def recv(config, src, verbose=False):

@@ -72,3 +72,12 @@ class Dummy(object):
 
     def __call__(self, *args, **kwargs):
         return self
+
+
+class AttributeHolder(object):
+
+    def __init__(self, d):
+        self.__dict__.update(d)
+
+    def __repr__(self):
+        return '{}({})'.format(self.__class__.__name__, self.__dict__)
