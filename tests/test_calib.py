@@ -1,8 +1,12 @@
 from amodem import calib
+from amodem import common
 from amodem import config
 config = config.fastest()
 
 from io import BytesIO
+
+import numpy as np
+import pytest
 
 
 class ProcessMock(object):
@@ -50,3 +54,27 @@ def test_errors():
     p = ReadError()
     calib.recv(config, p, verbose=True)
     assert p.buf.tell() == 0
+
+
+@pytest.fixture(params=[0] + [sign * mag for sign in (+1, -1)
+                              for mag in (0.1, 1, 10, 100, 1e3, 2e3)])
+def freq_err(request):
+    return request.param * 1e-6
+
+
+def test_drift(freq_err):
+    freq = config.Fc * (1 + freq_err / 1e6)
+    t = np.arange(int(1.0 * config.Fs)) * config.Ts
+    frame_length = 100
+    rms = 0.5
+    signal = rms * np.cos(2 * np.pi * freq * t)
+    src = BytesIO(common.dumps(signal))
+    iters = 0
+    for r in calib.detector(config, src, frame_length=frame_length):
+        assert not r.error
+        assert abs(r.rms - rms) < 1e-3
+        assert abs(r.total - rms) < 1e-3
+        iters += 1
+
+    assert iters > 0
+    assert iters == config.baud / frame_length

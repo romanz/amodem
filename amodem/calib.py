@@ -5,6 +5,8 @@ import logging
 log = logging.getLogger(__name__)
 
 from . import common
+from . import dsp
+from . import sampling
 
 ALLOWED_EXCEPTIONS = (IOError, KeyboardInterrupt)
 
@@ -22,15 +24,9 @@ def send(config, dst):
         pass
 
 
-def frame_iter(config, src):
-    frame_length = 200 * config.Nsym
-    frame_size = frame_length * config.sample_size
-
-    t = np.arange(0, frame_length) * config.Ts
-
-    scaling_factor = 0.5 * len(t)
-    carriers = [np.exp(2j * np.pi * f * t) for f in config.frequencies]
-    carriers = np.array(carriers) / scaling_factor
+def frame_iter(config, src, frame_length):
+    frame_size = frame_length * config.Nsym * config.sample_size
+    omegas = 2 * np.pi * config.frequencies / config.Fs
 
     while True:
         data = src.read(frame_size)
@@ -39,19 +35,24 @@ def frame_iter(config, src):
         data = common.loads(data)
         frame = data - np.mean(data)
 
-        coeffs = np.dot(carriers, frame)
+        sampler = sampling.Sampler(frame)
+        symbols = dsp.Demux(sampler, omegas, config.Nsym)
+
+        symbols = np.array(list(symbols))
+        coeffs = np.mean(np.abs(symbols) ** 2, axis=0) ** 0.5
+
         peak = np.max(np.abs(frame))
-        total = np.sqrt(np.dot(frame, frame) / scaling_factor)
+        total = np.sqrt(np.dot(frame, frame) / (0.5 * len(frame)))
         yield coeffs, peak, total
 
 
-def detector(config, src):
+def detector(config, src, frame_length=200):
 
     states = [True]
     errors = ['weak', 'strong', 'noisy']
     try:
-        for coeffs, peak, total in frame_iter(config, src):
-            max_index = np.argmax(np.abs(coeffs))
+        for coeffs, peak, total in frame_iter(config, src, frame_length):
+            max_index = np.argmax(coeffs)
             freq = config.frequencies[max_index]
             rms = abs(coeffs[max_index])
             coherency = rms / total
@@ -63,8 +64,7 @@ def detector(config, src):
             message = 'good signal'
             error = not any(states)
             if error:
-                error_index = flags.index(False)
-                message = 'too {0} signal'.format(errors[error_index])
+                message = 'too {0} signal'.format(errors[flags.index(False)])
 
             yield common.AttributeHolder(dict(
                 freq=freq, rms=rms, peak=peak, coherency=coherency,
