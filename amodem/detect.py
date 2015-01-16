@@ -54,14 +54,9 @@ class Detector(object):
         length = (self.CARRIER_THRESHOLD - 1) * self.Nsym
         begin = offset - length
 
-        x = np.concatenate(tuple(bufs)[-self.CARRIER_THRESHOLD:-1])
-        Hc = dsp.exp_iwt(-self.omega, len(x))
-        amplitude = np.abs(np.dot(Hc, x) / (0.5 * len(x)))
         start_time = begin * self.Tsym / self.Nsym
-        log.info('Carrier detected at ~%.1f ms @ %.1f kHz:'
-                 ' coherence=%.3f%%, amplitude=%.3f',
-                 start_time * 1e3, self.freq / 1e3,
-                 np.abs(dsp.coherence(x, self.omega)) * 100, amplitude)
+        log.info('Carrier detected at ~%.1f ms @ %.1f kHz',
+                 start_time * 1e3, self.freq / 1e3)
 
         log.debug('Buffered %d ms of audio', len(bufs))
 
