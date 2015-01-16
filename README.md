@@ -104,6 +104,8 @@ If the signal is "too strong", decrease the sender's output audio level.
 If the signal is "too noisy", the SNR is probably too low: decrease the
 background noise or increase the signal (without causing saturation).
 
+You can see a video of the calibration process [here](http://www.youtube.com/watch?v=jRUj2Ifk-Po).
+
 # Usage
 
 - Prepare the sender (generate a random binary data file to be sent):
@@ -184,6 +186,8 @@ background noise or increase the signal (without causing saturation).
 ~/receiver $ sha256sum data.rx
 008df57d4f3ed6e7a25d25afd57d04fc73140e8df604685bd34fcab58f5ddc01  data.rx
 ```
+
+You can see a video of the data transfer process [here](http://www.youtube.com/watch?v=GZQUtHB8so4).
 
 # Visualization
 Make sure that `matplotlib` package is installed, and run (at the receiver side):
