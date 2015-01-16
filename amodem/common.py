@@ -80,4 +80,6 @@ class AttributeHolder(object):
         self.__dict__.update(d)
 
     def __repr__(self):
-        return '{}({})'.format(self.__class__.__name__, self.__dict__)
+        items = sorted(self.__dict__.items())
+        args = ', '.join('{0}={1}'.format(k, v) for k, v in items)
+        return '{}({})'.format(self.__class__.__name__, args)

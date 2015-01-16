@@ -51,3 +51,11 @@ def test_izip():
     x = range(10)
     y = range(-10, 0)
     assert list(common.izip([x, y])) == list(zip(x, y))
+
+
+def test_holder():
+    d = {'x': 1, 'y': 2.3}
+    a = common.AttributeHolder(d)
+    assert a.x == d['x']
+    assert a.y == d['y']
+    assert repr(a) == 'AttributeHolder(x=1, y=2.3)'
