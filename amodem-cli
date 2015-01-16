@@ -34,13 +34,18 @@ class Compressor(object):
         self.stream = stream
 
     def read(self, size):
-        data = self.stream.read(size)
-        if data:
-            data = self.obj.compress(data)
-        elif self.obj:
-            data = self.obj.flush()
-            self.obj = None
-        return data
+        while True:
+            data = self.stream.read(size)
+            if data:
+                result = self.obj.compress(data)
+                if not result:  # compression is too good :)
+                    continue  # try again (since falsy data = EOF)
+            elif self.obj:
+                result = self.obj.flush()
+                self.obj = None
+            else:
+                result = ''  # EOF marker
+            return result
 
 
 class Decompressor(object):
