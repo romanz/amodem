@@ -87,14 +87,14 @@ If BITRATE is not set, the MODEM will use 1 kbps settings (single frequency with
 Change the sender computer's output audio level, until
 all frequencies are received well:
 ```
-  1000 Hz: good signal
-  2000 Hz: good signal
   3000 Hz: good signal
   4000 Hz: good signal
   5000 Hz: good signal
   6000 Hz: good signal
   7000 Hz: good signal
   8000 Hz: good signal
+  9000 Hz: good signal
+ 10000 Hz: good signal
 ```
 
 If the signal is "too weak", increase the sender's output audio level.
@@ -109,7 +109,7 @@ background noise or increase the signal (without causing saturation).
 - Prepare the sender (generate a random binary data file to be sent):
 
 ```
-~/sender $ dd if=/dev/urandom of=data.tx bs=16kB count=1 status=none
+~/sender $ dd if=/dev/urandom of=data.tx bs=10KB count=1 status=none
 ~/sender $ sha256sum data.tx
 008df57d4f3ed6e7a25d25afd57d04fc73140e8df604685bd34fcab58f5ddc01  data.tx
 ```
@@ -126,41 +126,57 @@ background noise or increase the signal (without causing saturation).
 
 - A similar log should be emitted by the sender:
 ```
-2014-10-23 09:46:36,116 DEBUG      MODEM settings: {'F0': 1000.0, 'Nfreq': 8, 'Fs': 32000.0, 'Npoints': 64, 'Tsym': 0.001}              amodem:126
-2014-10-23 09:46:36,116 DEBUG      Running: ['aplay', '-', '-q', '-f', 'S16_LE', '-c', '1', '-r', '32000']                              wave.py:20
-2014-10-23 09:46:36,665 INFO       Sending 2.150 seconds of training audio                                                              send.py:69
-2014-10-23 09:46:36,665 INFO       Starting modulation: <48.000 kbps, 64-QAM, 8 carriers>                                               send.py:74
-2014-10-23 09:46:37,735 DEBUG      Sent      6.0 kB                                                                                     send.py:56
-2014-10-23 09:46:38,794 DEBUG      Sent     12.0 kB                                                                                     send.py:56
-2014-10-23 09:46:39,440 INFO       Sent 16.384 kB @ 2.754 seconds                                                                       send.py:79
+2015-01-16 11:49:25,181 DEBUG      Audio OFDM MODEM: 48.0 kb/s (64-QAM x 8 carriers) Fs=32.0 kHz                                        amodem-cli:174
+2015-01-16 11:49:27,028 INFO       Sending 2.150 seconds of training audio                                                              send.py:63
+2015-01-16 11:49:27,029 INFO       Starting modulation                                                                                  send.py:68
+2015-01-16 11:49:28,016 DEBUG      Sent      6.000 kB                                                                                   send.py:50
+2015-01-16 11:49:28,776 INFO       Sent 10.000 kB @ 1.701 seconds                                                                       send.py:73
+
 ```
 
 - A similar log should be emitted by the receiver:
 ```
-2014-10-23 09:46:36,116 DEBUG      MODEM settings: {'F0': 1000.0, 'Nfreq': 8, 'Fs': 32000.0, 'Npoints': 64, 'Tsym': 0.001}              amodem:126
-2014-10-23 09:46:36,238 DEBUG      Running: ['arecord', '-', '-q', '-f', 'S16_LE', '-c', '1', '-r', '32000']                            wave.py:20
-2014-10-23 09:46:36,408 DEBUG      Skipping 0.128 seconds                                                                               recv.py:275
-2014-10-23 09:46:36,409 INFO       Waiting for carrier tone: 1.0 kHz                                                                    recv.py:282
-2014-10-23 09:46:37,657 INFO       Carrier detected at ~886.0 ms @ 1.0 kHz: coherence=99.996%, amplitude=0.475                          recv.py:40
-2014-10-23 09:46:37,657 DEBUG      Buffered 1000 ms of audio                                                                            recv.py:64
-2014-10-23 09:46:37,660 DEBUG      Carrier starts at 9.531 ms                                                                           recv.py:73
-2014-10-23 09:46:38,119 DEBUG      Prefix OK                                                                                            recv.py:108
-2014-10-23 09:46:38,153 DEBUG      Current phase on carrier: -0.497                                                                     recv.py:121
-2014-10-23 09:46:38,153 DEBUG      Frequency error: 0.02 ppm                                                                            recv.py:123
-2014-10-23 09:46:38,682 DEBUG        1.0 kHz: SNR = 34.20 dB                                                                            recv.py:165
-2014-10-23 09:46:38,715 DEBUG        2.0 kHz: SNR = 35.05 dB                                                                            recv.py:165
-2014-10-23 09:46:38,766 DEBUG        3.0 kHz: SNR = 35.52 dB                                                                            recv.py:165
-2014-10-23 09:46:38,803 DEBUG        4.0 kHz: SNR = 35.65 dB                                                                            recv.py:165
-2014-10-23 09:46:38,837 DEBUG        5.0 kHz: SNR = 35.03 dB                                                                            recv.py:165
-2014-10-23 09:46:38,869 DEBUG        6.0 kHz: SNR = 35.05 dB                                                                            recv.py:165
-2014-10-23 09:46:38,907 DEBUG        7.0 kHz: SNR = 34.80 dB                                                                            recv.py:165
-2014-10-23 09:46:38,943 DEBUG        8.0 kHz: SNR = 33.74 dB                                                                            recv.py:165
-2014-10-23 09:46:38,977 INFO       Starting demodulation: <48.000 kbps, 64-QAM, 8 carriers>                                             recv.py:197
-2014-10-23 09:46:39,619 DEBUG      Got       6.0 kB, realtime:  64.18%, drift: +0.02 ppm                                                recv.py:215
-2014-10-23 09:46:40,538 DEBUG      Got      12.0 kB, realtime:  78.03%, drift: +0.02 ppm                                                recv.py:215
-2014-10-23 09:46:41,306 DEBUG      EOF frame detected                                                                                   framing.py:60
-2014-10-23 09:46:41,306 DEBUG      Demodulated 16.520 kB @ 2.329 seconds (84.6% realtime)                                               recv.py:244
-2014-10-23 09:46:41,306 INFO       Received 16.384 kB @ 2.329 seconds = 7.034 kB/s                                                      recv.py:247
+2015-01-16 11:49:24,369 DEBUG      Audio OFDM MODEM: 48.0 kb/s (64-QAM x 8 carriers) Fs=32.0 kHz                                        amodem-cli:174
+2015-01-16 11:49:24,382 DEBUG      Skipping 0.100 seconds                                                                               recv.py:214
+2015-01-16 11:49:24,535 INFO       Waiting for carrier tone: 3.0 kHz                                                                    recv.py:221
+2015-01-16 11:49:26,741 INFO       Carrier detected at ~1761.0 ms @ 3.0 kHz: coherence=99.944%, amplitude=0.499                         detect.py:64
+2015-01-16 11:49:26,741 DEBUG      Buffered 1000 ms of audio                                                                            detect.py:66
+2015-01-16 11:49:26,912 DEBUG      Carrier starts at 1761.000 ms                                                                        detect.py:76
+2015-01-16 11:49:26,917 DEBUG      Carrier symbols amplitude : 0.499                                                                    detect.py:101
+2015-01-16 11:49:26,917 DEBUG      Current phase on carrier: -0.466                                                                     detect.py:112
+2015-01-16 11:49:26,917 DEBUG      Frequency error: -0.01 ppm                                                                           detect.py:113
+2015-01-16 11:49:26,917 DEBUG      Frequency correction: 0.005 ppm                                                                      recv.py:225
+2015-01-16 11:49:26,917 DEBUG      Gain correction: 2.004                                                                               recv.py:228
+2015-01-16 11:49:27,099 DEBUG      Prefix OK                                                                                            recv.py:48
+2015-01-16 11:49:27,925 DEBUG        3.0 kHz: SNR = 40.58 dB                                                                            recv.py:92
+2015-01-16 11:49:27,925 DEBUG        4.0 kHz: SNR = 41.98 dB                                                                            recv.py:92
+2015-01-16 11:49:27,925 DEBUG        5.0 kHz: SNR = 42.81 dB                                                                            recv.py:92
+2015-01-16 11:49:27,925 DEBUG        6.0 kHz: SNR = 43.71 dB                                                                            recv.py:92
+2015-01-16 11:49:27,926 DEBUG        7.0 kHz: SNR = 43.43 dB                                                                            recv.py:92
+2015-01-16 11:49:27,926 DEBUG        8.0 kHz: SNR = 42.96 dB                                                                            recv.py:92
+2015-01-16 11:49:27,926 DEBUG        9.0 kHz: SNR = 42.66 dB                                                                            recv.py:92
+2015-01-16 11:49:27,926 DEBUG       10.0 kHz: SNR = 42.22 dB                                                                            recv.py:92
+2015-01-16 11:49:27,928 INFO       Starting demodulation                                                                                recv.py:119
+2015-01-16 11:49:28,008 DEBUG      Got       0.600 kB, realtime:  80.73%, drift: -0.00 ppm                                              recv.py:140
+2015-01-16 11:49:28,081 DEBUG      Got       1.200 kB, realtime:  76.60%, drift: -0.00 ppm                                              recv.py:140
+2015-01-16 11:49:28,153 DEBUG      Got       1.800 kB, realtime:  75.17%, drift: -0.00 ppm                                              recv.py:140
+2015-01-16 11:49:28,224 DEBUG      Got       2.400 kB, realtime:  74.02%, drift: -0.00 ppm                                              recv.py:140
+2015-01-16 11:49:28,306 DEBUG      Got       3.000 kB, realtime:  75.72%, drift: -0.00 ppm                                              recv.py:140
+2015-01-16 11:49:28,382 DEBUG      Got       3.600 kB, realtime:  75.71%, drift: -0.01 ppm                                              recv.py:140
+2015-01-16 11:49:28,458 DEBUG      Got       4.200 kB, realtime:  75.72%, drift: -0.01 ppm                                              recv.py:140
+2015-01-16 11:49:28,528 DEBUG      Got       4.800 kB, realtime:  75.10%, drift: -0.01 ppm                                              recv.py:140
+2015-01-16 11:49:28,609 DEBUG      Got       5.400 kB, realtime:  75.76%, drift: -0.01 ppm                                              recv.py:140
+2015-01-16 11:49:28,686 DEBUG      Got       6.000 kB, realtime:  75.80%, drift: -0.01 ppm                                              recv.py:140
+2015-01-16 11:49:28,757 DEBUG      Got       6.600 kB, realtime:  75.36%, drift: -0.01 ppm                                              recv.py:140
+2015-01-16 11:49:28,828 DEBUG      Got       7.200 kB, realtime:  75.03%, drift: -0.01 ppm                                              recv.py:140
+2015-01-16 11:49:28,909 DEBUG      Got       7.800 kB, realtime:  75.50%, drift: -0.01 ppm                                              recv.py:140
+2015-01-16 11:49:28,980 DEBUG      Got       8.400 kB, realtime:  75.15%, drift: -0.01 ppm                                              recv.py:140
+2015-01-16 11:49:29,051 DEBUG      Got       9.000 kB, realtime:  74.88%, drift: -0.01 ppm                                              recv.py:140
+2015-01-16 11:49:29,261 DEBUG      Got       9.600 kB, realtime:  83.31%, drift: -0.01 ppm                                              recv.py:140
+2015-01-16 11:49:29,342 DEBUG      Got      10.200 kB, realtime:  83.23%, drift: -0.01 ppm                                              recv.py:140
+2015-01-16 11:49:29,343 DEBUG      EOF frame detected                                                                                   framing.py:57
+2015-01-16 11:49:29,343 DEBUG      Demodulated 10.205 kB @ 1.415 seconds (83.2% realtime)                                               recv.py:165
+2015-01-16 11:49:29,343 INFO       Received 10.000 kB @ 1.415 seconds = 7.066 kB/s                                                      recv.py:169
 ```
 
 - After the receiver has finished, verify the received file's hash:
