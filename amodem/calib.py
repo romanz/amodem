@@ -9,8 +9,6 @@ from . import common
 from . import dsp
 from . import sampling
 
-ALLOWED_EXCEPTIONS = (IOError, KeyboardInterrupt)
-
 
 def volume_controller(cmd):
     def controller(level):
@@ -34,7 +32,7 @@ def send(config, dst, volume_cmd=None):
     try:
         for signal in itertools.cycle(signals):
             dst.write(signal)
-    except ALLOWED_EXCEPTIONS:
+    except KeyboardInterrupt:
         pass
 
 
@@ -63,26 +61,23 @@ def frame_iter(config, src, frame_length):
 def detector(config, src, frame_length=200):
 
     errors = ['weak', 'strong', 'noisy']
-    try:
-        for coeffs, peak, total in frame_iter(config, src, frame_length):
-            max_index = np.argmax(coeffs)
-            freq = config.frequencies[max_index]
-            rms = abs(coeffs[max_index])
-            coherency = rms / total
-            flags = [total > 0.1, peak < 1.0, coherency > 0.99]
+    for coeffs, peak, total in frame_iter(config, src, frame_length):
+        max_index = np.argmax(coeffs)
+        freq = config.frequencies[max_index]
+        rms = abs(coeffs[max_index])
+        coherency = rms / total
+        flags = [total > 0.1, peak < 1.0, coherency > 0.99]
 
-            success = all(flags)
-            if success:
-                message = 'good signal'
-            else:
-                message = 'too {0} signal'.format(errors[flags.index(False)])
+        success = all(flags)
+        if success:
+            message = 'good signal'
+        else:
+            message = 'too {0} signal'.format(errors[flags.index(False)])
 
-            yield common.AttributeHolder(dict(
-                freq=freq, rms=rms, peak=peak, coherency=coherency,
-                total=total, success=success, message=message
-            ))
-    except ALLOWED_EXCEPTIONS:
-        pass
+        yield common.AttributeHolder(dict(
+            freq=freq, rms=rms, peak=peak, coherency=coherency,
+            total=total, success=success, message=message
+        ))
 
 
 def volume_calibration(result_iterator, volume_ctl):
@@ -117,5 +112,8 @@ def recv(config, src, verbose=False, volume_cmd=None):
     result_iterator = detector(config=config, src=src)
     volume_ctl = volume_controller(volume_cmd)
 
-    for result in volume_calibration(result_iterator, volume_ctl):
-        log.info(fmt.format(result))
+    try:
+        for result in volume_calibration(result_iterator, volume_ctl):
+            log.info(fmt.format(result))
+    except KeyboardInterrupt:
+        pass

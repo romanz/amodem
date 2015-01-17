@@ -44,7 +44,7 @@ def test_success():
 def test_errors():
     class WriteError(ProcessMock):
         def write(self, data):
-            raise IOError()
+            raise KeyboardInterrupt()
     p = WriteError()
     calib.send(config, p)
     assert p.buf.tell() == 0
