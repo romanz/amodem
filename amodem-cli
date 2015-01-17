@@ -83,12 +83,11 @@ def FileType(mode, audio_interface=None):
 
     return opener
 
-
-send_volume = {
-    'PulseAudio': 'pactl set-sink-volume @DEFAULT_SINK@'
-}
-recv_volume = {
-    'PulseAudio': 'pactl set-source-volume @DEFAULT_SOURCE@'
+volume_cmd = {
+    'PulseAudio': dict(
+        send='pactl set-sink-volume @DEFAULT_SINK@',
+        recv='pactl set-source-volume @DEFAULT_SOURCE@'
+    )
 }
 
 
@@ -113,15 +112,13 @@ def main():
     sender.add_argument(
         '-o', '--output', help='output file (use "-" for stdout).'
         ' if not specified, `aplay` tool will be used.')
-    sender.add_argument(
-        '-c', '--calibrate', nargs='?', default=False)
     sender.set_defaults(
         main=lambda config, args: send.main(
             config, src=wrap(Compressor, args.src, args.zip), dst=args.dst
         ),
         calib=lambda config, args: calib.send(
             config=config, dst=args.dst,
-            volume_cmd=send_volume.get(args.calibrate)
+            volume_cmd=volume_cmd.get(args.calibrate, {}).get('send')
         ),
         input_type=FileType('rb'),
         output_type=FileType('wb', interface)
@@ -136,8 +133,6 @@ def main():
     receiver.add_argument(
         '-o', '--output', help='output file (use "-" for stdout).')
     receiver.add_argument(
-        '-c', '--calibrate', nargs='?', default=False)
-    receiver.add_argument(
         '-d', '--dump', type=FileType('wb'),
         help='Filename to save recorded audio')
     receiver.add_argument(
@@ -150,14 +145,21 @@ def main():
         ),
         calib=lambda config, args: calib.recv(
             config=config, src=args.src, verbose=args.verbose,
-            volume_cmd=recv_volume.get(args.calibrate)
+            volume_cmd=volume_cmd.get(args.calibrate, {}).get('recv')
         ),
         input_type=FileType('rb', interface),
         output_type=FileType('wb')
     )
 
+    calibration_help = ('Run calibration (specify one of the following '
+                        'audio systems to use automatic gain control: '
+                        '{0})'.format(volume_cmd.keys()))
+
     for sub in subparsers.choices.values():
-        sub.add_argument('-z', '--zip', default=False, action='store_true')
+        sub.add_argument('-c', '--calibrate', nargs='?', default=False,
+                         metavar='SYSTEM', help=calibration_help)
+        sub.add_argument('-z', '--zip', default=False, action='store_true',
+                         help='Use ZIP to compress data.')
         g = sub.add_mutually_exclusive_group()
         g.add_argument('-v', '--verbose', default=0, action='count')
         g.add_argument('-q', '--quiet', default=False, action='store_true')
