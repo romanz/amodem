@@ -10,7 +10,7 @@ class Interface(object):
         self.lib = ctypes.CDLL(name)
         self.config = config
         self.streams = []
-        assert self._error_string(0) == 'Success'
+        assert self._error_string(0) == b'Success'
         self.version = self.call('GetVersionText', restype=ctypes.c_char_p)
 
     def _error_string(self, code):
