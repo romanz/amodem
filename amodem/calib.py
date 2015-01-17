@@ -17,7 +17,7 @@ def volume_controller(cmd):
         assert 0 < level <= 1
         percent = 100 * level
         args = '{0} {1:.0f}%'.format(cmd, percent)
-        log.debug('Setting volume: %.3f%% (via "%s")', percent, args)
+        log.debug('Setting volume to %7.3f%% -> "%s"', percent, args)
         subprocess.check_call(args=args, shell=True)
     return controller if cmd else (lambda level: None)
 
@@ -111,7 +111,7 @@ def volume_calibration(result_iterator, volume_ctl):
 def recv(config, src, verbose=False, volume_cmd=None):
     fmt = '{0.freq:6.0f} Hz: {0.message:20s}'
     if verbose:
-        fields = ['peak', 'total', 'rms', 'coherency']
+        fields = ['total', 'rms', 'coherency', 'peak']
         fmt += ', '.join('{0}={{0.{0}:.4f}}'.format(f) for f in fields)
 
     result_iterator = detector(config=config, src=src)
