@@ -9,7 +9,7 @@ def test():
     data = b'\x12\x34' * length
     with mock.patch('ctypes.CDLL') as cdll:
         lib = mock.Mock()
-        lib.Pa_GetErrorText = lambda code: 'Error' if code else 'Success'
+        lib.Pa_GetErrorText = lambda code: b'Error' if code else b'Success'
         lib.Pa_GetDefaultOutputDevice.return_value = 1
         lib.Pa_GetDefaultInputDevice.return_value = 2
         lib.Pa_OpenStream.return_value = 0
