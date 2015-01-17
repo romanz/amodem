@@ -84,6 +84,14 @@ def FileType(mode, audio_interface=None):
     return opener
 
 
+send_volume = {
+    'PulseAudio': 'pactl set-sink-volume @DEFAULT_SINK@'
+}
+recv_volume = {
+    'PulseAudio': 'pactl set-source-volume @DEFAULT_SOURCE@'
+}
+
+
 def main():
     fmt = ('Audio OFDM MODEM: {0:.1f} kb/s ({1:d}-QAM x {2:d} carriers) '
            'Fs={3:.1f} kHz')
@@ -107,13 +115,13 @@ def main():
         ' if not specified, `aplay` tool will be used.')
     sender.add_argument(
         '-c', '--calibrate', nargs='?', default=False)
-
     sender.set_defaults(
         main=lambda config, args: send.main(
             config, src=wrap(Compressor, args.src, args.zip), dst=args.dst
         ),
         calib=lambda config, args: calib.send(
-            config=config, dst=args.dst, volume_cmd=args.calibrate
+            config=config, dst=args.dst,
+            volume_cmd=send_volume.get(args.calibrate)
         ),
         input_type=FileType('rb'),
         output_type=FileType('wb', interface)
@@ -142,7 +150,7 @@ def main():
         ),
         calib=lambda config, args: calib.recv(
             config=config, src=args.src, verbose=args.verbose,
-            volume_cmd=args.calibrate
+            volume_cmd=recv_volume.get(args.calibrate)
         ),
         input_type=FileType('rb', interface),
         output_type=FileType('wb')
