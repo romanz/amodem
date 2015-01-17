@@ -169,6 +169,7 @@ def main():
         if args.quiet:
             level, format = 'WARNING', '%(message)s'
         logging.basicConfig(level=level, format=format)
+        log.info('Interface "%s" loaded succesfully', interface.version)
 
         # Parsing and execution
         log.debug(description)

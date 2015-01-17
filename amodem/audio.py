@@ -11,6 +11,7 @@ class Interface(object):
         self.config = config
         self.streams = []
         assert self._error_string(0) == 'Success'
+        self.version = self.call('GetVersionText', restype=ctypes.c_char_p)
 
     def _error_string(self, code):
         return self.call('GetErrorText', code, restype=ctypes.c_char_p)
