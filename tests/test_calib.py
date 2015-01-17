@@ -7,6 +7,7 @@ from io import BytesIO
 
 import numpy as np
 import pytest
+import mock
 
 
 class ProcessMock(object):
@@ -71,10 +72,31 @@ def test_drift(freq_err):
     src = BytesIO(common.dumps(signal))
     iters = 0
     for r in calib.detector(config, src, frame_length=frame_length):
-        assert not r.error
+        assert r.success is True
         assert abs(r.rms - rms) < 1e-3
         assert abs(r.total - rms) < 1e-3
         iters += 1
 
     assert iters > 0
     assert iters == config.baud / frame_length
+
+
+def test_volume():
+    with mock.patch('subprocess.check_call') as check_call:
+        ctl = calib.volume_controller('volume-control')
+        ctl(0.01)
+        ctl(0.421)
+        ctl(0.369)
+        ctl(1)
+        assert check_call.mock_calls == [
+            mock.call(shell=True, args='volume-control 1%'),
+            mock.call(shell=True, args='volume-control 42%'),
+            mock.call(shell=True, args='volume-control 37%'),
+            mock.call(shell=True, args='volume-control 100%')
+        ]
+        with pytest.raises(AssertionError):
+            ctl(0)
+        with pytest.raises(AssertionError):
+            ctl(-0.5)
+        with pytest.raises(AssertionError):
+            ctl(12.3)

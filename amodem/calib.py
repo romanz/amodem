@@ -11,6 +11,7 @@ from . import sampling
 
 ALLOWED_EXCEPTIONS = (IOError, KeyboardInterrupt)
 
+
 def volume_controller(cmd):
     def controller(level):
         assert 0 < level <= 1
@@ -83,8 +84,8 @@ def detector(config, src, frame_length=200):
     except ALLOWED_EXCEPTIONS:
         pass
 
-def volume_calibration(result_iterator, volume_ctl):
 
+def volume_calibration(result_iterator, volume_ctl):
     min_level = 0.01
     max_level = 1.0
     level = 0.5
@@ -101,10 +102,11 @@ def volume_calibration(result_iterator, volume_ctl):
                 level = min(max(level, min_level), max_level)
                 step = step * 0.5
 
-            volume_ctl(level)  # should run "before" first iteration
+            volume_ctl(level)  # should run "before" first actual iteration
 
         if index > 0:  # skip dummy (first result)
             yield result
+
 
 def recv(config, src, verbose=False, volume_cmd=None):
     fmt = '{0.freq:6.0f} Hz: {0.message:20s}'
@@ -113,19 +115,7 @@ def recv(config, src, verbose=False, volume_cmd=None):
         fmt += ', '.join('{0}={{0.{0}:.4f}}'.format(f) for f in fields)
 
     result_iterator = detector(config=config, src=src)
-    if volume_cmd:
-        log.info('Using automatic calibration (via "%s")', volume_cmd)
-
     volume_ctl = volume_controller(volume_cmd)
 
-    errors = []
     for result in volume_calibration(result_iterator, volume_ctl):
-        errors.append(not result.success)
-        errors = errors[-3:]
-
-        msg = fmt.format(result)
-        if all(errors):
-            log.error(msg)
-        else:
-            log.info(msg)
-
+        log.info(fmt.format(result))
