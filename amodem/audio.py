@@ -5,18 +5,24 @@ log = logging.getLogger(__name__)
 
 
 class Interface(object):
-    def __init__(self, name, config, debug=False):
+    def __init__(self, config, debug=False):
         self.debug = bool(debug)
-        self.lib = ctypes.CDLL(name)
         self.config = config
         self.streams = []
+        self.lib = None
+
+    def load(self, name):
+        self.lib = ctypes.CDLL(name)
         assert self._error_string(0) == b'Success'
-        self.version = self.call('GetVersionText', restype=ctypes.c_char_p)
+        version = self.call('GetVersionText', restype=ctypes.c_char_p)
+        log.info('%s loaded', version)
+        return self
 
     def _error_string(self, code):
         return self.call('GetErrorText', code, restype=ctypes.c_char_p)
 
     def call(self, name, *args, **kwargs):
+        assert self.lib is not None
         func_name = 'Pa_{0}'.format(name)
         if self.debug:
             log.debug('API: %s%s', name, args)

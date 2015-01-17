@@ -96,7 +96,7 @@ def main():
            'Fs={3:.1f} kHz')
     description = fmt.format(config.modem_bps / 1e3, len(config.symbols),
                              config.Nfreq, config.Fs / 1e3)
-    interface = audio.Interface('libportaudio.so', config=config)
+    interface = audio.Interface(config=config)
 
     p = argparse.ArgumentParser(description=description)
     subparsers = p.add_subparsers()
@@ -158,6 +158,8 @@ def main():
     for sub in subparsers.choices.values():
         sub.add_argument('-c', '--calibrate', nargs='?', default=False,
                          metavar='SYSTEM', help=calibration_help)
+        sub.add_argument('-l', '--audio-library', default='libportaudio.so',
+                         help='File name of PortAudio shared library.')
         sub.add_argument('-z', '--zip', default=False, action='store_true',
                          help='Use ZIP to compress data.')
         g = sub.add_mutually_exclusive_group()
@@ -167,29 +169,28 @@ def main():
     if argcomplete:
         argcomplete.autocomplete(p)
 
-    with interface:
-        args = p.parse_args()
-        if args.verbose == 0:
-            level, format = 'INFO', '%(message)s'
-        elif args.verbose == 1:
-            level, format = 'DEBUG', '%(message)s'
-        elif args.verbose >= 2:
-            level, format = ('DEBUG', '%(asctime)s %(levelname)-10s '
-                                      '%(message)-100s '
-                                      '%(filename)s:%(lineno)d')
-        if args.quiet:
-            level, format = 'WARNING', '%(message)s'
-        logging.basicConfig(level=level, format=format)
-        log.info('Interface "%s" loaded succesfully', interface.version)
+    args = p.parse_args()
+    if args.verbose == 0:
+        level, format = 'INFO', '%(message)s'
+    elif args.verbose == 1:
+        level, format = 'DEBUG', '%(message)s'
+    elif args.verbose >= 2:
+        level, format = ('DEBUG', '%(asctime)s %(levelname)-10s '
+                                  '%(message)-100s '
+                                  '%(filename)s:%(lineno)d')
+    if args.quiet:
+        level, format = 'WARNING', '%(message)s'
+    logging.basicConfig(level=level, format=format)
 
-        # Parsing and execution
-        log.debug(description)
+    # Parsing and execution
+    log.debug(description)
 
-        args.pylab = None
-        if getattr(args, 'plot', False):
-            import pylab
-            args.pylab = pylab
+    args.pylab = None
+    if getattr(args, 'plot', False):
+        import pylab
+        args.pylab = pylab
 
+    with interface.load(args.audio_library):
         args.src = args.input_type(args.input)
         args.dst = args.output_type(args.output)
         if args.calibrate is False:

@@ -14,10 +14,8 @@ def test():
         lib.Pa_GetDefaultInputDevice.return_value = 2
         lib.Pa_OpenStream.return_value = 0
         cdll.return_value = lib
-        interface = audio.Interface(
-            name='portaudio', config=config.fastest(), debug=True
-        )
-        with interface:
+        interface = audio.Interface(config=config.fastest(), debug=True)
+        with interface.load(name='portaudio'):
             s = interface.player()
             assert s.params.device == 1
             s.stream = 1  # simulate non-zero output stream handle
