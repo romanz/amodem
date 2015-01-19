@@ -36,11 +36,11 @@ class Receiver(object):
         S = S[:, self.carrier_index] * gain
         sliced = np.round(np.abs(S))
         self.plt.figure()
-        self.plt.subplot(121)
+        self.plt.subplot(1, 2, 1)
         self._constellation(S, sliced, 'Prefix')
 
         bits = np.array(sliced, dtype=int)
-        self.plt.subplot(122)
+        self.plt.subplot(1, 2, 2)
         self.plt.plot(np.abs(S))
         self.plt.plot(equalizer.prefix)
         if any(bits != equalizer.prefix):
