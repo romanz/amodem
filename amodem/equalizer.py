@@ -49,7 +49,8 @@ def train(signal, expected, order, lookahead=0):
 
     A = []
     b = []
-
+    # construct Ah=b over-constrained equation system,
+    # used for least-squares estimation of the filter.
     for i in range(length - order):
         offset = order + i
         row = signal[offset-order:offset+lookahead]
