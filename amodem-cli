@@ -83,12 +83,17 @@ def FileType(mode, audio_interface=None):
 
     return opener
 
-volume_cmd = {
-    'PulseAudio': dict(
-        send='pactl set-sink-volume @DEFAULT_SINK@',
-        recv='pactl set-source-volume @DEFAULT_SOURCE@'
-    )
-}
+
+def get_volume_cmd(args):
+    volume_controllers = [
+        dict(test='pactl --version',
+             send='pactl set-sink-volume @DEFAULT_SINK@',
+             recv='pactl set-source-volume @DEFAULT_SOURCE@')
+    ]
+    if args.calibrate == 'auto':
+        for c in volume_controllers:
+            if os.system(c['test']) == 0:
+                return c[args.command]
 
 
 def main():
@@ -118,10 +123,11 @@ def main():
         ),
         calib=lambda config, args: calib.send(
             config=config, dst=args.dst,
-            volume_cmd=volume_cmd.get(args.calibrate, {}).get('send')
+            volume_cmd=get_volume_cmd(args)
         ),
         input_type=FileType('rb'),
-        output_type=FileType('wb', interface)
+        output_type=FileType('wb', interface),
+        command='send'
     )
 
     # Demodulator
@@ -145,15 +151,15 @@ def main():
         ),
         calib=lambda config, args: calib.recv(
             config=config, src=args.src, verbose=args.verbose,
-            volume_cmd=volume_cmd.get(args.calibrate, {}).get('recv')
+            volume_cmd=get_volume_cmd(args)
         ),
         input_type=FileType('rb', interface),
-        output_type=FileType('wb')
+        output_type=FileType('wb'),
+        command='recv'
     )
 
-    calibration_help = ('Run calibration (specify one of the following '
-                        'audio systems to use automatic gain control: '
-                        '{0})'.format(volume_cmd.keys()))
+    calibration_help = ('Run calibration '
+                        '(specify "auto" for automatic gain control)')
 
     for sub in subparsers.choices.values():
         sub.add_argument('-c', '--calibrate', nargs='?', default=False,
