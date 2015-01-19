@@ -196,7 +196,10 @@ def main():
         if args.calibrate is False:
             return args.main(config=config, args=args)
         else:
-            args.calib(config=config, args=args)
+            try:
+                args.calib(config=config, args=args)
+            except KeyboardInterrupt:
+                pass
 
 
 if __name__ == '__main__':
