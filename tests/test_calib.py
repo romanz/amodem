@@ -6,6 +6,7 @@ config = config.fastest()
 from io import BytesIO
 
 import numpy as np
+import random
 import pytest
 import mock
 
@@ -26,9 +27,8 @@ class ProcessMock(object):
         pass
 
     def write(self, data):
+        assert self.buf.tell() < 10e6
         self.buf.write(data)
-        if self.buf.tell() > 1e6:
-            raise KeyboardInterrupt
 
     def read(self, n):
         return self.buf.read(n)
@@ -36,9 +36,36 @@ class ProcessMock(object):
 
 def test_success():
     p = ProcessMock()
-    calib.send(config, p)
+    calib.send(config, p, gain=0.5, limit=32)
     p.buf.seek(0)
     calib.recv(config, p)
+
+
+def test_too_strong():
+    p = ProcessMock()
+    calib.send(config, p, gain=1.001, limit=32)
+    p.buf.seek(0)
+    for r in calib.detector(config, src=p):
+        assert not r.success
+        assert r.msg == 'too strong signal'
+
+
+def test_too_weak():
+    p = ProcessMock()
+    calib.send(config, p, gain=0.01, limit=32)
+    p.buf.seek(0)
+    for r in calib.detector(config, src=p):
+        assert not r.success
+        assert r.msg == 'too weak signal'
+
+
+def test_too_noisy():
+    r = random.Random(0)  # generate random binary signal
+    signal = np.array([r.choice([-1, 1]) for i in range(int(config.Fs))])
+    src = BytesIO(common.dumps(signal * 0.5))
+    for r in calib.detector(config, src=src):
+        assert not r.success
+        assert r.msg == 'too noisy signal'
 
 
 def test_errors():
@@ -46,14 +73,16 @@ def test_errors():
         def write(self, data):
             raise KeyboardInterrupt()
     p = WriteError()
-    calib.send(config, p)
+    with pytest.raises(KeyboardInterrupt):
+        calib.send(config, p, limit=32)
     assert p.buf.tell() == 0
 
     class ReadError(ProcessMock):
         def read(self, n):
             raise KeyboardInterrupt()
     p = ReadError()
-    calib.recv(config, p, verbose=True)
+    with pytest.raises(KeyboardInterrupt):
+        calib.recv(config, p, verbose=True)
     assert p.buf.tell() == 0
 
 
