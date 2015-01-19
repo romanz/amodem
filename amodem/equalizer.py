@@ -18,10 +18,13 @@ class Equalizer(object):
         self.Nfreq = config.Nfreq
         self.Nsym = config.Nsym
 
-    def train_symbols(self, length, seed=0):
+    def train_symbols(self, length, seed=0, constant_prefix=16):
         r = random.Random(seed)
         choose = lambda: [r.choice(_constellation) for j in range(self.Nfreq)]
-        return np.array([choose() for _ in range(length)])
+        symbols = np.array([choose() for _ in range(length)])
+        # Constant symbols (for analog debugging)
+        symbols[:constant_prefix, :] = 1
+        return symbols
 
     def modulator(self, symbols):
         gain = 1.0 / len(self.carriers)
