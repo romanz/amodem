@@ -129,3 +129,25 @@ def test_volume():
             ctl(-0.5)
         with pytest.raises(AssertionError):
             ctl(12.3)
+
+
+def test_send_max_volume():
+    with mock.patch('subprocess.check_call') as check_call:
+        calib.send(config, dst=BytesIO(), volume_cmd='ctl', limit=1)
+    assert check_call.mock_calls == [mock.call(shell=True, args='ctl 100%')]
+
+
+def test_recv_binary_search():
+    buf = BytesIO()
+    gains = [0.5, 0.25, 0.38, 0.44, 0.41, 0.39, 0.40, 0.40]
+    for gain in gains:
+        calib.send(config, buf, gain=gain, limit=2)
+    buf.seek(0)
+
+    with mock.patch('subprocess.check_call') as check_call:
+        calib.recv(config, src=buf, volume_cmd='ctl')
+
+    gains.append(gains[-1])
+    fmt = 'ctl {0:.0f}%'
+    expected = [mock.call(shell=True, args=fmt.format(100 * g)) for g in gains]
+    assert check_call.mock_calls == expected
