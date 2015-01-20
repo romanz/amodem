@@ -7,12 +7,10 @@ import zlib
 import logging
 import argparse
 
-if sys.version_info.major == 2:
-    _stdin = sys.stdin
-    _stdout = sys.stdout
-else:
-    _stdin = sys.stdin.buffer
-    _stdout = sys.stdout.buffer
+# Python 3 has `buffer` attribute for byte-based I/O
+_stdin = getattr(sys.stdin, 'buffer', sys.stdin)
+_stdout = getattr(sys.stdout, 'buffer', sys.stdout)
+
 
 try:
     import argcomplete
