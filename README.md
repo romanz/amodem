@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/romanz/amodem.svg?branch=master)](https://travis-ci.org/romanz/amodem)
 [![Coverage Status](https://coveralls.io/repos/romanz/amodem/badge.png?branch=master)](https://coveralls.io/r/romanz/amodem?branch=master)
 [![Code Health](https://landscape.io/github/romanz/amodem/master/landscape.svg)](https://landscape.io/github/romanz/amodem/master)
-[![Supported Python versions](https://pypip.in/py_versions/amodem/badge.svg)](https://pypi.python.org/pypi/amodem/)
+[![Supported Python Versions](https://pypip.in/py_versions/amodem/badge.svg)](https://pypi.python.org/pypi/amodem/)
 [![License](https://pypip.in/license/amodem/badge.svg)](https://pypi.python.org/pypi/amodem/)
 
 # Description
@@ -50,7 +50,7 @@ For graphs and visualization (optional), install `matplotlib` Python package.
 
 For validation, run:
 
-    $ export BITRATE=16  # explicitly select high MODEM bit rate (assuming good SNR).
+    $ export BITRATE=48  # explicitly select high MODEM bit rate (assuming good SNR).
     $ amodem-cli -h
     usage: amodem-cli [-h] {send,recv} ...
 
