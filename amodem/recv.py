@@ -26,6 +26,7 @@ class Receiver(object):
         self.Nsym = config.Nsym
         self.Tsym = config.Tsym
         self.iters_per_update = 100  # [ms]
+        self.iters_per_report = 1000  # [ms]
         self.modem_bitrate = config.modem_bps
         self.equalizer = equalizer.Equalizer(config)
         self.carrier_index = config.carrier_index
@@ -123,22 +124,22 @@ class Receiver(object):
                 yield bits
 
             if i % self.iters_per_update == 0:
-                self._update_sampler(i, errors, sampler)
+                self._update_sampler(errors, sampler)
 
-    def _update_sampler(self, iter_index, errors, sampler):
+            if i % self.iters_per_report == 0:
+                log.debug(
+                    'Got  %10.3f kB, drift: %+5.2f ppm',
+                    self.stats['rx_bits'] / 8e3,
+                    (1.0 - sampler.freq) * 1e6
+                )
+
+    def _update_sampler(self, errors, sampler):
         err = np.array([e for v in errors.values() for e in v])
         err = np.mean(np.angle(err))/(2*np.pi) if len(err) else 0
         errors.clear()
 
-        duration = time.time() - self.stats['rx_start']
         sampler.freq -= 0.01 * err * self.Tsym
         sampler.offset -= err
-        log.debug(
-            'Got  %10.3f kB, realtime: %6.2f%%, drift: %+5.2f ppm',
-            self.stats['rx_bits'] / 8e3,
-            duration * 100.0 / (iter_index * self.Tsym),
-            (1.0 - sampler.freq) * 1e6
-        )
 
     def run(self, sampler, gain, output):
         symbols = dsp.Demux(sampler, omegas=self.omegas, Nsym=self.Nsym)
