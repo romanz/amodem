@@ -1,5 +1,6 @@
 import ctypes
 import logging
+import time
 
 log = logging.getLogger(__name__)
 
@@ -44,13 +45,15 @@ class Interface(object):
         self.call('Terminate')
 
     def recorder(self):
-        return Stream(lib=self, config=self.config, read=True)
+        return Stream(self, config=self.config, read=True)
 
     def player(self):
-        return Stream(lib=self, config=self.config, write=True)
+        return Stream(self, config=self.config, write=True)
 
 
 class Stream(object):
+
+    timer = time.time
 
     class Parameters(ctypes.Structure):
         _fields_ = [
@@ -61,8 +64,8 @@ class Stream(object):
             ('hostApiSpecificStreamInfo', ctypes.POINTER(None))
         ]
 
-    def __init__(self, lib, config, read=False, write=False):
-        self.lib = lib
+    def __init__(self, interface, config, read=False, write=False):
+        self.interface = interface
         self.stream = ctypes.POINTER(ctypes.c_void_p)()
         self.user_data = ctypes.c_void_p(None)
         self.stream_callback = ctypes.c_void_p(None)
@@ -75,7 +78,7 @@ class Stream(object):
 
         direction = 'Input' if read else 'Output'
         api_name = 'GetDefault{0}Device'.format(direction)
-        index = lib.call(api_name, restype=ctypes.c_int)
+        index = interface.call(api_name, restype=ctypes.c_int)
         self.params = Stream.Parameters(
             device=index,               # choose default device
             channelCount=1,             # mono audio
@@ -83,7 +86,7 @@ class Stream(object):
             suggestedLatency=0.1,       # 100ms should be good enough
             hostApiSpecificStreamInfo=None)
 
-        self.lib.call(
+        self.interface.call(
             'OpenStream',
             ctypes.byref(self.stream),
             ctypes.byref(self.params) if read else None,
@@ -94,20 +97,28 @@ class Stream(object):
             self.stream_callback,
             self.user_data)
 
-        self.lib.streams.append(self)
-        self.lib.call('StartStream', self.stream)
+        self.interface.streams.append(self)
+        self.interface.call('StartStream', self.stream)
+        self.start_time = self.timer()
+        self.io_time = 0
 
     def close(self):
         if self.stream:
-            self.lib.call('StopStream', self.stream)
-            self.lib.call('CloseStream', self.stream)
+            self.interface.call('StopStream', self.stream)
+            self.interface.call('CloseStream', self.stream)
             self.stream = None
 
     def read(self, size):
         assert size % self.bytes_per_sample == 0
         buf = ctypes.create_string_buffer(size)
         frames = ctypes.c_ulong(size // self.bytes_per_sample)
-        self.lib.call('ReadStream', self.stream, buf, frames)
+        t0 = self.timer()
+        self.interface.call('ReadStream', self.stream, buf, frames)
+        t1 = self.timer()
+        self.io_time += (t1 - t0)
+        if self.interface.debug:
+            io_wait = self.io_time / (t1 - self.start_time)
+            log.debug('I/O wait: %.1f%%', io_wait * 100)
         return buf.raw
 
     def write(self, data):
@@ -115,4 +126,4 @@ class Stream(object):
         assert len(data) % self.bytes_per_sample == 0
         buf = ctypes.c_char_p(data)
         frames = ctypes.c_ulong(len(data) // self.bytes_per_sample)
-        self.lib.call('WriteStream', self.stream, buf, frames)
+        self.interface.call('WriteStream', self.stream, buf, frames)
