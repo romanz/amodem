@@ -144,8 +144,10 @@ def test_recv_binary_search():
         calib.send(config, buf, gain=gain, limit=2)
     buf.seek(0)
 
+    dump = BytesIO()
     with mock.patch('subprocess.check_call') as check_call:
-        calib.recv(config, src=buf, volume_cmd='ctl')
+        calib.recv(config, src=buf, volume_cmd='ctl', dump_audio=dump)
+    assert dump.getvalue() == buf.getvalue()
 
     gains.append(gains[-1])
     fmt = 'ctl {0:.0f}%'

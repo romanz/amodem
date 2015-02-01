@@ -8,6 +8,7 @@ log = logging.getLogger(__name__)
 from . import common
 from . import dsp
 from . import sampling
+from . import stream
 
 
 def volume_controller(cmd):
@@ -110,7 +111,7 @@ def iter_window(iterable, size):
             yield block
 
 
-def recv(config, src, verbose=False, volume_cmd=None):
+def recv(config, src, verbose=False, volume_cmd=None, dump_audio=None):
     fmt = '{0.freq:6.0f} Hz: {0.msg:20s}'
     if verbose:
         fields = ['total', 'rms', 'coherency', 'peak']
@@ -118,6 +119,8 @@ def recv(config, src, verbose=False, volume_cmd=None):
 
     volume_ctl = volume_controller(volume_cmd)
 
+    if dump_audio:
+        src = stream.Dumper(src, dump_audio)
     result_iterator = detector(config=config, src=src)
     result_iterator = volume_calibration(result_iterator, volume_ctl)
     result_iterator = iter_window(result_iterator, size=3)

@@ -43,3 +43,14 @@ class Reader(object):
         raise IOError('timeout')
 
     __next__ = next
+
+
+class Dumper(object):
+    def __init__(self, src, dst):
+        self.src = src
+        self.dst = dst
+
+    def read(self, size):
+        data = self.src.read(size)
+        self.dst.write(data)
+        return data
