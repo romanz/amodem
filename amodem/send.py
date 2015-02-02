@@ -54,7 +54,7 @@ def main(config, src, dst):
     sender = Sender(dst, config=config)
     Fs = config.Fs
 
-    # pre-padding audio with silence
+    # pre-padding audio with silence (priming the audio sending queue)
     sender.write(np.zeros(int(Fs * config.silence_start)))
 
     sender.start()

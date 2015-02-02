@@ -25,7 +25,7 @@ setup(
     packages=['amodem'],
     tests_require=['pytest'],
     cmdclass={'test': PyTest},
-    install_requires=['numpy'],
+    install_requires=['numpy', 'six'],
     platforms=['POSIX'],
     classifiers=[
         "Development Status :: 4 - Beta",

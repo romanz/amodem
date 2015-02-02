@@ -9,6 +9,7 @@ from amodem import common
 from amodem import dsp
 from amodem import sampling
 from amodem import config
+from amodem import async
 config = config.fastest()
 
 import logging
@@ -26,7 +27,7 @@ class Args(object):
         return None
 
 
-def run(size, chan=None, df=0, success=True):
+def run(size, chan=None, df=0, success=True, reader=None):
     tx_data = os.urandom(size)
     tx_audio = BytesIO()
     send.main(config=config, src=BytesIO(tx_data), dst=tx_audio)
@@ -42,13 +43,19 @@ def run(size, chan=None, df=0, success=True):
 
     data = common.dumps(data)
     rx_audio = BytesIO(data)
-
     rx_data = BytesIO()
-    d = BytesIO()
-    result = recv.main(config=config, src=rx_audio, dst=rx_data,
-                       dump_audio=d)
+    dump = BytesIO()
+
+    if reader:
+        rx_audio = reader(rx_audio)
+    try:
+        result = recv.main(config=config, src=rx_audio, dst=rx_data,
+                           dump_audio=dump)
+    finally:
+        rx_audio.close()
+
     rx_data = rx_data.getvalue()
-    assert data.startswith(d.getvalue())
+    assert data.startswith(dump.getvalue())
 
     assert result == success
     if success:
@@ -62,6 +69,11 @@ def small_size(request):
 
 def test_small(small_size):
     run(small_size, chan=lambda x: x)
+
+
+def test_async():
+    run(1024, chan=lambda x: x,
+        reader=lambda s: async.AsyncReader(s, 128))
 
 
 def test_error():

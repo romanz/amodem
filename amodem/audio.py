@@ -70,11 +70,13 @@ class Stream(object):
         self.user_data = ctypes.c_void_p(None)
         self.stream_callback = ctypes.c_void_p(None)
         self.bytes_per_sample = config.sample_size
+        self.latency = float(config.latency)  # in seconds
+        self.bufsize = int(self.latency * config.Fs * self.bytes_per_sample)
         assert config.bits_per_sample == 16  # just to make sure :)
 
         read = bool(read)
         write = bool(write)
-        assert read != write
+        assert read != write  # don't support full duplex
 
         direction = 'Input' if read else 'Output'
         api_name = 'GetDefault{0}Device'.format(direction)
@@ -83,7 +85,7 @@ class Stream(object):
             device=index,               # choose default device
             channelCount=1,             # mono audio
             sampleFormat=0x00000008,    # 16-bit samples (paInt16)
-            suggestedLatency=0.1,       # 100ms should be good enough
+            suggestedLatency=self.latency,
             hostApiSpecificStreamInfo=None)
 
         self.interface.call(

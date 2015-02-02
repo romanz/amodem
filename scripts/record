@@ -16,7 +16,7 @@ def main():
         interface = audio.Interface(config=config)
         with interface.load(args.audio_library):
             src = interface.recorder()
-            size = config.sample_size * config.samples_per_buffer
+            size = int(config.sample_size * config.Fs)  # one second of audio
             while True:
                 dst.write(src.read(size))
 

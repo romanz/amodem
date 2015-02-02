@@ -19,7 +19,7 @@ except ImportError:
 
 log = logging.getLogger('__name__')
 
-from amodem import recv, send, calib, audio
+from amodem import recv, send, calib, audio, async
 from amodem.config import bitrates
 
 bitrate = os.environ.get('BITRATE', 1)
@@ -67,9 +67,11 @@ def FileType(mode, audio_interface=None):
         if fname is None:
             assert audio_interface is not None
             if 'r' in mode:
-                return audio_interface.recorder()
+                s = audio_interface.recorder()
+                return async.AsyncReader(stream=s, bufsize=s.bufsize)
             if 'w' in mode:
-                return audio_interface.player()
+                s = audio_interface.player()
+                return async.AsyncWriter(stream=s)
 
         if fname == '-':
             if 'r' in mode:
@@ -197,13 +199,17 @@ def main():
     with interface.load(args.audio_library):
         args.src = args.input_type(args.input)
         args.dst = args.output_type(args.output)
-        if args.calibrate is False:
-            return args.main(config=config, args=args)
-        else:
-            try:
-                args.calib(config=config, args=args)
-            except KeyboardInterrupt:
-                pass
+        try:
+            if args.calibrate is False:
+                return args.main(config=config, args=args)
+            else:
+                try:
+                    args.calib(config=config, args=args)
+                except KeyboardInterrupt:
+                    pass
+        finally:
+            args.src.close()
+            args.dst.close()
 
 
 if __name__ == '__main__':
