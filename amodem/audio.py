@@ -92,7 +92,7 @@ class Stream(object):
             ctypes.byref(self.params) if read else None,
             ctypes.byref(self.params) if write else None,
             ctypes.c_double(config.Fs),
-            ctypes.c_ulong(config.samples_per_buffer),
+            ctypes.c_ulong(0),  # (paFramesPerBufferUnspecified)
             ctypes.c_ulong(0),  # no flags (paNoFlag)
             self.stream_callback,
             self.user_data)
