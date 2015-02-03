@@ -220,7 +220,7 @@ def main(config, src, dst, dump_audio=None, pylab=None):
         sampler = sampling.Sampler(signal, sampling.Interpolator(), freq=freq)
         receiver.run(sampler, gain=1.0/amplitude, output=dst)
         return True
-    except Exception:
+    except BaseException:
         log.exception('Decoding failed')
         return False
     finally:
