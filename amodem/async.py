@@ -26,7 +26,7 @@ class AsyncReader(object):
                 queue.put(buf)
                 total += len(buf)
             log.debug('AsyncReader thread stopped (read %d bytes)', total)
-        except:
+        except BaseException:
             log.exception('AsyncReader thread failed')
             queue.put(None)
 
@@ -70,7 +70,7 @@ class AsyncWriter(object):
                 dst.write(buf)
                 total += len(buf)
             log.debug('AsyncWriter thread stopped (written %d bytes)', total)
-        except:
+        except BaseException:
             log.exception('AsyncWriter thread failed')
             error.set()
 
