@@ -70,8 +70,7 @@ def FileType(mode, audio_interface=None):
                 s = audio_interface.recorder()
                 return async.AsyncReader(stream=s, bufsize=s.bufsize)
             if 'w' in mode:
-                s = audio_interface.player()
-                return async.AsyncWriter(stream=s)
+                return audio_interface.player()
 
         if fname == '-':
             if 'r' in mode:
@@ -208,6 +207,7 @@ def _main():
                 except KeyboardInterrupt:
                     pass
         finally:
+            log.debug('Closing input and output')
             args.src.close()
             args.dst.close()
 

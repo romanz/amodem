@@ -70,11 +70,6 @@ def test_small(small_size):
     run(small_size, chan=lambda x: x)
 
 
-def test_async():
-    run(1024, chan=lambda x: x,
-        reader=lambda s: async.AsyncReader(s, 128))
-
-
 def test_error():
     skip = 32000  # remove trailing silence
     run(1024, chan=lambda x: x[:-skip], success=False)
