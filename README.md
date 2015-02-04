@@ -41,10 +41,15 @@ Make sure that `numpy` and `PortAudio v19` packages are installed (on Debian):
 
     $ sudo apt-get install python-numpy portaudio19-dev
 
-Clone and install latest version:
+Get the latest released version from PyPI:
+
+    $ pip install --user amodem
+
+Or, try the latest (unstable) development version from GitHub:
 
     $ git clone https://github.com/romanz/amodem.git
-    $ pip install --user -e amodem
+    $ cd amodem
+    $ pip install --user -e .
 
 For graphs and visualization (optional), install `matplotlib` Python package.
 
