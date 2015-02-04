@@ -5,6 +5,7 @@
 [![Code Health](https://landscape.io/github/romanz/amodem/master/landscape.svg)](https://landscape.io/github/romanz/amodem/master)
 [![Supported Python Versions](https://pypip.in/py_versions/amodem/badge.svg)](https://pypi.python.org/pypi/amodem/)
 [![License](https://pypip.in/license/amodem/badge.svg)](https://pypi.python.org/pypi/amodem/)
+[![Version](https://pypip.in/version/amodem/badge.svg)](https://pypi.python.org/pypi/amodem/)
 
 # Description
 
@@ -41,7 +42,7 @@ Make sure that `numpy` and `PortAudio v19` packages are installed (on Debian):
 
     $ sudo apt-get install python-numpy portaudio19-dev
 
-Get the latest released version from PyPI:
+Get the latest released version from [PyPI](https://pypi.python.org/pypi/amodem/):
 
     $ pip install --user amodem
 
