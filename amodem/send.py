@@ -5,8 +5,6 @@ import itertools
 log = logging.getLogger(__name__)
 
 from . import common
-from . import stream
-from . import framing
 from . import equalizer
 from . import dsp
 
@@ -48,30 +46,3 @@ class Sender(object):
             if i % self.iters_per_report == 0:
                 total_bits = i * Nfreq * self.modem.bits_per_symbol
                 log.debug('Sent %10.3f kB', total_bits / 8e3)
-
-
-def main(config, src, dst):
-    sender = Sender(dst, config=config)
-    Fs = config.Fs
-
-    # pre-padding audio with silence (priming the audio sending queue)
-    sender.write(np.zeros(int(Fs * config.silence_start)))
-
-    sender.start()
-
-    training_duration = sender.offset
-    log.info('Sending %.3f seconds of training audio', training_duration / Fs)
-
-    reader = stream.Reader(src, eof=True)
-    data = itertools.chain.from_iterable(reader)
-    bits = framing.encode(data)
-    log.info('Starting modulation')
-    sender.modulate(bits=bits)
-
-    data_duration = sender.offset - training_duration
-    log.info('Sent %.3f kB @ %.3f seconds',
-             reader.total / 1e3, data_duration / Fs)
-
-    # post-padding audio with silence
-    sender.write(np.zeros(int(Fs * config.silence_stop)))
-    return True

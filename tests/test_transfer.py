@@ -3,8 +3,7 @@ from io import BytesIO
 
 import numpy as np
 
-from amodem import send
-from amodem import recv
+from amodem import main
 from amodem import common
 from amodem import dsp
 from amodem import sampling
@@ -30,7 +29,7 @@ class Args(object):
 def run(size, chan=None, df=0, success=True, reader=None):
     tx_data = os.urandom(size)
     tx_audio = BytesIO()
-    send.main(config=config, src=BytesIO(tx_data), dst=tx_audio)
+    main.send(config=config, src=BytesIO(tx_data), dst=tx_audio)
 
     data = tx_audio.getvalue()
     data = common.loads(data)
@@ -49,7 +48,7 @@ def run(size, chan=None, df=0, success=True, reader=None):
     if reader:
         rx_audio = reader(rx_audio)
     try:
-        result = recv.main(config=config, src=rx_audio, dst=rx_data,
+        result = main.recv(config=config, src=rx_audio, dst=rx_data,
                            dump_audio=dump)
     finally:
         rx_audio.close()

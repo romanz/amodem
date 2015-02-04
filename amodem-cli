@@ -19,7 +19,7 @@ except ImportError:
 
 log = logging.getLogger('__name__')
 
-from amodem import recv, send, calib, audio, async
+from amodem import main, calib, audio, async
 from amodem.config import bitrates
 
 bitrate = os.environ.get('BITRATE', 1)
@@ -96,7 +96,7 @@ def get_volume_cmd(args):
                 return c[args.command]
 
 
-def main():
+def _main():
     fmt = ('Audio OFDM MODEM: {0:.1f} kb/s ({1:d}-QAM x {2:d} carriers) '
            'Fs={3:.1f} kHz')
     description = fmt.format(config.modem_bps / 1e3, len(config.symbols),
@@ -118,7 +118,7 @@ def main():
         '-o', '--output', help='output file (use "-" for stdout).'
         ' if not specified, `aplay` tool will be used.')
     sender.set_defaults(
-        main=lambda config, args: send.main(
+        main=lambda config, args: main.send(
             config, src=wrap(Compressor, args.src, args.zip), dst=args.dst
         ),
         calib=lambda config, args: calib.send(
@@ -145,7 +145,7 @@ def main():
         '--plot', action='store_true', default=False,
         help='plot results using pylab module')
     receiver.set_defaults(
-        main=lambda config, args: recv.main(
+        main=lambda config, args: main.recv(
             config, src=args.src, dst=wrap(Decompressor, args.dst, args.zip),
             pylab=args.pylab, dump_audio=args.dump
         ),
@@ -213,5 +213,5 @@ def main():
 
 
 if __name__ == '__main__':
-    success = main()
+    success = _main()
     sys.exit(0 if success else 1)
