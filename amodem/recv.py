@@ -92,14 +92,9 @@ class Receiver(object):
                                 '$F_c = {0} Hz$'.format(freq), index=i)
         assert error_rate == 0, error_rate
 
-    def _demodulate(self, sampler, symbols):
+    def _bitstream(self, symbols, error_handler):
         streams = []
         symbol_list = []
-        errors = {}
-
-        def error_handler(received, decoded, freq):
-            errors.setdefault(freq, []).append(received / decoded)
-
         generators = common.split(symbols, n=len(self.omegas))
         for freq, S in zip(self.frequencies, generators):
             equalized = []
@@ -108,15 +103,27 @@ class Receiver(object):
 
             freq_handler = functools.partial(error_handler, freq=freq)
             bits = self.modem.decode(S, freq_handler)  # list of bit tuples
-            streams.append(bits)  # stream per frequency
+            streams.append(bits)  # bit stream per frequency
 
+        return common.izip(streams), symbol_list
+
+    def _demodulate(self, sampler, symbols):
+        symbol_list = []
+        errors = {}
+        noise = {}
+
+        def _handler(received, decoded, freq):
+            errors.setdefault(freq, []).append(received / decoded)
+            noise.setdefault(freq, []).append(received - decoded)
+
+        stream, symbol_list = self._bitstream(symbols, _handler)
         self.stats['symbol_list'] = symbol_list
         self.stats['rx_bits'] = 0
         self.stats['rx_start'] = time.time()
 
         log.info('Starting demodulation')
-        for i, block in enumerate(common.izip(streams), 1):
-            for bits in block:
+        for i, block_of_bits in enumerate(stream, 1):
+            for bits in block_of_bits:
                 self.stats['rx_bits'] = self.stats['rx_bits'] + len(bits)
                 yield bits
 
@@ -124,11 +131,7 @@ class Receiver(object):
                 self._update_sampler(errors, sampler)
 
             if i % self.iters_per_report == 0:
-                log.debug(
-                    'Got  %10.3f kB, drift: %+5.2f ppm',
-                    self.stats['rx_bits'] / 8e3,
-                    (1.0 - sampler.freq) * 1e6
-                )
+                self._report_progress(noise, sampler)
 
     def _update_sampler(self, errors, sampler):
         err = np.array([e for v in errors.values() for e in v])
@@ -137,6 +140,16 @@ class Receiver(object):
 
         sampler.freq -= 0.01 * err * self.Tsym
         sampler.offset -= err
+
+    def _report_progress(self, noise, sampler):
+        e = np.array([e for v in noise.values() for e in v])
+        noise.clear()
+        log.debug(
+            'Got  %10.3f kB, SNR: %5.2f dB, drift: %+5.2f ppm',
+            self.stats['rx_bits'] / 8e3,
+            -10 * np.log10(np.mean(np.abs(e) ** 2)),
+            (1.0 - sampler.freq) * 1e6
+        )
 
     def run(self, sampler, gain, output):
         symbols = dsp.Demux(sampler, omegas=self.omegas, Nsym=self.Nsym)
