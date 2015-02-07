@@ -19,6 +19,9 @@ Audio Modem Communication Library
 .. image:: https://pypip.in/version/amodem/badge.svg?style=flat
     :target: https://pypi.python.org/pypi/amodem/
     :alt: Package Version
+.. image:: https://pypip.in/status/amodem/badge.svg?style=flat
+    :target: https://pypi.python.org/pypi/amodem/
+    :alt: Development Status
 
 
 Description
