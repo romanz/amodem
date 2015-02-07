@@ -8,11 +8,11 @@ import numpy as np
 import os
 from io import BytesIO
 
+import pytest
 import logging
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(levelname)-12s %(message)s')
 
-import pytest
 
 config = config.fastest()
 
