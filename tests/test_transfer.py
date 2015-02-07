@@ -3,7 +3,6 @@ from amodem import common
 from amodem import dsp
 from amodem import sampling
 from amodem import config
-config = config.fastest()
 
 import numpy as np
 import os
@@ -14,6 +13,8 @@ logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(levelname)-12s %(message)s')
 
 import pytest
+
+config = config.fastest()
 
 
 class Args(object):

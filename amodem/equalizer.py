@@ -20,10 +20,16 @@ class Equalizer(object):
 
     def train_symbols(self, length, seed=0, constant_prefix=16):
         r = random.Random(seed)
-        # Use low-level randomness for cross-version compatibility.
-        random_symbol = lambda: self._constellation[r.getrandbits(2)]
-        choose = lambda: [random_symbol() for j in range(self.Nfreq)]
-        symbols = np.array([choose() for _ in range(length)])
+
+        def random_symbol():
+            ''' use low-level randomness for cross-version compatibility. '''
+            return self._constellation[r.getrandbits(2)]
+
+        symbols = []
+        for _ in range(length):
+            symbols.append([random_symbol() for _ in range(self.Nfreq)])
+
+        symbols = np.array(symbols)
         # Constant symbols (for analog debugging)
         symbols[:constant_prefix, :] = 1
         return symbols

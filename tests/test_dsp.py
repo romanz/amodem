@@ -1,11 +1,12 @@
 from amodem import dsp
 from amodem import sampling
 from amodem import config
-config = config.fastest()
 
 import numpy as np
 import random
 import itertools
+
+config = config.fastest()
 
 
 def test_linreg():

@@ -1,7 +1,6 @@
 from amodem import calib
 from amodem import common
 from amodem import config
-config = config.fastest()
 
 from io import BytesIO
 
@@ -9,6 +8,8 @@ import numpy as np
 import random
 import pytest
 import mock
+
+config = config.fastest()
 
 
 class ProcessMock(object):
