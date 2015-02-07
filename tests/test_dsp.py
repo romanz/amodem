@@ -1,11 +1,9 @@
-import numpy as np
-from numpy.linalg import norm
-
 from amodem import dsp
 from amodem import sampling
 from amodem import config
 config = config.fastest()
 
+import numpy as np
 import random
 import itertools
 

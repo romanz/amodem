@@ -1,8 +1,8 @@
+from . import dsp
+from . import sampling
+
 import numpy as np
 from numpy.linalg import lstsq
-
-from amodem import dsp
-from amodem import sampling
 
 import itertools
 import random

@@ -1,3 +1,8 @@
+from . import dsp
+from . import common
+from . import framing
+from . import equalizer
+
 import numpy as np
 import logging
 import itertools
@@ -5,11 +10,6 @@ import functools
 import time
 
 log = logging.getLogger(__name__)
-
-from . import dsp
-from . import common
-from . import framing
-from . import equalizer
 
 
 class Receiver(object):

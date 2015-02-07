@@ -1,12 +1,12 @@
+from . import common
+from . import equalizer
+from . import dsp
+
 import numpy as np
 import logging
 import itertools
 
 log = logging.getLogger(__name__)
-
-from . import common
-from . import equalizer
-from . import dsp
 
 
 class Sender(object):

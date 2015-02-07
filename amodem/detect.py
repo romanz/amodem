@@ -1,13 +1,13 @@
+from . import dsp
+from . import equalizer
+from . import common
+
 import numpy as np
 import logging
 import itertools
 import collections
 
 log = logging.getLogger(__name__)
-
-from . import dsp
-from . import equalizer
-from . import common
 
 
 class Detector(object):

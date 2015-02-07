@@ -1,14 +1,14 @@
+from . import common
+from . import dsp
+from . import sampling
+from . import stream
+
 import numpy as np
 import itertools
 import logging
 import subprocess
 
 log = logging.getLogger(__name__)
-
-from . import common
-from . import dsp
-from . import sampling
-from . import stream
 
 
 def volume_controller(cmd):

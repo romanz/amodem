@@ -71,5 +71,10 @@ bitrates = {
     80: Configuration(F0=2e3, Npoints=256, Nfreq=10),
 }
 
-fastest = lambda: bitrates[max(bitrates)]
-slowest = lambda: bitrates[min(bitrates)]
+
+def fastest():
+    return bitrates[max(bitrates)]
+
+
+def slowest():
+    return bitrates[min(bitrates)]

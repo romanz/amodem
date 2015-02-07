@@ -1,15 +1,13 @@
-import os
-from io import BytesIO
-
-import numpy as np
-
 from amodem import main
 from amodem import common
 from amodem import dsp
 from amodem import sampling
 from amodem import config
-from amodem import async
 config = config.fastest()
+
+import numpy as np
+import os
+from io import BytesIO
 
 import logging
 logging.basicConfig(level=logging.DEBUG,

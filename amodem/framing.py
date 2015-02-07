@@ -7,8 +7,10 @@ import struct
 import logging
 log = logging.getLogger(__name__)
 
-_checksum_func = lambda x: binascii.crc32(bytes(x)) & 0xFFFFFFFF
-# (so the result will be unsigned on Python 2/3)
+
+def _checksum_func(x):
+    ''' The result will be unsigned on Python 2/3. '''
+    return binascii.crc32(bytes(x)) & 0xFFFFFFFF
 
 
 class Checksum(object):
