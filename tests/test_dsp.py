@@ -48,7 +48,9 @@ def test_qam():
     decoded = list(q.decode(S))
     assert decoded == bits
 
-    noise = lambda A: A*(r.uniform(-1, 1) + 1j*r.uniform(-1, 1))
+    def noise(A):
+        return A*(r.uniform(-1, 1) + 1j*r.uniform(-1, 1))
+
     noised_symbols = [(s + noise(1e-3)) for s in S]
     decoded = list(q.decode(noised_symbols))
     assert decoded == bits

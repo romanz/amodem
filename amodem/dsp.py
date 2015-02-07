@@ -72,6 +72,10 @@ def norm(x):
     return np.sqrt(np.dot(x.conj(), x).real)
 
 
+def rms(x):
+    return np.mean(np.abs(x) ** 2, axis=0) ** 0.5
+
+
 def coherence(x, omega):
     n = len(x)
     Hc = exp_iwt(-omega, n) / np.sqrt(0.5*n)

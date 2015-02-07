@@ -79,10 +79,9 @@ class Receiver(object):
         error_rate = errors.sum() / errors.size
 
         errors = np.array(symbols - train_symbols)
-        rms = lambda x: (np.mean(np.abs(x) ** 2, axis=0) ** 0.5)
 
-        noise_rms = rms(errors)
-        signal_rms = rms(train_symbols)
+        noise_rms = dsp.rms(errors)
+        signal_rms = dsp.rms(train_symbols)
         SNRs = 20.0 * np.log10(signal_rms / noise_rms)
 
         self.plt.figure()

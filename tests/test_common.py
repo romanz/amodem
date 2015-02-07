@@ -1,4 +1,5 @@
 from amodem import common
+from amodem import config
 import numpy as np
 
 
@@ -59,3 +60,11 @@ def test_holder():
     assert a.x == d['x']
     assert a.y == d['y']
     assert repr(a) == 'AttributeHolder(x=1, y=2.3)'
+
+
+def test_configs():
+    default = config.Configuration()
+    fastest = config.fastest()
+    slowest = config.slowest()
+    assert slowest.modem_bps <= default.modem_bps
+    assert fastest.modem_bps >= default.modem_bps
