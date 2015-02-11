@@ -1,8 +1,8 @@
 from amodem import main
 from amodem import common
-from amodem import dsp
 from amodem import sampling
 from amodem import config
+import utils
 
 import numpy as np
 import os
@@ -85,11 +85,11 @@ def test_timing(freq_err):
 
 
 def test_lowpass():
-    run(1024, chan=lambda x: dsp.lfilter(b=[0.9], a=[1.0, -0.1], x=x))
+    run(1024, chan=lambda x: utils.lfilter(b=[0.9], a=[1.0, -0.1], x=x))
 
 
 def test_highpass():
-    run(1024, chan=lambda x: dsp.lfilter(b=[0.9], a=[1.0, 0.1], x=x))
+    run(1024, chan=lambda x: utils.lfilter(b=[0.9], a=[1.0, 0.1], x=x))
 
 
 def test_attenuation():

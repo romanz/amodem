@@ -2,7 +2,7 @@ from numpy.linalg import norm
 from numpy.random import RandomState
 import numpy as np
 
-from amodem import dsp
+import utils
 from amodem import equalizer
 from amodem import config
 config = config.fastest()
@@ -24,14 +24,14 @@ def test_commutation():
     x = np.random.RandomState(seed=0).normal(size=1000)
     b = [1, 1j, -1, -1j]
     a = [1, 0.1]
-    y = dsp.lfilter(x=x, b=b, a=a)
-    y1 = dsp.lfilter(x=dsp.lfilter(x=x, b=b, a=[1]), b=[1], a=a)
-    y2 = dsp.lfilter(x=dsp.lfilter(x=x, b=[1], a=a), b=b, a=[1])
+    y = utils.lfilter(x=x, b=b, a=a)
+    y1 = utils.lfilter(x=utils.lfilter(x=x, b=b, a=[1]), b=[1], a=a)
+    y2 = utils.lfilter(x=utils.lfilter(x=x, b=[1], a=a), b=b, a=[1])
     assert_approx(y, y1)
     assert_approx(y, y2)
 
-    z = dsp.lfilter(x=y, b=a, a=[1])
-    z_ = dsp.lfilter(x=x, b=b, a=[1])
+    z = utils.lfilter(x=y, b=a, a=[1])
+    z_ = utils.lfilter(x=x, b=b, a=[1])
     assert_approx(z, z_)
 
 
@@ -50,7 +50,7 @@ def test_signal():
     x = np.sign(RandomState(0).normal(size=length))
     den = np.array([1, -0.6, 0.1])
     num = np.array([0.5])
-    y = dsp.lfilter(x=x, b=num, a=den)
+    y = utils.lfilter(x=x, b=num, a=den)
 
     lookahead = 2
     h = equalizer.train(
@@ -60,5 +60,5 @@ def test_signal():
     h = h[lookahead:]
     assert_approx(h, den / num)
 
-    x_ = dsp.lfilter(x=y, b=h, a=[1])
+    x_ = utils.lfilter(x=y, b=h, a=[1])
     assert_approx(x_, x)

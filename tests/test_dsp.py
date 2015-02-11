@@ -1,6 +1,7 @@
 from amodem import dsp
 from amodem import sampling
 from amodem import config
+import utils
 
 import numpy as np
 import random
@@ -20,11 +21,11 @@ def test_linreg():
 
 def test_filter():
     x = range(10)
-    y = dsp.lfilter(b=[1], a=[1], x=x)
+    y = utils.lfilter(b=[1], a=[1], x=x)
     assert (np.array(x) == y).all()
 
     x = [1] + [0] * 10
-    y = dsp.lfilter(b=[0.5], a=[1, -0.5], x=x)
+    y = utils.lfilter(b=[0.5], a=[1, -0.5], x=x)
     assert list(y) == [0.5 ** (i+1) for i in range(len(x))]
 
 
