@@ -1,2 +1,2 @@
 #!/bin/bash
-amodem send -vv -c auto | amodem recv -vv -c auto
+amodem-cli send -vv -c auto | amodem-cli recv -vv -c auto
