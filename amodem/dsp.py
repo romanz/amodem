@@ -114,9 +114,13 @@ class MODEM(object):
 def prbs(reg, poly, bits):
     ''' Simple pseudo-random number generator. '''
     mask = (1 << bits) - 1
+
+    size = 0  # effective register size (in bits)
+    while (poly >> size) > 1:
+        size += 1
+
     while True:
         yield reg & mask
         reg = reg << 1
-        size = poly.bit_length() - 1
         if reg >> size:
             reg = reg ^ poly
