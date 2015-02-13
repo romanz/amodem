@@ -72,3 +72,22 @@ def test_overflow():
     for i in range(10000):
         s = 10*(r.normal() + 1j * r.normal())
         quantize(q, s)
+
+
+def test_prbs():
+    r = list(itertools.islice(dsp.prbs(reg=1, poly=0x7, bits=2), 4))
+    assert r == [1, 2, 3, 1]
+
+    r = list(itertools.islice(dsp.prbs(reg=1, poly=0x7, bits=1), 4))
+    assert r == [1, 0, 1, 1]
+
+    r = list(itertools.islice(dsp.prbs(reg=1, poly=0xd, bits=3), 8))
+    assert r == [1, 2, 4, 5, 7, 3, 6, 1]
+
+    r = list(itertools.islice(dsp.prbs(reg=1, poly=0xd, bits=2), 8))
+    assert r == [1, 2, 0, 1, 3, 3, 2, 1]
+
+    period = 2 ** 16 - 1
+    r = list(itertools.islice(dsp.prbs(reg=1, poly=0x1100b, bits=16), period))
+    r.sort()
+    assert r == list(range(1, 2 ** 16))

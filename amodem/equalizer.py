@@ -5,12 +5,9 @@ import numpy as np
 from numpy.linalg import lstsq
 
 import itertools
-import random
 
 
 class Equalizer(object):
-
-    _constellation = [1, 1j, -1, -1j]
 
     def __init__(self, config):
         self.carriers = config.carriers
@@ -18,16 +15,13 @@ class Equalizer(object):
         self.Nfreq = config.Nfreq
         self.Nsym = config.Nsym
 
-    def train_symbols(self, length, seed=0, constant_prefix=16):
-        r = random.Random(seed)
-
-        def random_symbol():
-            ''' use low-level randomness for cross-version compatibility. '''
-            return self._constellation[r.getrandbits(2)]
+    def train_symbols(self, length, constant_prefix=16):
+        r = dsp.prbs(reg=1, poly=0x1100b, bits=2)
+        constellation = [1, 1j, -1, -1j]
 
         symbols = []
         for _ in range(length):
-            symbols.append([random_symbol() for _ in range(self.Nfreq)])
+            symbols.append([constellation[next(r)] for _ in range(self.Nfreq)])
 
         symbols = np.array(symbols)
         # Constant symbols (for analog debugging)

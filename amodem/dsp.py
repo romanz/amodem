@@ -109,3 +109,14 @@ class MODEM(object):
                 if error_handler:
                     error_handler(received=received, decoded=decoded)
                 yield bits
+
+
+def prbs(reg, poly, bits):
+    ''' Simple pseudo-random number generator. '''
+    mask = (1 << bits) - 1
+    while True:
+        yield reg & mask
+        reg = reg << 1
+        size = poly.bit_length() - 1
+        if reg >> size:
+            reg = reg ^ poly
