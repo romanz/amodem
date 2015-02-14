@@ -17,7 +17,6 @@ class Interface(object):
         assert self._error_string(0) == b'Success'
         version = self.call('GetVersionText', restype=ctypes.c_char_p)
         log.info('%s loaded', version)
-        return self
 
     def _error_string(self, code):
         return self.call('GetErrorText', code, restype=ctypes.c_char_p)

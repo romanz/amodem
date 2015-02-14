@@ -94,6 +94,15 @@ def get_volume_cmd(args):
                 return c[args.command]
 
 
+class _DummyInterface(object):
+    ''' Audio interface mock, to skip shared library loading. '''
+    def __enter__(self):
+        pass
+
+    def __exit__(self, *args):
+        pass
+
+
 def _main():
     fmt = ('Audio OFDM MODEM: {0:.1f} kb/s ({1:d}-QAM x {2:d} carriers) '
            'Fs={3:.1f} kHz')
@@ -194,7 +203,12 @@ def _main():
         import pylab
         args.pylab = pylab
 
-    with interface.load(args.audio_library):
+    if args.audio_library == '-':
+        interface = _DummyInterface()
+    else:
+        interface.load(args.audio_library)
+
+    with interface:
         args.src = args.input_type(args.input)
         args.dst = args.output_type(args.output)
         try:
