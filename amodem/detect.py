@@ -103,9 +103,6 @@ class Detector(object):
         self.plt.plot(indices, a * indices + b)
 
         freq_err = a / (self.Tsym * self.freq)
-        last_phase = a * indices[-1] + b
-        log.debug('Current phase on carrier: %.3f', last_phase)
         log.debug('Frequency error: %.3f ppm', freq_err * 1e6)
         self.plt.title('Frequency drift: {0:.3f} ppm'.format(freq_err * 1e6))
-
         return amplitude, freq_err
