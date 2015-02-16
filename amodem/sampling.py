@@ -14,7 +14,7 @@ class Interpolator(object):
 
         N = resolution * width
         u = np.arange(-N, N, dtype=float)
-        window = (1 + np.cos(0.5 * np.pi * u / N)) / 2.0  # (Hann window)
+        window = np.cos(0.5 * np.pi * u / N) ** 2.0  # raised cosine
 
         h = np.sinc(u / resolution) * window
         self.filt = []
