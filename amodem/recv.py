@@ -41,8 +41,10 @@ class Receiver(object):
         self.plt.subplot(1, 2, 2)
         self.plt.plot(np.abs(S))
         self.plt.plot(equalizer.prefix)
-        if any(bits != equalizer.prefix):
-            raise ValueError('Incorrect prefix')
+        errors = (bits != equalizer.prefix)
+        if any(errors):
+            msg = 'Incorrect prefix: {0} errors'.format(sum(errors))
+            raise ValueError(msg)
         log.debug('Prefix OK')
 
     def _train(self, sampler, order, lookahead):
