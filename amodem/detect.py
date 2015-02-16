@@ -66,7 +66,7 @@ class Detector(object):
         bufs.append(np.array(trailing))
 
         buf = np.concatenate(bufs)
-        offset = self.find_start(buf, duration=self.CARRIER_DURATION)
+        offset = self.find_start(buf)
         start_time += (offset / self.Nsym - self.SEARCH_WINDOW) * self.Tsym
         log.debug('Carrier starts at %.3f ms', start_time * 1e3)
 
@@ -76,14 +76,24 @@ class Detector(object):
         amplitude, freq_err = self.estimate(buf[:prefix_length])
         return itertools.chain(buf, samples), amplitude, freq_err
 
-    def find_start(self, buf, duration):
-        filt = dsp.FIR(dsp.exp_iwt(self.omega, self.Nsym))
-        p = np.abs(list(filt(buf))) ** 2
-        p = np.cumsum(p)[self.Nsym-1:]
-        p = np.concatenate([[0], p])
-        length = (duration - 1) * self.Nsym
-        correlations = np.abs(p[length:] - p[:-length])
-        offset = np.argmax(correlations)
+    def find_start(self, buf):
+        carrier = dsp.exp_iwt(self.omega, self.Nsym)
+        carrier = np.tile(carrier, self.SEARCH_WINDOW // 4)
+        zeroes = carrier * 0.0
+        signal = np.concatenate([zeroes, carrier])
+        signal = (2 ** 0.5) * signal / dsp.norm(signal)
+
+        coeffs = []
+        for i in range(len(buf) - len(signal)):
+            b = buf[i:i+len(signal)]
+            c = 0.0
+            if dsp.norm(b):
+                c = np.abs(np.dot(b, signal)) / dsp.norm(b)
+            coeffs.append(c)
+
+        index = np.argmax(coeffs)
+        log.debug('Starting coherence: %.3f%%', coeffs[index] * 100)
+        offset = index + len(zeroes)
         return offset
 
     def estimate(self, buf, skip=5):

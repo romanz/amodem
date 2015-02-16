@@ -19,7 +19,7 @@ def test_detect():
     detector = detect.Detector(config, pylab=common.Dummy())
     samples, amp, freq_err = detector.run(x)
     assert abs(1 - amp) < 1e-12
-    assert abs(freq_err) < 1e-16
+    assert abs(freq_err) < 1e-12
 
     x = np.cos(2 * np.pi * (2*config.Fc) * t)
     with pytest.raises(ValueError):
@@ -56,6 +56,6 @@ def test_find_start():
     for offset in range(32):
         bufs = [prefix, [0] * offset, carrier, postfix]
         buf = np.concatenate(bufs)
-        start = detector.find_start(buf, length)
+        start = detector.find_start(buf)
         expected = offset + len(prefix)
         assert expected == start
