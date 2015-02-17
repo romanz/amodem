@@ -8,8 +8,8 @@ from . import framing, common, stream, detect, sampling
 log = logging.getLogger(__name__)
 
 
-def send(config, src, dst):
-    sender = _send.Sender(dst, config=config)
+def send(config, src, dst, gain=1.0):
+    sender = _send.Sender(dst, config=config, gain=gain)
     Fs = config.Fs
 
     # pre-padding audio with silence (priming the audio sending queue)

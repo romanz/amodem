@@ -10,7 +10,8 @@ log = logging.getLogger(__name__)
 
 
 class Sender(object):
-    def __init__(self, fd, config):
+    def __init__(self, fd, config, gain=1.0):
+        self.gain = gain
         self.offset = 0
         self.fd = fd
         self.modem = dsp.MODEM(config.symbols)
@@ -22,7 +23,7 @@ class Sender(object):
         self.equalizer = equalizer.Equalizer(config)
 
     def write(self, sym):
-        sym = np.array(sym)
+        sym = np.array(sym) * self.gain
         data = common.dumps(sym)
         self.fd.write(data)
         self.offset += len(sym)
