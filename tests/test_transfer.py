@@ -69,6 +69,10 @@ def test_small(small_size):
     run(small_size, chan=lambda x: x)
 
 
+def test_flip():
+    run(16, chan=lambda x: -x)
+
+
 def test_large_drift():
     run(1, df=+0.01)
     run(1, df=-0.01)
