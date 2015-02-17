@@ -28,7 +28,7 @@ class Args(object):
 def run(size, chan=None, df=0, success=True, reader=None):
     tx_data = os.urandom(size)
     tx_audio = BytesIO()
-    main.send(config=config, src=BytesIO(tx_data), dst=tx_audio)
+    main.send(config=config, src=BytesIO(tx_data), dst=tx_audio, gain=0.5)
 
     data = tx_audio.getvalue()
     data = common.loads(data)
@@ -48,7 +48,7 @@ def run(size, chan=None, df=0, success=True, reader=None):
         rx_audio = reader(rx_audio)
     try:
         result = main.recv(config=config, src=rx_audio, dst=rx_data,
-                           dump_audio=dump)
+                           dump_audio=dump, pylab=None)
     finally:
         rx_audio.close()
 
@@ -69,13 +69,18 @@ def test_small(small_size):
     run(small_size, chan=lambda x: x)
 
 
+def test_large_drift():
+    run(1, df=+0.01)
+    run(1, df=-0.01)
+
+
 def test_error():
     skip = 32000  # remove trailing silence
     run(1024, chan=lambda x: x[:-skip], success=False)
 
 
 @pytest.fixture(params=[sign * mag for sign in (+1, -1)
-                        for mag in (0.1, 1, 10, 100, 1e3, 2e3)])
+                        for mag in (0.1, 1, 10, 100, 1e3, 10e3)])
 def freq_err(request):
     return request.param * 1e-6
 
