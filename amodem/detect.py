@@ -17,6 +17,7 @@ class Detector(object):
     CARRIER_DURATION = sum(equalizer.prefix)
     CARRIER_THRESHOLD = int(0.9 * CARRIER_DURATION)
     SEARCH_WINDOW = int(0.1 * CARRIER_DURATION)
+    START_PATTERN_LENGTH = SEARCH_WINDOW // 4
 
     TIMEOUT = 10.0  # [seconds]
 
@@ -78,7 +79,7 @@ class Detector(object):
 
     def find_start(self, buf):
         carrier = dsp.exp_iwt(self.omega, self.Nsym)
-        carrier = np.tile(carrier, self.SEARCH_WINDOW // 4)
+        carrier = np.tile(carrier, self.START_PATTERN_LENGTH)
         zeroes = carrier * 0.0
         signal = np.concatenate([zeroes, carrier])
         signal = (2 ** 0.5) * signal / dsp.norm(signal)
@@ -86,9 +87,8 @@ class Detector(object):
         coeffs = []
         for i in range(len(buf) - len(signal)):
             b = buf[i:i+len(signal)]
-            c = 0.0
-            if dsp.norm(b):
-                c = np.abs(np.dot(b, signal)) / dsp.norm(b)
+            norm_b = dsp.norm(b)
+            c = (np.abs(np.dot(b, signal)) / norm_b) if norm_b else 0.0
             coeffs.append(c)
 
         index = np.argmax(coeffs)
