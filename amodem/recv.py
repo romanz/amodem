@@ -156,7 +156,7 @@ class Receiver(object):
         symbols = dsp.Demux(sampler, omegas=self.omegas, Nsym=self.Nsym)
         self._prefix(symbols, gain=gain)
 
-        filt = self._train(sampler, order=20, lookahead=20)
+        filt = self._train(sampler, order=10, lookahead=10)
         sampler.equalizer = lambda x: list(filt(x))
 
         bitstream = self._demodulate(sampler, symbols)
