@@ -10,11 +10,8 @@ from io import BytesIO
 
 import pytest
 import logging
-logging.basicConfig(level=logging.DEBUG,
+logging.basicConfig(level=logging.DEBUG,  # useful for debugging
                     format='%(asctime)s %(levelname)-12s %(message)s')
-
-
-config = config.fastest()
 
 
 class Args(object):
@@ -25,10 +22,12 @@ class Args(object):
         return None
 
 
-def run(size, chan=None, df=0, success=True, reader=None):
+def run(size, chan=None, df=0, success=True, reader=None, cfg=None):
+    if cfg is None:
+        cfg = config.fastest()
     tx_data = os.urandom(size)
     tx_audio = BytesIO()
-    main.send(config=config, src=BytesIO(tx_data), dst=tx_audio, gain=0.5)
+    main.send(config=cfg, src=BytesIO(tx_data), dst=tx_audio, gain=0.5)
 
     data = tx_audio.getvalue()
     data = common.loads(data)
@@ -47,7 +46,7 @@ def run(size, chan=None, df=0, success=True, reader=None):
     if reader:
         rx_audio = reader(rx_audio)
     try:
-        result = main.recv(config=config, src=rx_audio, dst=rx_data,
+        result = main.recv(config=cfg, src=rx_audio, dst=rx_data,
                            dump_audio=dump, pylab=None)
     finally:
         rx_audio.close()
@@ -117,3 +116,12 @@ def test_medium_noise():
 
 def test_large():
     run(54321, chan=lambda x: x)
+
+
+@pytest.fixture(params=sorted(config.bitrates.keys()))
+def rate(request):
+    return request.param
+
+
+def test_rate(rate):
+    run(1, cfg=config.bitrates[rate])
