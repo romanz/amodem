@@ -14,7 +14,7 @@ install:
 script:
   - pep8 amodem/ scripts/ tests/ amodem-cli
   - cd tests
-  - coverage run --source=amodem -m py.test
+  - coverage run --source=amodem -m py.test -vvs
 
 after_success:
   - coverage report
