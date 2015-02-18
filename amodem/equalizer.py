@@ -1,9 +1,8 @@
 from . import dsp
 from . import sampling
+from . import levinson
 
 import numpy as np
-from numpy.linalg import lstsq
-
 import itertools
 
 
@@ -44,28 +43,21 @@ class Equalizer(object):
         return np.array(list(itertools.islice(symbols, size)))
 
 
-def train(signal, expected, order, lookahead=0):
-    signal = [np.zeros(order-1), signal, np.zeros(lookahead)]
-    signal = np.concatenate(signal)
-    length = len(expected)
-
-    A = []
-    b = []
-    # construct Ah=b over-constrained equation system,
-    # used for least-squares estimation of the filter.
-    for i in range(length - order):
-        offset = order + i
-        row = signal[offset-order:offset+lookahead]
-        A.append(np.array(row, ndmin=2))
-        b.append(expected[i])
-
-    A = np.concatenate(A, axis=0)
-    b = np.array(b)
-    h = lstsq(A, b)[0]
-    h = h[::-1].real
-    return h
-
-
 prefix = [1]*400 + [0]*50
 equalizer_length = 500
 silence_length = 100
+
+
+def train(signal, expected, order, lookahead=0):
+    padding = np.zeros(lookahead)
+    assert len(signal) == len(expected)
+    x = np.concatenate([signal, padding])
+    y = np.concatenate([padding, expected])
+
+    N = order + lookahead  # filter length
+    Rxx = np.zeros(N)
+    Rxy = np.zeros(N)
+    for i in range(N):
+        Rxx[i] = np.dot(x[i:], x[:len(x)-i])
+        Rxy[i] = np.dot(y[i:], x[:len(x)-i])
+    return levinson.solver(t=Rxx, y=Rxy)

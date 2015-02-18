@@ -60,7 +60,7 @@ class Receiver(object):
 
         coeffs = equalizer.train(
             signal=signal[prefix:-postfix],
-            expected=train_signal,
+            expected=np.concatenate([train_signal, np.zeros(lookahead)]),
             order=order, lookahead=lookahead
         )
 
@@ -68,6 +68,7 @@ class Receiver(object):
         self.plt.plot(np.arange(order+lookahead), coeffs)
 
         equalization_filter = dsp.FIR(h=coeffs)
+        # Pre-load equalization filter with the signal (+lookahead)
         equalized = list(equalization_filter(signal))
         equalized = equalized[prefix+lookahead:-postfix+lookahead]
         self._verify_training(equalized, train_symbols)

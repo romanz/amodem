@@ -4,6 +4,7 @@ import numpy as np
 
 import utils
 from amodem import equalizer
+from amodem import levinson
 from amodem import config
 config = config.fastest()
 
@@ -46,8 +47,9 @@ def test_modem():
 
 
 def test_signal():
-    length = 100
+    length = 120
     x = np.sign(RandomState(0).normal(size=length))
+    x[-20:] = 0  # make sure the signal has bounded support
     den = np.array([1, -0.6, 0.1])
     num = np.array([0.5])
     y = utils.lfilter(x=x, b=num, a=den)
