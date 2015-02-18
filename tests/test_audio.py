@@ -15,7 +15,7 @@ def test():
         lib.Pa_OpenStream.return_value = 0
         cdll.return_value = lib
         interface = audio.Interface(config=config.fastest(), debug=True)
-        interface.load(name='portaudio')
+        assert interface.load(name='portaudio') is interface
         with interface:
             s = interface.player()
             assert s.params.device == 1
