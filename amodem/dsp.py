@@ -1,5 +1,4 @@
 import numpy as np
-from numpy import linalg
 
 from . import common
 
@@ -64,9 +63,12 @@ def linear_regression(x, y):
     ''' Find (a,b) such that y = a*x + b. '''
     x = np.array(x)
     y = np.array(y)
-    ones = np.ones(len(x))
-    M = np.array([x, ones]).T
-    a, b = linalg.lstsq(M, y)[0]
+    mean_x = np.mean(x)
+    mean_y = np.mean(y)
+    x_ = x - mean_x
+    y_ = y - mean_y
+    a = np.dot(y_, x_) / np.dot(x_, x_)
+    b = mean_y - a * mean_x
     return a, b
 
 
