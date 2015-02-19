@@ -1,16 +1,17 @@
-from numpy.linalg import norm
 from numpy.random import RandomState
 import numpy as np
 
 import utils
 from amodem import equalizer
-from amodem import levinson
+from amodem import dsp
 from amodem import config
 config = config.fastest()
 
 
 def assert_approx(x, y, e=1e-12):
-    assert norm(x - y) < e * norm(x)
+    x = x.flatten()
+    y = y.flatten()
+    assert dsp.norm(x - y) < e * dsp.norm(x)
 
 
 def test_training():
@@ -57,7 +58,7 @@ def test_signal():
     lookahead = 2
     h = equalizer.train(
         signal=y, expected=x, order=len(den), lookahead=lookahead)
-    assert norm(h[:lookahead]) < 1e-12
+    assert dsp.norm(h[:lookahead]) < 1e-12
 
     h = h[lookahead:]
     assert_approx(h, den / num)
