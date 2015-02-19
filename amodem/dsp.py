@@ -72,8 +72,6 @@ def linear_regression(x, y):
 
 class MODEM(object):
 
-    buf_size = 16
-
     def __init__(self, symbols):
         self.encode_map = {}
         symbols = np.array(list(symbols))
@@ -101,14 +99,13 @@ class MODEM(object):
         ''' Maximum-likelihood decoding, using naive nearest-neighbour. '''
         symbols_vec = self.symbols
         _dec = self.decode_list
-        for syms in common.iterate(symbols, self.buf_size, truncate=False):
-            for received in syms:
-                error = np.abs(symbols_vec - received)
-                index = np.argmin(error)
-                decoded, bits = _dec[index]
-                if error_handler:
-                    error_handler(received=received, decoded=decoded)
-                yield bits
+        for received in symbols:
+            error = np.abs(symbols_vec - received)
+            index = np.argmin(error)
+            decoded, bits = _dec[index]
+            if error_handler:
+                error_handler(received=received, decoded=decoded)
+            yield bits
 
 
 def prbs(reg, poly, bits):
