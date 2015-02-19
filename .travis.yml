@@ -13,6 +13,7 @@ install:
 
 script:
   - pep8 amodem/ scripts/ tests/ amodem-cli
+  - echo "Hello World!" | amodem-cli send -vv -l- -o- | amodem-cli recv -vv -l- -i-
   - cd tests
   - coverage run --source=amodem -m py.test -vvs
 
