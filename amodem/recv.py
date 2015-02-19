@@ -164,8 +164,8 @@ class Receiver(object):
         bitstream = itertools.chain.from_iterable(bitstream)
 
         data = framing.decode(bitstream)
-        for chunk in common.iterate(data=data, size=256,
-                                    truncate=False, func=bytearray):
+        chunks = common.iterate(data, size=16, truncate=False, func=bytearray)
+        for chunk in chunks:
             output.write(bytes(chunk))
             self.output_size += len(chunk)
 
