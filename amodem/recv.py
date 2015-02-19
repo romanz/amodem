@@ -163,11 +163,9 @@ class Receiver(object):
         bitstream = self._demodulate(sampler, symbols)
         bitstream = itertools.chain.from_iterable(bitstream)
 
-        data = framing.decode(bitstream)
-        chunks = common.iterate(data, size=16, truncate=False, func=bytearray)
-        for chunk in chunks:
-            output.write(bytes(chunk))
-            self.output_size += len(chunk)
+        for frame in framing.decode_frames(bitstream):
+            output.write(frame)
+            self.output_size += len(frame)
 
     def report(self):
         if self.stats:

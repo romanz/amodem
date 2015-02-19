@@ -115,8 +115,7 @@ def _to_bytes(bits):
         yield [converter.to_byte[chunk]]
 
 
-@chain_wrapper
-def decode(bits, framer=None):
+def decode_frames(bits, framer=None):
     framer = framer or Framer()
     for frame in framer.decode(_to_bytes(bits)):
-        yield frame
+        yield bytes(frame)

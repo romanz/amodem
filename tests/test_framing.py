@@ -31,22 +31,22 @@ def test_framer(data):
 
 def test_main(data):
     encoded = framing.encode(data)
-    decoded = framing.decode(encoded)
-    assert bytearray(decoded) == data
+    decoded = framing.decode_frames(encoded)
+    assert concat(decoded) == data
 
 
 def test_fail():
     encoded = list(framing.encode(''))
     encoded[-1] = not encoded[-1]
     with pytest.raises(ValueError):
-        list(framing.decode(encoded))
+        concat(framing.decode_frames(encoded))
 
 
 def test_missing():
     f = framing.Framer()
     with pytest.raises(ValueError):
-        list(f.decode(b''))
+        concat(f.decode(b''))
     with pytest.raises(ValueError):
-        list(f.decode(b'\x01'))
+        concat(f.decode(b'\x01'))
     with pytest.raises(ValueError):
-        list(f.decode(b'\xff'))
+        concat(f.decode(b'\xff'))
