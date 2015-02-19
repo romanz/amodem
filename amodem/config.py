@@ -32,8 +32,8 @@ class Configuration(object):
         self.Nsym = int(self.Tsym / self.Ts)
         self.baud = int(1.0 / self.Tsym)
 
-        bits_per_symbol = np.log2(self.Npoints)
-        assert int(bits_per_symbol) == bits_per_symbol
+        bits_per_symbol = int(np.log2(self.Npoints))
+        assert 2 ** bits_per_symbol == self.Npoints
         self.bits_per_baud = bits_per_symbol * self.Nfreq
         self.modem_bps = self.baud * self.bits_per_baud
         self.carriers = np.array([
