@@ -165,7 +165,7 @@ class Receiver(object):
 
         data = framing.decode(bitstream)
         for chunk in common.iterate(data=data, size=256,
-                                    truncate=False, func=bytearray):
+                                    truncate=False, func=bytes):
             output.write(chunk)
             self.output_size += len(chunk)
 
