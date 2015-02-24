@@ -4,9 +4,8 @@ import numpy as np
 class Configuration(object):
     Fs = 32000.0  # sampling frequency [Hz]
     Tsym = 0.001  # symbol duration [seconds]
-    Nfreq = 8     # number of frequencies used
     Npoints = 64
-    F0 = 1e3
+    frequencies = [1e3, 8e3]  # use 1..8 kHz carriers
 
     # audio config
     bits_per_sample = 16
@@ -25,12 +24,16 @@ class Configuration(object):
 
         self.Ts = 1.0 / self.Fs
         self.Fsym = 1 / self.Tsym
-        self.frequencies = self.F0 + np.arange(self.Nfreq) * self.Fsym
-        self.carrier_index = 0
-        self.Fc = self.frequencies[self.carrier_index]
-
         self.Nsym = int(self.Tsym / self.Ts)
         self.baud = int(1.0 / self.Tsym)
+
+        if len(self.frequencies) != 1:
+            first, last = self.frequencies
+            self.frequencies = np.arange(first, last + self.baud, self.baud)
+
+        self.Nfreq = len(self.frequencies)
+        self.carrier_index = 0
+        self.Fc = self.frequencies[self.carrier_index]
 
         bits_per_symbol = int(np.log2(self.Npoints))
         assert 2 ** bits_per_symbol == self.Npoints
@@ -49,26 +52,27 @@ class Configuration(object):
         symbols = symbols - symbols[-1]/2
         self.symbols = symbols / np.max(np.abs(symbols))
 
+
 # MODEM configurations for various bitrates [kbps]
 bitrates = {
-    1: Configuration(F0=2e3, Npoints=2, Nfreq=1, Fs=8e3),
-    2: Configuration(F0=2e3, Npoints=4, Nfreq=1, Fs=8e3),
-    4: Configuration(F0=2e3, Npoints=16, Nfreq=1, Fs=8e3),
-    8: Configuration(F0=2e3, Npoints=16, Nfreq=2, Fs=8e3),
-    12: Configuration(F0=3e3, Npoints=16, Nfreq=3, Fs=16e3),
-    16: Configuration(F0=3e3, Npoints=16, Nfreq=4, Fs=16e3),
-    18: Configuration(F0=2e3, Npoints=16, Nfreq=5, Fs=16e3),
-    24: Configuration(F0=2e3, Npoints=16, Nfreq=6, Fs=16e3),
-    28: Configuration(F0=4e3, Npoints=16, Nfreq=7, Fs=32e3),
-    32: Configuration(F0=3e3, Npoints=16, Nfreq=8, Fs=32e3),
-    36: Configuration(F0=4e3, Npoints=64, Nfreq=6, Fs=32e3),
-    42: Configuration(F0=4e3, Npoints=64, Nfreq=7, Fs=32e3),
-    48: Configuration(F0=3e3, Npoints=64, Nfreq=8, Fs=32e3),
-    54: Configuration(F0=3e3, Npoints=64, Nfreq=9, Fs=32e3),
-    60: Configuration(F0=2e3, Npoints=64, Nfreq=10, Fs=32e3),
-    64: Configuration(F0=3e3, Npoints=256, Nfreq=8, Fs=32e3),
-    72: Configuration(F0=2e3, Npoints=256, Nfreq=9, Fs=32e3),
-    80: Configuration(F0=2e3, Npoints=256, Nfreq=10, Fs=32e3),
+    1: Configuration(Fs=8e3, Npoints=2, frequencies=[2e3]),
+    2: Configuration(Fs=8e3, Npoints=4, frequencies=[2e3]),
+    4: Configuration(Fs=8e3, Npoints=16, frequencies=[2e3]),
+    8: Configuration(Fs=8e3, Npoints=16, frequencies=[1e3, 2e3]),
+    12: Configuration(Fs=16e3, Npoints=16, frequencies=[3e3, 5e3]),
+    16: Configuration(Fs=16e3, Npoints=16, frequencies=[2e3, 5e3]),
+    20: Configuration(Fs=16e3, Npoints=16, frequencies=[2e3, 6e3]),
+    24: Configuration(Fs=16e3, Npoints=16, frequencies=[1e3, 6e3]),
+    28: Configuration(Fs=32e3, Npoints=16, frequencies=[3e3, 9e3]),
+    32: Configuration(Fs=32e3, Npoints=16, frequencies=[2e3, 9e3]),
+    36: Configuration(Fs=32e3, Npoints=64, frequencies=[4e3, 9e3]),
+    42: Configuration(Fs=32e3, Npoints=64, frequencies=[4e3, 10e3]),
+    48: Configuration(Fs=32e3, Npoints=64, frequencies=[3e3, 10e3]),
+    54: Configuration(Fs=32e3, Npoints=64, frequencies=[2e3, 10e3]),
+    60: Configuration(Fs=32e3, Npoints=64, frequencies=[2e3, 11e3]),
+    64: Configuration(Fs=32e3, Npoints=256, frequencies=[3e3, 10e3]),
+    72: Configuration(Fs=32e3, Npoints=256, frequencies=[2e3, 10e3]),
+    80: Configuration(Fs=32e3, Npoints=256, frequencies=[2e3, 11e3]),
 }
 
 
