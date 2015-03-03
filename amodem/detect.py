@@ -92,7 +92,7 @@ class Detector(object):
             coeffs.append(c)
 
         index = np.argmax(coeffs)
-        log.debug('Starting coherence: %.3f%%', coeffs[index] * 100)
+        log.info('Carrier coherence: %.3f%%', coeffs[index] * 100)
         offset = index + len(zeroes)
         return offset
 
@@ -103,7 +103,7 @@ class Detector(object):
         symbols = np.array(symbols[skip:-skip])
 
         amplitude = np.mean(np.abs(symbols))
-        log.debug('Carrier symbols amplitude : %.3f', amplitude)
+        log.info('Carrier symbols amplitude : %.3f', amplitude)
 
         phase = np.unwrap(np.angle(symbols)) / (2 * np.pi)
         indices = np.arange(len(phase))
@@ -113,6 +113,6 @@ class Detector(object):
         self.plt.plot(indices, a * indices + b)
 
         freq_err = a / (self.Tsym * self.freq)
-        log.debug('Frequency error: %.3f ppm', freq_err * 1e6)
+        log.info('Frequency error: %.3f ppm', freq_err * 1e6)
         self.plt.title('Frequency drift: {0:.3f} ppm'.format(freq_err * 1e6))
         return amplitude, freq_err
