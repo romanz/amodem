@@ -4,18 +4,18 @@ Audio Modem Communication Library
 .. image:: https://travis-ci.org/romanz/amodem.svg?branch=master
     :target: https://travis-ci.org/romanz/amodem
     :alt: Build Status
-.. image:: https://coveralls.io/repos/romanz/amodem/badge.svg?branch=master 
-    :target: https://coveralls.io/r/romanz/amodem?branch=master 
+.. image:: https://coveralls.io/repos/romanz/amodem/badge.svg?branch=master
+    :target: https://coveralls.io/r/romanz/amodem?branch=master
     :alt: Code Coverage
 .. image:: https://landscape.io/github/romanz/amodem/master/landscape.svg?style=flat
    :target: https://landscape.io/github/romanz/amodem/master
-   :alt: Code Health    
+   :alt: Code Health
 .. image:: https://pypip.in/py_versions/amodem/badge.svg?style=flat
     :target: https://pypi.python.org/pypi/amodem/
     :alt: Python Versions
 .. image:: https://pypip.in/license/amodem/badge.svg?style=flat
     :target: https://pypi.python.org/pypi/amodem/
-    :alt: License   
+    :alt: License
 .. image:: https://pypip.in/version/amodem/badge.svg?style=flat
     :target: https://pypi.python.org/pypi/amodem/
     :alt: Package Version
@@ -127,7 +127,7 @@ If the signal is "too strong", decrease the sender's output audio level.
 
 If the signal is "too noisy", it may be that the noise level is too high
 or that the analog signal is being distorted.
-Please run the following command during the calibration session, 
+Please run the following command during the calibration session,
 and send me the resulting ``audio.raw`` file for debugging::
 
     ~/receiver $ arecord --format=S16_LE --channels=1 --rate=32000 audio.raw
@@ -148,7 +148,7 @@ Start the receiver (will wait for the sender to start)::
   ~/receiver $ amodem-cli recv -vv -i data.rx
 
 Start the sender (will modulate the data and start the transmission)::
-  
+
   ~/sender $ amodem-cli send -vv -o data.tx
 
 A similar log should be emitted by the sender::
@@ -168,7 +168,7 @@ A similar log should be emitted by the sender::
     2015-02-06 18:12:57,311 DEBUG      Sent     54.000 kB                                                                                   send.py:48
     2015-02-06 18:12:58,293 DEBUG      Sent     60.000 kB                                                                                   send.py:48
     2015-02-06 18:12:58,514 INFO       Sent 60.000 kB @ 10.201 seconds                                                                      main.py:31
-    2015-02-06 18:12:59,506 DEBUG      Closing input and output     
+    2015-02-06 18:12:59,506 DEBUG      Closing input and output
 
 A similar log should be emitted by the receiver::
 
