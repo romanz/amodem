@@ -31,7 +31,7 @@ This program can be used to transmit a specified file between 2 computers, using
 a simple audio cable (for better SNR and higher speeds) or a simple headset,
 allowing true air-gapped communication (via a speaker and a microphone).
 
-The sender modulates an input binary data file into an 32kHz audio,
+The sender modulates an input binary data file into an audio signal,
 which is played to the sound card.
 
 The receiver side records the transmitted audio,
@@ -43,10 +43,10 @@ receiving microphone.
 
 The modem is using OFDM over an audio cable with the following parameters:
 
-- Sampling rate: 32 kHz
+- Sampling rate: 8/16/32 kHz
 - Baud rate: 1 kHz
 - Symbol modulation: BPSK, 4-PSK, 16-QAM ,64-QAM, 256-QAM
-- Carriers: 2-11 kHz
+- Carriers: 2-11 kHz (up to ten carriers)
 
 This way, modem may achieve 80kbps bitrate = 10 kB/s (for best SNR).
 
