@@ -36,7 +36,7 @@ def send(config, dst, volume_cmd=None, gain=1.0, limit=None):
 
 def frame_iter(config, src, frame_length):
     frame_size = frame_length * config.Nsym * config.sample_size
-    omegas = 2 * np.pi * config.frequencies / config.Fs
+    omegas = 2 * np.pi * np.array(config.frequencies) / config.Fs
 
     while True:
         data = src.read(frame_size)
