@@ -126,7 +126,7 @@ def _main():
         ' if not specified, `aplay` tool will be used.')
     sender.set_defaults(
         main=lambda config, args: main.send(
-            config, src=wrap(Compressor, args.src, args.zip), dst=args.dst
+            config, src=wrap(Compressor, args.src, args.zlib), dst=args.dst
         ),
         calib=lambda config, args: calib.send(
             config=config, dst=args.dst,
@@ -153,7 +153,7 @@ def _main():
         help='plot results using pylab module')
     receiver.set_defaults(
         main=lambda config, args: main.recv(
-            config, src=args.src, dst=wrap(Decompressor, args.dst, args.zip),
+            config, src=args.src, dst=wrap(Decompressor, args.dst, args.zlib),
             pylab=args.pylab, dump_audio=args.dump
         ),
         calib=lambda config, args: calib.recv(
@@ -173,8 +173,8 @@ def _main():
                          metavar='SYSTEM', help=calibration_help)
         sub.add_argument('-l', '--audio-library', default='libportaudio.so',
                          help='File name of PortAudio shared library.')
-        sub.add_argument('-z', '--zip', default=False, action='store_true',
-                         help='Use ZIP to compress data.')
+        sub.add_argument('-z', '--zlib', default=False, action='store_true',
+                         help='Use zlib to compress/decompress data.')
         g = sub.add_mutually_exclusive_group()
         g.add_argument('-v', '--verbose', default=0, action='count')
         g.add_argument('-q', '--quiet', default=False, action='store_true')
