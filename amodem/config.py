@@ -9,7 +9,6 @@ class Configuration(object):
 
     # audio config
     bits_per_sample = 16
-    sample_size = bits_per_sample // 8
     latency = 0.1
 
     # sender config
@@ -22,10 +21,14 @@ class Configuration(object):
     def __init__(self, **kwargs):
         self.__dict__.update(**kwargs)
 
+        self.sample_size = self.bits_per_sample // 8
+        assert self.sample_size * 8 == self.bits_per_sample
+
         self.Ts = 1.0 / self.Fs
         self.Fsym = 1 / self.Tsym
         self.Nsym = int(self.Tsym / self.Ts)
         self.baud = int(1.0 / self.Tsym)
+        assert self.baud * self.Tsym == 1
 
         if len(self.frequencies) != 1:
             first, last = self.frequencies
