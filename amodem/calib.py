@@ -123,9 +123,8 @@ def recv(config, src, verbose=False, volume_cmd=None, dump_audio=None):
         src = stream.Dumper(src, dump_audio)
     result_iterator = detector(config=config, src=src)
     result_iterator = volume_calibration(result_iterator, volume_ctl)
-    result_iterator = iter_window(result_iterator, size=3)
-    for r in result_iterator:
+    for _prev, curr, _next in iter_window(result_iterator, size=3):
         # don't log errors during frequency changes
-        if r[0].success and r[2].success and r[0].freq != r[2].freq:
-            r[1].msg = r[1].msg if r[1].success else 'frequency change'
-        log.info(fmt.format(r[1]))
+        if _prev.success and _next.success and _prev.freq != _next.freq:
+            curr.msg = curr.msg if curr.success else 'frequency change'
+        log.info(fmt.format(curr))
