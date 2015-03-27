@@ -57,26 +57,26 @@ class Sampler(object):
     def _take(self, size):
         frame = np.zeros(size)
         count = 0
-        try:
-            for frame_index in range(size):
-                offset = self.offset
-                # offset = k + (j / self.resolution)
-                k = int(offset)  # integer part
-                j = int((offset - k) * self.resolution)  # fractional part
-                coeffs = self.filt[j]  # choose correct filter phase
-                end = k + self.width
-                # process input until all buffer is full with samples
+        for frame_index in range(size):
+            offset = self.offset
+            # offset = k + (j / self.resolution)
+            k = int(offset)  # integer part
+            j = int((offset - k) * self.resolution)  # fractional part
+            coeffs = self.filt[j]  # choose correct filter phase
+            end = k + self.width
+            # process input until all buffer is full with samples
+            try:
                 while self.index < end:
                     self.buff[:-1] = self.buff[1:]
                     self.buff[-1] = next(self.src)  # throws StopIteration
                     self.index += 1
+            except StopIteration:
+                break
 
-                self.offset += self.freq
-                # apply interpolation filter
-                frame[frame_index] = np.dot(coeffs, self.buff)
-                count = frame_index + 1
-        except StopIteration:
-            pass
+            self.offset += self.freq
+            # apply interpolation filter
+            frame[frame_index] = np.dot(coeffs, self.buff)
+            count = frame_index + 1
 
         return self.equalizer(frame[:count])
 
