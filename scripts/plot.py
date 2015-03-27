@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 import pylab
 import numpy as np
+from amodem import common
+from amodem.config import Configuration
+import sys
 
 
 def spectrogram(t, x, Fs, NFFT=256):
@@ -10,10 +13,6 @@ def spectrogram(t, x, Fs, NFFT=256):
     pylab.subplot(212, sharex=ax1)
     pylab.specgram(x, NFFT=NFFT, Fs=Fs, noverlap=NFFT/2,
                    cmap=pylab.cm.gist_heat)
-
-import sys
-from amodem import common
-from amodem.config import Configuration
 
 
 def main():
