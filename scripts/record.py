@@ -4,12 +4,7 @@ from amodem import audio
 from amodem.config import Configuration
 
 
-def main():
-    p = argparse.ArgumentParser()
-    p.add_argument('-l', '--audio-library', default='libportaudio.so')
-    p.add_argument('filename')
-    args = p.parse_args()
-
+def run(args):
     config = Configuration()
     with open(args.filename, 'wb') as dst:
         print dst
@@ -21,8 +16,16 @@ def main():
                 dst.write(src.read(size))
 
 
-if __name__ == '__main__':
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument('-l', '--audio-library', default='libportaudio.so')
+    p.add_argument('filename')
+
     try:
-        main()
+        run(args=p.parse_args())
     except KeyboardInterrupt:
-        pass
+        return
+
+
+if __name__ == '__main__':
+    main()

@@ -11,10 +11,12 @@ def spectrogram(t, x, Fs, NFFT=256):
     pylab.specgram(x, NFFT=NFFT, Fs=Fs, noverlap=NFFT/2,
                    cmap=pylab.cm.gist_heat)
 
-if __name__ == '__main__':
-    import sys
-    from amodem import common
-    from amodem.config import Configuration
+import sys
+from amodem import common
+from amodem.config import Configuration
+
+
+def main():
     config = Configuration()
 
     for fname in sys.argv[1:]:
@@ -25,3 +27,6 @@ if __name__ == '__main__':
         spectrogram(t, x, config.Fs)
 
     pylab.show()
+
+if __name__ == '__main__':
+    main()
