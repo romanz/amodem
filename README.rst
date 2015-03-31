@@ -22,7 +22,9 @@ Audio Modem Communication Library
 .. image:: https://pypip.in/status/amodem/badge.svg?style=flat
     :target: https://pypi.python.org/pypi/amodem/
     :alt: Development Status
-
+.. image:: https://badge.waffle.io/romanz/amodem.svg?label=ready&title=ready
+    :target: https://waffle.io/romanz/amodem
+    :alt: 'Ready'
 
 Description
 -----------
