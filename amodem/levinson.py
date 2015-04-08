@@ -16,8 +16,8 @@ def solver(t, y):
         prev_b = b[-1]
         ef = sum(t[n-i] * prev_f[i] for i in range(n))
         eb = sum(t[i+1] * prev_b[i] for i in range(n))
-        f_ = np.concatenate([f[-1], [0]])
-        b_ = np.concatenate([[0], b[-1]])
+        f_ = np.concatenate([prev_f, [0]])
+        b_ = np.concatenate([[0], prev_b])
         det = 1.0 - ef * eb
         f.append((f_ - ef * b_) / det)
         b.append((b_ - eb * f_) / det)
