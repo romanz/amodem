@@ -42,5 +42,5 @@ setup(
         'Topic :: System :: Networking',
         'Topic :: Communications',
     ],
-    scripts=['amodem-cli'],
+    entry_points={'console_scripts': ['amodem = amodem.__main__:_main']},
 )

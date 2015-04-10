@@ -94,8 +94,8 @@ def get_volume_cmd(args):
                 return c[args.command]
 
 
-class _DummyInterface(object):
-    ''' Audio interface mock, to skip shared library loading. '''
+class _DummyContextManager(object):
+
     def __enter__(self):
         pass
 
@@ -103,18 +103,13 @@ class _DummyInterface(object):
         pass
 
 
-def _main():
-    fmt = ('Audio OFDM MODEM: {0:.1f} kb/s ({1:d}-QAM x {2:d} carriers) '
-           'Fs={3:.1f} kHz')
-    description = fmt.format(config.modem_bps / 1e3, len(config.symbols),
-                             config.Nfreq, config.Fs / 1e3)
-    interface = audio.Interface(config=config)
+def wrap(cls, stream, enable):
+    return cls(stream) if enable else stream
 
+
+def create_parser(description, interface):
     p = argparse.ArgumentParser(description=description)
     subparsers = p.add_subparsers()
-
-    def wrap(cls, stream, enable):
-        return cls(stream) if enable else stream
 
     # Modulator
     sender = subparsers.add_parser(
@@ -182,6 +177,17 @@ def _main():
     if argcomplete:
         argcomplete.autocomplete(p)
 
+    return p
+
+
+def _main():
+    fmt = ('Audio OFDM MODEM: {0:.1f} kb/s ({1:d}-QAM x {2:d} carriers) '
+           'Fs={3:.1f} kHz')
+    description = fmt.format(config.modem_bps / 1e3, len(config.symbols),
+                             config.Nfreq, config.Fs / 1e3)
+    interface = audio.Interface(config=config)
+    p = create_parser(description, interface)
+
     args = p.parse_args()
     if args.verbose == 0:
         level, fmt = 'INFO', '%(message)s'
@@ -200,11 +206,11 @@ def _main():
 
     args.pylab = None
     if getattr(args, 'plot', False):
-        import pylab
+        import pylab  # pylint: disable=import-error
         args.pylab = pylab
 
     if args.audio_library == '-':
-        interface = _DummyInterface()
+        interface = _DummyContextManager()
     else:
         interface.load(args.audio_library)
 
