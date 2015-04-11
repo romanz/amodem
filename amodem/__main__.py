@@ -219,12 +219,9 @@ def _main():
         args.dst = args.output_type(args.output)
         try:
             if args.calibrate is False:
-                return args.main(config=config, args=args)
+                args.main(config=config, args=args)
             else:
-                try:
-                    args.calib(config=config, args=args)
-                except KeyboardInterrupt:
-                    pass
+                args.calib(config=config, args=args)
         finally:
             log.debug('Closing input and output')
             args.src.close()
@@ -232,5 +229,4 @@ def _main():
 
 
 if __name__ == '__main__':
-    success = _main()
-    sys.exit(0 if success else 1)
+    _main()
