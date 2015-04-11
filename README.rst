@@ -78,8 +78,8 @@ For graphs and visualization (optional), install `matplotlib` Python package.
 For validation, run::
 
     $ export BITRATE=48  # explicitly select high MODEM bit rate (assuming good SNR).
-    $ amodem-cli -h
-    usage: amodem-cli [-h] {send,recv} ...
+    $ amodem -h
+    usage: amodem [-h] {send,recv} ...
 
     Audio OFDM MODEM: 48.0 kb/s (64-QAM x 8 carriers) Fs=32.0 kHz
 
@@ -101,12 +101,12 @@ following scripts:
 On the sender's side::
 
     ~/sender $ export BITRATE=48  # explicitly select high MODEM bit rate (assuming good SNR).
-    ~/sender $ amodem-cli send --calibrate
+    ~/sender $ amodem send --calibrate
 
 On the receiver's side::
 
     ~/receiver $ export BITRATE=48  # explicitly select high MODEM bit rate (assuming good SNR).
-    ~/receiver $ amodem-cli recv --calibrate
+    ~/receiver $ amodem recv --calibrate
 
 If BITRATE is not set, the MODEM will use 1 kbps settings (single frequency with BPSK modulation).
 
@@ -147,71 +147,71 @@ Prepare the sender (generate a random binary data file to be sent)::
 
 Start the receiver (will wait for the sender to start)::
 
-  ~/receiver $ amodem-cli recv -vv -i data.rx
+  ~/receiver $ amodem recv -vv -i data.rx
 
 Start the sender (will modulate the data and start the transmission)::
 
-  ~/sender $ amodem-cli send -vv -o data.tx
+  ~/sender $ amodem send -vv -o data.tx
 
 A similar log should be emitted by the sender::
 
-    2015-02-06 18:12:46,222 DEBUG      Audio OFDM MODEM: 48.0 kb/s (64-QAM x 8 carriers) Fs=32.0 kHz                                        amodem-cli:191
-    2015-02-06 18:12:46,222 INFO       PortAudio V19-devel (built Feb 25 2014 21:09:53) loaded                                              audio.py:19
-    2015-02-06 18:12:48,297 INFO       Sending 2.150 seconds of training audio                                                              main.py:21
-    2015-02-06 18:12:48,297 INFO       Starting modulation                                                                                  main.py:26
-    2015-02-06 18:12:49,303 DEBUG      Sent      6.000 kB                                                                                   send.py:48
-    2015-02-06 18:12:50,296 DEBUG      Sent     12.000 kB                                                                                   send.py:48
-    2015-02-06 18:12:51,312 DEBUG      Sent     18.000 kB                                                                                   send.py:48
-    2015-02-06 18:12:52,290 DEBUG      Sent     24.000 kB                                                                                   send.py:48
-    2015-02-06 18:12:53,299 DEBUG      Sent     30.000 kB                                                                                   send.py:48
-    2015-02-06 18:12:54,299 DEBUG      Sent     36.000 kB                                                                                   send.py:48
-    2015-02-06 18:12:55,306 DEBUG      Sent     42.000 kB                                                                                   send.py:48
-    2015-02-06 18:12:56,296 DEBUG      Sent     48.000 kB                                                                                   send.py:48
-    2015-02-06 18:12:57,311 DEBUG      Sent     54.000 kB                                                                                   send.py:48
-    2015-02-06 18:12:58,293 DEBUG      Sent     60.000 kB                                                                                   send.py:48
-    2015-02-06 18:12:58,514 INFO       Sent 60.000 kB @ 10.201 seconds                                                                      main.py:31
+    2015-02-06 18:12:46,222 DEBUG      Audio OFDM MODEM: 48.0 kb/s (64-QAM x 8 carriers) Fs=32.0 kHz
+    2015-02-06 18:12:46,222 INFO       PortAudio V19-devel (built Feb 25 2014 21:09:53) loaded
+    2015-02-06 18:12:48,297 INFO       Sending 2.150 seconds of training audio
+    2015-02-06 18:12:48,297 INFO       Starting modulation
+    2015-02-06 18:12:49,303 DEBUG      Sent      6.000 kB
+    2015-02-06 18:12:50,296 DEBUG      Sent     12.000 kB
+    2015-02-06 18:12:51,312 DEBUG      Sent     18.000 kB
+    2015-02-06 18:12:52,290 DEBUG      Sent     24.000 kB
+    2015-02-06 18:12:53,299 DEBUG      Sent     30.000 kB
+    2015-02-06 18:12:54,299 DEBUG      Sent     36.000 kB
+    2015-02-06 18:12:55,306 DEBUG      Sent     42.000 kB
+    2015-02-06 18:12:56,296 DEBUG      Sent     48.000 kB
+    2015-02-06 18:12:57,311 DEBUG      Sent     54.000 kB
+    2015-02-06 18:12:58,293 DEBUG      Sent     60.000 kB
+    2015-02-06 18:12:58,514 INFO       Sent 60.000 kB @ 10.201 seconds
     2015-02-06 18:12:59,506 DEBUG      Closing input and output
 
 A similar log should be emitted by the receiver::
 
-    2015-02-06 18:12:44,848 DEBUG      Audio OFDM MODEM: 48.0 kb/s (64-QAM x 8 carriers) Fs=32.0 kHz                                        amodem-cli:191
-    2015-02-06 18:12:44,849 INFO       PortAudio V19-devel (built Feb 25 2014 21:09:53) loaded                                              audio.py:19
-    2015-02-06 18:12:44,929 DEBUG      AsyncReader thread started                                                                           async.py:23
-    2015-02-06 18:12:44,930 DEBUG      Skipping 0.100 seconds                                                                               main.py:44
-    2015-02-06 18:12:45,141 INFO       Waiting for carrier tone: 3.0 kHz                                                                    main.py:51
-    2015-02-06 18:12:47,846 INFO       Carrier detected at ~2265.0 ms @ 3.0 kHz                                                             detect.py:59
-    2015-02-06 18:12:47,846 DEBUG      Buffered 1000 ms of audio                                                                            detect.py:61
-    2015-02-06 18:12:48,025 DEBUG      Carrier starts at 2264.000 ms                                                                        detect.py:71
-    2015-02-06 18:12:48,029 DEBUG      Carrier symbols amplitude : 0.573                                                                    detect.py:96
-    2015-02-06 18:12:48,030 DEBUG      Current phase on carrier: 0.061                                                                      detect.py:107
-    2015-02-06 18:12:48,030 DEBUG      Frequency error: -0.009 ppm                                                                          detect.py:108
-    2015-02-06 18:12:48,030 DEBUG      Frequency correction: 0.009 ppm                                                                      main.py:55
-    2015-02-06 18:12:48,030 DEBUG      Gain correction: 1.746                                                                               main.py:58
-    2015-02-06 18:12:48,198 DEBUG      Prefix OK                                                                                            recv.py:46
-    2015-02-06 18:12:48,866 DEBUG        3.0 kHz: SNR = 34.82 dB                                                                            recv.py:90
-    2015-02-06 18:12:48,866 DEBUG        4.0 kHz: SNR = 36.39 dB                                                                            recv.py:90
-    2015-02-06 18:12:48,867 DEBUG        5.0 kHz: SNR = 37.88 dB                                                                            recv.py:90
-    2015-02-06 18:12:48,867 DEBUG        6.0 kHz: SNR = 38.58 dB                                                                            recv.py:90
-    2015-02-06 18:12:48,867 DEBUG        7.0 kHz: SNR = 38.86 dB                                                                            recv.py:90
-    2015-02-06 18:12:48,867 DEBUG        8.0 kHz: SNR = 38.63 dB                                                                            recv.py:90
-    2015-02-06 18:12:48,867 DEBUG        9.0 kHz: SNR = 38.07 dB                                                                            recv.py:90
-    2015-02-06 18:12:48,868 DEBUG       10.0 kHz: SNR = 37.22 dB                                                                            recv.py:90
-    2015-02-06 18:12:48,869 INFO       Starting demodulation                                                                                recv.py:124
-    2015-02-06 18:12:49,689 DEBUG      Got       6.000 kB, SNR: 41.19 dB, drift: -0.01 ppm                                                  recv.py:151
-    2015-02-06 18:12:50,659 DEBUG      Got      12.000 kB, SNR: 41.05 dB, drift: -0.00 ppm                                                  recv.py:151
-    2015-02-06 18:12:51,639 DEBUG      Got      18.000 kB, SNR: 40.96 dB, drift: -0.00 ppm                                                  recv.py:151
-    2015-02-06 18:12:52,610 DEBUG      Got      24.000 kB, SNR: 41.47 dB, drift: -0.01 ppm                                                  recv.py:151
-    2015-02-06 18:12:53,610 DEBUG      Got      30.000 kB, SNR: 41.06 dB, drift: -0.00 ppm                                                  recv.py:151
-    2015-02-06 18:12:54,589 DEBUG      Got      36.000 kB, SNR: 41.37 dB, drift: -0.00 ppm                                                  recv.py:151
-    2015-02-06 18:12:55,679 DEBUG      Got      42.000 kB, SNR: 41.13 dB, drift: -0.00 ppm                                                  recv.py:151
-    2015-02-06 18:12:56,650 DEBUG      Got      48.000 kB, SNR: 41.31 dB, drift: -0.00 ppm                                                  recv.py:151
-    2015-02-06 18:12:57,631 DEBUG      Got      54.000 kB, SNR: 41.23 dB, drift: +0.00 ppm                                                  recv.py:151
-    2015-02-06 18:12:58,605 DEBUG      Got      60.000 kB, SNR: 41.31 dB, drift: +0.00 ppm                                                  recv.py:151
-    2015-02-06 18:12:58,857 DEBUG      EOF frame detected                                                                                   framing.py:57
-    2015-02-06 18:12:58,857 DEBUG      Demodulated 61.205 kB @ 9.988 seconds (97.9% realtime)                                               recv.py:176
-    2015-02-06 18:12:58,858 INFO       Received 60.000 kB @ 9.988 seconds = 6.007 kB/s                                                      recv.py:180
-    2015-02-06 18:12:58,876 DEBUG      Closing input and output                                                                             amodem-cli:210
-    2015-02-06 18:12:58,951 DEBUG      AsyncReader thread stopped (read 896000 bytes)                                                       async.py:28
+    2015-02-06 18:12:44,848 DEBUG      Audio OFDM MODEM: 48.0 kb/s (64-QAM x 8 carriers) Fs=32.0 kHz
+    2015-02-06 18:12:44,849 INFO       PortAudio V19-devel (built Feb 25 2014 21:09:53) loaded
+    2015-02-06 18:12:44,929 DEBUG      AsyncReader thread started
+    2015-02-06 18:12:44,930 DEBUG      Skipping 0.100 seconds
+    2015-02-06 18:12:45,141 INFO       Waiting for carrier tone: 3.0 kHz
+    2015-02-06 18:12:47,846 INFO       Carrier detected at ~2265.0 ms @ 3.0 kHz
+    2015-02-06 18:12:47,846 DEBUG      Buffered 1000 ms of audio
+    2015-02-06 18:12:48,025 DEBUG      Carrier starts at 2264.000 ms
+    2015-02-06 18:12:48,029 DEBUG      Carrier symbols amplitude : 0.573
+    2015-02-06 18:12:48,030 DEBUG      Current phase on carrier: 0.061
+    2015-02-06 18:12:48,030 DEBUG      Frequency error: -0.009 ppm
+    2015-02-06 18:12:48,030 DEBUG      Frequency correction: 0.009 ppm
+    2015-02-06 18:12:48,030 DEBUG      Gain correction: 1.746
+    2015-02-06 18:12:48,198 DEBUG      Prefix OK
+    2015-02-06 18:12:48,866 DEBUG        3.0 kHz: SNR = 34.82 dB
+    2015-02-06 18:12:48,866 DEBUG        4.0 kHz: SNR = 36.39 dB
+    2015-02-06 18:12:48,867 DEBUG        5.0 kHz: SNR = 37.88 dB
+    2015-02-06 18:12:48,867 DEBUG        6.0 kHz: SNR = 38.58 dB
+    2015-02-06 18:12:48,867 DEBUG        7.0 kHz: SNR = 38.86 dB
+    2015-02-06 18:12:48,867 DEBUG        8.0 kHz: SNR = 38.63 dB
+    2015-02-06 18:12:48,867 DEBUG        9.0 kHz: SNR = 38.07 dB
+    2015-02-06 18:12:48,868 DEBUG       10.0 kHz: SNR = 37.22 dB
+    2015-02-06 18:12:48,869 INFO       Starting demodulation
+    2015-02-06 18:12:49,689 DEBUG      Got       6.000 kB, SNR: 41.19 dB, drift: -0.01 ppm
+    2015-02-06 18:12:50,659 DEBUG      Got      12.000 kB, SNR: 41.05 dB, drift: -0.00 ppm
+    2015-02-06 18:12:51,639 DEBUG      Got      18.000 kB, SNR: 40.96 dB, drift: -0.00 ppm
+    2015-02-06 18:12:52,610 DEBUG      Got      24.000 kB, SNR: 41.47 dB, drift: -0.01 ppm
+    2015-02-06 18:12:53,610 DEBUG      Got      30.000 kB, SNR: 41.06 dB, drift: -0.00 ppm
+    2015-02-06 18:12:54,589 DEBUG      Got      36.000 kB, SNR: 41.37 dB, drift: -0.00 ppm
+    2015-02-06 18:12:55,679 DEBUG      Got      42.000 kB, SNR: 41.13 dB, drift: -0.00 ppm
+    2015-02-06 18:12:56,650 DEBUG      Got      48.000 kB, SNR: 41.31 dB, drift: -0.00 ppm
+    2015-02-06 18:12:57,631 DEBUG      Got      54.000 kB, SNR: 41.23 dB, drift: +0.00 ppm
+    2015-02-06 18:12:58,605 DEBUG      Got      60.000 kB, SNR: 41.31 dB, drift: +0.00 ppm
+    2015-02-06 18:12:58,857 DEBUG      EOF frame detected
+    2015-02-06 18:12:58,857 DEBUG      Demodulated 61.205 kB @ 9.988 seconds (97.9% realtime)
+    2015-02-06 18:12:58,858 INFO       Received 60.000 kB @ 9.988 seconds = 6.007 kB/s
+    2015-02-06 18:12:58,876 DEBUG      Closing input and output
+    2015-02-06 18:12:58,951 DEBUG      AsyncReader thread stopped (read 896000 bytes)
 
 After the receiver has finished, verify the received file's hash::
 
@@ -224,5 +224,5 @@ Visualization
 -------------
 Make sure that ``matplotlib`` package is installed, and run (at the receiver side)::
 
-    ~/receiver $ amodem-cli recv --plot -o data.rx
+    ~/receiver $ amodem recv --plot -o data.rx
 
