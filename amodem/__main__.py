@@ -119,9 +119,13 @@ def create_parser(description, interface):
     sender.add_argument(
         '-o', '--output', help='output file (use "-" for stdout).'
         ' if not specified, `aplay` tool will be used.')
+    sender.add_argument(
+        '-g', '--gain', type=float, default=1.0,
+        help='Modulator gain (defaults to 1)')
     sender.set_defaults(
         main=lambda config, args: main.send(
-            config, src=wrap(Compressor, args.src, args.zlib), dst=args.dst
+            config, src=wrap(Compressor, args.src, args.zlib), dst=args.dst,
+            gain=args.gain
         ),
         calib=lambda config, args: calib.send(
             config=config, dst=args.dst,
