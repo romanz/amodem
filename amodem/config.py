@@ -17,6 +17,7 @@ class Configuration(object):
 
     # receiver config
     skip_start = 0.1
+    timeout = 60.0
 
     def __init__(self, **kwargs):
         self.__dict__.update(**kwargs)

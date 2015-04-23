@@ -19,15 +19,13 @@ class Detector(object):
     SEARCH_WINDOW = int(0.1 * CARRIER_DURATION)
     START_PATTERN_LENGTH = SEARCH_WINDOW // 4
 
-    TIMEOUT = 10.0  # [seconds]
-
     def __init__(self, config, pylab):
         self.freq = config.Fc
         self.omega = 2 * np.pi * self.freq / config.Fs
         self.Nsym = config.Nsym
         self.Tsym = config.Tsym
         self.maxlen = config.baud  # 1 second of symbols
-        self.max_offset = self.TIMEOUT * config.Fs
+        self.max_offset = config.timeout * config.Fs
         self.plt = pylab
 
     def _wait(self, samples):
