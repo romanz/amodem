@@ -10,16 +10,16 @@ Audio Modem Communication Library
 .. image:: https://landscape.io/github/romanz/amodem/master/landscape.svg?style=flat
    :target: https://landscape.io/github/romanz/amodem/master
    :alt: Code Health
-.. image:: https://pypip.in/py_versions/amodem/badge.svg?style=flat
+.. image:: https://img.shields.io/pypi/pyversions/amodem.svg
     :target: https://pypi.python.org/pypi/amodem/
     :alt: Python Versions
-.. image:: https://pypip.in/license/amodem/badge.svg?style=flat
+.. image:: https://img.shields.io/pypi/l/amodem.svg
     :target: https://pypi.python.org/pypi/amodem/
     :alt: License
-.. image:: https://pypip.in/version/amodem/badge.svg?style=flat
+.. image:: https://img.shields.io/pypi/v/amodem.svg
     :target: https://pypi.python.org/pypi/amodem/
     :alt: Package Version
-.. image:: https://pypip.in/status/amodem/badge.svg?style=flat
+.. image:: https://img.shields.io/pypi/status/amodem.svg
     :target: https://pypi.python.org/pypi/amodem/
     :alt: Development Status
 .. image:: https://badge.waffle.io/romanz/amodem.svg?label=ready&title=ready
