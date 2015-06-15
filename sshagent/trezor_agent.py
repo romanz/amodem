@@ -4,7 +4,7 @@ import logging
 log = logging.getLogger(__name__)
 
 import trezor
-import agent
+import server
 
 def main():
     fmt = '%(asctime)s %(levelname)-12s %(message)-100s [%(filename)s]'
@@ -33,7 +33,7 @@ def main():
     signer = client.sign_ssh_challenge
 
     try:
-        agent.serve(key_files=key_files, command=args.command, signer=signer)
+        server.serve(key_files=key_files, command=args.command, signer=signer)
     except KeyboardInterrupt:
         log.info('server stopped')
     except Exception as e:
