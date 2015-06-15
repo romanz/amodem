@@ -1,50 +1,20 @@
 import io
-import base64
-import logging
 import binascii
 
 from trezorlib.client import TrezorClient
 from trezorlib.transport_hid import HidTransport
 from trezorlib.types_pb2 import IdentityType
 
-import ecdsa
-import bitcoin
-import hashlib
+from . import util
+from . import formats
 
-
-import protocol
+import logging
 log = logging.getLogger(__name__)
-
-curve = ecdsa.NIST256p
-hashfunc = hashlib.sha256
-
-
-def decode_pubkey(pub):
-    P = curve.curve.p()
-    A = curve.curve.a()
-    B = curve.curve.b()
-    x = bitcoin.decode(pub[1:33], 256)
-    beta = pow(int(x*x*x+A*x+B), int((P+1)//4), int(P))
-    y = (P-beta) if ((beta + bitcoin.from_byte_to_int(pub[0])) % 2) else beta
-    return (x, y)
-
-
-def export_public_key(pubkey, label):
-    x, y = decode_pubkey(pubkey)
-    point = ecdsa.ellipticcurve.Point(curve.curve, x, y)
-    vk = ecdsa.VerifyingKey.from_public_point(point, curve=curve,
-                                              hashfunc=hashfunc)
-    key_type = 'ecdsa-sha2-nistp256'
-    curve_name = 'nistp256'
-    blobs = map(protocol.frame, [key_type, curve_name, '\x04' + vk.to_string()])
-    b64 = base64.b64encode(''.join(blobs))
-    return '{} {} {}\n'.format(key_type, b64, label)
-
 
 def label_addr(ident):
     index = '\x00' * 4
     addr = index + '{}://{}'.format(ident.proto, ident.host)
-    h = bytearray(hashfunc(addr).digest())
+    h = bytearray(formats.hashfunc(addr).digest())
 
     address_n = [0] * 5
     address_n[0] = 13
@@ -96,8 +66,8 @@ class Client(object):
         s = self.client.sign_identity(identity=ident,
                                       challenge_hidden=blob,
                                       challenge_visual=request)
-        r = protocol.bytes2num(s.signature[:32])
-        s = protocol.bytes2num(s.signature[32:])
+        r = util.bytes2num(s.signature[:32])
+        s = util.bytes2num(s.signature[32:])
         return (r, s)
 
 
@@ -105,14 +75,14 @@ def parse_ssh_blob(data):
     res = {}
     if data:
         i = io.BytesIO(data)
-        res['nonce'] = protocol.read_frame(i)
+        res['nonce'] = util.read_frame(i)
         i.read(1)  # TBD
-        res['user'] = protocol.read_frame(i)
-        res['conn'] = protocol.read_frame(i)
-        res['auth'] = protocol.read_frame(i)
+        res['user'] = util.read_frame(i)
+        res['conn'] = util.read_frame(i)
+        res['auth'] = util.read_frame(i)
         i.read(1)  # TBD
-        res['key_type'] = protocol.read_frame(i)
-        res['pubkey'] = protocol.read_frame(i)
+        res['key_type'] = util.read_frame(i)
+        res['pubkey'] = util.read_frame(i)
         log.debug('%s: user %r via %r (%r)',
                   res['conn'], res['user'], res['auth'], res['key_type'])
     return res

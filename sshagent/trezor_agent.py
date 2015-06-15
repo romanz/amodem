@@ -3,8 +3,9 @@ import argparse
 import logging
 log = logging.getLogger(__name__)
 
-import trezor
-import server
+from . import trezor
+from . import server
+from . import formats
 
 def main():
     fmt = '%(asctime)s %(levelname)-12s %(message)-100s [%(filename)s]'
@@ -24,7 +25,8 @@ def main():
     key_files = []
     for label in args.labels:
         pubkey = client.get_public_key(label=label)
-        key_files.append(trezor.export_public_key(pubkey=pubkey, label=label))
+        key_file = formats.export_public_key(pubkey=pubkey, label=label)
+        key_files.append(key_file)
 
     if not args.command:
         sys.stdout.write(''.join(key_files))
@@ -32,12 +34,18 @@ def main():
 
     signer = client.sign_ssh_challenge
 
+    ret = -1
     try:
-        server.serve(key_files=key_files, command=args.command, signer=signer)
+        ret = server.serve(
+            key_files=key_files,
+            command=args.command,
+            signer=signer)
+        log.info('exitcode: %d', ret)
     except KeyboardInterrupt:
         log.info('server stopped')
     except Exception as e:
         log.warning(e, exc_info=True)
+    sys.exit(ret)
 
 if __name__ == '__main__':
     main()

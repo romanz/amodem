@@ -1,7 +1,5 @@
-#!/usr/bin/env python
 import socket
 import os
-import sys
 import subprocess
 import tempfile
 import contextlib
@@ -9,8 +7,9 @@ import threading
 import logging
 log = logging.getLogger(__name__)
 
-import protocol
-
+from . import protocol
+from . import formats
+from . import util
 
 @contextlib.contextmanager
 def unix_domain_socket_server(sock_path):
@@ -29,6 +28,18 @@ def unix_domain_socket_server(sock_path):
     finally:
         os.remove(sock_path)
 
+def handle_connection(conn, keys, signer):
+    try:
+        log.debug('welcome agent')
+        while True:
+            msg = util.read_frame(conn)
+            reply = protocol.handle_message(msg=msg, keys=keys, signer=signer)
+            util.send(conn, reply)
+    except EOFError:
+        log.debug('goodbye agent')
+    except:
+        log.exception('error')
+        raise
 
 def server_thread(server, keys, signer):
     log.debug('server thread started')
@@ -40,7 +51,7 @@ def server_thread(server, keys, signer):
             log.debug('server error: %s', e, exc_info=True)
             break
         with contextlib.closing(conn):
-            protocol.handle_connection(conn, keys, signer)
+            handle_connection(conn, keys, signer)
     log.debug('server thread stopped')
 
 
@@ -70,7 +81,7 @@ def serve(key_files, command, signer, sock_path=None):
     if sock_path is None:
         sock_path = tempfile.mktemp(prefix='ssh-agent-')
 
-    keys = [protocol.parse_public_key(k) for k in key_files]
+    keys = [formats.parse_public_key(k) for k in key_files]
     environ = {'SSH_AUTH_SOCK': sock_path, 'SSH_AGENT_PID': str(os.getpid())}
     with unix_domain_socket_server(sock_path) as server:
         with spawn(server_thread, server=server, keys=keys, signer=signer):
@@ -79,6 +90,4 @@ def serve(key_files, command, signer, sock_path=None):
             finally:
                 log.debug('closing server')
                 server.shutdown(socket.SHUT_RD)
-
-    log.info('exitcode: %d', ret)
-    sys.exit(ret)
+    return ret
