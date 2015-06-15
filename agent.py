@@ -92,7 +92,8 @@ def serve(key_files, command, signer, sock_path=None):
 def main():
     fmt = '%(asctime)s %(levelname)-12s %(message)-100s [%(filename)s]'
     p = argparse.ArgumentParser()
-    p.add_argument('-k', '--key-label', dest='labels', action='append')
+    p.add_argument('-k', '--key-label',
+                   metavar='LABEL', dest='labels', action='append', default=[])
     p.add_argument('-v', '--verbose', action='count', default=0)
     p.add_argument('command', type=str, nargs='*')
     args = p.parse_args()
