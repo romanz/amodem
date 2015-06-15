@@ -1,6 +1,7 @@
 import io
 import base64
 import logging
+import binascii
 
 from trezorlib.client import TrezorClient
 from trezorlib.transport_hid import HidTransport
@@ -59,9 +60,18 @@ class Client(object):
     proto = 'ssh'
 
     def __init__(self):
-        device, = HidTransport.enumerate()
-        client = TrezorClient(HidTransport(device))
-        log.debug('connected to Trezor #%s', client.get_device_id())
+        devices = HidTransport.enumerate()
+        if len(devices) != 1:
+            raise ValueError('{:d} Trezor devices found'.format(len(devices)))
+        client = TrezorClient(HidTransport(devices[0]))
+        f = client.features
+        log.info('connected to Trezor')
+        log.debug('ID       : {}'.format(f.device_id))
+        log.debug('label    : {}'.format(f.label))
+        log.debug('vendor   : {}'.format(f.vendor))
+        version = [f.major_version, f.minor_version, f.patch_version]
+        log.debug('version  : {}'.format('.'.join(map(str, version))))
+        log.debug('revision : {}'.format(binascii.hexlify(f.revision)))
         self.client = client
 
     def close(self):
