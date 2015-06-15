@@ -40,8 +40,8 @@ def unix_domain_socket_server(sock_path):
         os.remove(sock_path)
 
 
-def worker_thread(server, keys, signer):
-    log.debug('worker thread started')
+def server_thread(server, keys, signer):
+    log.debug('server thread started')
     while True:
         log.debug('waiting for connection on %s', server.getsockname())
         try:
@@ -51,7 +51,7 @@ def worker_thread(server, keys, signer):
             break
         with contextlib.closing(conn):
             protocol.handle_connection(conn, keys, signer)
-    log.debug('worker thread stopped')
+    log.debug('server thread stopped')
 
 
 @contextlib.contextmanager
@@ -80,7 +80,7 @@ def serve(key_files, command, signer, sock_path=None):
     keys = [protocol.parse_public_key(k) for k in key_files]
     environ = {'SSH_AUTH_SOCK': sock_path, 'SSH_AGENT_PID': str(os.getpid())}
     with unix_domain_socket_server(sock_path) as server:
-        with spawn(worker_thread, server=server, keys=keys, signer=signer):
+        with spawn(server_thread, server=server, keys=keys, signer=signer):
             try:
                 ret = run(command=command, environ=environ)
             finally:
