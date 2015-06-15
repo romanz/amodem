@@ -66,7 +66,10 @@ def run(command, environ):
     log.debug('running %r with %r', command, environ)
     env = dict(os.environ)
     env.update(environ)
-    p = subprocess.Popen(args=command, env=env)
+    try:
+        p = subprocess.Popen(args=command, env=env)
+    except OSError as e:
+        raise OSError('cannot run %r: %s' % (command, e))
     log.debug('subprocess %d is running', p.pid)
     ret = p.wait()
     log.debug('subprocess %d exited: %d', p.pid, ret)
@@ -121,6 +124,8 @@ def main():
         serve(key_files=key_files, command=args.command, signer=signer)
     except KeyboardInterrupt:
         log.info('server stopped')
+    except Exception as e:
+        log.warning(e, exc_info=True)
 
 if __name__ == '__main__':
     main()
