@@ -99,7 +99,7 @@ def main():
     args = p.parse_args()
 
     verbosity = [logging.WARNING, logging.INFO, logging.DEBUG]
-    level = verbosity[min(args.verbose, len(verbosity))]
+    level = verbosity[min(args.verbose, len(verbosity) - 1)]
     logging.basicConfig(level=level, format=fmt)
 
     client = trezor.Client()
