@@ -81,9 +81,11 @@ def serve(key_files, command, signer, sock_path=None):
     environ = {'SSH_AUTH_SOCK': sock_path, 'SSH_AGENT_PID': str(os.getpid())}
     with unix_domain_socket_server(sock_path) as server:
         with spawn(worker_thread, server=server, keys=keys, signer=signer):
-            ret = run(command=command, environ=environ)
-            log.debug('closing server')
-            server.shutdown(socket.SHUT_RD)
+            try:
+                ret = run(command=command, environ=environ)
+            finally:
+                log.debug('closing server')
+                server.shutdown(socket.SHUT_RD)
 
     log.info('exitcode: %d', ret)
     sys.exit(ret)
