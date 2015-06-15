@@ -3,7 +3,6 @@ import socket
 import os
 import sys
 import subprocess
-import argparse
 import tempfile
 import contextlib
 import threading
@@ -11,15 +10,6 @@ import logging
 log = logging.getLogger(__name__)
 
 import protocol
-import trezor
-
-
-def load_keys(key_files):
-    keys = []
-    for f in key_files:
-        k = protocol.load_public_key(f)
-        keys.append(k)
-    return keys
 
 
 @contextlib.contextmanager
@@ -92,40 +82,3 @@ def serve(key_files, command, signer, sock_path=None):
 
     log.info('exitcode: %d', ret)
     sys.exit(ret)
-
-
-def main():
-    fmt = '%(asctime)s %(levelname)-12s %(message)-100s [%(filename)s]'
-    p = argparse.ArgumentParser()
-    p.add_argument('-k', '--key-label',
-                   metavar='LABEL', dest='labels', action='append', default=[])
-    p.add_argument('-v', '--verbose', action='count', default=0)
-    p.add_argument('command', type=str, nargs='*')
-    args = p.parse_args()
-
-    verbosity = [logging.WARNING, logging.INFO, logging.DEBUG]
-    level = verbosity[min(args.verbose, len(verbosity) - 1)]
-    logging.basicConfig(level=level, format=fmt)
-
-    client = trezor.Client()
-
-    key_files = []
-    for label in args.labels:
-        pubkey = client.get_public_key(label=label)
-        key_files.append(trezor.export_public_key(pubkey=pubkey, label=label))
-
-    if not args.command:
-        sys.stdout.write(''.join(key_files))
-        return
-
-    signer = client.sign_ssh_challenge
-
-    try:
-        serve(key_files=key_files, command=args.command, signer=signer)
-    except KeyboardInterrupt:
-        log.info('server stopped')
-    except Exception as e:
-        log.warning(e, exc_info=True)
-
-if __name__ == '__main__':
-    main()
