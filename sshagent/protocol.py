@@ -19,20 +19,12 @@ SSH2_AGENTC_ADD_IDENTITY = 17
 SSH2_AGENTC_REMOVE_IDENTITY = 18
 SSH2_AGENTC_REMOVE_ALL_IDENTITIES = 19
 
-def list_keys(c):
-    util.send(c, [0x1, 0xB], '>LB')
-    buf = io.BytesIO(util.read_frame(c))
-    assert util.recv(buf, '>B') == (0xC,)
-    num, = util.recv(buf, '>L')
-    for i in range(num):
-        k = formats.parse_pubkey(util.read_frame(buf))
-        k['comment'] = util.read_frame(buf)
-        yield k
 
 def legacy_pubs(buf, keys, signer):
     code = util.pack('B', SSH_AGENT_RSA_IDENTITIES_ANSWER)
     num = util.pack('L', 0)  # no SSH v1 keys
     return util.frame(code, num)
+
 
 def list_pubs(buf, keys, signer):
     code = util.pack('B', SSH2_AGENT_IDENTITIES_ANSWER)
@@ -42,6 +34,7 @@ def list_pubs(buf, keys, signer):
         log.debug('%2d) %s', i+1, k['fingerprint'])
     pubs = [util.frame(k['blob']) + util.frame(k['name']) for k in keys]
     return util.frame(code, num, *pubs)
+
 
 def sign_message(buf, keys, signer):
     key = formats.parse_pubkey(util.read_frame(buf))
@@ -77,11 +70,13 @@ def sign_message(buf, keys, signer):
     code = util.pack('B', SSH2_AGENT_SIGN_RESPONSE)
     return util.frame(code, data)
 
+
 handlers = {
     SSH_AGENTC_REQUEST_RSA_IDENTITIES: legacy_pubs,
     SSH2_AGENTC_REQUEST_IDENTITIES: list_pubs,
     SSH2_AGENTC_SIGN_REQUEST: sign_message,
 }
+
 
 def handle_message(msg, keys, signer):
     log.debug('request: %d bytes', len(msg))
