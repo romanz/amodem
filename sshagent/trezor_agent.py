@@ -1,11 +1,12 @@
 import sys
 import argparse
-import logging
-log = logging.getLogger(__name__)
 
 from . import trezor
 from . import server
 from . import formats
+
+import logging
+log = logging.getLogger(__name__)
 
 
 def main():

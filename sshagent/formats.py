@@ -3,10 +3,10 @@ import hashlib
 import base64
 import ecdsa
 
+from . import util
+
 import logging
 log = logging.getLogger(__name__)
-
-from . import util
 
 DER_OCTET_STRING = b'\x04'
 

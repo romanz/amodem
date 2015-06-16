@@ -4,12 +4,13 @@ import subprocess
 import tempfile
 import contextlib
 import threading
-import logging
-log = logging.getLogger(__name__)
 
 from . import protocol
 from . import formats
 from . import util
+
+import logging
+log = logging.getLogger(__name__)
 
 
 @contextlib.contextmanager
