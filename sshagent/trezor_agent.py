@@ -7,6 +7,7 @@ from . import trezor
 from . import server
 from . import formats
 
+
 def main():
     fmt = '%(asctime)s %(levelname)-12s %(message)-100s [%(filename)s]'
     p = argparse.ArgumentParser()

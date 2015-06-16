@@ -11,6 +11,7 @@ from . import protocol
 from . import formats
 from . import util
 
+
 @contextlib.contextmanager
 def unix_domain_socket_server(sock_path):
     log.debug('serving on SSH_AUTH_SOCK=%s', sock_path)
@@ -28,6 +29,7 @@ def unix_domain_socket_server(sock_path):
     finally:
         os.remove(sock_path)
 
+
 def handle_connection(conn, keys, signer):
     try:
         log.debug('welcome agent')
@@ -40,6 +42,7 @@ def handle_connection(conn, keys, signer):
     except:
         log.exception('error')
         raise
+
 
 def server_thread(server, keys, signer):
     log.debug('server thread started')

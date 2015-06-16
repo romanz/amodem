@@ -1,10 +1,12 @@
 import struct
 import io
 
+
 def send(conn, data, fmt=None):
     if fmt:
         data = struct.pack(fmt, *data)
     conn.sendall(data)
+
 
 def recv(conn, size):
     try:
@@ -35,11 +37,13 @@ def read_frame(conn):
     size, = recv(conn, '>L')
     return recv(conn, size)
 
+
 def bytes2num(s):
     res = 0
     for i, c in enumerate(reversed(bytearray(s))):
         res += c << (i * 8)
     return res
+
 
 def num2bytes(value, size):
     res = []
@@ -49,8 +53,10 @@ def num2bytes(value, size):
     assert value == 0
     return bytearray(list(reversed(res)))
 
+
 def pack(fmt, *args):
     return struct.pack('>' + fmt, *args)
+
 
 def frame(*msgs):
     res = io.BytesIO()
