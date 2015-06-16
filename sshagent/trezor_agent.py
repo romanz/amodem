@@ -45,8 +45,6 @@ def main():
         log.info('exitcode: %d', ret)
     except KeyboardInterrupt:
         log.info('server stopped')
-    except Exception as e:
-        log.warning(e, exc_info=True)
     sys.exit(ret)
 
 if __name__ == '__main__':

@@ -75,6 +75,6 @@ def export_public_key(pubkey, label):
                                               hashfunc=hashfunc)
     key_type = 'ecdsa-sha2-nistp256'
     curve_name = 'nistp256'
-    blobs = map(util.frame, [key_type, curve_name, '\x04' + vk.to_string()])
-    b64 = base64.b64encode(''.join(blobs))
+    parts = [key_type, curve_name, '\x04' + vk.to_string()]
+    b64 = base64.b64encode(''.join([util.frame(p) for p in parts]))
     return '{} {} {}\n'.format(key_type, b64, label)

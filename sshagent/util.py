@@ -47,7 +47,7 @@ def bytes2num(s):
 
 def num2bytes(value, size):
     res = []
-    for i in range(size):
+    for _ in range(size):
         res.append(value & 0xFF)
         value = value >> 8
     assert value == 0

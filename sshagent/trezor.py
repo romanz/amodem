@@ -21,12 +21,12 @@ class Client(object):
         client = TrezorClient(HidTransport(devices[0]))
         f = client.features
         log.info('connected to Trezor')
-        log.debug('ID       : {}'.format(f.device_id))
-        log.debug('label    : {}'.format(f.label))
-        log.debug('vendor   : {}'.format(f.vendor))
+        log.debug('ID       : %s', f.device_id)
+        log.debug('label    : %s', f.label)
+        log.debug('vendor   : %s', f.vendor)
         version = [f.major_version, f.minor_version, f.patch_version]
-        log.debug('version  : {}'.format('.'.join(map(str, version))))
-        log.debug('revision : {}'.format(binascii.hexlify(f.revision)))
+        log.debug('version  : %s', '.'.join([str(v) for v in version]))
+        log.debug('revision : %s', binascii.hexlify(f.revision))
         self.client = client
 
     def close(self):
@@ -55,7 +55,7 @@ class Client(object):
 
 
 def _get_identity(label, proto='ssh'):
-        return IdentityType(host=label, proto=proto)
+    return IdentityType(host=label, proto=proto)
 
 
 def _get_address(ident):

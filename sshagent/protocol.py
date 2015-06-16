@@ -50,7 +50,7 @@ def sign_message(buf, keys, signer):
         raise ValueError('key not found')
 
     log.debug('signing %d-byte blob', len(blob))
-    r, s = signer(label=k['name'], blob=blob)
+    r, s = signer(label=key['name'], blob=blob)
     signature = (r, s)
     log.debug('signature: %s', signature)
 
