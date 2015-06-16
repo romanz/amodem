@@ -31,12 +31,12 @@ def unix_domain_socket_server(sock_path):
         os.remove(sock_path)
 
 
-def handle_connection(conn, keys, signer):
+def handle_connection(conn, handler):
     try:
         log.debug('welcome agent')
         while True:
             msg = util.read_frame(conn)
-            reply = protocol.handle_message(msg=msg, keys=keys, signer=signer)
+            reply = handler.handle(msg=msg)
             util.send(conn, reply)
     except EOFError:
         log.debug('goodbye agent')
@@ -47,6 +47,7 @@ def handle_connection(conn, keys, signer):
 
 def server_thread(server, keys, signer):
     log.debug('server thread started')
+    handler = protocol.Handler(keys=keys, signer=signer)
     while True:
         log.debug('waiting for connection on %s', server.getsockname())
         try:
@@ -55,7 +56,7 @@ def server_thread(server, keys, signer):
             log.debug('server error: %s', e, exc_info=True)
             break
         with contextlib.closing(conn):
-            handle_connection(conn, keys, signer)
+            handle_connection(conn, handler)
     log.debug('server thread stopped')
 
 

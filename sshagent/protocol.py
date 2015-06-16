@@ -20,70 +20,80 @@ SSH2_AGENTC_REMOVE_IDENTITY = 18
 SSH2_AGENTC_REMOVE_ALL_IDENTITIES = 19
 
 
-def legacy_pubs(buf, keys, signer):
-    code = util.pack('B', SSH_AGENT_RSA_IDENTITIES_ANSWER)
-    num = util.pack('L', 0)  # no SSH v1 keys
-    return util.frame(code, num)
+class Handler(object):
 
+    def __init__(self, keys, signer):
+        self.public_keys = keys
+        self.signer = signer
 
-def list_pubs(buf, keys, signer):
-    code = util.pack('B', SSH2_AGENT_IDENTITIES_ANSWER)
-    num = util.pack('L', len(keys))
-    log.debug('available keys: %s', [k['name'] for k in keys])
-    for i, k in enumerate(keys):
-        log.debug('%2d) %s', i+1, k['fingerprint'])
-    pubs = [util.frame(k['blob']) + util.frame(k['name']) for k in keys]
-    return util.frame(code, num, *pubs)
+        self.methods = {
+            SSH_AGENTC_REQUEST_RSA_IDENTITIES: Handler.legacy_pubs,
+            SSH2_AGENTC_REQUEST_IDENTITIES: self.list_pubs,
+            SSH2_AGENTC_SIGN_REQUEST: self.sign_message,
+        }
 
+    def handle(self, msg):
+        log.debug('request: %d bytes', len(msg))
+        buf = io.BytesIO(msg)
+        code, = util.recv(buf, '>B')
+        method = self.methods[code]
+        log.debug('calling %s()', method.__name__)
+        reply = method(buf=buf)
+        log.debug('reply: %d bytes', len(reply))
+        return reply
 
-def sign_message(buf, keys, signer):
-    key = formats.parse_pubkey(util.read_frame(buf))
-    log.debug('looking for %s', key['fingerprint'])
-    blob = util.read_frame(buf)
+    @staticmethod
+    def legacy_pubs(buf):
+        ''' SSH v1 public keys are not supported '''
+        assert not buf.read()
+        code = util.pack('B', SSH_AGENT_RSA_IDENTITIES_ANSWER)
+        num = util.pack('L', 0)  # no SSH v1 keys
+        return util.frame(code, num)
 
-    for k in keys:
-        if (k['fingerprint']) == (key['fingerprint']):
-            log.debug('using key %r (%s)', k['name'], k['fingerprint'])
-            key = k
-            break
-    else:
-        raise ValueError('key not found')
+    def list_pubs(self, buf):
+        ''' SSH v2 public keys are serialized and returned. '''
+        assert not buf.read()
+        keys = self.public_keys
+        code = util.pack('B', SSH2_AGENT_IDENTITIES_ANSWER)
+        num = util.pack('L', len(keys))
+        log.debug('available keys: %s', [k['name'] for k in keys])
+        for i, k in enumerate(keys):
+            log.debug('%2d) %s', i+1, k['fingerprint'])
+        pubs = [util.frame(k['blob']) + util.frame(k['name']) for k in keys]
+        return util.frame(code, num, *pubs)
 
-    log.debug('signing %d-byte blob', len(blob))
-    r, s = signer(label=key['name'], blob=blob)
-    signature = (r, s)
-    log.debug('signature: %s', signature)
+    def sign_message(self, buf):
+        ''' SSH v2 public key authentication is performed. '''
+        key = formats.parse_pubkey(util.read_frame(buf))
+        log.debug('looking for %s', key['fingerprint'])
+        blob = util.read_frame(buf)
 
-    success = key['verifying_key'].verify(signature=signature, data=blob,
-                                          sigdecode=lambda sig, _: sig)
-    log.info('signature status: %s', 'OK' if success else 'ERROR')
-    if not success:
-        raise ValueError('invalid signature')
+        for k in self.public_keys:
+            if (k['fingerprint']) == (key['fingerprint']):
+                log.debug('using key %r (%s)', k['name'], k['fingerprint'])
+                key = k
+                break
+        else:
+            raise ValueError('key not found')
 
-    sig_bytes = io.BytesIO()
-    for x in signature:
-        sig_bytes.write(util.frame(b'\x00' + util.num2bytes(x, key['size'])))
-    sig_bytes = sig_bytes.getvalue()
-    log.debug('signature size: %d bytes', len(sig_bytes))
+        log.debug('signing %d-byte blob', len(blob))
+        r, s = self.signer(label=key['name'], blob=blob)
+        signature = (r, s)
+        log.debug('signature: %s', signature)
 
-    data = util.frame(util.frame(key['type']), util.frame(sig_bytes))
-    code = util.pack('B', SSH2_AGENT_SIGN_RESPONSE)
-    return util.frame(code, data)
+        success = key['verifying_key'].verify(signature=signature, data=blob,
+                                              sigdecode=lambda sig, _: sig)
+        log.info('signature status: %s', 'OK' if success else 'ERROR')
+        if not success:
+            raise ValueError('invalid signature')
 
+        sig_bytes = io.BytesIO()
+        for x in signature:
+            x_frame = util.frame(b'\x00' + util.num2bytes(x, key['size']))
+            sig_bytes.write(x_frame)
+        sig_bytes = sig_bytes.getvalue()
+        log.debug('signature size: %d bytes', len(sig_bytes))
 
-handlers = {
-    SSH_AGENTC_REQUEST_RSA_IDENTITIES: legacy_pubs,
-    SSH2_AGENTC_REQUEST_IDENTITIES: list_pubs,
-    SSH2_AGENTC_SIGN_REQUEST: sign_message,
-}
-
-
-def handle_message(msg, keys, signer):
-    log.debug('request: %d bytes', len(msg))
-    buf = io.BytesIO(msg)
-    code, = util.recv(buf, '>B')
-    handler = handlers[code]
-    log.debug('calling %s()', handler.__name__)
-    reply = handler(buf=buf, keys=keys, signer=signer)
-    log.debug('reply: %d bytes', len(reply))
-    return reply
+        data = util.frame(util.frame(key['type']), util.frame(sig_bytes))
+        code = util.pack('B', SSH2_AGENT_SIGN_RESPONSE)
+        return util.frame(code, data)
