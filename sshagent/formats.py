@@ -8,14 +8,16 @@ log = logging.getLogger(__name__)
 
 from . import util
 
-def fingerprint(blob):
-    digest = hashlib.md5(blob).digest()
-    return ':'.join('{:02x}'.format(c) for c in bytearray(digest))
-
 DER_OCTET_STRING = b'\x04'
 
 curve = ecdsa.NIST256p
 hashfunc = hashlib.sha256
+
+
+def fingerprint(blob):
+    digest = hashlib.md5(blob).digest()
+    return ':'.join('{:02x}'.format(c) for c in bytearray(digest))
+
 
 def parse_pubkey(blob):
     s = io.BytesIO(blob)
@@ -45,9 +47,6 @@ def parse_pubkey(blob):
     }
     return result
 
-def load_public_key(filename):
-    with open(filename) as f:
-        return parse_public_key(f.read())
 
 def parse_public_key(data):
     file_type, base64blob, name = data.split()
@@ -57,6 +56,7 @@ def parse_public_key(data):
     assert result['type'] == file_type.encode('ascii')
     log.debug('loaded %s %s', file_type, result['fingerprint'])
     return result
+
 
 def decompress_pubkey(pub):
     P = curve.curve.p()
