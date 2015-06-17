@@ -39,7 +39,11 @@ class Client(object):
         log.debug('version  : %s', '.'.join([str(v) for v in version]))
         log.debug('revision : %s', binascii.hexlify(f.revision))
 
-    def close(self):
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        log.info('disconnected from Trezor')
         self.client.close()
 
     def get_public_key(self, label):
