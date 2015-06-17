@@ -12,6 +12,7 @@ class TrezorLibrary(object):
 
     @staticmethod
     def client():
+        # pylint: disable=import-error
         from trezorlib.client import TrezorClient
         from trezorlib.transport_hid import HidTransport
         devices = HidTransport.enumerate()
@@ -21,6 +22,7 @@ class TrezorLibrary(object):
 
     @staticmethod
     def identity(label, proto='ssh'):
+        # pylint: disable=import-error
         from trezorlib.types_pb2 import IdentityType
         return IdentityType(host=label, proto=proto)
 
