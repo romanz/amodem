@@ -68,7 +68,23 @@ def spawn(func, **kwargs):
     t.join()
 
 
-def run(command, environ):
+@contextlib.contextmanager
+def serve(key_files, signer, sock_path=None):
+    if sock_path is None:
+        sock_path = tempfile.mktemp(prefix='ssh-agent-')
+
+    keys = [formats.parse_public_key(k) for k in key_files]
+    environ = {'SSH_AUTH_SOCK': sock_path, 'SSH_AGENT_PID': str(os.getpid())}
+    with unix_domain_socket_server(sock_path) as server:
+        with spawn(server_thread, server=server, keys=keys, signer=signer):
+            try:
+                yield environ
+            finally:
+                log.debug('closing server')
+                server.shutdown(socket.SHUT_RD)
+
+
+def run_process(command, environ):
     log.debug('running %r with %r', command, environ)
     env = dict(os.environ)
     env.update(environ)
@@ -79,20 +95,4 @@ def run(command, environ):
     log.debug('subprocess %d is running', p.pid)
     ret = p.wait()
     log.debug('subprocess %d exited: %d', p.pid, ret)
-    return ret
-
-
-def serve(key_files, command, signer, sock_path=None):
-    if sock_path is None:
-        sock_path = tempfile.mktemp(prefix='ssh-agent-')
-
-    keys = [formats.parse_public_key(k) for k in key_files]
-    environ = {'SSH_AUTH_SOCK': sock_path, 'SSH_AGENT_PID': str(os.getpid())}
-    with unix_domain_socket_server(sock_path) as server:
-        with spawn(server_thread, server=server, keys=keys, signer=signer):
-            try:
-                ret = run(command=command, environ=environ)
-            finally:
-                log.debug('closing server')
-                server.shutdown(socket.SHUT_RD)
     return ret
