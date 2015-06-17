@@ -22,7 +22,7 @@ def main():
     level = verbosity[min(args.verbose, len(verbosity) - 1)]
     logging.basicConfig(level=level, format=fmt)
 
-    client = trezor.Client()
+    client = trezor.Client(factory=trezor.TrezorLibrary)
 
     key_files = []
     for label in args.labels:
