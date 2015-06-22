@@ -48,9 +48,12 @@ class Client(object):
         s = self.client.sign_identity(identity=ident,
                                       challenge_hidden=blob,
                                       challenge_visual=request)
-        assert len(s.signature) == 64
-        r = util.bytes2num(s.signature[:32])
-        s = util.bytes2num(s.signature[32:])
+        assert len(s.signature) == 65
+        assert s.signature[0] == b'\x00'
+
+        sig = s.signature[1:]
+        r = util.bytes2num(sig[:32])
+        s = util.bytes2num(sig[32:])
         return (r, s)
 
 
@@ -64,7 +67,7 @@ def _get_address(ident):
     digest = formats.hashfunc(addr).digest()
     s = io.BytesIO(bytearray(digest))
 
-    address_n = [13] + list(util.recv(s, '<LLLL'))
+    address_n = [22] + list(util.recv(s, '<LLLL'))
     return [-a for a in address_n]  # prime each address component
 
 
