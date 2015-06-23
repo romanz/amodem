@@ -79,8 +79,9 @@ def _get_address(ident):
     digest = formats.hashfunc(addr).digest()
     s = io.BytesIO(bytearray(digest))
 
+    hardened = 0x80000000
     address_n = [22] + list(util.recv(s, '<LLLL'))
-    return [-a for a in address_n]  # prime each address component
+    return [(hardened | value) for value in address_n]
 
 
 def _parse_ssh_blob(data):
