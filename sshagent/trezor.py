@@ -29,6 +29,8 @@ class TrezorLibrary(object):
 
 class Client(object):
 
+    curve_name = 'nist256p1'
+
     def __init__(self, factory=TrezorLibrary):
         self.factory = factory
         self.client = self.factory.client()
@@ -51,7 +53,7 @@ class Client(object):
     def get_public_key(self, label):
         addr = _get_address(self.factory.identity(label))
         log.info('getting %r SSH public key from Trezor...', label)
-        node = self.client.get_public_node(addr)
+        node = self.client.get_public_node(addr, self.curve_name)
         return node.node.public_key
 
     def sign_ssh_challenge(self, label, blob):
@@ -63,7 +65,8 @@ class Client(object):
                  request, label)
         s = self.client.sign_identity(identity=ident,
                                       challenge_hidden=blob,
-                                      challenge_visual=request)
+                                      challenge_visual=request,
+                                      ecdsa_curve_name=self.curve_name)
         assert len(s.signature) == 65
         assert s.signature[0] == b'\x00'
 
