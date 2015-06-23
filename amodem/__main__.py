@@ -2,6 +2,7 @@
 # PYTHON_ARGCOMPLETE_OK
 from amodem import main, calib, audio, async
 from amodem.config import bitrates
+from . import version
 
 import os
 import sys
@@ -185,9 +186,11 @@ def create_parser(description, interface):
 
 
 def _main():
-    fmt = ('Audio OFDM MODEM: {0:.1f} kb/s ({1:d}-QAM x {2:d} carriers) '
+    fmt = ('Audio OFDM MODEM v{0:s}: '
+           '{1:.1f} kb/s ({2:d}-QAM x {3:d} carriers) '
            'Fs={3:.1f} kHz')
-    description = fmt.format(config.modem_bps / 1e3, len(config.symbols),
+    description = fmt.format(version.__doc__,
+                             config.modem_bps / 1e3, len(config.symbols),
                              config.Nfreq, config.Fs / 1e3)
     interface = audio.Interface(config=config)
     p = create_parser(description, interface)
