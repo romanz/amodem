@@ -29,6 +29,7 @@ config = bitrates.get(int(bitrate))
 class Compressor(object):
     def __init__(self, stream):
         self.obj = zlib.compressobj()
+        log.info('Using zlib compressor')
         self.stream = stream
 
     def read(self, size):
@@ -49,6 +50,7 @@ class Compressor(object):
 class Decompressor(object):
     def __init__(self, stream):
         self.obj = zlib.decompressobj()
+        log.info('Using zlib decompressor')
         self.stream = stream
 
     def write(self, data):
