@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # PYTHON_ARGCOMPLETE_OK
-from amodem import main, calib, audio, async
-from amodem.config import bitrates
+from . import main, calib, audio, async
+from .config import bitrates
 from . import version
 
 import os
