@@ -83,7 +83,7 @@ def _get_address(ident):
     s = io.BytesIO(bytearray(digest))
 
     hardened = 0x80000000
-    address_n = [22] + list(util.recv(s, '<LLLL'))
+    address_n = [13] + list(util.recv(s, '<LLLL'))
     return [(hardened | value) for value in address_n]
 
 
