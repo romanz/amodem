@@ -190,7 +190,7 @@ def create_parser(description, interface):
 def _main():
     fmt = ('Audio OFDM MODEM v{0:s}: '
            '{1:.1f} kb/s ({2:d}-QAM x {3:d} carriers) '
-           'Fs={3:.1f} kHz')
+           'Fs={4:.1f} kHz')
     description = fmt.format(version.__doc__,
                              config.modem_bps / 1e3, len(config.symbols),
                              config.Nfreq, config.Fs / 1e3)
