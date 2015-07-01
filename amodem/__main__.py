@@ -218,6 +218,13 @@ def _main():
     if args.audio_library == 'ALSA':
         from . import alsa
         interface = alsa.Interface(config)
+    elif args.audio_library == '-':
+        class _DummyInterface(object):
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                pass
+        interface = _DummyInterface()
     else:
         interface = audio.Interface(config)
         interface.load(args.audio_library)
