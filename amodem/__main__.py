@@ -180,6 +180,14 @@ def create_parser(description, interface_factory):
     return p
 
 
+class _Dummy(object):
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        pass
+
+
 def _main():
     fmt = ('Audio OFDM MODEM v{0:s}: '
            '{1:.1f} kb/s ({2:d}-QAM x {3:d} carriers) '
@@ -219,12 +227,7 @@ def _main():
         from . import alsa
         interface = alsa.Interface(config)
     elif args.audio_library == '-':
-        class _DummyInterface(object):
-            def __enter__(self):
-                return self
-            def __exit__(self, *args):
-                pass
-        interface = _DummyInterface()
+        interface = _Dummy()
     else:
         interface = audio.Interface(config)
         interface.load(args.audio_library)
