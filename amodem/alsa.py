@@ -15,7 +15,7 @@ class Interface(object):
         bits_per_sample = config.bits_per_sample
         assert bits_per_sample == 16
 
-        args = '-f S{:d}_LE -c 1 -r {:d} -T 100 -q -'
+        args = '-f S{0:d}_LE -c 1 -r {1:d} -T 100 -q -'
         args = args.format(bits_per_sample, rate).split()
 
         self.record_cmd = [self.RECORDER] + args
