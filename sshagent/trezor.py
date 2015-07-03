@@ -1,4 +1,5 @@
 import io
+import struct
 import binascii
 
 from . import util
@@ -21,10 +22,10 @@ class TrezorLibrary(object):
         return TrezorClient(HidTransport(devices[0]))
 
     @staticmethod
-    def identity(label, proto='ssh'):
+    def parse_identity(s):
         # pylint: disable=import-error
         from trezorlib.types_pb2 import IdentityType
-        return IdentityType(host=label, proto=proto)
+        return IdentityType(**_string_to_identity(s))
 
 
 class Client(object):
@@ -52,19 +53,20 @@ class Client(object):
         self.client.close()
 
     def get_public_key(self, label):
-        addr = _get_address(self.factory.identity(label))
-        log.info('getting %r SSH public key from Trezor...', label)
+        log.info('getting %r public key from Trezor...', label)
+        identity = self.factory.parse_identity(label)
+        addr = _get_address(identity)
         node = self.client.get_public_node(addr, self.curve_name)
         return node.node.public_key
 
     def sign_ssh_challenge(self, label, blob):
-        ident = self.factory.identity(label)
+        identity = self.factory.parse_identity(label)
         msg = _parse_ssh_blob(blob)
         request = 'user: "{user}"'.format(**msg)
 
         log.info('confirm %s connection to %r using Trezor...',
                  request, label)
-        s = self.client.sign_identity(identity=ident,
+        s = self.client.sign_identity(identity=identity,
                                       challenge_hidden=blob,
                                       challenge_visual=request,
                                       ecdsa_curve_name=self.curve_name)
@@ -77,9 +79,53 @@ class Client(object):
         return (r, s)
 
 
-def _get_address(ident):
-    index = '\x00' * 4
-    addr = index + '{}://{}'.format(ident.proto, ident.host)
+def _lsplit(s, sep):
+    p = None
+    if sep in s:
+        p, s = s.split(sep, 1)
+    return (p, s)
+
+
+def _rsplit(s, sep):
+    p = None
+    if sep in s:
+        s, p = s.rsplit(sep, 1)
+    return (s, p)
+
+
+def _string_to_identity(s):
+    proto, s = _lsplit(s, '://')
+    user, s = _lsplit(s, '@')
+    s, path = _rsplit(s, '/')
+    host, port = _rsplit(s, ':')
+
+    if not proto:
+        proto = 'ssh'
+
+    result = [
+        ('proto', proto), ('user', user), ('host', host),
+        ('port', port), ('path', path)
+    ]
+    return {k: v for k, v in result if v}
+
+
+def _identity_to_string(identity):
+    result = []
+    if identity.proto:
+        result.append(identity.proto + '://')
+    if identity.user:
+        result.append(identity.user + '@')
+    result.append(identity.host)
+    if identity.port:
+        result.append(':' + identity.port)
+    if identity.path:
+        result.append('/' + identity.path)
+    return ''.join(result)
+
+
+def _get_address(identity):
+    index = struct.pack('<L', identity.index)
+    addr = index + _identity_to_string(identity)
     digest = formats.hashfunc(addr).digest()
     s = io.BytesIO(bytearray(digest))
 
