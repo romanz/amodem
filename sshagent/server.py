@@ -89,7 +89,7 @@ def run_process(command, environ):
     env = dict(os.environ)
     env.update(environ)
     try:
-        p = subprocess.Popen(args=command, env=env)
+        p = subprocess.Popen(args=command, env=env, shell=True)
     except OSError as e:
         raise OSError('cannot run %r: %s' % (command, e))
     log.debug('subprocess %d is running', p.pid)

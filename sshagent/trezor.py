@@ -100,7 +100,7 @@ def _string_to_identity(s):
     host, port = _rsplit(s, ':')
 
     if not proto:
-        proto = 'ssh'
+        proto = 'ssh'  # otherwise, Trezor will use SECP256K1 curve
 
     result = [
         ('proto', proto), ('user', user), ('host', host),
@@ -148,4 +148,7 @@ def _parse_ssh_blob(data):
         res['pubkey'] = util.read_frame(i)
         log.debug('%s: user %r via %r (%r)',
                   res['conn'], res['user'], res['auth'], res['key_type'])
+        log.debug('nonce: %s', binascii.hexlify(res['nonce']))
+        pubkey = formats.parse_pubkey(res['pubkey'])
+        log.debug('fingerprint: %s', pubkey['fingerprint'])
     return res

@@ -67,6 +67,7 @@ class Handler(object):
         key = formats.parse_pubkey(util.read_frame(buf))
         log.debug('looking for %s', key['fingerprint'])
         blob = util.read_frame(buf)
+        assert util.read_frame(buf) == b''
 
         for k in self.public_keys:
             if (k['fingerprint']) == (key['fingerprint']):

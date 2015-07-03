@@ -26,6 +26,7 @@ def parse_pubkey(blob):
     curve_name = util.read_frame(s)
     log.debug('curve name: %s', curve_name)
     point = util.read_frame(s)
+    assert s.read() == b''
     _type, point = point[:1], point[1:]
     assert _type == DER_OCTET_STRING
     size = len(point) // 2
