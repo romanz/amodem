@@ -83,20 +83,15 @@ class Client(object):
         return (r, s)
 
 
-def _split(s, *parts):
-    return re.match(regexp, s).groups()
-
-
-_parts = [
+_identity_regexp = re.compile(''.join([
     '^'
     r'(?:(?P<proto>.*)://)?',
     r'(?:(?P<user>.*)@)?',
     r'(?P<host>.*?)',
     r'(?::(?P<port>\w*))?',
-    r'(?:/(?P<path>.*))?',
+    r'(?P<path>/.*)?',
     '$'
-]
-_identity_regexp = re.compile(''.join(_parts))
+]))
 
 def _string_to_identity(s):
     m = _identity_regexp.match(s)
@@ -117,13 +112,14 @@ def _identity_to_string(identity):
     if identity.port:
         result.append(':' + identity.port)
     if identity.path:
-        result.append('/' + identity.path)
+        result.append(identity.path)
     return ''.join(result)
 
 
 def _get_address(identity):
     index = struct.pack('<L', identity.index)
     addr = index + _identity_to_string(identity)
+    log.debug('address string: %r', addr)
     digest = formats.hashfunc(addr).digest()
     s = io.BytesIO(bytearray(digest))
 

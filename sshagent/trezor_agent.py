@@ -1,6 +1,8 @@
 import os
+import re
 import sys
 import argparse
+import subprocess
 
 from . import trezor
 from . import server
@@ -10,12 +12,27 @@ import logging
 log = logging.getLogger(__name__)
 
 
+def identity_from_gitconfig():
+    out = subprocess.check_output(args='git config --list --local'.split())
+    config = dict(line.split('=', 1) for line in out.split())
+
+    name_regex = re.compile(r'^remote\..*\.trezor$')
+    names = [k for k in config if name_regex.match(k)]
+    assert len(names) == 1
+    name, = names
+
+    name, _ = name.rsplit('.', 1)  # extract TREZOR's remote name
+    url = config[name + '.url']
+    assert url.startswith('git@')
+    return url.replace(':', '/')  # git SSH URLs use ':' for relative paths
+
+
 def main():
     fmt = '%(asctime)s %(levelname)-12s %(message)-100s [%(filename)s:%(lineno)d]'
     p = argparse.ArgumentParser()
     p.add_argument('-v', '--verbose', default=0, action='count')
 
-    p.add_argument('identity', type=str,
+    p.add_argument('identity', type=str, default=None,
                    help='proto://[user@]host[:port][/path]')
 
     g = p.add_mutually_exclusive_group()
@@ -28,14 +45,23 @@ def main():
     args = p.parse_args()
 
     levels = [logging.WARNING, logging.INFO, logging.DEBUG]
-    level = levels[min(args.verbose, len(levels))]
+    level = levels[min(args.verbose, len(levels) - 1)]
     logging.basicConfig(level=level, format=fmt)
 
     with trezor.Client(factory=trezor.TrezorLibrary) as client:
-        identity = client.get_identity(label=args.identity)
+
+        label = args.identity
+        command = args.command
+
+        if label == 'git':
+            label = identity_from_gitconfig()
+            if command:
+                command = ['git'] + command
+
+        identity = client.get_identity(label=label)
         public_key = client.get_public_key(identity=identity)
 
-        command, use_shell = args.command, False
+        use_shell = False
         if args.connect:
             to_ascii = lambda s: s.encode('ascii')
             command = ['ssh', to_ascii(identity.host)]
@@ -44,6 +70,7 @@ def main():
             if identity.port:
                 command += ['-p', to_ascii(identity.port)]
             log.debug('SSH connect: %r', command)
+            command = args.command + command
 
         if args.shell:
             command, use_shell = os.environ['SHELL'], True
