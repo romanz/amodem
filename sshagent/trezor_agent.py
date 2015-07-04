@@ -46,6 +46,3 @@ def main():
                 return server.run_process(command=command, environ=env)
         except KeyboardInterrupt:
             log.info('server stopped')
-
-if __name__ == '__main__':
-    sys.exit(main())
