@@ -26,11 +26,10 @@ def main():
     logging.basicConfig(level=level, format=fmt)
 
     with trezor.Client(factory=trezor.TrezorLibrary) as client:
-        key_files = []
+        public_keys = []
         for label in args.identity:
-            pubkey = client.get_public_key(label)
-            key_file = formats.export_public_key(pubkey=pubkey, label=label)
-            key_files.append(key_file)
+            ssh_public_key = client.get_public_key(label)
+            public_keys.append(ssh_public_key)
 
         command = args.command
         if not command:
@@ -40,7 +39,7 @@ def main():
         signer = client.sign_ssh_challenge
 
         try:
-            with server.serve(key_files=key_files, signer=signer) as env:
+            with server.serve(public_keys=public_keys, signer=signer) as env:
                 return server.run_process(command=command, environ=env)
         except KeyboardInterrupt:
             log.info('server stopped')

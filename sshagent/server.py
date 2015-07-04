@@ -68,11 +68,11 @@ def spawn(func, **kwargs):
 
 
 @contextlib.contextmanager
-def serve(key_files, signer, sock_path=None):
+def serve(public_keys, signer, sock_path=None):
     if sock_path is None:
         sock_path = tempfile.mktemp(prefix='ssh-agent-')
 
-    keys = [formats.parse_public_key(k) for k in key_files]
+    keys = [formats.parse_public_key(k) for k in public_keys]
     environ = {'SSH_AUTH_SOCK': sock_path, 'SSH_AGENT_PID': str(os.getpid())}
     with unix_domain_socket_server(sock_path) as server:
         handler = protocol.Handler(keys=keys, signer=signer)

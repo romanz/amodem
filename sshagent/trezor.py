@@ -57,7 +57,9 @@ class Client(object):
         identity = self.factory.parse_identity(label)
         addr = _get_address(identity)
         node = self.client.get_public_node(addr, self.curve_name)
-        return node.node.public_key
+
+        pubkey = node.node.public_key
+        return formats.export_public_key(pubkey=pubkey, label=label)
 
     def sign_ssh_challenge(self, label, blob):
         identity = self.factory.parse_identity(label)
