@@ -17,7 +17,9 @@ def main():
     g.add_argument('-v', '--verbose', default=0, action='count')
     g.add_argument('-q', '--quiet', default=False, action='store_true')
 
-    p.add_argument('identity', type=str,
+    p.add_argument('-p', '--public-key', default=False, action='store_true')
+
+    p.add_argument('-i', '--identity', type=str,
                    help='proto://[user@]host[:port][/path]')
     p.add_argument('command', type=str, nargs='*',
                    help='command to run under the SSH agent')
@@ -32,17 +34,22 @@ def main():
     logging.basicConfig(level=loglevel, format=fmt)
 
     with trezor.Client(factory=trezor.TrezorLibrary) as client:
-        public_keys = [client.get_public_key(i) for i in args.identity]
+        identity = client.get_identity(label=args.identity)
+        public_key = client.get_public_key(identity=identity)
+        if args.public_key:
+            sys.stdout.write(public_key)
+            return
 
-        command = args.command
+        command, use_shell = args.command, False
         if not command:
-            command = os.environ['SHELL']
-            log.info('using %r shell', command)
+            command, use_shell = os.environ['SHELL'], True
 
         signer = client.sign_ssh_challenge
 
         try:
-            with server.serve(public_keys=public_keys, signer=signer) as env:
-                return server.run_process(command=command, environ=env)
+            with server.serve(public_keys=[public_key], signer=signer) as env:
+                return server.run_process(
+                    command=command, environ=env, use_shell=use_shell
+                )
         except KeyboardInterrupt:
             log.info('server stopped')

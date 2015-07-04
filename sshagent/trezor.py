@@ -51,9 +51,11 @@ class Client(object):
         self.client.clear_session()
         self.client.close()
 
-    def get_public_key(self, label):
-        identity = self.factory.parse_identity(label)
-        label = _identity_to_string(identity)  # update label after parsing
+    def get_identity(self, label):
+        return self.factory.parse_identity(label)
+
+    def get_public_key(self, identity):
+        label = _identity_to_string(identity)
         log.info('getting "%s" public key from Trezor...', label)
         addr = _get_address(identity)
         node = self.client.get_public_node(addr, self.curve_name)
@@ -64,13 +66,12 @@ class Client(object):
     def sign_ssh_challenge(self, label, blob):
         identity = self.factory.parse_identity(label)
         msg = _parse_ssh_blob(blob)
-        request = 'user: "{user}"'.format(**msg)
 
-        log.info('confirm %s connection to %r using Trezor...',
-                 request, label)
+        log.info('confirm user %s connection to %r using Trezor...',
+                 msg['user'], label)
         s = self.client.sign_identity(identity=identity,
                                       challenge_hidden=blob,
-                                      challenge_visual=request,
+                                      challenge_visual='',
                                       ecdsa_curve_name=self.curve_name)
         assert len(s.signature) == 65
         assert s.signature[0] == b'\x00'
