@@ -68,6 +68,7 @@ class Handler(object):
         log.debug('looking for %s', key['fingerprint'])
         blob = util.read_frame(buf)
         assert util.read_frame(buf) == b''
+        assert not buf.read()
 
         for k in self.public_keys:
             if (k['fingerprint']) == (key['fingerprint']):
