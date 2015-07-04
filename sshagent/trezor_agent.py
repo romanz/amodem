@@ -17,10 +17,10 @@ def main():
     g.add_argument('-v', '--verbose', default=0, action='count')
     g.add_argument('-q', '--quiet', default=False, action='store_true')
 
-    p.add_argument('-c', dest='command', type=str, default=None,
-                   help='command to run under the SSH agent')
-    p.add_argument('identity', type=str, nargs='+',
+    p.add_argument('identity', type=str,
                    help='proto://[user@]host[:port][/path]')
+    p.add_argument('command', type=str, nargs='*',
+                   help='command to run under the SSH agent')
     args = p.parse_args()
 
     loglevel = logging.INFO
