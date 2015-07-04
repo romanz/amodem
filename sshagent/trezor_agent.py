@@ -32,10 +32,7 @@ def main():
     logging.basicConfig(level=loglevel, format=fmt)
 
     with trezor.Client(factory=trezor.TrezorLibrary) as client:
-        public_keys = []
-        for label in args.identity:
-            ssh_public_key = client.get_public_key(label)
-            public_keys.append(ssh_public_key)
+        public_keys = [client.get_public_key(i) for i in args.identity]
 
         command = args.command
         if not command:
