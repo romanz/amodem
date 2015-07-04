@@ -53,7 +53,9 @@ def main():
             sys.stdout.write(public_key)
             return
 
-        signer = client.sign_ssh_challenge
+        def signer(label, blob):
+            identity = client.get_identity(label=label)
+            return client.sign_ssh_challenge(identity=identity, blob=blob)
 
         try:
             with server.serve(public_keys=[public_key], signer=signer) as env:

@@ -1,4 +1,5 @@
 import io
+import re
 import struct
 import binascii
 
@@ -63,8 +64,8 @@ class Client(object):
         pubkey = node.node.public_key
         return formats.export_public_key(pubkey=pubkey, label=label)
 
-    def sign_ssh_challenge(self, label, blob):
-        identity = self.factory.parse_identity(label)
+    def sign_ssh_challenge(self, identity, blob):
+        label = _identity_to_string(identity)
         msg = _parse_ssh_blob(blob)
 
         log.info('confirm user %s connection to %r using Trezor...',
@@ -82,40 +83,34 @@ class Client(object):
         return (r, s)
 
 
-def _lsplit(s, sep):
-    p = None
-    if sep in s:
-        p, s = s.split(sep, 1)
-    return (p, s)
+def _split(s, *parts):
+    return re.match(regexp, s).groups()
 
 
-def _rsplit(s, sep):
-    p = None
-    if sep in s:
-        s, p = s.rsplit(sep, 1)
-    return (s, p)
-
+_parts = [
+    '^'
+    r'(?:(?P<proto>.*)://)?',
+    r'(?:(?P<user>.*)@)?',
+    r'(?P<host>.*?)',
+    r'(?::(?P<port>\w*))?',
+    r'(?:/(?P<path>.*))?',
+    '$'
+]
+_identity_regexp = re.compile(''.join(_parts))
 
 def _string_to_identity(s):
-    proto, s = _lsplit(s, '://')
-    user, s = _lsplit(s, '@')
-    s, path = _rsplit(s, '/')
-    host, port = _rsplit(s, ':')
+    m = _identity_regexp.match(s)
+    result = m.groupdict()
+    if not result.get('proto'):
+        result['proto'] = 'ssh'  # otherwise, Trezor will use SECP256K1 curve
 
-    if not proto:
-        proto = 'ssh'  # otherwise, Trezor will use SECP256K1 curve
-
-    result = [
-        ('proto', proto), ('user', user), ('host', host),
-        ('port', port), ('path', path)
-    ]
-    return {k: v for k, v in result if v}
+    log.debug('parsed identity: %s', result)
+    return {k: v for k, v in result.items() if v}
 
 
 def _identity_to_string(identity):
-    result = []
-    if identity.proto:
-        result.append(identity.proto + '://')
+    assert identity.proto == 'ssh'
+    result = [identity.proto + '://']
     if identity.user:
         result.append(identity.user + '@')
     result.append(identity.host)
@@ -149,6 +144,7 @@ def _parse_ssh_blob(data):
         i.read(1)  # TBD
         res['key_type'] = util.read_frame(i)
         res['pubkey'] = util.read_frame(i)
+        assert not i.read()
         log.debug('%s: user %r via %r (%r)',
                   res['conn'], res['user'], res['auth'], res['key_type'])
         log.debug('nonce: %s', binascii.hexlify(res['nonce']))
