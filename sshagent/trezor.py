@@ -52,8 +52,9 @@ class Client(object):
         self.client.close()
 
     def get_public_key(self, label):
-        log.info('getting %r public key from Trezor...', label)
         identity = self.factory.parse_identity(label)
+        label = _identity_to_string(identity)  # update label after parsing
+        log.info('getting "%s" public key from Trezor...', label)
         addr = _get_address(identity)
         node = self.client.get_public_node(addr, self.curve_name)
 
