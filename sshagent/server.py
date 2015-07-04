@@ -84,12 +84,12 @@ def serve(public_keys, signer, sock_path=None):
                 server.shutdown(socket.SHUT_RD)
 
 
-def run_process(command, environ):
+def run_process(command, environ, use_shell=False):
     log.debug('running %r with %r', command, environ)
     env = dict(os.environ)
     env.update(environ)
     try:
-        p = subprocess.Popen(args=command, env=env, shell=True)
+        p = subprocess.Popen(args=command, env=env, shell=use_shell)
     except OSError as e:
         raise OSError('cannot run %r: %s' % (command, e))
     log.debug('subprocess %d is running', p.pid)
