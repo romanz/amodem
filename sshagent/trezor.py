@@ -36,8 +36,7 @@ class Client(object):
         self.factory = factory
         self.client = self.factory.client()
         f = self.client.features
-        log.info('connected to Trezor')
-        log.debug('ID       : %s', f.device_id)
+        log.debug('connected to Trezor %s', f.device_id)
         log.debug('label    : %s', f.label)
         log.debug('vendor   : %s', f.vendor)
         version = [f.major_version, f.minor_version, f.patch_version]
