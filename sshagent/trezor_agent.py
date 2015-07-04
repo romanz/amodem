@@ -19,7 +19,7 @@ def main():
 
     p.add_argument('-c', dest='command', type=str, default=None,
                    help='command to run under the SSH agent')
-    p.add_argument('identity', type=str, nargs='*',
+    p.add_argument('identity', type=str, nargs='+',
                    help='proto://[user@]host[:port][/path]')
     args = p.parse_args()
 
