@@ -15,7 +15,7 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument('-v', '--verbose', default=0, action='count')
 
-    p.add_argument('-i', '--identity', type=str,
+    p.add_argument('identity', type=str,
                    help='proto://[user@]host[:port][/path]')
 
     g = p.add_mutually_exclusive_group()
@@ -23,7 +23,7 @@ def main():
                    help='run $SHELL as subprocess under SSH agent')
     g.add_argument('-c', '--connect', default=False, action='store_true',
                    help='connect to specified host via SSH')
-    p.add_argument('argument', type=str, nargs='*', metavar='ARGUMENT',
+    p.add_argument('command', type=str, nargs='*', metavar='ARGUMENT',
                    help='command to run under the SSH agent')
     args = p.parse_args()
 
@@ -35,7 +35,7 @@ def main():
         identity = client.get_identity(label=args.identity)
         public_key = client.get_public_key(identity=identity)
 
-        command, use_shell = args.argument, False
+        command, use_shell = args.command, False
         if args.connect:
             to_ascii = lambda s: s.encode('ascii')
             command = ['ssh', to_ascii(identity.host)]
