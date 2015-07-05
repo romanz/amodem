@@ -18,7 +18,7 @@ def identity_from_gitconfig():
 
     name_regex = re.compile(r'^remote\..*\.trezor$')
     names = [k for k in config if name_regex.match(k)]
-    assert len(names) == 1
+    assert len(names) == 1, names
     key_name, = names
 
     section_name, _ = key_name.rsplit('.', 1)  # extract remote name marked as TREZOR's
