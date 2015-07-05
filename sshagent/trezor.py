@@ -68,7 +68,7 @@ class Client(object):
         label = _identity_to_string(identity)
         msg = _parse_ssh_blob(blob)
 
-        log.info('confirm user %s connection to %r using Trezor...',
+        log.info('please confirm user %s connection to "%s" using Trezor...',
                  msg['user'], label)
 
         assert identity.proto == 'ssh'
