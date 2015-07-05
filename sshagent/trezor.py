@@ -70,14 +70,17 @@ class Client(object):
 
         log.info('confirm user %s connection to %r using Trezor...',
                  msg['user'], label)
-        s = self.client.sign_identity(identity=identity,
-                                      challenge_hidden=blob,
-                                      challenge_visual='',
-                                      ecdsa_curve_name=self.curve_name)
-        assert len(s.signature) == 65
-        assert s.signature[0] == b'\x00'
 
-        sig = s.signature[1:]
+        assert identity.proto == 'ssh'
+        visual = identity.path  # not signed when proto='ssh'
+        result = self.client.sign_identity(identity=identity,
+                                           challenge_hidden=blob,
+                                           challenge_visual=visual,
+                                           ecdsa_curve_name=self.curve_name)
+        assert len(result.signature) == 65
+        assert result.signature[0] == b'\x00'
+
+        sig = result.signature[1:]
         r = util.bytes2num(sig[:32])
         s = util.bytes2num(sig[32:])
         return (r, s)
