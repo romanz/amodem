@@ -19,12 +19,14 @@ def identity_from_gitconfig():
     name_regex = re.compile(r'^remote\..*\.trezor$')
     names = [k for k in config if name_regex.match(k)]
     assert len(names) == 1
-    name, = names
+    key_name, = names
 
-    name, _ = name.rsplit('.', 1)  # extract TREZOR's remote name
-    url = config[name + '.url']
-    assert url.startswith('git@')
-    return url.replace(':', '/')  # git SSH URLs use ':' for relative paths
+    section_name, _ = key_name.rsplit('.', 1)  # extract remote name marked as TREZOR's
+    url = config[section_name + '.url']
+    log.info('using %s=%s from git-config', key_name, url)
+    user, url = url.split('@', 1)
+    host, path = url.split(':', 1)
+    return 'ssh://{0}@{1}/{2}'.format(user, host, path)
 
 
 def main():
