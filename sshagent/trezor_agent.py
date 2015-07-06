@@ -14,16 +14,21 @@ log = logging.getLogger(__name__)
 
 def identity_from_gitconfig():
     out = subprocess.check_output(args='git config --list --local'.split())
-    config = dict(line.split('=', 1) for line in out.split())
+    lines = out.strip().split('\n')
+    config = [line.split('=', 1) for line in lines]
 
     name_regex = re.compile(r'^remote\..*\.trezor$')
-    names = [k for k in config if name_regex.match(k)]
-    assert len(names) == 1, names
-    key_name, = names
+    names = [item[0] for item in config if name_regex.match(item[0])]
+    if len(names) != 1:
+        log.error('please add "trezor" key to a single remote section at .git/config')
+        sys.exit(1)
+    section_name, _ = names[0].rsplit('.', 1)  # extract remote name marked as TREZOR's
 
-    section_name, _ = key_name.rsplit('.', 1)  # extract remote name marked as TREZOR's
-    url = config[section_name + '.url']
-    log.info('using %s=%s from git-config', key_name, url)
+    key_name = section_name + '.url'
+    config_dict = dict(item for item in config if len(item) == 2)
+    url = config_dict[key_name]
+    log.info('using "%s=%s" from git-config', key_name, url)
+
     user, url = url.split('@', 1)
     host, path = url.split(':', 1)
     return 'ssh://{0}@{1}/{2}'.format(user, host, path)
