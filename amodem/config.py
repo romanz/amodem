@@ -12,8 +12,8 @@ class Configuration(object):
     latency = 0.1
 
     # sender config
-    silence_start = 1.0
-    silence_stop = 1.0
+    silence_start = 0.25
+    silence_stop = 0.25
 
     # receiver config
     skip_start = 0.1
