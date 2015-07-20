@@ -77,5 +77,7 @@ def export_public_key(pubkey, label):
     key_type = 'ecdsa-sha2-nistp256'
     curve_name = 'nistp256'
     parts = [key_type, curve_name, '\x04' + vk.to_string()]
-    b64 = base64.b64encode(''.join([util.frame(p) for p in parts]))
+    blob = ''.join([util.frame(p) for p in parts])
+    log.debug('fingerprint: %s', fingerprint(blob))
+    b64 = base64.b64encode(blob)
     return '{} {} {}\n'.format(key_type, b64, label)
