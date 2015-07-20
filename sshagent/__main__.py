@@ -83,7 +83,7 @@ def main():
             if identity.port:
                 command += ['-p', to_ascii(identity.port)]
             log.debug('SSH connect: %r', command)
-            command = args.command + command
+            command = command + args.command
 
         if args.shell:
             command, use_shell = os.environ['SHELL'], True
