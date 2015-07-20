@@ -49,7 +49,6 @@ class Client(object):
 
     def __exit__(self, *args):
         log.info('disconnected from Trezor')
-        self.client.clear_session()
         self.client.close()
 
     def get_identity(self, label):
