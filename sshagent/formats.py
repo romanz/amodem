@@ -51,16 +51,6 @@ def parse_pubkey(blob):
     return result
 
 
-def parse_public_key(data):
-    file_type, base64blob, name = data.split()
-    blob = base64.b64decode(base64blob)
-    result = parse_pubkey(blob)
-    result['name'] = name.encode('ascii')
-    assert result['type'] == file_type.encode('ascii')
-    log.debug('loaded %s %s', file_type, result['fingerprint'])
-    return result
-
-
 def decompress_pubkey(pub):
     P = curve.curve.p()
     A = curve.curve.a()
@@ -81,3 +71,14 @@ def export_public_key(pubkey, label):
     log.debug('fingerprint: %s', fingerprint(blob))
     b64 = base64.b64encode(blob)
     return '{} {} {}\n'.format(ECDSA_KEY_TYPE, b64, label)
+
+
+def import_public_key(line):
+    ''' Parse public key textual format, as saved at .pub file '''
+    file_type, base64blob, name = line.split()
+    blob = base64.b64decode(base64blob)
+    result = parse_pubkey(blob)
+    result['name'] = name.encode('ascii')
+    assert result['type'] == file_type.encode('ascii')
+    log.debug('loaded %s %s', file_type, result['fingerprint'])
+    return result
