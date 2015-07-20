@@ -16,18 +16,23 @@ def identity_from_gitconfig():
     out = subprocess.check_output(args='git config --list --local'.split())
     lines = out.strip().split('\n')
     config = [line.split('=', 1) for line in lines]
+    config_dict = dict(item for item in config if len(item) == 2)
 
     name_regex = re.compile(r'^remote\..*\.trezor$')
     names = [item[0] for item in config if name_regex.match(item[0])]
     if len(names) != 1:
         log.error('please add "trezor" key to a single remote section at .git/config')
         sys.exit(1)
-    section_name, _ = names[0].rsplit('.', 1)  # extract remote name marked as TREZOR's
+    key_name = names[0]
+    identity_label = config_dict.get(key_name)
+    if identity_label:
+        return identity_label
+
+    section_name, _ = key_name.rsplit('.', 1)  # extract remote name marked as TREZOR's
 
     key_name = section_name + '.url'
-    config_dict = dict(item for item in config if len(item) == 2)
     url = config_dict[key_name]
-    log.info('using "%s=%s" from git-config', key_name, url)
+    log.debug('using "%s=%s" from git-config', key_name, url)
 
     user, url = url.split('@', 1)
     host, path = url.split(':', 1)
@@ -62,6 +67,7 @@ def main():
 
         if label == 'git':
             label = identity_from_gitconfig()
+            log.info('using identity %r for git command %r', label, command)
             if command:
                 command = ['git'] + command
 
