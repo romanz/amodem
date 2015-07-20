@@ -9,6 +9,8 @@ import logging
 log = logging.getLogger(__name__)
 
 DER_OCTET_STRING = b'\x04'
+ECDSA_KEY_TYPE = 'ecdsa-sha2-nistp256'
+ECDSA_CURVE_NAME = 'nistp256'
 
 curve = ecdsa.NIST256p
 hashfunc = hashlib.sha256
@@ -66,18 +68,16 @@ def decompress_pubkey(pub):
     x = util.bytes2num(pub[1:33])
     beta = pow(int(x*x*x+A*x+B), int((P+1)//4), int(P))
     y = (P-beta) if ((beta + ord(pub[0])) % 2) else beta
-    return (x, y)
 
-
-def export_public_key(pubkey, label):
-    x, y = decompress_pubkey(pubkey)
     point = ecdsa.ellipticcurve.Point(curve.curve, x, y)
     vk = ecdsa.VerifyingKey.from_public_point(point, curve=curve,
                                               hashfunc=hashfunc)
-    key_type = 'ecdsa-sha2-nistp256'
-    curve_name = 'nistp256'
-    parts = [key_type, curve_name, DER_OCTET_STRING + vk.to_string()]
-    blob = ''.join([util.frame(p) for p in parts])
+    parts = [ECDSA_KEY_TYPE, ECDSA_CURVE_NAME, DER_OCTET_STRING + vk.to_string()]
+    return ''.join([util.frame(p) for p in parts])
+
+
+def export_public_key(pubkey, label):
+    blob = decompress_pubkey(pubkey)
     log.debug('fingerprint: %s', fingerprint(blob))
     b64 = base64.b64encode(blob)
-    return '{} {} {}\n'.format(key_type, b64, label)
+    return '{} {} {}\n'.format(ECDSA_KEY_TYPE, b64, label)

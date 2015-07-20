@@ -76,6 +76,8 @@ class Client(object):
                                            challenge_hidden=blob,
                                            challenge_visual=visual,
                                            ecdsa_curve_name=self.curve_name)
+        public_key_blob = formats.decompress_pubkey(result.public_key)
+        assert public_key_blob == msg['public_key']['blob']
         assert len(result.signature) == 65
         assert result.signature[0] == b'\x00'
 
@@ -141,11 +143,11 @@ def _parse_ssh_blob(data):
         res['auth'] = util.read_frame(i)
         i.read(1)  # TBD
         res['key_type'] = util.read_frame(i)
-        res['pubkey'] = util.read_frame(i)
+        public_key = util.read_frame(i)
+        res['public_key'] = formats.parse_pubkey(public_key)
         assert not i.read()
         log.debug('%s: user %r via %r (%r)',
                   res['conn'], res['user'], res['auth'], res['key_type'])
         log.debug('nonce: %s', binascii.hexlify(res['nonce']))
-        pubkey = formats.parse_pubkey(res['pubkey'])
-        log.debug('fingerprint: %s', pubkey['fingerprint'])
+        log.debug('fingerprint: %s', res['public_key']['fingerprint'])
     return res
