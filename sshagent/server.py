@@ -52,7 +52,7 @@ def server_thread(server, handler):
         try:
             conn, _ = server.accept()
         except socket.error as e:
-            log.debug('server error: %s', e, exc_info=True)
+            log.debug('server stopped: %s', e)
             break
         with contextlib.closing(conn):
             handle_connection(conn, handler)
