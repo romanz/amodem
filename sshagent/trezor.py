@@ -97,6 +97,7 @@ _identity_regexp = re.compile(''.join([
     '$'
 ]))
 
+
 def _string_to_identity(s):
     m = _identity_regexp.match(s)
     result = m.groupdict()

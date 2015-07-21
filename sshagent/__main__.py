@@ -6,7 +6,6 @@ import subprocess
 
 from . import trezor
 from . import server
-from . import formats
 
 import logging
 log = logging.getLogger(__name__)
@@ -14,21 +13,22 @@ log = logging.getLogger(__name__)
 
 def identity_from_gitconfig():
     out = subprocess.check_output(args='git config --list --local'.split())
-    lines = out.strip().split('\n')
-    config = [line.split('=', 1) for line in lines]
+    config = [line.split('=', 1) for line in out.strip().split('\n')]
     config_dict = dict(item for item in config if len(item) == 2)
 
     name_regex = re.compile(r'^remote\..*\.trezor$')
     names = [item[0] for item in config if name_regex.match(item[0])]
     if len(names) != 1:
-        log.error('please add "trezor" key to a single remote section at .git/config')
+        log.error('please add "trezor" key '
+                  'to a single remote section at .git/config')
         sys.exit(1)
     key_name = names[0]
     identity_label = config_dict.get(key_name)
     if identity_label:
         return identity_label
 
-    section_name, _ = key_name.rsplit('.', 1)  # extract remote name marked as TREZOR's
+    # extract remote name marked as TREZOR's
+    section_name, _ = key_name.rsplit('.', 1)
 
     key_name = section_name + '.url'
     url = config_dict[key_name]
@@ -39,8 +39,7 @@ def identity_from_gitconfig():
     return 'ssh://{0}@{1}/{2}'.format(user, host, path)
 
 
-def main():
-    fmt = '%(asctime)s %(levelname)-12s %(message)-100s [%(filename)s:%(lineno)d]'
+def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument('-v', '--verbose', default=0, action='count')
 
@@ -54,11 +53,17 @@ def main():
                    help='connect to specified host via SSH')
     p.add_argument('command', type=str, nargs='*', metavar='ARGUMENT',
                    help='command to run under the SSH agent')
-    args = p.parse_args()
+    return p.parse_args()
 
+
+def main():
+    args = parse_args()
+
+    fmt = ('%(asctime)s %(levelname)-12s %(message)-100s '
+           '[%(filename)s:%(lineno)d]')
     levels = [logging.WARNING, logging.INFO, logging.DEBUG]
     level = levels[min(args.verbose, len(levels) - 1)]
-    logging.basicConfig(level=level, format=fmt)
+    logging.basicConfig(format=fmt, level=level)
 
     with trezor.Client(factory=trezor.TrezorLibrary) as client:
 
@@ -76,7 +81,9 @@ def main():
 
         use_shell = False
         if args.connect:
-            to_ascii = lambda s: s.encode('ascii')
+            def to_ascii(s):
+                return s.encode('ascii')
+
             command = ['ssh', to_ascii(identity.host)]
             if identity.user:
                 command += ['-l', to_ascii(identity.user)]

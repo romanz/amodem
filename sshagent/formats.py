@@ -62,7 +62,8 @@ def decompress_pubkey(pub):
     point = ecdsa.ellipticcurve.Point(curve.curve, x, y)
     vk = ecdsa.VerifyingKey.from_public_point(point, curve=curve,
                                               hashfunc=hashfunc)
-    parts = [ECDSA_KEY_TYPE, ECDSA_CURVE_NAME, DER_OCTET_STRING + vk.to_string()]
+    parts = [ECDSA_KEY_TYPE, ECDSA_CURVE_NAME,
+             DER_OCTET_STRING + vk.to_string()]
     return ''.join([util.frame(p) for p in parts])
 
 
