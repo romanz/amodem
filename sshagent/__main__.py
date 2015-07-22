@@ -56,7 +56,7 @@ def parse_args():
     return p.parse_args()
 
 
-def main():
+def trezor_agent():
     args = parse_args()
 
     fmt = ('%(asctime)s %(levelname)-12s %(message)-100s '
