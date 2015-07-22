@@ -19,7 +19,8 @@ class TrezorLibrary(object):
         from trezorlib.transport_hid import HidTransport
         devices = HidTransport.enumerate()
         if len(devices) != 1:
-            raise ValueError('{:d} Trezor devices found'.format(len(devices)))
+            msg = '{:d} Trezor devices found'.format(len(devices))
+            raise IOError(msg)
         return TrezorClient(HidTransport(devices[0]))
 
     @staticmethod
@@ -55,6 +56,7 @@ class Client(object):
         return self.factory.parse_identity(label)
 
     def get_public_key(self, identity):
+        assert identity.proto == 'ssh'
         label = _identity_to_string(identity)
         log.info('getting "%s" public key from Trezor...', label)
         addr = _get_address(identity)
@@ -64,13 +66,13 @@ class Client(object):
         return formats.export_public_key(pubkey=pubkey, label=label)
 
     def sign_ssh_challenge(self, identity, blob):
+        assert identity.proto == 'ssh'
         label = _identity_to_string(identity)
         msg = _parse_ssh_blob(blob)
 
         log.info('please confirm user %s connection to "%s" using Trezor...',
                  msg['user'], label)
 
-        assert identity.proto == 'ssh'
         visual = identity.path  # not signed when proto='ssh'
         result = self.client.sign_identity(identity=identity,
                                            challenge_hidden=blob,
@@ -109,7 +111,6 @@ def _string_to_identity(s):
 
 
 def _identity_to_string(identity):
-    assert identity.proto == 'ssh'
     result = [identity.proto + '://']
     if identity.user:
         result.append(identity.user + '@')
