@@ -80,7 +80,8 @@ class Client(object):
                                            challenge_hidden=blob,
                                            challenge_visual=visual,
                                            ecdsa_curve_name=self.curve_name)
-        public_key_blob = formats.decompress_pubkey(result.public_key)
+        verifying_key = formats.decompress_pubkey(result.public_key)
+        public_key_blob = formats.serialize_verifying_key(verifying_key)
         assert public_key_blob == msg['public_key']['blob']
         assert len(result.signature) == 65
         assert result.signature[0] == b'\x00'
@@ -91,36 +92,49 @@ class Client(object):
         return (r, s)
 
     def sign_identity(self, identity, expected_address=None):
+        from bitcoin import pubkey_to_address
+
         visual = time.strftime('%d/%m/%y %H:%M:%S')
         hidden = os.urandom(64)
         identity = self.get_identity(identity)
+
+        node = self.client.get_public_node(_get_address(identity))
+        address = pubkey_to_address(node.node.public_key)
+        log.info('address: %s', address)
+        if expected_address:
+            assert expected_address == address
+
         result = self.client.sign_identity(identity=identity,
                                            challenge_hidden=hidden,
                                            challenge_visual=visual)
 
-        msg = sha256sum(hidden) + sha256sum(visual)
+        assert address == result.address
+        assert node.node.public_key == result.public_key
+
         sig = result.signature[1:]
-        log.debug('verifying signature for address %s', result.address)
-        if expected_address:
-            assert expected_address == result.address
 
         curve = formats.ecdsa.SECP256k1
         verifying_key = formats.decompress_pubkey(result.public_key,
                                                   curve=curve)
 
-        from bitcoin import electrum_sig_hash
-        from bitcoin import pubkey_to_address
-        assert pubkey_to_address(result.public_key) == result.address
+        digest = message_digest(hidden=hidden, visual=visual)
+        log.debug('digest: %s', binascii.hexlify(digest))
+        signature = (util.bytes2num(sig[:32]),
+                     util.bytes2num(sig[32:]))
+        log.debug('signature: %s', signature)
+        success = verifying_key.verify_digest(signature=signature,
+                                              digest=digest,
+                                              sigdecode=lambda sig, _: sig)
+        if not success:
+            raise ValueError('invalid signature')
 
-        digest = electrum_sig_hash(msg)
-        r = util.bytes2num(sig[:32])
-        s = util.bytes2num(sig[32:])
-        verifying_key.verify_digest(signature=(r, s), digest=digest,
-                                    sigdecode=lambda sig, _: sig)
+        log.info('signature: OK')
 
 
-def sha256sum(data):
-    return formats.hashfunc(data).digest()
+def message_digest(hidden, visual):
+    from bitcoin import electrum_sig_hash
+    hashfunc = lambda data: formats.hashfunc(data).digest()
+    return electrum_sig_hash(hashfunc(hidden) + hashfunc(visual))
 
 
 _identity_regexp = re.compile(''.join([
