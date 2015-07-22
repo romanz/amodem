@@ -76,7 +76,8 @@ def export_public_key(pubkey, label):
     blob = serialize_verifying_key(decompress_pubkey(pubkey))
     log.debug('fingerprint: %s', fingerprint(blob))
     b64 = base64.b64encode(blob).decode('ascii')
-    return '{} {} {}\n'.format(ECDSA_KEY_TYPE.decode('ascii'), b64, label)
+    key_type = ECDSA_KEY_PREFIX + ECDSA_CURVE_NAME
+    return '{} {} {}\n'.format(key_type.decode('ascii'), b64, label)
 
 
 def import_public_key(line):
