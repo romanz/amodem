@@ -12,7 +12,6 @@ DER_OCTET_STRING = b'\x04'
 ECDSA_KEY_TYPE = b'ecdsa-sha2-nistp256'
 ECDSA_CURVE_NAME = b'nistp256'
 
-curve = ecdsa.NIST256p
 hashfunc = hashlib.sha256
 
 
@@ -21,7 +20,7 @@ def fingerprint(blob):
     return ':'.join('{:02x}'.format(c) for c in bytearray(digest))
 
 
-def parse_pubkey(blob):
+def parse_pubkey(blob, curve=ecdsa.NIST256p):
     s = io.BytesIO(blob)
     key_type = util.read_frame(s)
     log.debug('key type: %s', key_type)
@@ -51,7 +50,7 @@ def parse_pubkey(blob):
     return result
 
 
-def decompress_pubkey(pub):
+def decompress_pubkey(pub, curve=ecdsa.NIST256p):
     P = curve.curve.p()
     A = curve.curve.a()
     B = curve.curve.b()
