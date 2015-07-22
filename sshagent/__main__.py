@@ -39,7 +39,7 @@ def identity_from_gitconfig():
     return 'ssh://{0}@{1}/{2}'.format(user, host, path)
 
 
-def parse_args():
+def create_parser():
     p = argparse.ArgumentParser()
     p.add_argument('-v', '--verbose', default=0, action='count')
 
@@ -53,17 +53,20 @@ def parse_args():
                    help='connect to specified host via SSH')
     p.add_argument('command', type=str, nargs='*', metavar='ARGUMENT',
                    help='command to run under the SSH agent')
-    return p.parse_args()
+    return p
 
 
-def trezor_agent():
-    args = parse_args()
-
+def setup_logging(verbosity):
     fmt = ('%(asctime)s %(levelname)-12s %(message)-100s '
            '[%(filename)s:%(lineno)d]')
     levels = [logging.WARNING, logging.INFO, logging.DEBUG]
-    level = levels[min(args.verbose, len(levels) - 1)]
+    level = levels[min(verbosity, len(levels) - 1)]
     logging.basicConfig(format=fmt, level=level)
+
+
+def trezor_agent():
+    args = create_parser().parse_args()
+    setup_logging(verbosity=args.verbose)
 
     with trezor.Client(factory=trezor.TrezorLibrary) as client:
 
@@ -110,3 +113,17 @@ def trezor_agent():
                                           use_shell=use_shell)
         except KeyboardInterrupt:
             log.info('server stopped')
+
+
+def trezor_verify():
+
+    p = argparse.ArgumentParser()
+    p.add_argument('-v', '--verbose', default=0, action='count')
+    p.add_argument('-a', '--address', default=None)
+    p.add_argument('identity')
+    args = p.parse_args()
+
+    setup_logging(verbosity=args.verbose)
+    with trezor.Client(factory=trezor.TrezorLibrary) as client:
+        client.sign_identity(identity=args.identity,
+                             expected_address=args.address)

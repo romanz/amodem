@@ -2,6 +2,8 @@ import io
 import re
 import struct
 import binascii
+import time
+import os
 
 from . import util
 from . import formats
@@ -87,6 +89,38 @@ class Client(object):
         r = util.bytes2num(sig[:32])
         s = util.bytes2num(sig[32:])
         return (r, s)
+
+    def sign_identity(self, identity, expected_address=None):
+        visual = time.strftime('%d/%m/%y %H:%M:%S')
+        hidden = os.urandom(64)
+        identity = self.get_identity(identity)
+        result = self.client.sign_identity(identity=identity,
+                                           challenge_hidden=hidden,
+                                           challenge_visual=visual)
+
+        msg = sha256sum(hidden) + sha256sum(visual)
+        sig = result.signature[1:]
+        log.debug('verifying signature for address %s', result.address)
+        if expected_address:
+            assert expected_address == result.address
+
+        curve = formats.ecdsa.SECP256k1
+        verifying_key = formats.decompress_pubkey(result.public_key,
+                                                  curve=curve)
+
+        from bitcoin import electrum_sig_hash
+        from bitcoin import pubkey_to_address
+        assert pubkey_to_address(result.public_key) == result.address
+
+        digest = electrum_sig_hash(msg)
+        r = util.bytes2num(sig[:32])
+        s = util.bytes2num(sig[32:])
+        verifying_key.verify_digest(signature=(r, s), digest=digest,
+                                    sigdecode=lambda sig, _: sig)
+
+
+def sha256sum(data):
+    return formats.hashfunc(data).digest()
 
 
 _identity_regexp = re.compile(''.join([
