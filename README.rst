@@ -152,11 +152,11 @@ Prepare the sender (generate a random binary data file to be sent)::
 
 Start the receiver (will wait for the sender to start)::
 
-  ~/receiver $ amodem recv -vv -i data.rx
+  ~/receiver $ amodem recv -vv -o data.rx
 
 Start the sender (will modulate the data and start the transmission)::
 
-  ~/sender $ amodem send -vv -o data.tx
+  ~/sender $ amodem send -vv -i data.tx
 
 A similar log should be emitted by the sender::
 
