@@ -26,7 +26,7 @@ Audio Modem Communication Library
 .. image:: https://img.shields.io/pypi/dm/amodem.svg
     :target: https://pypi.python.org/pypi/amodem/
     :alt: Downloads
-    
+
 .. image:: https://badge.waffle.io/romanz/amodem.svg?label=ready&title=ready
     :target: https://waffle.io/romanz/amodem
     :alt: 'Ready'
@@ -34,19 +34,22 @@ Audio Modem Communication Library
 Description
 -----------
 
-This program can be used to transmit a specified file between 2 computers, using
-a simple audio cable (for better SNR and higher speeds) or a simple headset,
-allowing true air-gapped communication (via a speaker and a microphone).
+This program can transmit a file between 2 computers, using a simple headset,
+allowing true air-gapped communication (via a speaker and a microphone),
+or an audio cable (for higher transmission speed).
 
-The sender modulates an input binary data file into an audio signal,
+The sender modulates the input data into an audio signal,
 which is played to the sound card.
 
-The receiver side records the transmitted audio,
-which is demodulated concurrently into an output binary data file.
+The receiver records the audio, and demodulates it back to the original data.
 
 The process requires a single manual calibration step: the transmitter has to
-find maximal output volume for its sound card, which will not saturate the
-receiving microphone.
+find the optimal output volume for its sound card, which will not saturate the
+receiving microphone and provide good enough Signal-to-Noise ratio
+for the demodulation to succeed.
+
+Technical Details
+-----------------
 
 The modem is using OFDM over an audio cable with the following parameters:
 
