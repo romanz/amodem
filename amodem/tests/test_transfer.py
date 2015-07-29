@@ -14,15 +14,7 @@ logging.basicConfig(level=logging.DEBUG,  # useful for debugging
                     format='%(asctime)s %(levelname)-12s %(message)s')
 
 
-class Args(object):
-    def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
-
-    def __getattr__(self, name):
-        return None
-
-
-def run(size, chan=None, df=0, success=True, reader=None, cfg=None):
+def run(size, chan=None, df=0, success=True, cfg=None):
     if cfg is None:
         cfg = config.fastest()
     tx_data = os.urandom(size)
@@ -43,8 +35,6 @@ def run(size, chan=None, df=0, success=True, reader=None, cfg=None):
     rx_data = BytesIO()
     dump = BytesIO()
 
-    if reader:
-        rx_audio = reader(rx_audio)
     try:
         result = main.recv(config=cfg, src=rx_audio, dst=rx_data,
                            dump_audio=dump, pylab=None)

@@ -29,7 +29,6 @@ def test_read():
         j += 1
 
     try:
-        for buf in f:
-            pass
+        next(f)
     except IOError as e:
         assert e.args == ('timeout',)

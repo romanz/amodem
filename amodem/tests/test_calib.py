@@ -19,14 +19,6 @@ class ProcessMock(object):
         self.stdout = self
         self.bytes_per_sample = 2
 
-    def launch(self, *args, **kwargs):
-        return self
-
-    __call__ = launch
-
-    def kill(self):
-        pass
-
     def write(self, data):
         assert self.buf.tell() < 10e6
         self.buf.write(data)
