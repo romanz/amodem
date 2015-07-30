@@ -60,8 +60,10 @@ class Decompressor(object):
         self.stream.write(self.obj.flush())
 
 
-def FileType(mode, audio_interface=None):
+def FileType(mode, interface_factory=None):
     def opener(fname):
+        audio_interface = interface_factory() if interface_factory else None
+
         assert 'r' in mode or 'w' in mode
         if audio_interface is None and fname is None:
             fname = '-'
@@ -97,20 +99,11 @@ def get_volume_cmd(args):
                 return c[args.command]
 
 
-class _DummyContextManager(object):
-
-    def __enter__(self):
-        pass
-
-    def __exit__(self, *args):
-        pass
-
-
 def wrap(cls, stream, enable):
     return cls(stream) if enable else stream
 
 
-def create_parser(description, interface):
+def create_parser(description, interface_factory):
     p = argparse.ArgumentParser(description=description)
     subparsers = p.add_subparsers()
 
@@ -135,7 +128,7 @@ def create_parser(description, interface):
             volume_cmd=get_volume_cmd(args)
         ),
         input_type=FileType('rb'),
-        output_type=FileType('wb', interface),
+        output_type=FileType('wb', interface_factory),
         command='send'
     )
 
@@ -162,7 +155,7 @@ def create_parser(description, interface):
             config=config, src=args.src, verbose=args.verbose,
             volume_cmd=get_volume_cmd(args)
         ),
-        input_type=FileType('rb', interface),
+        input_type=FileType('rb', interface_factory),
         output_type=FileType('wb'),
         command='recv'
     )
@@ -194,8 +187,12 @@ def _main():
     description = fmt.format(version.__doc__,
                              config.modem_bps / 1e3, len(config.symbols),
                              config.Nfreq, config.Fs / 1e3)
-    interface = audio.Interface(config=config)
-    p = create_parser(description, interface)
+    interface = None
+
+    def interface_factory():
+        return interface
+
+    p = create_parser(description, interface_factory)
 
     args = p.parse_args()
     if args.verbose == 0:
@@ -218,9 +215,11 @@ def _main():
         import pylab  # pylint: disable=import-error
         args.pylab = pylab
 
-    if args.audio_library == '-':
-        interface = _DummyContextManager()
+    if args.audio_library == 'ALSA':
+        from . import alsa
+        interface = alsa.Interface(config)
     else:
+        interface = audio.Interface(config)
         interface.load(args.audio_library)
 
     with interface:
@@ -232,9 +231,9 @@ def _main():
             else:
                 args.calib(config=config, args=args)
         finally:
-            log.debug('Closing input and output')
             args.src.close()
             args.dst.close()
+            log.debug('Finished I/O')
 
 
 if __name__ == '__main__':
