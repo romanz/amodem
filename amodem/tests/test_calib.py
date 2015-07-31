@@ -39,8 +39,8 @@ def test_too_strong():
     calib.send(config, p, gain=1.001, limit=32)
     p.buf.seek(0)
     for r in calib.detector(config, src=p):
-        assert not r.success
-        assert r.msg == 'too strong signal'
+        assert not r['success']
+        assert r['msg'] == 'too strong signal'
 
 
 def test_too_weak():
@@ -48,8 +48,8 @@ def test_too_weak():
     calib.send(config, p, gain=0.01, limit=32)
     p.buf.seek(0)
     for r in calib.detector(config, src=p):
-        assert not r.success
-        assert r.msg == 'too weak signal'
+        assert not r['success']
+        assert r['msg'] == 'too weak signal'
 
 
 def test_too_noisy():
@@ -57,8 +57,8 @@ def test_too_noisy():
     signal = np.array([r.choice([-1, 1]) for i in range(int(config.Fs))])
     src = BytesIO(common.dumps(signal * 0.5))
     for r in calib.detector(config, src=src):
-        assert not r.success
-        assert r.msg == 'too noisy signal'
+        assert not r['success']
+        assert r['msg'] == 'too noisy signal'
 
 
 def test_errors():
@@ -94,9 +94,9 @@ def test_drift(freq_err):
     src = BytesIO(common.dumps(signal))
     iters = 0
     for r in calib.detector(config, src, frame_length=frame_length):
-        assert r.success is True
-        assert abs(r.rms - rms) < 1e-3
-        assert abs(r.total - rms) < 1e-3
+        assert r['success'] is True
+        assert abs(r['rms'] - rms) < 1e-3
+        assert abs(r['total'] - rms) < 1e-3
         iters += 1
 
     assert iters > 0

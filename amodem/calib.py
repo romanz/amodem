@@ -72,10 +72,10 @@ def detector(config, src, frame_length=200):
         else:
             msg = 'too {0} signal'.format(errors[flags.index(False)])
 
-        yield common.AttributeHolder(dict(
+        yield dict(
             freq=freq, rms=rms, peak=peak, coherency=coherency,
             total=total, success=success, msg=msg
-        ))
+        )
 
 
 def volume_calibration(result_iterator, volume_ctl):
@@ -90,7 +90,7 @@ def volume_calibration(result_iterator, volume_ctl):
     for index, result in enumerate(itertools.chain([None], result_iterator)):
         if index % iters_per_update == 0:
             if index > 0:  # skip dummy (first result)
-                sign = 1 if (result.total < target_level) else -1
+                sign = 1 if (result['total'] < target_level) else -1
                 level = level + step * sign
                 level = min(max(level, min_level), max_level)
                 step = step * 0.5
@@ -112,10 +112,11 @@ def iter_window(iterable, size):
 
 
 def recv(config, src, verbose=False, volume_cmd=None, dump_audio=None):
-    fmt = '{0.freq:6.0f} Hz: {0.msg:20s}'
+    fmt = '{freq:6.0f} Hz: {msg:20s}'
+    log.info('verbose: %s', verbose)
     if verbose:
         fields = ['total', 'rms', 'coherency', 'peak']
-        fmt += ', '.join('{0}={{0.{0}:.4f}}'.format(f) for f in fields)
+        fmt += ', '.join('{0}={{{0}:.4f}}'.format(f) for f in fields)
 
     volume_ctl = volume_controller(volume_cmd)
 
@@ -125,6 +126,8 @@ def recv(config, src, verbose=False, volume_cmd=None, dump_audio=None):
     result_iterator = volume_calibration(result_iterator, volume_ctl)
     for _prev, curr, _next in iter_window(result_iterator, size=3):
         # don't log errors during frequency changes
-        if _prev.success and _next.success and _prev.freq != _next.freq:
-            curr.msg = curr.msg if curr.success else 'frequency change'
-        log.info(fmt.format(curr))
+        if _prev['success'] and _next['success']:
+            if _prev['freq'] != _next['freq']:
+                if not curr['success']:
+                    curr['msg'] = 'frequency change'
+        log.info(fmt.format(**curr))
