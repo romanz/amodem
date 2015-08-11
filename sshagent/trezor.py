@@ -26,10 +26,10 @@ class TrezorLibrary(object):
         return TrezorClient(HidTransport(devices[0]))
 
     @staticmethod
-    def parse_identity(s):
+    def identity_type(**kwargs):
         # pylint: disable=import-error
         from trezorlib.types_pb2 import IdentityType
-        return IdentityType(**_string_to_identity(s))
+        return IdentityType(**kwargs)
 
 
 class Client(object):
@@ -55,7 +55,7 @@ class Client(object):
         self.client.close()
 
     def get_identity(self, label):
-        return self.factory.parse_identity(label)
+        return _string_to_identity(label, self.factory.identity_type)
 
     def get_public_key(self, identity):
         assert identity.proto == 'ssh'
@@ -149,14 +149,15 @@ _identity_regexp = re.compile(''.join([
 ]))
 
 
-def _string_to_identity(s):
+def _string_to_identity(s, identity_type):
     m = _identity_regexp.match(s)
     result = m.groupdict()
     if not result.get('proto'):
         result['proto'] = 'ssh'  # otherwise, Trezor will use SECP256K1 curve
 
     log.debug('parsed identity: %s', result)
-    return {k: v for k, v in result.items() if v}
+    kwargs = {k: v for k, v in result.items() if v}
+    return identity_type(kwargs)
 
 
 def _identity_to_string(identity):
