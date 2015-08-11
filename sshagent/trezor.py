@@ -133,8 +133,9 @@ class Client(object):
 
 def message_digest(hidden, visual):
     from bitcoin import electrum_sig_hash
-    hashfunc = lambda data: formats.hashfunc(data).digest()
-    return electrum_sig_hash(hashfunc(hidden) + hashfunc(visual))
+    hidden_digest = formats.hashfunc(hidden).digest()
+    visual_digest = formats.hashfunc(visual).digest()
+    return electrum_sig_hash(hidden_digest + visual_digest)
 
 
 _identity_regexp = re.compile(''.join([

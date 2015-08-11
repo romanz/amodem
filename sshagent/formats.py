@@ -64,6 +64,7 @@ def decompress_pubkey(pub, curve=ecdsa.NIST256p):
     return ecdsa.VerifyingKey.from_public_point(point, curve=curve,
                                                 hashfunc=hashfunc)
 
+
 def serialize_verifying_key(vk):
     key_type = ECDSA_KEY_PREFIX + ECDSA_CURVE_NAME
     curve_name = ECDSA_CURVE_NAME
