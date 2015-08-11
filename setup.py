@@ -10,7 +10,7 @@ setup(
     license='MIT',
     url='http://github.com/romanz/trezor-agent',
     packages=['sshagent'],
-    install_requires=['ecdsa', 'trezor'],
+    install_requires=['ecdsa', 'trezor', 'bitcoin'],
     platforms=['POSIX'],
     classifiers=[
         'Development Status :: 3 - Alpha',
