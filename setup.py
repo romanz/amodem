@@ -22,7 +22,7 @@ class PyTest(TestCommand):
     def run_tests(self):
         import sys
         import pytest
-        sys.exit(pytest.main(['tests']))
+        sys.exit(pytest.main(['.']))
 
 setup(
     name='amodem',
