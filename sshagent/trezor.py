@@ -54,8 +54,12 @@ class Client(object):
         log.info('disconnected from Trezor')
         self.client.close()
 
-    def get_identity(self, label):
-        return _string_to_identity(label, self.factory.identity_type)
+    def get_identity(self, label, protocol=None):
+        identity = _string_to_identity(label, self.factory.identity_type)
+        if protocol is not None:
+            identity.proto = protocol
+
+        return identity
 
     def get_public_key(self, identity):
         assert identity.proto == 'ssh'
@@ -152,16 +156,15 @@ _identity_regexp = re.compile(''.join([
 def _string_to_identity(s, identity_type):
     m = _identity_regexp.match(s)
     result = m.groupdict()
-    if not result.get('proto'):
-        result['proto'] = 'ssh'  # otherwise, Trezor will use SECP256K1 curve
-
     log.debug('parsed identity: %s', result)
     kwargs = {k: v for k, v in result.items() if v}
     return identity_type(**kwargs)
 
 
 def _identity_to_string(identity):
-    result = [identity.proto + '://']
+    result = []
+    if identity.proto:
+        result.append(identity.proto + '://')
     if identity.user:
         result.append(identity.user + '@')
     result.append(identity.host)

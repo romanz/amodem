@@ -79,7 +79,7 @@ def trezor_agent():
             if command:
                 command = ['git'] + command
 
-        identity = client.get_identity(label=label)
+        identity = client.get_identity(label=label, protocol='ssh')
         public_key = client.get_public_key(identity=identity)
 
         use_shell = False
@@ -104,7 +104,7 @@ def trezor_agent():
             return
 
         def signer(label, blob):
-            identity = client.get_identity(label=label)
+            identity = client.get_identity(label=label, protocol='ssh')
             return client.sign_ssh_challenge(identity=identity, blob=blob)
 
         try:
