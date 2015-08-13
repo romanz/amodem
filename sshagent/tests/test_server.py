@@ -47,6 +47,9 @@ def test_handle():
     server.handle_connection(conn, handler)
     assert conn.tx.getvalue() == b'\x00\x00\x00\x05\x0C\x00\x00\x00\x00'
 
+    with pytest.raises(AttributeError):
+        server.handle_connection(conn=None, handler=None)
+
 
 class ServerMock(object):
 
@@ -96,3 +99,20 @@ def test_run():
 def test_serve_main():
     with server.serve(public_keys=[], signer=None, sock_path=None):
         pass
+
+
+def test_remove():
+    path = 'foo.bar'
+
+    def remove(p):
+        assert p == path
+
+    server.remove_file(path, remove=remove)
+
+    def remove_raise(_):
+        raise OSError('boom')
+
+    server.remove_file(path, remove=remove_raise, exists=lambda _: False)
+
+    with pytest.raises(OSError):
+        server.remove_file(path, remove=remove_raise, exists=lambda _: True)

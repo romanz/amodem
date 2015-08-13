@@ -13,14 +13,18 @@ import logging
 log = logging.getLogger(__name__)
 
 
+def remove_file(path, remove=os.remove, exists=os.path.exists):
+    try:
+        remove(path)
+    except OSError:
+        if exists(path):
+            raise
+
+
 @contextlib.contextmanager
 def unix_domain_socket_server(sock_path):
     log.debug('serving on SSH_AUTH_SOCK=%s', sock_path)
-    try:
-        os.remove(sock_path)
-    except OSError:
-        if os.path.exists(sock_path):
-            raise
+    remove_file(sock_path)
 
     server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     server.bind(sock_path)
@@ -28,7 +32,7 @@ def unix_domain_socket_server(sock_path):
     try:
         yield server
     finally:
-        os.remove(sock_path)
+        remove_file(sock_path)
 
 
 def handle_connection(conn, handler):
