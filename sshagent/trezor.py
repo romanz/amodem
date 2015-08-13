@@ -157,7 +157,7 @@ def _string_to_identity(s, identity_type):
 
     log.debug('parsed identity: %s', result)
     kwargs = {k: v for k, v in result.items() if v}
-    return identity_type(kwargs)
+    return identity_type(**kwargs)
 
 
 def _identity_to_string(identity):
