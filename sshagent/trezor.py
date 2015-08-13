@@ -105,8 +105,12 @@ class Client(object):
         node = self.client.get_public_node(_get_address(identity))
         address = pubkey_to_address(node.node.public_key)
         log.info('address: %s', address)
-        if expected_address:
-            assert expected_address == address
+
+        if expected_address is None:
+            log.warning('Specify Bitcoin address: %s', address)
+            return 2
+
+        assert expected_address == address
 
         result = self.client.sign_identity(identity=identity,
                                            challenge_hidden=hidden,
@@ -126,13 +130,16 @@ class Client(object):
         signature = (util.bytes2num(sig[:32]),
                      util.bytes2num(sig[32:]))
         log.debug('signature: %s', signature)
-        success = verifying_key.verify_digest(signature=signature,
-                                              digest=digest,
-                                              sigdecode=lambda sig, _: sig)
-        if not success:
-            raise ValueError('invalid signature')
+        try:
+            verifying_key.verify_digest(signature=signature,
+                                        digest=digest,
+                                        sigdecode=lambda sig, _: sig)
+        except formats.ecdsa.BadSignatureError:
+            log.error('signature: ERROR')
+            return 1
 
         log.info('signature: OK')
+        return 0
 
 
 def message_digest(hidden, visual):

@@ -125,5 +125,5 @@ def trezor_verify():
 
     setup_logging(verbosity=args.verbose)
     with trezor.Client(factory=trezor.TrezorLibrary) as client:
-        client.sign_identity(identity=args.identity,
-                             expected_address=args.address)
+        return client.sign_identity(identity=args.identity,
+                                    expected_address=args.address)
