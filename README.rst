@@ -55,7 +55,7 @@ The modem is using OFDM over an audio cable with the following parameters:
 
 - Sampling rate: 8/16/32 kHz
 - Baud rate: 1 kHz
-- Symbol modulation: BPSK, 4-PSK, 16-QAM ,64-QAM, 256-QAM
+- Symbol modulation: BPSK, 4-PSK, 16-QAM, 64-QAM, 256-QAM
 - Carriers: 2-11 kHz (up to ten carriers)
 
 This way, modem may achieve 80kbps bitrate = 10 kB/s (for best SNR).
