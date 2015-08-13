@@ -119,11 +119,11 @@ def trezor_verify():
 
     p = argparse.ArgumentParser()
     p.add_argument('-v', '--verbose', default=0, action='count')
-    p.add_argument('-a', '--address', default=None)
-    p.add_argument('identity')
+    p.add_argument('address', nargs='?', default=None)
     args = p.parse_args()
 
     setup_logging(verbosity=args.verbose)
+    hostname = subprocess.check_output('hostname')
     with trezor.Client(factory=trezor.TrezorLibrary) as client:
-        return client.sign_identity(identity=args.identity,
+        return client.sign_identity(identity=hostname,
                                     expected_address=args.address)
