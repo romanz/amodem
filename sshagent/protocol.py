@@ -20,6 +20,18 @@ SSH2_AGENTC_REMOVE_IDENTITY = 18
 SSH2_AGENTC_REMOVE_ALL_IDENTITIES = 19
 
 
+class Error(Exception):
+    pass
+
+
+class BadSignature(Error):
+    pass
+
+
+class MissingKey(Error):
+    pass
+
+
 class Handler(object):
 
     def __init__(self, keys, signer):
@@ -76,18 +88,20 @@ class Handler(object):
                 key = k
                 break
         else:
-            raise ValueError('key not found')
+            raise MissingKey('key not found')
 
         log.debug('signing %d-byte blob', len(blob))
         r, s = self.signer(label=key['name'], blob=blob)
         signature = (r, s)
         log.debug('signature: %s', signature)
 
-        success = key['verifying_key'].verify(signature=signature, data=blob,
-                                              sigdecode=lambda sig, _: sig)
-        log.info('signature status: %s', 'OK' if success else 'ERROR')
-        if not success:
-            raise ValueError('invalid signature')
+        try:
+            key['verifying_key'].verify(signature=signature, data=blob,
+                                        sigdecode=lambda sig, _: sig)
+            log.info('signature status: OK')
+        except formats.ecdsa.BadSignatureError:
+            log.exception('signature status: ERROR')
+            raise BadSignature('invalid ECDSA signature')
 
         sig_bytes = io.BytesIO()
         for x in signature:
