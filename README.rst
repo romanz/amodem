@@ -8,8 +8,11 @@ Audio Modem Communication Library
     :target: https://coveralls.io/r/romanz/amodem?branch=master
     :alt: Code Coverage
 .. image:: https://landscape.io/github/romanz/amodem/master/landscape.svg?style=flat
-   :target: https://landscape.io/github/romanz/amodem/master
-   :alt: Code Health
+    :target: https://landscape.io/github/romanz/amodem/master
+    :alt: Code Health
+.. image:: https://readthedocs.org/projects/amodem/badge/?version=latest
+    :target: http://amodem.readthedocs.org/en/latest/
+    :alt: Documentation
 
 .. image:: https://img.shields.io/pypi/pyversions/amodem.svg
     :target: https://pypi.python.org/pypi/amodem/
