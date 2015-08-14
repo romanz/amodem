@@ -102,12 +102,16 @@ class Client(object):
         hidden = os.urandom(64)
         identity = self.get_identity(identity)
 
-        node = self.client.get_public_node(_get_address(identity))
+        derivation_path = _get_address(identity)
+        node = self.client.get_public_node(derivation_path)
         address = pubkey_to_address(node.node.public_key)
         log.info('address: %s', address)
 
         if expected_address is None:
             log.warning('Specify Bitcoin address: %s', address)
+            self.client.get_address(n=derivation_path,
+                                    coin_name='Bitcoin',
+                                    show_display=True)
             return 2
 
         assert expected_address == address
