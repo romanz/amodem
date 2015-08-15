@@ -145,7 +145,7 @@ and send me the resulting ``audio.raw`` file for debugging::
 
     ~/receiver $ arecord --format=S16_LE --channels=1 --rate=32000 audio.raw
 
-You can see a video of the `calibration process <http://www.youtube.com/watch?v=jRUj2Ifk-Po>`_.
+You can see a screencast of the `calibration process <https://asciinema.org/a/25065?autoplay=1>`_.
 
 Usage
 -----
@@ -229,7 +229,7 @@ After the receiver has finished, verify the received file's hash::
   ~/receiver $ sha256sum data.rx
   008df57d4f3ed6e7a25d25afd57d04fc73140e8df604685bd34fcab58f5ddc01  data.rx
 
-You can see a video of the `data transfer process <http://www.youtube.com/watch?v=GZQUtHB8so4>`_.
+You can see a screencast of the `data transfer process <https://asciinema.org/a/25066?autoplay=1>`_.
 
 Visualization
 -------------
