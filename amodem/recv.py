@@ -28,6 +28,7 @@ class Receiver(object):
         self.equalizer = equalizer.Equalizer(config)
         self.carrier_index = config.carrier_index
         self.output_size = 0  # number of bytes written to output stream
+        self.freq_err_gain = 0.01 * self.Tsym  # integration feedback gain
 
     def _prefix(self, symbols, gain=1.0):
         S = common.take(symbols, len(equalizer.prefix))
@@ -140,7 +141,7 @@ class Receiver(object):
         err = np.mean(np.angle(err))/(2*np.pi) if len(err) else 0
         errors.clear()
 
-        sampler.freq -= 0.01 * err * self.Tsym
+        sampler.freq -= self.freq_err_gain * err
         sampler.offset -= err
 
     def _report_progress(self, noise, sampler):
