@@ -111,13 +111,7 @@ def iter_window(iterable, size):
             yield block
 
 
-def recv(config, src, verbose=False, volume_cmd=None, dump_audio=None):
-    fmt = '{freq:6.0f} Hz: {msg:20s}'
-    log.info('verbose: %s', verbose)
-    if verbose:
-        fields = ['total', 'rms', 'coherency', 'peak']
-        fmt += ', '.join('{0}={{{0}:.4f}}'.format(f) for f in fields)
-
+def recv_iter(config, src, volume_cmd=None, dump_audio=None):
     volume_ctl = volume_controller(volume_cmd)
 
     if dump_audio:
@@ -130,4 +124,15 @@ def recv(config, src, verbose=False, volume_cmd=None, dump_audio=None):
             if _prev['freq'] != _next['freq']:
                 if not curr['success']:
                     curr['msg'] = 'frequency change'
-        log.info(fmt.format(**curr))
+        yield curr
+
+
+def recv(config, src, verbose=False, volume_cmd=None, dump_audio=None):
+    fmt = '{freq:6.0f} Hz: {msg:20s}'
+    log.info('verbose: %s', verbose)
+    if verbose:
+        fields = ['total', 'rms', 'coherency', 'peak']
+        fmt += ', '.join('{0}={{{0}:.4f}}'.format(f) for f in fields)
+
+    for state in recv_iter(config, src, volume_cmd, dump_audio):
+        log.info(fmt.format(**state))

@@ -146,3 +146,15 @@ def test_recv_binary_search():
     fmt = 'ctl {0:.0f}%'
     expected = [mock.call(shell=True, args=fmt.format(100 * g)) for g in gains]
     assert check_call.mock_calls == expected
+
+
+def test_recv_freq_change():
+    p = ProcessMock()
+    calib.send(config, p, gain=0.5, limit=2)
+    offset = p.buf.tell() // 16
+    p.buf.seek(offset)
+    messages = [state['msg'] for state in calib.recv_iter(config, p)]
+    assert messages == [
+        'good signal', 'good signal', 'good signal',
+        'frequency change',
+        'good signal', 'good signal', 'good signal']
