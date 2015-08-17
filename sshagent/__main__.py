@@ -6,7 +6,6 @@ import subprocess
 
 from . import trezor
 from . import server
-from . import util
 
 import logging
 log = logging.getLogger(__name__)
@@ -65,6 +64,15 @@ def setup_logging(verbosity):
     logging.basicConfig(format=fmt, level=level)
 
 
+def ssh_command(identity):
+    command = ['ssh', identity.host]
+    if identity.user:
+        command += ['-l', identity.user]
+    if identity.port:
+        command += ['-p', identity.port]
+    return command
+
+
 def trezor_agent():
     args = create_parser().parse_args()
     setup_logging(verbosity=args.verbose)
@@ -85,13 +93,8 @@ def trezor_agent():
 
         use_shell = False
         if args.connect:
-            command = ['ssh', util.to_ascii(identity.host)]
-            if identity.user:
-                command += ['-l', util.to_ascii(identity.user)]
-            if identity.port:
-                command += ['-p', util.to_ascii(identity.port)]
+            command = ssh_command(identity) + args.command
             log.debug('SSH connect: %r', command)
-            command = command + args.command
 
         if args.shell:
             command, use_shell = os.environ['SHELL'], True

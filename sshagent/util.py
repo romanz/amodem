@@ -64,7 +64,3 @@ def frame(*msgs):
         res.write(msg)
     msg = res.getvalue()
     return pack('L', len(msg)) + msg
-
-
-def to_ascii(s):
-    return s.decode('ascii')
