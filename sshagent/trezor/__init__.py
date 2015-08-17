@@ -76,12 +76,12 @@ class Client(object):
         s = util.bytes2num(sig[32:])
         return (r, s)
 
-    def sign_identity(self, identity, expected_address=None):
+    def sign_identity(self, label, expected_address=None):
         from bitcoin import pubkey_to_address
 
         visual = time.strftime('%d/%m/%y %H:%M:%S')
         hidden = os.urandom(64)
-        identity = self.get_identity(identity)
+        identity = self.get_identity(label=label)
 
         derivation_path = _get_address(identity)
         node = self.client.get_public_node(derivation_path)

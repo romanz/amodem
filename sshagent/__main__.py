@@ -123,7 +123,8 @@ def trezor_verify():
     args = p.parse_args()
 
     setup_logging(verbosity=args.verbose)
-    hostname = subprocess.check_output('hostname')
+    host = subprocess.check_output('hostname')
+    label = '{}'.format(host)
     with trezor.Client() as client:
-        return client.sign_identity(identity=hostname,
+        return client.sign_identity(label=label,
                                     expected_address=args.address)
