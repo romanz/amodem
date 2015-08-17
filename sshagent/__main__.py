@@ -68,7 +68,7 @@ def trezor_agent():
     args = create_parser().parse_args()
     setup_logging(verbosity=args.verbose)
 
-    with trezor.Client(factory=trezor.TrezorLibrary) as client:
+    with trezor.Client() as client:
 
         label = args.identity
         command = args.command
@@ -124,6 +124,6 @@ def trezor_verify():
 
     setup_logging(verbosity=args.verbose)
     hostname = subprocess.check_output('hostname')
-    with trezor.Client(factory=trezor.TrezorLibrary) as client:
+    with trezor.Client() as client:
         return client.sign_identity(identity=hostname,
                                     expected_address=args.address)
