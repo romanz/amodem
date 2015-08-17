@@ -5,8 +5,8 @@ import binascii
 import time
 import os
 
-from . import util
-from . import formats
+from .. import util
+from .. import formats
 from . import trezor_library
 
 import logging

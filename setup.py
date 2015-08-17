@@ -9,7 +9,7 @@ setup(
     author_email='roman.zeyde@gmail.com',
     license='MIT',
     url='http://github.com/romanz/trezor-agent',
-    packages=['sshagent'],
+    packages=['sshagent', 'sshagent.trezor'],
     install_requires=['ecdsa', 'trezor', 'bitcoin'],
     platforms=['POSIX'],
     classifiers=[
