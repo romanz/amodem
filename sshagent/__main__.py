@@ -39,7 +39,7 @@ def identity_from_gitconfig():
     return 'ssh://{0}@{1}/{2}'.format(user, host, path)
 
 
-def create_parser():
+def create_agent_parser():
     p = argparse.ArgumentParser()
     p.add_argument('-v', '--verbose', default=0, action='count')
 
@@ -74,7 +74,7 @@ def ssh_command(identity):
 
 
 def trezor_agent():
-    args = create_parser().parse_args()
+    args = create_agent_parser().parse_args()
     setup_logging(verbosity=args.verbose)
 
     with trezor.Client() as client:
