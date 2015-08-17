@@ -6,6 +6,7 @@ import subprocess
 
 from . import trezor
 from . import server
+from . import util
 
 import logging
 log = logging.getLogger(__name__)
@@ -84,14 +85,11 @@ def trezor_agent():
 
         use_shell = False
         if args.connect:
-            def to_ascii(s):
-                return s.encode('ascii')
-
-            command = ['ssh', to_ascii(identity.host)]
+            command = ['ssh', util.to_ascii(identity.host)]
             if identity.user:
-                command += ['-l', to_ascii(identity.user)]
+                command += ['-l', util.to_ascii(identity.user)]
             if identity.port:
-                command += ['-p', to_ascii(identity.port)]
+                command += ['-p', util.to_ascii(identity.port)]
             log.debug('SSH connect: %r', command)
             command = command + args.command
 

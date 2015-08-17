@@ -45,3 +45,7 @@ def test_send_recv():
     assert util.recv(s, 2) == b'3*'
 
     pytest.raises(EOFError, util.recv, s, 1)
+
+
+def test_ascii():
+    assert util.to_ascii(b'123abc') == '123abc'
