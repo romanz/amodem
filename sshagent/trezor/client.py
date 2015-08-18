@@ -15,8 +15,6 @@ log = logging.getLogger(__name__)
 
 class Client(object):
 
-    curve_name = 'nist256p1'
-
     def __init__(self, factory=trezor_library):
         self.factory = factory
         self.client = self.factory.client()
@@ -48,7 +46,8 @@ class Client(object):
         label = _identity_to_string(identity)
         log.info('getting "%s" public key from Trezor...', label)
         addr = _get_address(identity)
-        node = self.client.get_public_node(addr, self.curve_name)
+        node = self.client.get_public_node(n=addr,
+                                           ecdsa_curve_name='nist256p1')
 
         pubkey = node.node.public_key
         return formats.export_public_key(pubkey=pubkey, label=label)
@@ -65,7 +64,7 @@ class Client(object):
         result = self.client.sign_identity(identity=identity,
                                            challenge_hidden=blob,
                                            challenge_visual=visual,
-                                           ecdsa_curve_name=self.curve_name)
+                                           ecdsa_curve_name='nist256p1')
         verifying_key = formats.decompress_pubkey(result.public_key)
         public_key_blob = formats.serialize_verifying_key(verifying_key)
         assert public_key_blob == msg['public_key']['blob']
