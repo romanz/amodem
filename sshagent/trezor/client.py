@@ -71,10 +71,7 @@ class Client(object):
         assert len(result.signature) == 65
         assert result.signature[0] == b'\x00'
 
-        sig = result.signature[1:]
-        r = util.bytes2num(sig[:32])
-        s = util.bytes2num(sig[32:])
-        return (r, s)
+        return parse_signature(result.signature)
 
     def sign_identity(self, label, expected_address=None,
                       _strftime=time.strftime, _urandom=os.urandom):
@@ -110,13 +107,11 @@ class Client(object):
 
 
 def _validate_signature(result, digest, curve=formats.ecdsa.SECP256k1):
-    sig = result.signature[1:]
     verifying_key = formats.decompress_pubkey(result.public_key,
                                               curve=curve)
 
     log.debug('digest: %s', binascii.hexlify(digest))
-    signature = (util.bytes2num(sig[:32]),
-                 util.bytes2num(sig[32:]))
+    signature = parse_signature(result.signature)
     log.debug('signature: %s', signature)
     try:
         verifying_key.verify_digest(signature=signature,
@@ -128,6 +123,13 @@ def _validate_signature(result, digest, curve=formats.ecdsa.SECP256k1):
 
     log.info('signature: OK')
     return 0
+
+
+def parse_signature(blob):
+    sig = blob[1:]
+    r = util.bytes2num(sig[:32])
+    s = util.bytes2num(sig[32:])
+    return (r, s)
 
 
 def message_digest(hidden, visual):
