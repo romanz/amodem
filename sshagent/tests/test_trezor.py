@@ -29,9 +29,12 @@ class ConnectionMock(object):
     def close(self):
         self.closed = True
 
-    def get_public_node(self, addr, ecdsa_curve_name):
+    def clear_session(self):
+        self.closed = True
+
+    def get_public_node(self, n, ecdsa_curve_name):
         assert not self.closed
-        assert addr == ADDR
+        assert n == ADDR
         assert ecdsa_curve_name == CURVE
         result = mock.Mock(spec=[])
         result.node = mock.Mock(spec=[])
