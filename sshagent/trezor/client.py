@@ -33,6 +33,7 @@ class Client(object):
 
     def __exit__(self, *args):
         log.info('disconnected from Trezor')
+        self.client.clear_session()  # forget PIN and shutdown screen
         self.client.close()
 
     def get_identity(self, label, protocol=None):
