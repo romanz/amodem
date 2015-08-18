@@ -42,6 +42,10 @@ class ConnectionMock(object):
         result.node.public_key = PUBKEY
         return result
 
+    def ping(self, msg):
+        assert not self.closed
+        return msg
+
 
 class FactoryMock(object):
 

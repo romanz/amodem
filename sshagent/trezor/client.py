@@ -25,6 +25,8 @@ class Client(object):
         log.debug('revision : %s', binascii.hexlify(f.revision))
 
     def __enter__(self):
+        msg = 'Hello World!'
+        assert self.client.ping(msg) == msg
         return self
 
     def __exit__(self, *args):
