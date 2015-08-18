@@ -5,7 +5,7 @@ import binascii
 
 from .. import util
 from .. import formats
-from . import trezor_library
+from . import _factory as TrezorFactory
 
 import logging
 log = logging.getLogger(__name__)
@@ -13,7 +13,7 @@ log = logging.getLogger(__name__)
 
 class Client(object):
 
-    def __init__(self, factory=trezor_library):
+    def __init__(self, factory=TrezorFactory):
         self.factory = factory
         self.client = self.factory.client()
         f = self.client.features
