@@ -114,18 +114,3 @@ def trezor_agent():
                                           use_shell=use_shell)
         except KeyboardInterrupt:
             log.info('server stopped')
-
-
-def trezor_verify():
-
-    p = argparse.ArgumentParser()
-    p.add_argument('-v', '--verbose', default=0, action='count')
-    p.add_argument('address', nargs='?', default=None)
-    args = p.parse_args()
-
-    setup_logging(verbosity=args.verbose)
-    host = subprocess.check_output('hostname')
-    label = '{}'.format(host)
-    with trezor.Client() as client:
-        return client.sign_identity(label=label,
-                                    expected_address=args.address)

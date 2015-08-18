@@ -2,8 +2,6 @@ import io
 import re
 import struct
 import binascii
-import time
-import os
 
 from .. import util
 from .. import formats
@@ -35,7 +33,7 @@ class Client(object):
         self.client.close()
 
     def get_identity(self, label, protocol=None):
-        identity = _string_to_identity(label, self.factory.identity_type)
+        identity = string_to_identity(label, self.factory.identity_type)
         if protocol is not None:
             identity.proto = protocol
 
@@ -43,7 +41,7 @@ class Client(object):
 
     def get_public_key(self, identity):
         assert identity.proto == 'ssh'
-        label = _identity_to_string(identity)
+        label = identity_to_string(identity)
         log.info('getting "%s" public key from Trezor...', label)
         addr = _get_address(identity)
         node = self.client.get_public_node(n=addr,
@@ -54,7 +52,7 @@ class Client(object):
 
     def sign_ssh_challenge(self, identity, blob):
         assert identity.proto == 'ssh'
-        label = _identity_to_string(identity)
+        label = identity_to_string(identity)
         msg = _parse_ssh_blob(blob)
 
         log.info('please confirm user "%s" login to "%s" using Trezor...',
@@ -73,70 +71,12 @@ class Client(object):
 
         return parse_signature(result.signature)
 
-    def sign_identity(self, label, expected_address=None,
-                      _strftime=time.strftime, _urandom=os.urandom):
-        from bitcoin import pubkey_to_address
-
-        visual = _strftime('%d/%m/%y %H:%M:%S')
-        hidden = _urandom(64)
-        identity = self.get_identity(label=label)
-
-        derivation_path = _get_address(identity)
-        node = self.client.get_public_node(derivation_path)
-        address = pubkey_to_address(node.node.public_key)
-        log.info('address: %s', address)
-
-        if expected_address is None:
-            log.warning('Specify Bitcoin address: %s', address)
-            self.client.get_address(n=derivation_path,
-                                    coin_name='Bitcoin',
-                                    show_display=True)
-            return 2
-
-        assert expected_address == address
-
-        result = self.client.sign_identity(identity=identity,
-                                           challenge_hidden=hidden,
-                                           challenge_visual=visual)
-
-        assert address == result.address
-        assert node.node.public_key == result.public_key
-
-        digest = message_digest(hidden=hidden, visual=visual)
-        return _validate_signature(result=result, digest=digest)
-
-
-def _validate_signature(result, digest, curve=formats.ecdsa.SECP256k1):
-    verifying_key = formats.decompress_pubkey(result.public_key,
-                                              curve=curve)
-
-    log.debug('digest: %s', binascii.hexlify(digest))
-    signature = parse_signature(result.signature)
-    log.debug('signature: %s', signature)
-    try:
-        verifying_key.verify_digest(signature=signature,
-                                    digest=digest,
-                                    sigdecode=lambda sig, _: sig)
-    except formats.ecdsa.BadSignatureError:
-        log.error('signature: ERROR')
-        return 1
-
-    log.info('signature: OK')
-    return 0
-
 
 def parse_signature(blob):
     sig = blob[1:]
     r = util.bytes2num(sig[:32])
     s = util.bytes2num(sig[32:])
     return (r, s)
-
-
-def message_digest(hidden, visual):
-    from bitcoin import electrum_sig_hash
-    hidden_digest = formats.hashfunc(hidden).digest()
-    visual_digest = formats.hashfunc(visual).digest()
-    return electrum_sig_hash(hidden_digest + visual_digest)
 
 
 _identity_regexp = re.compile(''.join([
@@ -150,7 +90,7 @@ _identity_regexp = re.compile(''.join([
 ]))
 
 
-def _string_to_identity(s, identity_type):
+def string_to_identity(s, identity_type):
     m = _identity_regexp.match(s)
     result = m.groupdict()
     log.debug('parsed identity: %s', result)
@@ -158,7 +98,7 @@ def _string_to_identity(s, identity_type):
     return identity_type(**kwargs)
 
 
-def _identity_to_string(identity):
+def identity_to_string(identity):
     result = []
     if identity.proto:
         result.append(identity.proto + '://')
@@ -174,7 +114,7 @@ def _identity_to_string(identity):
 
 def _get_address(identity):
     index = struct.pack('<L', identity.index)
-    addr = index + _identity_to_string(identity).encode('ascii')
+    addr = index + identity_to_string(identity).encode('ascii')
     log.debug('address string: %r', addr)
     digest = formats.hashfunc(addr).digest()
     s = io.BytesIO(bytearray(digest))

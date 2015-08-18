@@ -24,7 +24,6 @@ setup(
         'Topic :: Communications',
     ],
     entry_points={'console_scripts': [
-        'trezor-agent = sshagent.__main__:trezor_agent',
-        'trezor-verify = sshagent.__main__:trezor_verify'
+        'trezor-agent = sshagent.__main__:trezor_agent'
     ]},
 )

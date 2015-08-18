@@ -33,10 +33,10 @@ class ConnectionMock(object):
     def clear_session(self):
         self.closed = True
 
-    def get_public_node(self, n, ecdsa_curve_name):
+    def get_public_node(self, n, ecdsa_curve_name='secp256k1'):
         assert not self.closed
         assert n == ADDR
-        assert ecdsa_curve_name == CURVE
+        assert ecdsa_curve_name in {'secp256k1', 'nist256p1'}
         result = mock.Mock(spec=[])
         result.node = mock.Mock(spec=[])
         result.node.public_key = PUBKEY
@@ -74,7 +74,7 @@ SIG = (b'\x00R\x19T\xf2\x84$\xef#\x0e\xee\x04X\xc6\xc3\x99T`\xd1\xd8\xf7!'
        b'\xdc\xf0H\xab\xa8\xac\xa7? \x8f=C\x88N\xe2')
 
 
-def test_client():
+def test_ssh_agent():
     c = client.Client(factory=FactoryMock)
     ident = c.get_identity(label='localhost:22', protocol='ssh')
     assert ident.host == 'localhost'
@@ -86,8 +86,8 @@ def test_client():
     with c:
         assert c.get_public_key(ident) == PUBKEY_TEXT
 
-        def _sign_identity(identity, challenge_hidden,
-                           challenge_visual, ecdsa_curve_name):
+        def ssh_sign_identity(identity, challenge_hidden,
+                              challenge_visual, ecdsa_curve_name):
             assert identity is ident
             assert challenge_hidden == BLOB
             assert challenge_visual == identity.path
@@ -98,9 +98,21 @@ def test_client():
             result.signature = SIG
             return result
 
-        c.client.sign_identity = _sign_identity
+        c.client.sign_identity = ssh_sign_identity
         signature = c.sign_ssh_challenge(identity=ident, blob=BLOB)
 
         key = formats.import_public_key(PUBKEY_TEXT)
         assert key['verifying_key'].verify(signature=signature, data=BLOB,
                                            sigdecode=lambda sig, _: sig)
+
+
+def test_utils():
+    identity = mock.Mock(spec=[])
+    identity.proto = 'https'
+    identity.user = 'user'
+    identity.host = 'host'
+    identity.port = '443'
+    identity.path = '/path'
+
+    url = 'https://user@host:443/path'
+    assert client.identity_to_string(identity) == url
