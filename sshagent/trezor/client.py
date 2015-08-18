@@ -69,7 +69,7 @@ class Client(object):
         public_key_blob = formats.serialize_verifying_key(verifying_key)
         assert public_key_blob == msg['public_key']['blob']
         assert len(result.signature) == 65
-        assert result.signature[0] == b'\x00'
+        assert result.signature[:1] == bytearray([0])
 
         return parse_signature(result.signature)
 
