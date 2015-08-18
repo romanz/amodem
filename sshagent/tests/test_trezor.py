@@ -1,4 +1,5 @@
 from ..trezor import client
+from .. import formats
 
 import mock
 
@@ -59,6 +60,20 @@ class FactoryMock(object):
         return result
 
 
+BLOB = (b'\x00\x00\x00 \xce\xe0\xc9\xd5\xceu/\xe8\xc5\xf2\xbfR+x\xa1\xcf\xb0'
+        b'\x8e;R\xd3)m\x96\x1b\xb4\xd8s\xf1\x99\x16\xaa2\x00\x00\x00\x05roman'
+        b'\x00\x00\x00\x0essh-connection\x00\x00\x00\tpublickey'
+        b'\x01\x00\x00\x00\x13ecdsa-sha2-nistp256\x00\x00\x00h\x00\x00\x00'
+        b'\x13ecdsa-sha2-nistp256\x00\x00\x00\x08nistp256\x00\x00\x00A'
+        b'\x04\xd8(\xb5\xa6`\xbet0\x95\xac:[;]\xdc,\xbd\xdc?\xd7\xc0\xec'
+        b'\xdd\xbc+\xfar~\x9dAis4\xc1\x10yeT~\x1b\xeb\x1aX\xd1\xd9\x9f\xc21'
+        b'\x13\x8dc\xa7\xa3\x07\xefO\x9e\x95\x0e>\xec\xd8\xaa/')
+
+SIG = (b'\x00R\x19T\xf2\x84$\xef#\x0e\xee\x04X\xc6\xc3\x99T`\xd1\xd8\xf7!'
+       b'\x862@cx\xb8\xb9i@1\x1b3#\x938\x86]\x97*Y\xb2\x02Xa\xdf@\xecK'
+       b'\xdc\xf0H\xab\xa8\xac\xa7? \x8f=C\x88N\xe2')
+
+
 def test_client():
     c = client.Client(factory=FactoryMock)
     ident = c.get_identity(label='localhost:22', protocol='ssh')
@@ -70,3 +85,22 @@ def test_client():
 
     with c:
         assert c.get_public_key(ident) == PUBKEY_TEXT
+
+        def _sign_identity(identity, challenge_hidden,
+                           challenge_visual, ecdsa_curve_name):
+            assert identity is ident
+            assert challenge_hidden == BLOB
+            assert challenge_visual == identity.path
+            assert ecdsa_curve_name == 'nist256p1'
+
+            result = mock.Mock(spec=[])
+            result.public_key = PUBKEY
+            result.signature = SIG
+            return result
+
+        c.client.sign_identity = _sign_identity
+        signature = c.sign_ssh_challenge(identity=ident, blob=BLOB)
+
+        key = formats.import_public_key(PUBKEY_TEXT)
+        assert key['verifying_key'].verify(signature=signature, data=BLOB,
+                                           sigdecode=lambda sig, _: sig)
