@@ -76,11 +76,12 @@ class Client(object):
         s = util.bytes2num(sig[32:])
         return (r, s)
 
-    def sign_identity(self, label, expected_address=None):
+    def sign_identity(self, label, expected_address=None,
+                      _strftime=time.strftime, _urandom=os.urandom):
         from bitcoin import pubkey_to_address
 
-        visual = time.strftime('%d/%m/%y %H:%M:%S')
-        hidden = os.urandom(64)
+        visual = _strftime('%d/%m/%y %H:%M:%S')
+        hidden = _urandom(64)
         identity = self.get_identity(label=label)
 
         derivation_path = _get_address(identity)
@@ -108,10 +109,8 @@ class Client(object):
         return _validate_signature(result=result, digest=digest)
 
 
-def _validate_signature(result, digest):
+def _validate_signature(result, digest, curve=formats.ecdsa.SECP256k1):
     sig = result.signature[1:]
-
-    curve = formats.ecdsa.SECP256k1
     verifying_key = formats.decompress_pubkey(result.public_key,
                                               curve=curve)
 
