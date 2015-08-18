@@ -173,7 +173,7 @@ def _identity_to_string(identity):
 
 def _get_address(identity):
     index = struct.pack('<L', identity.index)
-    addr = index + _identity_to_string(identity)
+    addr = index + _identity_to_string(identity).encode('ascii')
     log.debug('address string: %r', addr)
     digest = formats.hashfunc(addr).digest()
     s = io.BytesIO(bytearray(digest))
