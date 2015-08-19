@@ -34,11 +34,9 @@ class Client(object):
         self.client.clear_session()  # forget PIN and shutdown screen
         self.client.close()
 
-    def get_identity(self, label, protocol=None):
+    def get_identity(self, label):
         identity = string_to_identity(label, self.factory.identity_type)
-        if protocol is not None:
-            identity.proto = protocol
-
+        identity.proto = 'ssh'
         return identity
 
     def get_public_key(self, identity):

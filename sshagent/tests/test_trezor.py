@@ -80,7 +80,7 @@ SIG = (b'\x00R\x19T\xf2\x84$\xef#\x0e\xee\x04X\xc6\xc3\x99T`\xd1\xd8\xf7!'
 
 def test_ssh_agent():
     c = client.Client(factory=FactoryMock)
-    ident = c.get_identity(label='localhost:22', protocol='ssh')
+    ident = c.get_identity(label='localhost:22')
     assert ident.host == 'localhost'
     assert ident.proto == 'ssh'
     assert ident.port == '22'
