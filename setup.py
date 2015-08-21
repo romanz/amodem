@@ -2,14 +2,14 @@
 from setuptools import setup
 
 setup(
-    name='sshagent',
-    version='0.3',
+    name='trezor_agent',
+    version='0.4',
     description='Using Trezor as hardware SSH agent',
     author='Roman Zeyde',
     author_email='roman.zeyde@gmail.com',
     license='MIT',
     url='http://github.com/romanz/trezor-agent',
-    packages=['sshagent', 'sshagent.trezor'],
+    packages=['trezor_agent', 'trezor_agent.trezor'],
     install_requires=['ecdsa', 'trezor'],
     platforms=['POSIX'],
     classifiers=[
@@ -24,6 +24,6 @@ setup(
         'Topic :: Communications',
     ],
     entry_points={'console_scripts': [
-        'trezor-agent = sshagent.__main__:trezor_agent'
+        'trezor-agent = trezor_agent.__main__:trezor_agent'
     ]},
 )
