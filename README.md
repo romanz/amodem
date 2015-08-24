@@ -11,7 +11,7 @@ is installed correctly:
 
 	$ pip install Cython trezor
 
-Then, install `trezor-agent`:
+Then, install the latest `trezor_agent` package:
 
 	$ pip install trezor_agent
 
