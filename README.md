@@ -1,5 +1,7 @@
 # Using Trezor as a hardware SSH agent
 
+[![Build Status](https://travis-ci.org/romanz/trezor-agent.svg?branch=master)](https://travis-ci.org/romanz/trezor-agent)
+
 ## Screencast demo usage
 
 [![Demo](https://asciinema.org/a/22959.png)](https://asciinema.org/a/22959)
