@@ -1,0 +1,17 @@
+sudo: false
+language: python
+python:
+  - "2.7"
+
+install:
+  - pip install ecdsa  # test without trezorlib for now
+  - pip install pylint coverage pep8
+
+script:
+  - pep8 trezor_agent
+  - pylint --report=no --rcfile .pylintrc trezor_agent
+  - coverage run --source trezor_agent/ -m py.test -v
+
+after_success:
+  - coverage report
+
