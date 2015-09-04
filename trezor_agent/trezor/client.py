@@ -13,6 +13,8 @@ log = logging.getLogger(__name__)
 
 class Client(object):
 
+    MIN_VERSION = [1, 3, 4]
+
     def __init__(self, factory=TrezorFactory):
         self.factory = factory
         self.client = self.factory.client()
@@ -21,8 +23,13 @@ class Client(object):
         log.debug('label    : %s', f.label)
         log.debug('vendor   : %s', f.vendor)
         version = [f.major_version, f.minor_version, f.patch_version]
-        log.debug('version  : %s', '.'.join([str(v) for v in version]))
+        version_str = '.'.join([str(v) for v in version])
+        log.debug('version  : %s', version_str)
         log.debug('revision : %s', binascii.hexlify(f.revision))
+        if version < self.MIN_VERSION:
+            fmt = 'Please upgrade your TREZOR to v{}+ firmware'
+            version_str = '.'.join([str(v) for v in self.MIN_VERSION])
+            raise ValueError(fmt.format(version_str))
 
     def __enter__(self):
         msg = 'Hello World!'

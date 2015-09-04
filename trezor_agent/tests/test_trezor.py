@@ -2,6 +2,7 @@ from ..trezor import client
 from .. import formats
 
 import mock
+import pytest
 
 
 ADDR = [2147483661, 2810943954, 3938368396, 3454558782, 3848009040]
@@ -16,14 +17,14 @@ PUBKEY_TEXT = ('ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzd'
 
 class ConnectionMock(object):
 
-    def __init__(self):
+    def __init__(self, version):
         self.features = mock.Mock(spec=[])
         self.features.device_id = '123456789'
         self.features.label = 'mywallet'
         self.features.vendor = 'mock'
-        self.features.major_version = 1
-        self.features.minor_version = 2
-        self.features.patch_version = 3
+        self.features.major_version = version[0]
+        self.features.minor_version = version[1]
+        self.features.patch_version = version[2]
         self.features.revision = b'456'
         self.closed = False
 
@@ -51,7 +52,7 @@ class FactoryMock(object):
 
     @staticmethod
     def client():
-        return ConnectionMock()
+        return ConnectionMock(version=(1, 3, 4))
 
     @staticmethod
     def identity_type(**kwargs):
@@ -120,3 +121,15 @@ def test_utils():
 
     url = 'https://user@host:443/path'
     assert client.identity_to_string(identity) == url
+
+
+def test_old_version():
+
+    class OldFactoryMock(FactoryMock):
+
+        @staticmethod
+        def client():
+            return ConnectionMock(version=(1, 2, 3))
+
+    with pytest.raises(ValueError):
+        client.Client(factory=OldFactoryMock)
