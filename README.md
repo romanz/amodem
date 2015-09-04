@@ -17,6 +17,15 @@ Then, install the latest `trezor_agent` package:
 
 	$ pip install trezor_agent
 
+Finally, verify that you are running the latest TREZOR firmware version (at least v1.3.4):
+
+	$ trezorctl get_features
+	vendor: "bitcointrezor.com"
+	major_version: 1
+	minor_version: 3
+	patch_version: 4
+	...
+
 ## Public key generation
 
 Run:
