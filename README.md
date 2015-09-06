@@ -9,7 +9,7 @@
 ## Installation
 
 First, make sure that the latest `trezorlib` Python package
-is installed correctly:
+is installed correctly (at least v0.6.6):
 
 	$ pip install Cython trezor
 
