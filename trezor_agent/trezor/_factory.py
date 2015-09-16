@@ -16,6 +16,7 @@ def client():
     t.callback_PassphraseRequest = lambda msg: PassphraseAck(passphrase='')
     return t
 
+
 def identity_type(**kwargs):
     # pylint: disable=import-error
     from trezorlib.types_pb2 import IdentityType
