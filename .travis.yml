@@ -10,12 +10,13 @@ python:
 
 install:
   - pip install .
+  - pip install pytest>=2.7.3 --upgrade
   - pip install coveralls pep8 mock
 
 script:
   - pep8 amodem/ scripts/
   - echo "Hello World!" | amodem send -vv -l- -o- | amodem recv -vv -l- -i-
-  - coverage run --source=amodem --omit="*/__main__.py" -m py.test -vvs --assert=plain
+  - coverage run --source=amodem --omit="*/__main__.py" -m py.test -vvs
 
 after_success:
   - coverage report
