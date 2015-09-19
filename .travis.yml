@@ -15,7 +15,7 @@ install:
 script:
   - pep8 amodem/ scripts/
   - echo "Hello World!" | amodem send -vv -l- -o- | amodem recv -vv -l- -i-
-  - coverage run --source=amodem --omit="*/__main__.py" -m py.test -vvs
+  - coverage run --source=amodem --omit="*/__main__.py" -m py.test -vvs --assert=plain
 
 after_success:
   - coverage report
