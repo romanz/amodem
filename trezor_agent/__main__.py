@@ -3,9 +3,11 @@ import re
 import sys
 import argparse
 import subprocess
+import functools
 
 from . import trezor
 from . import server
+from . import formats
 
 import logging
 log = logging.getLogger(__name__)
@@ -48,9 +50,13 @@ def create_agent_parser():
 
     g = p.add_mutually_exclusive_group()
     g.add_argument('-s', '--shell', default=False, action='store_true',
-                   help='run $SHELL as subprocess under SSH agent')
+                   help='run ${SHELL} as subprocess under SSH agent')
     g.add_argument('-c', '--connect', default=False, action='store_true',
                    help='connect to specified host via SSH')
+    curves = ', '.join(sorted(formats.SUPPORTED_CURVES))
+    p.add_argument('-e', '--ecdsa-curve-name', metavar='CURVE',
+                   default=formats.CURVE_NIST256,
+                   help='specify ECDSA curve name: ' + curves)
     p.add_argument('command', type=str, nargs='*', metavar='ARGUMENT',
                    help='command to run under the SSH agent')
     return p
@@ -64,21 +70,15 @@ def setup_logging(verbosity):
     logging.basicConfig(format=fmt, level=level)
 
 
-def ssh_command(identity):
-    command = ['ssh', identity.host]
-    if identity.user:
-        command += ['-l', identity.user]
-    if identity.port:
-        command += ['-p', identity.port]
-    return command
+def ssh_sign(client, label, blob):
+    return client.sign_ssh_challenge(label=label, blob=blob)
 
 
-def trezor_agent():
+def run_agent(client_factory):
     args = create_agent_parser().parse_args()
     setup_logging(verbosity=args.verbose)
 
-    with trezor.Client() as client:
-
+    with client_factory(curve=args.ecdsa_curve_name) as client:
         label = args.identity
         command = args.command
 
@@ -88,12 +88,11 @@ def trezor_agent():
             if command:
                 command = ['git'] + command
 
-        identity = client.get_identity(label=label)
-        public_key = client.get_public_key(identity=identity)
+        public_key = client.get_public_key(label=label)
 
         use_shell = False
         if args.connect:
-            command = ssh_command(identity) + args.command
+            command = ['ssh', label] + args.command
             log.debug('SSH connect: %r', command)
 
         if args.shell:
@@ -104,13 +103,14 @@ def trezor_agent():
             sys.stdout.write(public_key)
             return
 
-        def signer(label, blob):
-            identity = client.get_identity(label=label)
-            return client.sign_ssh_challenge(identity=identity, blob=blob)
-
         try:
+            signer = functools.partial(ssh_sign, client=client)
             with server.serve(public_keys=[public_key], signer=signer) as env:
                 return server.run_process(command=command, environ=env,
                                           use_shell=use_shell)
         except KeyboardInterrupt:
             log.info('server stopped')
+
+
+def trezor_agent():
+    run_agent(trezor.Client)

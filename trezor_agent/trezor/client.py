@@ -15,7 +15,8 @@ class Client(object):
 
     MIN_VERSION = [1, 3, 4]
 
-    def __init__(self, factory=TrezorFactory):
+    def __init__(self, factory=TrezorFactory, curve=formats.CURVE_NIST256):
+        self.curve = curve
         self.factory = factory
         self.client = self.factory.client()
         f = self.client.features
@@ -46,20 +47,20 @@ class Client(object):
         identity.proto = 'ssh'
         return identity
 
-    def get_public_key(self, identity):
-        assert identity.proto == 'ssh'
-        label = identity_to_string(identity)
-        log.info('getting "%s" public key from Trezor...', label)
+    def get_public_key(self, label):
+        identity = self.get_identity(label=label)
+        label = identity_to_string(identity)  # canonize key label
+        log.info('getting "%s" public key (%s) from Trezor...',
+                 label, self.curve)
         addr = _get_address(identity)
         node = self.client.get_public_node(n=addr,
-                                           ecdsa_curve_name='nist256p1')
+                                           ecdsa_curve_name=self.curve)
 
         pubkey = node.node.public_key
         return formats.export_public_key(pubkey=pubkey, label=label)
 
-    def sign_ssh_challenge(self, identity, blob):
-        assert identity.proto == 'ssh'
-        label = identity_to_string(identity)
+    def sign_ssh_challenge(self, label, blob):
+        identity = self.get_identity(label=label)
         msg = _parse_ssh_blob(blob)
 
         log.info('please confirm user "%s" login to "%s" using Trezor...',
@@ -69,21 +70,16 @@ class Client(object):
         result = self.client.sign_identity(identity=identity,
                                            challenge_hidden=blob,
                                            challenge_visual=visual,
-                                           ecdsa_curve_name='nist256p1')
+                                           ecdsa_curve_name=self.curve)
+
         verifying_key = formats.decompress_pubkey(result.public_key)
-        public_key_blob = formats.serialize_verifying_key(verifying_key)
-        assert public_key_blob == msg['public_key']['blob']
+        key_type, blob = formats.serialize_verifying_key(verifying_key)
+        assert blob == msg['public_key']['blob']
+        assert key_type == msg['key_type']
         assert len(result.signature) == 65
         assert result.signature[:1] == bytearray([0])
 
-        return parse_signature(result.signature)
-
-
-def parse_signature(blob):
-    sig = blob[1:]
-    r = util.bytes2num(sig[:32])
-    s = util.bytes2num(sig[32:])
-    return (r, s)
+        return result.signature[1:]
 
 
 _identity_regexp = re.compile(''.join([

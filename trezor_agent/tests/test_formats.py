@@ -1,4 +1,5 @@
 import binascii
+import pytest
 
 from .. import formats
 
@@ -27,13 +28,48 @@ def test_parse_public_key():
     assert key['name'] == b'home'
     assert key['point'] == _point
 
-    assert key['curve'] == b'nistp256'
+    assert key['curve'] == b'nist256p1'
     assert key['fingerprint'] == '4b:19:bc:0f:c8:7e:dc:fa:1a:e3:c2:ff:6f:e0:80:a2'  # nopep8
     assert key['type'] == b'ecdsa-sha2-nistp256'
-    assert key['size'] == 32
 
 
 def test_decompress():
     blob = '036236ceabde25207e81e404586e3a3af1acda1dfed2abbbb4876c1fc5b296b575'
     result = formats.export_public_key(binascii.unhexlify(blob), label='home')
     assert result == _public_key
+
+
+def test_parse_ed25519():
+    pubkey = ('ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFBdF2tj'
+              'fSO8nLIi736is+f0erq28RTc7CkM11NZtTKR hello\n')
+    p = formats.import_public_key(pubkey)
+    assert p['name'] == b'hello'
+    assert p['curve'] == b'ed25519'
+
+    BLOB = (b'\x00\x00\x00\x0bssh-ed25519\x00\x00\x00 P]\x17kc}#'
+            b'\xbc\x9c\xb2"\xef~\xa2\xb3\xe7\xf4z\xba\xb6\xf1\x14'
+            b'\xdc\xec)\x0c\xd7SY\xb52\x91')
+    assert p['blob'] == BLOB
+    assert p['fingerprint'] == '6b:b0:77:af:e5:3a:21:6d:17:82:9b:06:19:03:a1:97'  # nopep8
+    assert p['type'] == b'ssh-ed25519'
+
+
+def test_export_ed25519():
+    pub = (b'\x00P]\x17kc}#\xbc\x9c\xb2"\xef~\xa2\xb3\xe7\xf4'
+           b'z\xba\xb6\xf1\x14\xdc\xec)\x0c\xd7SY\xb52\x91')
+    vk = formats.decompress_pubkey(pub)
+    result = formats.serialize_verifying_key(vk)
+    assert result == (b'ssh-ed25519',
+                      b'\x00\x00\x00\x0bssh-ed25519\x00\x00\x00 P]\x17kc}#\xbc'
+                      b'\x9c\xb2"\xef~\xa2\xb3\xe7\xf4z\xba\xb6\xf1\x14\xdc'
+                      b'\xec)\x0c\xd7SY\xb52\x91')
+
+
+def test_decompress_error():
+    with pytest.raises(ValueError):
+        formats.decompress_pubkey('')
+
+
+def test_serialize_error():
+    with pytest.raises(TypeError):
+        formats.serialize_verifying_key(None)

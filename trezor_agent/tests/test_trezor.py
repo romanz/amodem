@@ -34,10 +34,10 @@ class ConnectionMock(object):
     def clear_session(self):
         self.closed = True
 
-    def get_public_node(self, n, ecdsa_curve_name='secp256k1'):
+    def get_public_node(self, n, ecdsa_curve_name=b'secp256k1'):
         assert not self.closed
         assert n == ADDR
-        assert ecdsa_curve_name in {'secp256k1', 'nist256p1'}
+        assert ecdsa_curve_name in {b'secp256k1', b'nist256p1'}
         result = mock.Mock(spec=[])
         result.node = mock.Mock(spec=[])
         result.node.public_key = PUBKEY
@@ -80,8 +80,9 @@ SIG = (b'\x00R\x19T\xf2\x84$\xef#\x0e\xee\x04X\xc6\xc3\x99T`\xd1\xd8\xf7!'
 
 
 def test_ssh_agent():
+    label = 'localhost:22'
     c = client.Client(factory=FactoryMock)
-    ident = c.get_identity(label='localhost:22')
+    ident = c.get_identity(label=label)
     assert ident.host == 'localhost'
     assert ident.proto == 'ssh'
     assert ident.port == '22'
@@ -89,14 +90,13 @@ def test_ssh_agent():
     assert ident.path is None
 
     with c:
-        assert c.get_public_key(ident) == PUBKEY_TEXT
+        assert c.get_public_key(label) == PUBKEY_TEXT
 
         def ssh_sign_identity(identity, challenge_hidden,
                               challenge_visual, ecdsa_curve_name):
-            assert identity is ident
             assert challenge_hidden == BLOB
             assert challenge_visual == identity.path
-            assert ecdsa_curve_name == 'nist256p1'
+            assert ecdsa_curve_name == b'nist256p1'
 
             result = mock.Mock(spec=[])
             result.public_key = PUBKEY
@@ -104,11 +104,10 @@ def test_ssh_agent():
             return result
 
         c.client.sign_identity = ssh_sign_identity
-        signature = c.sign_ssh_challenge(identity=ident, blob=BLOB)
+        signature = c.sign_ssh_challenge(label=label, blob=BLOB)
 
         key = formats.import_public_key(PUBKEY_TEXT)
-        assert key['verifying_key'].verify(signature=signature, data=BLOB,
-                                           sigdecode=lambda sig, _: sig)
+        assert key['verifier'](sig=signature, msg=BLOB)
 
 
 def test_utils():

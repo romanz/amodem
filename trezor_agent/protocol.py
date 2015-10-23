@@ -1,4 +1,5 @@
 import io
+import binascii
 
 from . import util
 from . import formats
@@ -9,15 +10,10 @@ log = logging.getLogger(__name__)
 SSH_AGENTC_REQUEST_RSA_IDENTITIES = 1
 SSH_AGENT_RSA_IDENTITIES_ANSWER = 2
 
-SSH_AGENTC_REMOVE_ALL_RSA_IDENTITIES = 9
-
 SSH2_AGENTC_REQUEST_IDENTITIES = 11
 SSH2_AGENT_IDENTITIES_ANSWER = 12
 SSH2_AGENTC_SIGN_REQUEST = 13
 SSH2_AGENT_SIGN_RESPONSE = 14
-SSH2_AGENTC_ADD_IDENTITY = 17
-SSH2_AGENTC_REMOVE_IDENTITY = 18
-SSH2_AGENTC_REMOVE_ALL_IDENTITIES = 19
 
 
 class Error(Exception):
@@ -91,23 +87,16 @@ class Handler(object):
             raise MissingKey('key not found')
 
         log.debug('signing %d-byte blob', len(blob))
-        r, s = self.signer(label=key['name'], blob=blob)
-        signature = (r, s)
-        log.debug('signature: %s', signature)
+        signature = self.signer(label=key['name'], blob=blob)
+        log.debug('signature: %s', binascii.hexlify(signature))
 
         try:
-            key['verifying_key'].verify(signature=signature, data=blob,
-                                        sigdecode=lambda sig, _: sig)
+            sig_bytes = key['verifier'](sig=signature, msg=blob)
             log.info('signature status: OK')
         except formats.ecdsa.BadSignatureError:
             log.exception('signature status: ERROR')
             raise BadSignature('invalid ECDSA signature')
 
-        sig_bytes = io.BytesIO()
-        for x in signature:
-            x_frame = util.frame(b'\x00' + util.num2bytes(x, key['size']))
-            sig_bytes.write(x_frame)
-        sig_bytes = sig_bytes.getvalue()
         log.debug('signature size: %d bytes', len(sig_bytes))
 
         data = util.frame(util.frame(key['type']), util.frame(sig_bytes))
