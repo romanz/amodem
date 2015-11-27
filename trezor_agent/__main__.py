@@ -41,6 +41,18 @@ def identity_from_gitconfig():
     return 'ssh://{0}@{1}/{2}'.format(user, host, path)
 
 
+def ssh_args(label):
+    identity = trezor.client.string_to_identity(label, identity_type=dict)
+
+    args = []
+    if 'port' in identity:
+        args += ['-p', identity['port']]
+    if 'user' in identity:
+        args += ['-l', identity['user']]
+
+    return ['ssh'] + args + [identity['host']]
+
+
 def create_agent_parser():
     p = argparse.ArgumentParser()
     p.add_argument('-v', '--verbose', default=0, action='count')
@@ -92,7 +104,7 @@ def run_agent(client_factory):
 
         use_shell = False
         if args.connect:
-            command = ['ssh', label] + args.command
+            command = ssh_args(label) + args.command
             log.debug('SSH connect: %r', command)
 
         if args.shell:
