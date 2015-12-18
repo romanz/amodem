@@ -79,26 +79,43 @@ def parse_pubkey(blob):
     return result
 
 
-def decompress_pubkey(pub):
-    if pub[:1] == b'\x00':
+def _decompress_ed25519(pubkey):
+    if pubkey[:1] == b'\x00':
         # set by Trezor fsm_msgSignIdentity() and fsm_msgGetPublicKey()
-        return ed25519.VerifyingKey(pub[1:])
+        return ed25519.VerifyingKey(pubkey[1:])
 
-    if pub[:1] in {b'\x02', b'\x03'}:  # set by ecdsa_get_public_key33()
+
+def _decompress_nist256(pubkey):
+    if pubkey[:1] in {b'\x02', b'\x03'}:  # set by ecdsa_get_public_key33()
         curve = ecdsa.NIST256p
         P = curve.curve.p()
         A = curve.curve.a()
         B = curve.curve.b()
-        x = util.bytes2num(pub[1:33])
+        x = util.bytes2num(pubkey[1:33])
         beta = pow(int(x * x * x + A * x + B), int((P + 1) // 4), int(P))
 
-        p0 = util.bytes2num(pub[:1])
+        p0 = util.bytes2num(pubkey[:1])
         y = (P - beta) if ((beta + p0) % 2) else beta
 
         point = ecdsa.ellipticcurve.Point(curve.curve, x, y)
         return ecdsa.VerifyingKey.from_public_point(point, curve=curve,
                                                     hashfunc=hashfunc)
-    raise ValueError('invalid {!r}', pub)
+
+
+def decompress_pubkey(pubkey, curve_name):
+    vk = None
+    if len(pubkey) == 33:
+        decompress = {
+            CURVE_NIST256: _decompress_nist256,
+            CURVE_ED25519: _decompress_ed25519
+        }[curve_name]
+        vk = decompress(pubkey)
+
+    if not vk:
+        msg = 'invalid {!s} public key: {!r}'.format(curve_name, pubkey)
+        raise ValueError(msg)
+
+    return vk
 
 
 def serialize_verifying_key(vk):
@@ -119,10 +136,8 @@ def serialize_verifying_key(vk):
     raise TypeError('unsupported {!r}'.format(vk))
 
 
-def export_public_key(pubkey, label):
-    assert len(pubkey) == 33
-    key_type, blob = serialize_verifying_key(decompress_pubkey(pubkey))
-
+def export_public_key(vk, label):
+    key_type, blob = serialize_verifying_key(vk)
     log.debug('fingerprint: %s', fingerprint(blob))
     b64 = base64.b64encode(blob).decode('ascii')
     return '{} {} {}\n'.format(key_type.decode('ascii'), b64, label)

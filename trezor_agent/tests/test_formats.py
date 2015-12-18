@@ -35,8 +35,9 @@ def test_parse_public_key():
 
 def test_decompress():
     blob = '036236ceabde25207e81e404586e3a3af1acda1dfed2abbbb4876c1fc5b296b575'
-    result = formats.export_public_key(binascii.unhexlify(blob), label='home')
-    assert result == _public_key
+    vk = formats.decompress_pubkey(binascii.unhexlify(blob),
+                                   curve_name=formats.CURVE_NIST256)
+    assert formats.export_public_key(vk, label='home') == _public_key
 
 
 def test_parse_ed25519():
@@ -57,7 +58,7 @@ def test_parse_ed25519():
 def test_export_ed25519():
     pub = (b'\x00P]\x17kc}#\xbc\x9c\xb2"\xef~\xa2\xb3\xe7\xf4'
            b'z\xba\xb6\xf1\x14\xdc\xec)\x0c\xd7SY\xb52\x91')
-    vk = formats.decompress_pubkey(pub)
+    vk = formats.decompress_pubkey(pub, formats.CURVE_ED25519)
     result = formats.serialize_verifying_key(vk)
     assert result == (b'ssh-ed25519',
                       b'\x00\x00\x00\x0bssh-ed25519\x00\x00\x00 P]\x17kc}#\xbc'
@@ -67,7 +68,25 @@ def test_export_ed25519():
 
 def test_decompress_error():
     with pytest.raises(ValueError):
-        formats.decompress_pubkey('')
+        formats.decompress_pubkey('', formats.CURVE_NIST256)
+
+
+def test_curve_mismatch():
+    # NIST256 public key
+    blob = '036236ceabde25207e81e404586e3a3af1acda1dfed2abbbb4876c1fc5b296b575'
+    with pytest.raises(ValueError):
+        formats.decompress_pubkey(binascii.unhexlify(blob),
+                                  curve_name=formats.CURVE_ED25519)
+
+    blob = '00' * 33  # Dummy public key
+    with pytest.raises(ValueError):
+        formats.decompress_pubkey(binascii.unhexlify(blob),
+                                  curve_name=formats.CURVE_NIST256)
+
+    blob = 'FF' * 33  # Unsupported prefix byte
+    with pytest.raises(ValueError):
+        formats.decompress_pubkey(binascii.unhexlify(blob),
+                                  curve_name=formats.CURVE_NIST256)
 
 
 def test_serialize_error():

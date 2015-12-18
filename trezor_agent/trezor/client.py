@@ -57,7 +57,8 @@ class Client(object):
                                            ecdsa_curve_name=self.curve)
 
         pubkey = node.node.public_key
-        return formats.export_public_key(pubkey=pubkey, label=label)
+        vk = formats.decompress_pubkey(pubkey=pubkey, curve_name=self.curve)
+        return formats.export_public_key(vk=vk, label=label)
 
     def sign_ssh_challenge(self, label, blob):
         identity = self.get_identity(label=label)
@@ -72,7 +73,8 @@ class Client(object):
                                            challenge_visual=visual,
                                            ecdsa_curve_name=self.curve)
 
-        verifying_key = formats.decompress_pubkey(result.public_key)
+        verifying_key = formats.decompress_pubkey(pubkey=result.public_key,
+                                                  curve_name=self.curve)
         key_type, blob = formats.serialize_verifying_key(verifying_key)
         assert blob == msg['public_key']['blob']
         assert key_type == msg['key_type']
