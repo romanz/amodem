@@ -24,7 +24,7 @@ def test_list():
 
 
 def ecdsa_signer(label, blob):
-    assert label == b'ssh://localhost'
+    assert label == 'ssh://localhost'
     assert blob == NIST256_BLOB
     return NIST256_SIG
 
@@ -45,7 +45,7 @@ def test_sign_missing():
 
 def test_sign_wrong():
     def wrong_signature(label, blob):
-        assert label == b'ssh://localhost'
+        assert label == 'ssh://localhost'
         assert blob == NIST256_BLOB
         return b'\x00' * 64
 
@@ -65,7 +65,7 @@ ED25519_SIG = b'''\x8eb)\xa6\xe9P\x83VE\xfbq\xc6\xbf\x1dV3\xe3<O\x11\xc0\xfa\xe4
 
 
 def ed25519_signer(label, blob):
-    assert label == b'ssh://localhost'
+    assert label == 'ssh://localhost'
     assert blob == ED25519_BLOB
     return ED25519_SIG
 
