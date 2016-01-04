@@ -1,10 +1,10 @@
 import io
 import binascii
+import logging
 
 from . import util
 from . import formats
 
-import logging
 log = logging.getLogger(__name__)
 
 SSH_AGENTC_REQUEST_RSA_IDENTITIES = 1
@@ -87,7 +87,8 @@ class Handler(object):
             raise MissingKey('key not found')
 
         log.debug('signing %d-byte blob', len(blob))
-        signature = self.signer(label=key['name'], blob=blob)
+        label = key['name'].decode('ascii')  # label should be a string
+        signature = self.signer(label=label, blob=blob)
         log.debug('signature: %s', binascii.hexlify(signature))
 
         try:

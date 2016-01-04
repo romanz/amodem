@@ -10,7 +10,7 @@ install:
 
 script:
   - pep8 trezor_agent
-  - pylint --report=no --rcfile .pylintrc trezor_agent
+  - pylint --reports=no --rcfile .pylintrc trezor_agent
   - coverage run --source trezor_agent/ -m py.test -v
 
 after_success:

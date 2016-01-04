@@ -7,7 +7,7 @@ def client():
     from trezorlib.transport_hid import HidTransport
     from trezorlib.messages_pb2 import PassphraseAck
 
-    devices = HidTransport.enumerate()
+    devices = list(HidTransport.enumerate())
     if len(devices) != 1:
         msg = '{:d} Trezor devices found'.format(len(devices))
         raise IOError(msg)

@@ -1,7 +1,7 @@
+import pytest
+
 from .. import protocol
 from .. import formats
-
-import pytest
 
 # pylint: disable=line-too-long
 

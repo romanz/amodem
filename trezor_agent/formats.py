@@ -1,12 +1,12 @@
 import io
 import hashlib
 import base64
+import logging
 import ecdsa
 import ed25519
 
 from . import util
 
-import logging
 log = logging.getLogger(__name__)
 
 # Supported ECDSA curves
@@ -52,11 +52,11 @@ def parse_pubkey(blob):
 
         curve = ecdsa.NIST256p
         point = ecdsa.ellipticcurve.Point(curve.curve, *coords)
-        vk = ecdsa.VerifyingKey.from_public_point(point, curve, hashfunc)
 
         def ecdsa_verifier(sig, msg):
             assert len(sig) == 2 * size
             sig_decode = ecdsa.util.sigdecode_string
+            vk = ecdsa.VerifyingKey.from_public_point(point, curve, hashfunc)
             vk.verify(signature=sig, data=msg, sigdecode=sig_decode)
             parts = [sig[:size], sig[size:]]
             return b''.join([util.frame(b'\x00' + p) for p in parts])
@@ -67,10 +67,10 @@ def parse_pubkey(blob):
     if key_type == SSH_ED25519_KEY_TYPE:
         pubkey = util.read_frame(s)
         assert s.read() == b''
-        vk = ed25519.VerifyingKey(pubkey)
 
         def ed25519_verify(sig, msg):
             assert len(sig) == 64
+            vk = ed25519.VerifyingKey(pubkey)
             vk.verify(sig, msg)
             return sig
 

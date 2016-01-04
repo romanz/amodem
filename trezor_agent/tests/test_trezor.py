@@ -1,8 +1,8 @@
-from ..trezor import client
-from .. import formats
-
 import mock
 import pytest
+
+from ..trezor import client
+from .. import formats
 
 
 ADDR = [2147483661, 2810943954, 3938368396, 3454558782, 3848009040]

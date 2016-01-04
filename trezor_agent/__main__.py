@@ -4,12 +4,12 @@ import sys
 import argparse
 import subprocess
 import functools
+import logging
 
 from . import trezor
 from . import server
 from . import formats
 
-import logging
 log = logging.getLogger(__name__)
 
 
@@ -65,10 +65,11 @@ def create_agent_parser():
                    help='run ${SHELL} as subprocess under SSH agent')
     g.add_argument('-c', '--connect', default=False, action='store_true',
                    help='connect to specified host via SSH')
-    curves = ', '.join(sorted(formats.SUPPORTED_CURVES))
+    curve_names = [name.decode('ascii') for name in formats.SUPPORTED_CURVES]
+    curve_names = ', '.join(sorted(curve_names))
     p.add_argument('-e', '--ecdsa-curve-name', metavar='CURVE',
                    default=formats.CURVE_NIST256,
-                   help='specify ECDSA curve name: ' + curves)
+                   help='specify ECDSA curve name: ' + curve_names)
     p.add_argument('command', type=str, nargs='*', metavar='ARGUMENT',
                    help='command to run under the SSH agent')
     return p

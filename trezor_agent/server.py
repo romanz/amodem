@@ -4,12 +4,12 @@ import subprocess
 import tempfile
 import contextlib
 import threading
+import logging
 
 from . import protocol
 from . import formats
 from . import util
 
-import logging
 log = logging.getLogger(__name__)
 
 
