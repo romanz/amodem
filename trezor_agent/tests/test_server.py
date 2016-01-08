@@ -1,5 +1,6 @@
 import tempfile
 import socket
+import threading
 import os
 import io
 import pytest
@@ -16,7 +17,7 @@ def test_socket():
     assert not os.path.isfile(path)
 
 
-class SocketMock(object):
+class FakeSocket(object):
 
     def __init__(self, data=b''):
         self.rx = io.BytesIO(data)
@@ -34,16 +35,16 @@ class SocketMock(object):
 
 def test_handle():
     handler = protocol.Handler(keys=[], signer=None)
-    conn = SocketMock()
+    conn = FakeSocket()
     server.handle_connection(conn, handler)
 
     msg = bytearray([protocol.SSH_AGENTC_REQUEST_RSA_IDENTITIES])
-    conn = SocketMock(util.frame(msg))
+    conn = FakeSocket(util.frame(msg))
     server.handle_connection(conn, handler)
     assert conn.tx.getvalue() == b'\x00\x00\x00\x05\x02\x00\x00\x00\x00'
 
     msg = bytearray([protocol.SSH2_AGENTC_REQUEST_IDENTITIES])
-    conn = SocketMock(util.frame(msg))
+    conn = FakeSocket(util.frame(msg))
     server.handle_connection(conn, handler)
     assert conn.tx.getvalue() == b'\x00\x00\x00\x05\x0C\x00\x00\x00\x00'
 
@@ -51,25 +52,24 @@ def test_handle():
         server.handle_connection(conn=None, handler=None)
 
 
-class ServerMock(object):
-
-    def __init__(self, connections, name):
-        self.connections = connections
-        self.name = name
-
-    def getsockname(self):
-        return self.name
-
-    def accept(self):
-        if self.connections:
-            return self.connections.pop(), 'address'
-        raise socket.error('stop')
-
-
 def test_server_thread():
-    s = ServerMock(connections=[SocketMock()], name='mock')
-    h = protocol.Handler(keys=[], signer=None)
-    server.server_thread(s, h)
+
+    connections = [FakeSocket()]
+    quit_event = threading.Event()
+
+    class FakeServer(object):
+        def accept(self):  # pylint: disable=no-self-use
+            if connections:
+                return connections.pop(), 'address'
+            quit_event.set()
+            raise socket.timeout()
+
+        def getsockname(self):  # pylint: disable=no-self-use
+            return 'fake_server'
+
+    server.server_thread(server=FakeServer(),
+                         handler=protocol.Handler(keys=[], signer=None),
+                         quit_event=quit_event)
 
 
 def test_spawn():
@@ -78,7 +78,7 @@ def test_spawn():
     def thread(x):
         obj.append(x)
 
-    with server.spawn(thread, x=1):
+    with server.spawn(thread, dict(x=1)):
         pass
 
     assert obj == [1]
