@@ -89,7 +89,7 @@ def serve(public_keys, signer, sock_path=None):
 
 
 def run_process(command, environ, use_shell=False):
-    log.debug('running %r with %r', command, environ)
+    log.info('running %r with %r', command, environ)
     env = dict(os.environ)
     env.update(environ)
     try:
