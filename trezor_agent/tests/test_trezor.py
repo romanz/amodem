@@ -1,8 +1,10 @@
+import io
 import mock
 import pytest
 
 from ..trezor import client
 from .. import formats
+from .. import util
 
 
 ADDR = [2147483661, 2810943954, 3938368396, 3454558782, 3848009040]
@@ -107,7 +109,15 @@ def test_ssh_agent():
         signature = c.sign_ssh_challenge(label=label, blob=BLOB)
 
         key = formats.import_public_key(PUBKEY_TEXT)
-        assert key['verifier'](sig=signature, msg=BLOB)
+        serialized_sig = key['verifier'](sig=signature, msg=BLOB)
+
+        stream = io.BytesIO(serialized_sig)
+        r = util.read_frame(stream)
+        s = util.read_frame(stream)
+        assert not stream.read()
+        assert r[:1] == b'\x00'
+        assert s[:1] == b'\x00'
+        assert r[1:] + s[1:] == SIG[1:]
 
 
 def test_utils():
