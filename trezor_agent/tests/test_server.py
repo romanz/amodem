@@ -4,6 +4,7 @@ import threading
 import os
 import io
 import pytest
+import mock
 
 from .. import server
 from .. import protocol
@@ -48,8 +49,9 @@ def test_handle():
     server.handle_connection(conn, handler)
     assert conn.tx.getvalue() == b'\x00\x00\x00\x05\x0C\x00\x00\x00\x00'
 
-    with pytest.raises(AttributeError):
-        server.handle_connection(conn=None, handler=None)
+    conn_mock = mock.Mock(spec=FakeSocket)
+    conn_mock.recv.side_effect = [Exception, EOFError]
+    server.handle_connection(conn=conn_mock, handler=None)
 
 
 def test_server_thread():

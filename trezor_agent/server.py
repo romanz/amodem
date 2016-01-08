@@ -46,6 +46,8 @@ def handle_connection(conn, handler):
             util.send(conn, reply)
     except EOFError:
         log.debug('goodbye agent')
+    except Exception as e:  # pylint: disable=broad-except
+        log.warning('error: %s', e, exc_info=True)
 
 
 def retry(func, exception_type, quit_event):
