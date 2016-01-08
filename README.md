@@ -13,7 +13,11 @@ See SatoshiLabs' blog post about this feature:
 
 ## Screencast demo usage
 
+### Simple usage (single SSH session)
 [![Demo](https://asciinema.org/a/22959.png)](https://asciinema.org/a/22959)
+
+### Advanced usage (multiple SSH sessions from a sub-shell)
+[![Subshell](https://asciinema.org/a/33240.png)](https://asciinema.org/a/33240)
 
 ## Installation
 
