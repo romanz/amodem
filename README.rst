@@ -1,6 +1,10 @@
 Audio Modem Communication Library
 =================================
 
+.. image:: https://badges.gitter.im/romanz/amodem.svg
+   :alt: Join the chat at https://gitter.im/romanz/amodem
+   :target: https://gitter.im/romanz/amodem?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+
 .. image:: https://travis-ci.org/romanz/amodem.svg?branch=master
     :target: https://travis-ci.org/romanz/amodem
     :alt: Build Status
