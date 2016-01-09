@@ -1,5 +1,5 @@
-import struct
 import io
+import struct
 
 
 def send(conn, data, fmt=None):

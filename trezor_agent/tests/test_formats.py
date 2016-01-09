@@ -1,4 +1,5 @@
 import binascii
+
 import pytest
 
 from .. import formats

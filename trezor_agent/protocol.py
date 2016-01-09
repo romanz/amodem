@@ -1,9 +1,8 @@
-import io
 import binascii
+import io
 import logging
 
-from . import util
-from . import formats
+from . import formats, util
 
 log = logging.getLogger(__name__)
 

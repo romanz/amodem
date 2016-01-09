@@ -1,14 +1,12 @@
-import socket
+import contextlib
+import logging
 import os
+import socket
 import subprocess
 import tempfile
-import contextlib
 import threading
-import logging
 
-from . import protocol
-from . import formats
-from . import util
+from . import formats, protocol, util
 
 log = logging.getLogger(__name__)
 

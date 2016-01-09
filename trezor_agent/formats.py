@@ -1,7 +1,8 @@
-import io
-import hashlib
 import base64
+import hashlib
+import io
 import logging
+
 import ecdsa
 import ed25519
 

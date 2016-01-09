@@ -1,12 +1,11 @@
+import binascii
 import io
+import logging
 import re
 import struct
-import binascii
-import logging
 
-from .. import util
-from .. import formats
 from . import _factory as TrezorFactory
+from .. import formats, util
 
 log = logging.getLogger(__name__)
 

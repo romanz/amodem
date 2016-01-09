@@ -1,14 +1,13 @@
-import tempfile
-import socket
-import threading
-import os
 import io
-import pytest
-import mock
+import os
+import socket
+import tempfile
+import threading
 
-from .. import server
-from .. import protocol
-from .. import util
+import mock
+import pytest
+
+from .. import protocol, server, util
 
 
 def test_socket():

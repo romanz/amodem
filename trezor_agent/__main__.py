@@ -1,14 +1,12 @@
-import os
-import re
-import sys
 import argparse
-import subprocess
 import functools
 import logging
+import os
+import re
+import subprocess
+import sys
 
-from . import trezor
-from . import server
-from . import formats
+from . import formats, server, trezor
 
 log = logging.getLogger(__name__)
 
