@@ -3,5 +3,16 @@ language: python
 python:
   - "2.7"
   - "3.4"
-install: pip install tox-travis
-script: tox
+
+install:
+  - pip install ecdsa ed25519  # test without trezorlib for now
+  - pip install pylint coverage pep8
+
+script:
+  - pep8 trezor_agent
+  - pylint --reports=no --rcfile .pylintrc trezor_agent
+  - coverage run --source trezor_agent/ -m py.test -v
+
+after_success:
+  - coverage report
+
