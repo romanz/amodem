@@ -9,7 +9,7 @@ setup(
     author_email='roman.zeyde@gmail.com',
     url='http://github.com/romanz/trezor-agent',
     packages=['trezor_agent', 'trezor_agent.trezor'],
-    install_requires=['ecdsa>=0.13', 'ed25519>=1.4', 'Cython>=0.23.4', 'trezor>=0.6.6'],
+    install_requires=['ecdsa>=0.13', 'ed25519>=1.4', 'Cython>=0.23.4', 'trezor>=0.6.6', 'keepkey>=0.7.0'],
     platforms=['POSIX'],
     classifiers=[
         'Development Status :: 4 - Beta',

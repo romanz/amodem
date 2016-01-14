@@ -4,7 +4,7 @@ import logging
 import re
 import struct
 
-from . import _factory as TrezorFactory
+from . import _factory as Factory
 from .. import formats, util
 
 log = logging.getLogger(__name__)
@@ -12,9 +12,10 @@ log = logging.getLogger(__name__)
 
 class Client(object):
 
-    MIN_VERSION = [1, 3, 4]
+    TREZOR_MIN_VERSION = [1, 3, 4]
+    KEEPKEY_MIN_VERSION = [1, 0, 4]
 
-    def __init__(self, factory=TrezorFactory, curve=formats.CURVE_NIST256):
+    def __init__(self, factory=Factory, curve=formats.CURVE_NIST256):
         self.curve = curve
         self.factory = factory
         self.client = self.factory.client()
@@ -26,9 +27,13 @@ class Client(object):
         version_str = '.'.join([str(v) for v in version])
         log.debug('version  : %s', version_str)
         log.debug('revision : %s', binascii.hexlify(f.revision))
-        if version < self.MIN_VERSION:
+        if f.vendor == 'bitcointrezor.com' and version < self.TREZOR_MIN_VERSION:
             fmt = 'Please upgrade your TREZOR to v{}+ firmware'
-            version_str = '.'.join([str(v) for v in self.MIN_VERSION])
+            version_str = '.'.join([str(v) for v in self.TREZOR_MIN_VERSION])
+            raise ValueError(fmt.format(version_str))
+        elif f.vendor == 'keepkey.com' and version < self.KEEPKEY_MIN_VERSION:
+            fmt = 'Please upgrade your KEEPKEY to v{}+ firmware'
+            version_str = '.'.join([str(v) for v in self.KEEPKEY_MIN_VERSION])
             raise ValueError(fmt.format(version_str))
 
     def __enter__(self):
@@ -42,7 +47,11 @@ class Client(object):
         self.client.close()
 
     def get_identity(self, label):
-        identity = string_to_identity(label, self.factory.identity_type)
+        identity = string_to_identity(label, self.factory.trezor_identity_type)
+
+        if self.client.features.vendor == 'keepkey.com':
+            identity = string_to_identity(label, self.factory.keepkey_identity_type)
+
         identity.proto = 'ssh'
         return identity
 
