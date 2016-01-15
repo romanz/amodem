@@ -4,7 +4,7 @@ import logging
 import re
 import struct
 
-from . import _factory as Factory
+from . import factory
 from .. import formats, util
 
 log = logging.getLogger(__name__)
@@ -12,29 +12,12 @@ log = logging.getLogger(__name__)
 
 class Client(object):
 
-    TREZOR_MIN_VERSION = [1, 3, 4]
-    KEEPKEY_MIN_VERSION = [1, 0, 4]
-
-    def __init__(self, factory=Factory, curve=formats.CURVE_NIST256):
+    def __init__(self, loader=factory.load, curve=formats.CURVE_NIST256):
+        client_wrapper = loader()
+        self.client = client_wrapper.connection
+        self.identity_type = client_wrapper.identity_type
+        self.device_name = client_wrapper.device_name
         self.curve = curve
-        self.factory = factory
-        self.client = self.factory.client()
-        f = self.client.features
-        log.debug('connected to Trezor %s', f.device_id)
-        log.debug('label    : %s', f.label)
-        log.debug('vendor   : %s', f.vendor)
-        version = [f.major_version, f.minor_version, f.patch_version]
-        version_str = '.'.join([str(v) for v in version])
-        log.debug('version  : %s', version_str)
-        log.debug('revision : %s', binascii.hexlify(f.revision))
-        if f.vendor == 'bitcointrezor.com' and version < self.TREZOR_MIN_VERSION:
-            fmt = 'Please upgrade your TREZOR to v{}+ firmware'
-            version_str = '.'.join([str(v) for v in self.TREZOR_MIN_VERSION])
-            raise ValueError(fmt.format(version_str))
-        elif f.vendor == 'keepkey.com' and version < self.KEEPKEY_MIN_VERSION:
-            fmt = 'Please upgrade your KEEPKEY to v{}+ firmware'
-            version_str = '.'.join([str(v) for v in self.KEEPKEY_MIN_VERSION])
-            raise ValueError(fmt.format(version_str))
 
     def __enter__(self):
         msg = 'Hello World!'
@@ -42,24 +25,20 @@ class Client(object):
         return self
 
     def __exit__(self, *args):
-        log.info('disconnected from Trezor')
+        log.info('disconnected from %s', self.device_name)
         self.client.clear_session()  # forget PIN and shutdown screen
         self.client.close()
 
     def get_identity(self, label):
-        identity = string_to_identity(label, self.factory.trezor_identity_type)
-
-        if self.client.features.vendor == 'keepkey.com':
-            identity = string_to_identity(label, self.factory.keepkey_identity_type)
-
+        identity = string_to_identity(label, self.identity_type)
         identity.proto = 'ssh'
         return identity
 
     def get_public_key(self, label):
         identity = self.get_identity(label=label)
         label = identity_to_string(identity)  # canonize key label
-        log.info('getting "%s" public key (%s) from Trezor...',
-                 label, self.curve)
+        log.info('getting "%s" public key (%s) from %s...',
+                 label, self.curve, self.device_name)
         addr = _get_address(identity)
         node = self.client.get_public_node(n=addr,
                                            ecdsa_curve_name=self.curve)
@@ -72,8 +51,8 @@ class Client(object):
         identity = self.get_identity(label=label)
         msg = _parse_ssh_blob(blob)
 
-        log.info('please confirm user "%s" login to "%s" using Trezor...',
-                 msg['user'], label)
+        log.info('please confirm user "%s" login to "%s" using %s...',
+                 msg['user'], label, self.device_name)
 
         visual = identity.path  # not signed when proto='ssh'
         result = self.client.sign_identity(identity=identity,

@@ -1,10 +1,9 @@
 import io
 
 import mock
-import pytest
 
 from .. import formats, util
-from ..trezor import client
+from ..trezor import client, factory
 
 ADDR = [2147483661, 2810943954, 3938368396, 3454558782, 3848009040]
 CURVE = 'nist256p1'
@@ -18,15 +17,7 @@ PUBKEY_TEXT = ('ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzd'
 
 class ConnectionMock(object):
 
-    def __init__(self, version):
-        self.features = mock.Mock(spec=[])
-        self.features.device_id = '123456789'
-        self.features.label = 'mywallet'
-        self.features.vendor = 'mock'
-        self.features.major_version = version[0]
-        self.features.minor_version = version[1]
-        self.features.patch_version = version[2]
-        self.features.revision = b'456'
+    def __init__(self):
         self.closed = False
 
     def close(self):
@@ -49,21 +40,20 @@ class ConnectionMock(object):
         return msg
 
 
-class FactoryMock(object):
+def identity_type(**kwargs):
+    result = mock.Mock(spec=[])
+    result.index = 0
+    result.proto = result.user = result.host = result.port = None
+    result.path = None
+    for k, v in kwargs.items():
+        setattr(result, k, v)
+    return result
 
-    @staticmethod
-    def client():
-        return ConnectionMock(version=(1, 3, 4))
 
-    @staticmethod
-    def identity_type(**kwargs):
-        result = mock.Mock(spec=[])
-        result.index = 0
-        result.proto = result.user = result.host = result.port = None
-        result.path = None
-        for k, v in kwargs.items():
-            setattr(result, k, v)
-        return result
+def load_client():
+    return factory.ClientWrapper(connection=ConnectionMock(),
+                                 identity_type=identity_type,
+                                 device_name='DEVICE_NAME')
 
 
 BLOB = (b'\x00\x00\x00 \xce\xe0\xc9\xd5\xceu/\xe8\xc5\xf2\xbfR+x\xa1\xcf\xb0'
@@ -82,7 +72,7 @@ SIG = (b'\x00R\x19T\xf2\x84$\xef#\x0e\xee\x04X\xc6\xc3\x99T`\xd1\xd8\xf7!'
 
 def test_ssh_agent():
     label = 'localhost:22'
-    c = client.Client(factory=FactoryMock)
+    c = client.Client(loader=load_client)
     ident = c.get_identity(label=label)
     assert ident.host == 'localhost'
     assert ident.proto == 'ssh'
@@ -129,15 +119,3 @@ def test_utils():
 
     url = 'https://user@host:443/path'
     assert client.identity_to_string(identity) == url
-
-
-def test_old_version():
-
-    class OldFactoryMock(FactoryMock):
-
-        @staticmethod
-        def client():
-            return ConnectionMock(version=(1, 2, 3))
-
-    with pytest.raises(ValueError):
-        client.Client(factory=OldFactoryMock)
