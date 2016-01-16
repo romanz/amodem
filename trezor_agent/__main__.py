@@ -68,6 +68,9 @@ def create_agent_parser():
     p.add_argument('-e', '--ecdsa-curve-name', metavar='CURVE',
                    default=formats.CURVE_NIST256,
                    help='specify ECDSA curve name: ' + curve_names)
+    p.add_argument('--timeout',
+                   default=server.UNIX_SOCKET_TIMEOUT, type=float,
+                   help='Timeout for accepting SSH client connections')
     p.add_argument('command', type=str, nargs='*', metavar='ARGUMENT',
                    help='command to run under the SSH agent')
     return p
@@ -116,8 +119,11 @@ def run_agent(client_factory):
 
         try:
             signer = functools.partial(ssh_sign, client=client)
-            with server.serve(public_keys=[public_key], signer=signer) as env:
-                return server.run_process(command=command, environ=env,
+            with server.serve(public_keys=[public_key],
+                              signer=signer,
+                              timeout=args.timeout) as env:
+                return server.run_process(command=command,
+                                          environ=env,
                                           use_shell=use_shell)
         except KeyboardInterrupt:
             log.info('server stopped')
