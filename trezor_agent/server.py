@@ -63,6 +63,7 @@ def server_thread(server, handler, quit_event):
 
     def accept_connection():
         conn, _ = server.accept()
+        conn.settimeout(None)
         return conn
 
     while True:

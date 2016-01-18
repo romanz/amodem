@@ -32,6 +32,9 @@ class FakeSocket(object):
     def close(self):
         pass
 
+    def settimeout(self, value):
+        pass
+
 
 def test_handle():
     handler = protocol.Handler(keys=[], signer=None)
