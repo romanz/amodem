@@ -68,11 +68,20 @@ def _load_keepkey():
                         identity_type=IdentityType,
                         required_version='>=1.0.4')
 
+LOADERS = [
+    _load_trezor,
+    _load_keepkey
+]
 
-def load():
-    devices = list(_load_trezor()) + list(_load_keepkey())
-    if len(devices) == 1:
-        return devices[0]
 
-    msg = '{:d} devices found'.format(len(devices))
+def load(loaders=None):
+    loaders = loaders if loaders is not None else LOADERS
+    device_list = []
+    for loader in loaders:
+        device_list.extend(loader())
+
+    if len(device_list) == 1:
+        return device_list[0]
+
+    msg = '{:d} devices found'.format(len(device_list))
     raise IOError(msg)
