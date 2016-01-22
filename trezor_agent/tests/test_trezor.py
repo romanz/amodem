@@ -15,7 +15,7 @@ PUBKEY_TEXT = ('ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzd'
                'VUfhvrGljR2Z/CMRONY6ejB+9PnpUOPuzYqi8= ssh://localhost:22\n')
 
 
-class ConnectionMock(object):
+class FakeConnection(object):
 
     def __init__(self):
         self.closed = False
@@ -51,7 +51,7 @@ def identity_type(**kwargs):
 
 
 def load_client():
-    return factory.ClientWrapper(connection=ConnectionMock(),
+    return factory.ClientWrapper(connection=FakeConnection(),
                                  identity_type=identity_type,
                                  device_name='DEVICE_NAME')
 

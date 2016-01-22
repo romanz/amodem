@@ -29,11 +29,13 @@ def test_load():
         factory.load(loaders=[double])
 
 
-factory_load_client = factory._load_client  # pylint: disable=protected-access
+def factory_load_client(**kwargs):
+    # pylint: disable=protected-access
+    return list(factory._load_client(**kwargs))
 
 
 def test_load_nothing():
-    hid_transport = mock.Mock()
+    hid_transport = mock.Mock(spec_set=['enumerate'])
     hid_transport.enumerate.return_value = []
     result = factory_load_client(
         name=None,
@@ -42,36 +44,36 @@ def test_load_nothing():
         passphrase_ack=None,
         identity_type=None,
         required_version=None)
-    assert list(result) == []
+    assert result == []
 
 
 def create_client_type(version):
-    conn = mock.Mock()
-    conn.features = mock.Mock()
+    conn = mock.Mock(spec=[])
+    conn.features = mock.Mock(spec=[])
     major, minor, patch = version.split('.')
+    conn.features.device_id = 'DEVICE_ID'
+    conn.features.label = 'LABEL'
+    conn.features.vendor = 'VENDOR'
     conn.features.major_version = major
     conn.features.minor_version = minor
     conn.features.patch_version = patch
     conn.features.revision = b'\x12\x34\x56\x78'
-    client_type = mock.Mock()
-    client_type.return_value = conn
-    return client_type
+    return mock.Mock(spec_set=[], return_value=conn)
 
 
 def test_load_single():
-    hid_transport = mock.Mock()
+    hid_transport = mock.Mock(spec_set=['enumerate'])
     hid_transport.enumerate.return_value = [0]
     for version in ('1.3.4', '1.3.5', '1.4.0', '2.0.0'):
-        passphrase_ack = mock.Mock()
+        passphrase_ack = mock.Mock(spec_set=[])
         client_type = create_client_type(version)
-        result = factory_load_client(
+        client_wrapper, = factory_load_client(
             name='DEVICE_NAME',
             client_type=client_type,
             hid_transport=hid_transport,
             passphrase_ack=passphrase_ack,
             identity_type=None,
             required_version='>=1.3.4')
-        client_wrapper, = result
         assert client_wrapper.connection is client_type.return_value
         assert client_wrapper.device_name == 'DEVICE_NAME'
         client_wrapper.connection.callback_PassphraseRequest('MESSAGE')
@@ -79,14 +81,14 @@ def test_load_single():
 
 
 def test_load_old():
-    hid_transport = mock.Mock()
+    hid_transport = mock.Mock(spec_set=['enumerate'])
     hid_transport.enumerate.return_value = [0]
     for version in ('1.3.3', '1.2.5', '1.1.0', '0.9.9'):
         with pytest.raises(ValueError):
-            next(factory_load_client(
+            factory_load_client(
                 name='DEVICE_NAME',
                 client_type=create_client_type(version),
                 hid_transport=hid_transport,
                 passphrase_ack=None,
                 identity_type=None,
-                required_version='>=1.3.4'))
+                required_version='>=1.3.4')

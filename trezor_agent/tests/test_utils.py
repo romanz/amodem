@@ -24,7 +24,7 @@ def test_frames():
     assert util.read_frame(io.BytesIO(f)) == b''.join(msgs)
 
 
-class SocketMock(object):
+class FakeSocket(object):
     def __init__(self):
         self.buf = io.BytesIO()
 
@@ -36,7 +36,7 @@ class SocketMock(object):
 
 
 def test_send_recv():
-    s = SocketMock()
+    s = FakeSocket()
     util.send(s, b'123')
     util.send(s, data=[42], fmt='B')
     assert s.buf.getvalue() == b'123*'
