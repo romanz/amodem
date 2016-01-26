@@ -29,9 +29,10 @@ class MissingKey(Error):
 
 class Handler(object):
 
-    def __init__(self, keys, signer):
+    def __init__(self, keys, signer, debug=False):
         self.public_keys = keys
         self.signer = signer
+        self.debug = debug
 
         self.methods = {
             SSH_AGENTC_REQUEST_RSA_IDENTITIES: Handler.legacy_pubs,
@@ -40,13 +41,15 @@ class Handler(object):
         }
 
     def handle(self, msg):
-        log.debug('request: %d bytes', len(msg))
+        debug_msg = ': {!r}'.format(msg) if self.debug else ''
+        log.debug('request: %d bytes%s', len(msg), debug_msg)
         buf = io.BytesIO(msg)
         code, = util.recv(buf, '>B')
         method = self.methods[code]
         log.debug('calling %s()', method.__name__)
         reply = method(buf=buf)
-        log.debug('reply: %d bytes', len(reply))
+        debug_reply = ': {!r}'.format(reply) if self.debug else ''
+        log.debug('reply: %d bytes%s', len(reply), debug_reply)
         return reply
 
     @staticmethod
