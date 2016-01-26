@@ -101,7 +101,8 @@ def test_run():
 
 
 def test_serve_main():
-    with server.serve(public_keys=[], signer=None, sock_path=None):
+    handler = protocol.Handler(keys=[], signer=None)
+    with server.serve(handler=handler, sock_path=None):
         pass
 
 

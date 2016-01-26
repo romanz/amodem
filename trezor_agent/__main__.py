@@ -6,7 +6,7 @@ import re
 import subprocess
 import sys
 
-from . import formats, server, trezor
+from . import formats, protocol, server, trezor
 
 log = logging.getLogger(__name__)
 
@@ -71,6 +71,8 @@ def create_agent_parser():
     p.add_argument('--timeout',
                    default=server.UNIX_SOCKET_TIMEOUT, type=float,
                    help='Timeout for accepting SSH client connections')
+    p.add_argument('--debug', default=False, action='store_true',
+                   help='Log SSH protocol messages for debugging.')
     p.add_argument('command', type=str, nargs='*', metavar='ARGUMENT',
                    help='command to run under the SSH agent')
     return p
@@ -119,9 +121,10 @@ def run_agent(client_factory):
 
         try:
             signer = functools.partial(ssh_sign, client=client)
-            with server.serve(public_keys=[public_key],
-                              signer=signer,
-                              timeout=args.timeout) as env:
+            public_keys = [formats.import_public_key(public_key)]
+            handler = protocol.Handler(keys=public_keys, signer=signer,
+                                       debug=args.debug)
+            with server.serve(handler=handler, timeout=args.timeout) as env:
                 return server.run_process(command=command,
                                           environ=env,
                                           use_shell=use_shell)
