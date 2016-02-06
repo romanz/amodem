@@ -51,6 +51,10 @@ class Client(object):
     def sign_ssh_challenge(self, label, blob):
         identity = self.get_identity(label=label)
         msg = _parse_ssh_blob(blob)
+        log.debug('%s: user %r via %r (%r)',
+                  msg['conn'], msg['user'], msg['auth'], msg['key_type'])
+        log.debug('nonce: %s', binascii.hexlify(msg['nonce']))
+        log.debug('fingerprint: %s', msg['public_key']['fingerprint'])
 
         log.info('please confirm user "%s" login to "%s" using %s...',
                  msg['user'], label, self.device_name)
@@ -130,8 +134,4 @@ def _parse_ssh_blob(data):
     public_key = util.read_frame(i)
     res['public_key'] = formats.parse_pubkey(public_key)
     assert not i.read()
-    log.debug('%s: user %r via %r (%r)',
-              res['conn'], res['user'], res['auth'], res['key_type'])
-    log.debug('nonce: %s', binascii.hexlify(res['nonce']))
-    log.debug('fingerprint: %s', res['public_key']['fingerprint'])
     return res
