@@ -18,6 +18,7 @@ class Client(object):
         self.identity_type = client_wrapper.identity_type
         self.device_name = client_wrapper.device_name
         self.curve = curve
+        self.identity_index = 0
 
     def __enter__(self):
         msg = 'Hello World!'
@@ -32,6 +33,7 @@ class Client(object):
     def get_identity(self, label):
         identity = string_to_identity(label, self.identity_type)
         identity.proto = 'ssh'
+        identity.index = self.identity_index
         return identity
 
     def get_public_key(self, label):

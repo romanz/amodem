@@ -79,6 +79,7 @@ def test_ssh_agent():
     assert ident.port == '22'
     assert ident.user is None
     assert ident.path is None
+    assert ident.index == 0
 
     with c:
         assert c.get_public_key(label) == PUBKEY_TEXT
