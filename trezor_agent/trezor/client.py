@@ -119,20 +119,19 @@ def _get_address(identity):
 
 def _parse_ssh_blob(data):
     res = {}
-    if data:
-        i = io.BytesIO(data)
-        res['nonce'] = util.read_frame(i)
-        i.read(1)  # TBD
-        res['user'] = util.read_frame(i)
-        res['conn'] = util.read_frame(i)
-        res['auth'] = util.read_frame(i)
-        i.read(1)  # TBD
-        res['key_type'] = util.read_frame(i)
-        public_key = util.read_frame(i)
-        res['public_key'] = formats.parse_pubkey(public_key)
-        assert not i.read()
-        log.debug('%s: user %r via %r (%r)',
-                  res['conn'], res['user'], res['auth'], res['key_type'])
-        log.debug('nonce: %s', binascii.hexlify(res['nonce']))
-        log.debug('fingerprint: %s', res['public_key']['fingerprint'])
+    i = io.BytesIO(data)
+    res['nonce'] = util.read_frame(i)
+    i.read(1)  # TBD
+    res['user'] = util.read_frame(i)
+    res['conn'] = util.read_frame(i)
+    res['auth'] = util.read_frame(i)
+    i.read(1)  # TBD
+    res['key_type'] = util.read_frame(i)
+    public_key = util.read_frame(i)
+    res['public_key'] = formats.parse_pubkey(public_key)
+    assert not i.read()
+    log.debug('%s: user %r via %r (%r)',
+              res['conn'], res['user'], res['auth'], res['key_type'])
+    log.debug('nonce: %s', binascii.hexlify(res['nonce']))
+    log.debug('fingerprint: %s', res['public_key']['fingerprint'])
     return res
