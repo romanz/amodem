@@ -18,7 +18,6 @@ class Client(object):
         self.identity_type = client_wrapper.identity_type
         self.device_name = client_wrapper.device_name
         self.curve = curve
-        self.identity_index = 0
 
     def __enter__(self):
         msg = 'Hello World!'
@@ -30,10 +29,10 @@ class Client(object):
         self.client.clear_session()  # forget PIN and shutdown screen
         self.client.close()
 
-    def get_identity(self, label):
+    def get_identity(self, label, index=0):
         identity = string_to_identity(label, self.identity_type)
         identity.proto = 'ssh'
-        identity.index = self.identity_index
+        identity.index = index
         return identity
 
     def get_public_key(self, label):
