@@ -125,11 +125,11 @@ def _parse_ssh_blob(data):
     res = {}
     i = io.BytesIO(data)
     res['nonce'] = util.read_frame(i)
-    i.read(1)  # TBD
+    i.read(1)  # SSH2_MSG_USERAUTH_REQUEST == 50 (from ssh2.h, line 108)
     res['user'] = util.read_frame(i)
     res['conn'] = util.read_frame(i)
     res['auth'] = util.read_frame(i)
-    i.read(1)  # TBD
+    i.read(1)  # have_sig == 1 (from sshconnect2.c, line 1056)
     res['key_type'] = util.read_frame(i)
     public_key = util.read_frame(i)
     res['public_key'] = formats.parse_pubkey(public_key)
