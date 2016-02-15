@@ -2,41 +2,11 @@ import argparse
 import functools
 import logging
 import os
-import re
-import subprocess
 import sys
 
 from . import formats, protocol, server, client
 
 log = logging.getLogger(__name__)
-
-
-def identity_from_gitconfig():
-    out = subprocess.check_output(args='git config --list --local'.split())
-    config = [line.split('=', 1) for line in out.strip().split('\n')]
-    config_dict = dict(item for item in config if len(item) == 2)
-
-    name_regex = re.compile(r'^remote\..*\.trezor$')
-    names = [item[0] for item in config if name_regex.match(item[0])]
-    if len(names) != 1:
-        log.error('please add "trezor" key '
-                  'to a single remote section at .git/config')
-        sys.exit(1)
-    key_name = names[0]
-    identity_label = config_dict.get(key_name)
-    if identity_label:
-        return identity_label
-
-    # extract remote name marked as TREZOR's
-    section_name, _ = key_name.rsplit('.', 1)
-
-    key_name = section_name + '.url'
-    url = config_dict[key_name]
-    log.debug('using "%s=%s" from git-config', key_name, url)
-
-    user, url = url.split('@', 1)
-    host, path = url.split(':', 1)
-    return 'ssh://{0}@{1}/{2}'.format(user, host, path)
 
 
 def ssh_args(label):
@@ -97,12 +67,6 @@ def run_agent(client_factory):
     with client_factory(curve=args.ecdsa_curve_name) as conn:
         label = args.identity
         command = args.command
-
-        if label == 'git':
-            label = identity_from_gitconfig()
-            log.info('using identity %r for git command %r', label, command)
-            if command:
-                command = ['git'] + command
 
         public_key = conn.get_public_key(label=label)
 
