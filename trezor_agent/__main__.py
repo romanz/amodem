@@ -106,13 +106,13 @@ def run_agent(client_factory):
 
         public_key = conn.get_public_key(label=label)
 
-        use_shell = False
         if args.connect:
             command = ssh_args(label) + args.command
             log.debug('SSH connect: %r', command)
 
-        if args.shell:
-            command, use_shell = os.environ['SHELL'], True
+        use_shell = bool(args.shell)
+        if use_shell:
+            command = os.environ['SHELL']
             log.debug('using shell: %r', command)
 
         if not command:
