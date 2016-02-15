@@ -3,7 +3,7 @@ import io
 import mock
 
 from .. import formats, util
-from ..trezor import client, factory
+from .. import client, factory
 
 ADDR = [2147483661, 2810943954, 3938368396, 3454558782, 3848009040]
 CURVE = 'nist256p1'

@@ -5,7 +5,7 @@ import re
 import struct
 
 from . import factory
-from .. import formats, util
+from . import formats, util
 
 log = logging.getLogger(__name__)
 

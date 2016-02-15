@@ -6,7 +6,7 @@ import re
 import subprocess
 import sys
 
-from . import formats, protocol, server, trezor
+from . import formats, protocol, server, client
 
 log = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ def identity_from_gitconfig():
 
 
 def ssh_args(label):
-    identity = trezor.client.string_to_identity(label, identity_type=dict)
+    identity = client.string_to_identity(label, identity_type=dict)
 
     args = []
     if 'port' in identity:
@@ -86,15 +86,15 @@ def setup_logging(verbosity):
     logging.basicConfig(format=fmt, level=level)
 
 
-def ssh_sign(client, label, blob):
-    return client.sign_ssh_challenge(label=label, blob=blob)
+def ssh_sign(conn, label, blob):
+    return conn.sign_ssh_challenge(label=label, blob=blob)
 
 
 def run_agent(client_factory):
     args = create_agent_parser().parse_args()
     setup_logging(verbosity=args.verbose)
 
-    with client_factory(curve=args.ecdsa_curve_name) as client:
+    with client_factory(curve=args.ecdsa_curve_name) as conn:
         label = args.identity
         command = args.command
 
@@ -104,7 +104,7 @@ def run_agent(client_factory):
             if command:
                 command = ['git'] + command
 
-        public_key = client.get_public_key(label=label)
+        public_key = conn.get_public_key(label=label)
 
         use_shell = False
         if args.connect:
@@ -120,7 +120,7 @@ def run_agent(client_factory):
             return
 
         try:
-            signer = functools.partial(ssh_sign, client=client)
+            signer = functools.partial(ssh_sign, conn=conn)
             public_keys = [formats.import_public_key(public_key)]
             handler = protocol.Handler(keys=public_keys, signer=signer,
                                        debug=args.debug)
@@ -132,5 +132,5 @@ def run_agent(client_factory):
             log.info('server stopped')
 
 
-def trezor_agent():
-    run_agent(trezor.Client)
+def main():
+    run_agent(client.Client)

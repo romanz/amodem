@@ -1,7 +1,7 @@
 import mock
 import pytest
 
-from ..trezor import factory
+from .. import factory
 
 
 def test_load():
