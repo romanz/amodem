@@ -4,7 +4,7 @@ import logging
 import os
 import sys
 
-from . import formats, protocol, server, client
+from . import client, formats, protocol, server
 
 log = logging.getLogger(__name__)
 

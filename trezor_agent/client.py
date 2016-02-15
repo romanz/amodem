@@ -4,8 +4,7 @@ import logging
 import re
 import struct
 
-from . import factory
-from . import formats, util
+from . import factory, formats, util
 
 log = logging.getLogger(__name__)
 
