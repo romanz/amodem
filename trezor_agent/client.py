@@ -47,7 +47,7 @@ class Client(object):
         vk = formats.decompress_pubkey(pubkey=pubkey, curve_name=self.curve)
         return formats.export_public_key(vk=vk, label=label)
 
-    def sign_ssh_challenge(self, label, blob):
+    def sign_ssh_challenge(self, label, blob, visual=''):
         identity = self.get_identity(label=label)
         msg = _parse_ssh_blob(blob)
         log.debug('%s: user %r via %r (%r)',
@@ -58,7 +58,6 @@ class Client(object):
         log.info('please confirm user "%s" login to "%s" using %s...',
                  msg['user'], label, self.device_name)
 
-        visual = identity.path  # not signed when proto='ssh'
         result = self.client.sign_identity(identity=identity,
                                            challenge_hidden=blob,
                                            challenge_visual=visual,

@@ -3,6 +3,7 @@ import functools
 import logging
 import os
 import sys
+import time
 
 from . import client, formats, protocol, server
 
@@ -57,7 +58,8 @@ def setup_logging(verbosity):
 
 
 def ssh_sign(conn, label, blob):
-    return conn.sign_ssh_challenge(label=label, blob=blob)
+    now = time.strftime('%Y-%m-%d %H:%M:%S')
+    return conn.sign_ssh_challenge(label=label, blob=blob, visual=now)
 
 
 def run_agent(client_factory):

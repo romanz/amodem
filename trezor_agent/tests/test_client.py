@@ -85,8 +85,10 @@ def test_ssh_agent():
 
         def ssh_sign_identity(identity, challenge_hidden,
                               challenge_visual, ecdsa_curve_name):
+            assert (client.identity_to_string(identity) ==
+                    client.identity_to_string(ident))
             assert challenge_hidden == BLOB
-            assert challenge_visual == identity.path
+            assert challenge_visual == 'VISUAL'
             assert ecdsa_curve_name == b'nist256p1'
 
             result = mock.Mock(spec=[])
@@ -95,7 +97,8 @@ def test_ssh_agent():
             return result
 
         c.client.sign_identity = ssh_sign_identity
-        signature = c.sign_ssh_challenge(label=label, blob=BLOB)
+        signature = c.sign_ssh_challenge(label=label, blob=BLOB,
+                                         visual='VISUAL')
 
         key = formats.import_public_key(PUBKEY_TEXT)
         serialized_sig = key['verifier'](sig=signature, msg=BLOB)
