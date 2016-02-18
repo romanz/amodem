@@ -7,7 +7,6 @@ from amodem.config import Configuration
 def run(args):
     config = Configuration()
     with open(args.filename, 'wb') as dst:
-        print dst
         interface = audio.Interface(config=config)
         with interface.load(args.audio_library):
             src = interface.recorder()
