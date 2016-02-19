@@ -1,3 +1,4 @@
+"""SSH-agent implementation using hardware authentication devices."""
 import argparse
 import functools
 import logging
@@ -11,6 +12,7 @@ log = logging.getLogger(__name__)
 
 
 def ssh_args(label):
+    """Create SSH command for connecting specified server."""
     identity = client.string_to_identity(label, identity_type=dict)
 
     args = []
@@ -23,6 +25,7 @@ def ssh_args(label):
 
 
 def create_agent_parser():
+    """Create argparse.ArgumentParser for this tool."""
     p = argparse.ArgumentParser()
     p.add_argument('-v', '--verbose', default=0, action='count')
 
@@ -50,6 +53,7 @@ def create_agent_parser():
 
 
 def setup_logging(verbosity):
+    """Configure logging for this tool."""
     fmt = ('%(asctime)s %(levelname)-12s %(message)-100s '
            '[%(filename)s:%(lineno)d]')
     levels = [logging.WARNING, logging.INFO, logging.DEBUG]
@@ -58,11 +62,13 @@ def setup_logging(verbosity):
 
 
 def ssh_sign(conn, label, blob):
+    """Perform SSH signature using given hardware device connection."""
     now = time.strftime('%Y-%m-%d %H:%M:%S')
     return conn.sign_ssh_challenge(label=label, blob=blob, visual=now)
 
 
 def run_agent(client_factory):
+    """Run ssh-agent using given hardware client factory."""
     args = create_agent_parser().parse_args()
     setup_logging(verbosity=args.verbose)
 
@@ -99,4 +105,5 @@ def run_agent(client_factory):
 
 
 def main():
+    """Main entry point (see setup.py)."""
     run_agent(client.Client)
