@@ -1,3 +1,4 @@
+"""SSH format parsing and formatting tools."""
 import base64
 import hashlib
 import io
@@ -27,11 +28,23 @@ hashfunc = hashlib.sha256
 
 
 def fingerprint(blob):
+    """
+    Compute SSH fingerprint for specified blob.
+
+    See https://en.wikipedia.org/wiki/Public_key_fingerprint for details.
+    """
     digest = hashlib.md5(blob).digest()
     return ':'.join('{:02x}'.format(c) for c in bytearray(digest))
 
 
 def parse_pubkey(blob):
+    """
+    Parse SSH public key from given blob.
+
+    Cnstruct a verifier for ECDSA signatures.
+    The verifier returns the signatures in the required SSH format.
+    Currently, NIST256P1 and ED25519 elliptic curves are supported.
+    """
     fp = fingerprint(blob)
     s = io.BytesIO(blob)
     key_type = util.read_frame(s)
@@ -81,12 +94,20 @@ def parse_pubkey(blob):
 
 
 def _decompress_ed25519(pubkey):
+    """Load public key from the serialized blob (stripping the prefix byte)."""
     if pubkey[:1] == b'\x00':
         # set by Trezor fsm_msgSignIdentity() and fsm_msgGetPublicKey()
         return ed25519.VerifyingKey(pubkey[1:])
 
 
 def _decompress_nist256(pubkey):
+    """
+    Load public key from the serialized blob.
+
+    The leading byte least-significant bit is used to decide how to recreate
+    the y-coordinate from the specified x-coordinate. See bitcoin/main.py#L198
+    (from https://github.com/vbuterin/pybitcointools/) for details.
+    """
     if pubkey[:1] in {b'\x02', b'\x03'}:  # set by ecdsa_get_public_key33()
         curve = ecdsa.NIST256p
         P = curve.curve.p()
@@ -104,6 +125,11 @@ def _decompress_nist256(pubkey):
 
 
 def decompress_pubkey(pubkey, curve_name):
+    """
+    Load public key from the serialized blob.
+
+    Raise ValueError on parsing error.
+    """
     vk = None
     if len(pubkey) == 33:
         decompress = {
@@ -120,6 +146,12 @@ def decompress_pubkey(pubkey, curve_name):
 
 
 def serialize_verifying_key(vk):
+    """
+    Serialize a public key into SSH format (for exporting to text format).
+
+    Currently, NIST256P1 and ED25519 elliptic curves are supported.
+    Raise TypeError on unsupported key format.
+    """
     if isinstance(vk, ed25519.keys.VerifyingKey):
         pubkey = vk.to_bytes()
         key_type = SSH_ED25519_KEY_TYPE
@@ -138,6 +170,12 @@ def serialize_verifying_key(vk):
 
 
 def export_public_key(vk, label):
+    """
+    Export public key to text format.
+
+    The resulting string can be written into a .pub file or
+    appended to the ~/.ssh/authorized_keys file.
+    """
     key_type, blob = serialize_verifying_key(vk)
     log.debug('fingerprint: %s', fingerprint(blob))
     b64 = base64.b64encode(blob).decode('ascii')
@@ -145,7 +183,7 @@ def export_public_key(vk, label):
 
 
 def import_public_key(line):
-    ''' Parse public key textual format, as saved at .pub file '''
+    """Parse public key textual format, as saved at a .pub file."""
     log.debug('loading SSH public key: %r', line)
     file_type, base64blob, name = line.split()
     blob = base64.b64decode(base64blob)
