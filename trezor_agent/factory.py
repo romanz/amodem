@@ -1,4 +1,4 @@
-''' Thin wrapper around trezor/keepkey libraries. '''
+"""Thin wrapper around trezor/keepkey libraries."""
 import binascii
 import collections
 import logging
@@ -75,6 +75,7 @@ LOADERS = [
 
 
 def load(loaders=None):
+    """Load a single device, via specified loaders' list."""
     loaders = loaders if loaders is not None else LOADERS
     device_list = []
     for loader in loaders:
