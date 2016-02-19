@@ -1,3 +1,8 @@
+"""
+Connection to hardware authentication device.
+
+It is used for getting SSH public keys and ECDSA signing of server requests.
+"""
 import binascii
 import io
 import logging
@@ -10,8 +15,10 @@ log = logging.getLogger(__name__)
 
 
 class Client(object):
+    """Client wrapper for SSH authentication device."""
 
     def __init__(self, loader=factory.load, curve=formats.CURVE_NIST256):
+        """Connect to hardware device."""
         client_wrapper = loader()
         self.client = client_wrapper.connection
         self.identity_type = client_wrapper.identity_type
@@ -19,22 +26,26 @@ class Client(object):
         self.curve = curve
 
     def __enter__(self):
+        """Start a session, and test connection."""
         msg = 'Hello World!'
         assert self.client.ping(msg) == msg
         return self
 
     def __exit__(self, *args):
+        """Forget PIN, shutdown screen and disconnect."""
         log.info('disconnected from %s', self.device_name)
-        self.client.clear_session()  # forget PIN and shutdown screen
+        self.client.clear_session()
         self.client.close()
 
     def get_identity(self, label, index=0):
+        """Parse label string into Identity protobuf."""
         identity = string_to_identity(label, self.identity_type)
         identity.proto = 'ssh'
         identity.index = index
         return identity
 
     def get_public_key(self, label):
+        """Get SSH public key corresponding to specified by label."""
         identity = self.get_identity(label=label)
         label = identity_to_string(identity)  # canonize key label
         log.info('getting "%s" public key (%s) from %s...',
@@ -48,6 +59,7 @@ class Client(object):
         return formats.export_public_key(vk=vk, label=label)
 
     def sign_ssh_challenge(self, label, blob, visual=''):
+        """Sign given blob using a private key, specified by the label."""
         identity = self.get_identity(label=label)
         msg = _parse_ssh_blob(blob)
         log.debug('%s: user %r via %r (%r)',
@@ -86,6 +98,7 @@ _identity_regexp = re.compile(''.join([
 
 
 def string_to_identity(s, identity_type):
+    """Parse string into Identity protobuf."""
     m = _identity_regexp.match(s)
     result = m.groupdict()
     log.debug('parsed identity: %s', result)
@@ -94,6 +107,7 @@ def string_to_identity(s, identity_type):
 
 
 def identity_to_string(identity):
+    """Dump Identity protobuf into its string representation."""
     result = []
     if identity.proto:
         result.append(identity.proto + '://')
