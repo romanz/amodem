@@ -38,7 +38,7 @@ class FakeSocket(object):
 def test_send_recv():
     s = FakeSocket()
     util.send(s, b'123')
-    util.send(s, data=[42], fmt='B')
+    util.send(s, b'*')
     assert s.buf.getvalue() == b'123*'
 
     s.buf.seek(0)
