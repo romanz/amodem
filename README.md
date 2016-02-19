@@ -6,7 +6,6 @@
 [![Development Status](https://img.shields.io/pypi/status/trezor_agent.svg)](https://pypi.python.org/pypi/trezor_agent/)
 [![Downloads](https://img.shields.io/pypi/dm/trezor_agent.svg)](https://pypi.python.org/pypi/trezor_agent/)
 [![Chat](https://badges.gitter.im/romanz/trezor-agent.svg)](https://gitter.im/romanz/trezor-agent)
-[![License](https://img.shields.io/github/license/romanz/trezor-agent.svg)](https://github.com/romanz/trezor-agent/blob/master/LICENSE)
 
 See SatoshiLabs' blog post about this feature:
 
