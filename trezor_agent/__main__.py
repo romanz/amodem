@@ -64,6 +64,7 @@ def setup_logging(verbosity):
 
 
 def git_host(remote_name):
+    """Extract git SSH host for specified remote name."""
     output = subprocess.check_output('git config --local --list'.split())
     pattern = r'remote\.{}\.url=(.*)'.format(remote_name)
     matches = re.findall(pattern, output)
@@ -74,6 +75,7 @@ def git_host(remote_name):
     user, url = url.split('@', 1)
     host, path = url.split(':', 1)
     return 'ssh://{}@{}/{}'.format(user, host, path)
+
 
 def ssh_sign(conn, label, blob):
     """Perform SSH signature using given hardware device connection."""
