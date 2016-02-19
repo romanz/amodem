@@ -71,7 +71,7 @@ def test_server_thread():
         def getsockname(self):  # pylint: disable=no-self-use
             return 'fake_server'
 
-    server.server_thread(server=FakeServer(),
+    server.server_thread(sock=FakeServer(),
                          handler=protocol.Handler(keys=[], signer=None),
                          quit_event=quit_event)
 
