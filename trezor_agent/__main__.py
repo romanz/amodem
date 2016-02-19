@@ -2,7 +2,9 @@
 import argparse
 import functools
 import logging
+import re
 import os
+import subprocess
 import sys
 import time
 
@@ -61,6 +63,18 @@ def setup_logging(verbosity):
     logging.basicConfig(format=fmt, level=level)
 
 
+def git_host(remote_name):
+    output = subprocess.check_output('git config --local --list'.split())
+    pattern = r'remote\.{}\.url=(.*)'.format(remote_name)
+    matches = re.findall(pattern, output)
+    log.debug('git remote "%r": %r', remote_name, matches)
+    if len(matches) != 1:
+        raise ValueError('{:d} git remotes found: %s', matches)
+    url = matches[0].strip()
+    user, url = url.split('@', 1)
+    host, path = url.split(':', 1)
+    return 'ssh://{}@{}/{}'.format(user, host, path)
+
 def ssh_sign(conn, label, blob):
     """Perform SSH signature using given hardware device connection."""
     now = time.strftime('%Y-%m-%d %H:%M:%S')
@@ -75,6 +89,13 @@ def run_agent(client_factory):
     with client_factory(curve=args.ecdsa_curve_name) as conn:
         label = args.identity
         command = args.command
+
+        if label == 'git':
+            label = git_host('origin')
+            log.debug('Git identity: %r', label)
+            if args.command:
+                command = ['git'] + args.command
+                log.debug('Git command: %r', command)
 
         public_key = conn.get_public_key(label=label)
 
