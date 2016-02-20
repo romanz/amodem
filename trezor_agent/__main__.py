@@ -39,6 +39,8 @@ def create_agent_parser():
                    help='run ${SHELL} as subprocess under SSH agent')
     g.add_argument('-c', '--connect', default=False, action='store_true',
                    help='connect to specified host via SSH')
+    g.add_argument('-g', '--git', default=False, action='store_true',
+                   help='run git using specified identity as remote name')
     curve_names = [name.decode('ascii') for name in formats.SUPPORTED_CURVES]
     curve_names = ', '.join(sorted(curve_names))
     p.add_argument('-e', '--ecdsa-curve-name', metavar='CURVE',
@@ -92,11 +94,11 @@ def run_agent(client_factory):
         label = args.identity
         command = args.command
 
-        if label == 'git':
-            label = git_host('origin')
+        if args.git:
+            label = git_host(remote_name=label)
             log.debug('Git identity: %r', label)
-            if args.command:
-                command = ['git'] + args.command
+            if command:
+                command = ['git'] + command
                 log.debug('Git command: %r', command)
 
         public_key = conn.get_public_key(label=label)
