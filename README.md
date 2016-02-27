@@ -24,6 +24,7 @@ See SatoshiLabs' blog post about this feature:
 First, make sure that the latest `trezorlib` Python package
 is installed correctly (at least v0.6.6):
 
+	$ apt-get install python-dev libusb-1.0-0-dev libudev-dev
 	$ pip install Cython trezor
 
 Then, install the latest `trezor_agent` package:
