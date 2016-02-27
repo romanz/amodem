@@ -66,6 +66,8 @@ class Client(object):
                   msg['conn'], msg['user'], msg['auth'], msg['key_type'])
         log.debug('nonce: %s', binascii.hexlify(msg['nonce']))
         log.debug('fingerprint: %s', msg['public_key']['fingerprint'])
+        log.debug('hidden challenge size: %d bytes', len(blob))
+        log.debug('visual challenge size: %d bytes', len(visual))
 
         log.info('please confirm user "%s" login to "%s" using %s...',
                  msg['user'], label, self.device_name)
