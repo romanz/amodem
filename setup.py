@@ -12,9 +12,11 @@ setup(
     install_requires=['ecdsa>=0.13', 'ed25519>=1.4', 'Cython>=0.23.4', 'trezor>=0.6.6', 'keepkey>=0.7.0', 'semver>=2.2'],
     platforms=['POSIX'],
     classifiers=[
+        'Environment :: Console',
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Intended Audience :: Information Technology',
+        'Intended Audience :: System Administrators',
         'License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)',
         'Operating System :: POSIX',
         'Programming Language :: Python :: 2.7',
@@ -22,6 +24,8 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: System :: Networking',
         'Topic :: Communications',
+        'Topic :: Security',
+        'Topic :: Utilities',
     ],
     entry_points={'console_scripts': [
         'trezor-agent = trezor_agent.__main__:run_agent',
