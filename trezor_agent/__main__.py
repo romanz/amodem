@@ -26,21 +26,11 @@ def ssh_args(label):
     return ['ssh'] + args + [identity['host']]
 
 
-def create_agent_parser():
+def create_parser():
     """Create argparse.ArgumentParser for this tool."""
     p = argparse.ArgumentParser()
     p.add_argument('-v', '--verbose', default=0, action='count')
 
-    p.add_argument('identity', type=str, default=None,
-                   help='proto://[user@]host[:port][/path]')
-
-    g = p.add_mutually_exclusive_group()
-    g.add_argument('-s', '--shell', default=False, action='store_true',
-                   help='run ${SHELL} as subprocess under SSH agent')
-    g.add_argument('-c', '--connect', default=False, action='store_true',
-                   help='connect to specified host via SSH')
-    g.add_argument('-g', '--git', default=False, action='store_true',
-                   help='run git using specified identity as remote name')
     curve_names = [name.decode('ascii') for name in formats.SUPPORTED_CURVES]
     curve_names = ', '.join(sorted(curve_names))
     p.add_argument('-e', '--ecdsa-curve-name', metavar='CURVE',
@@ -53,6 +43,20 @@ def create_agent_parser():
                    help='Log SSH protocol messages for debugging.')
     p.add_argument('command', type=str, nargs='*', metavar='ARGUMENT',
                    help='command to run under the SSH agent')
+    return p
+
+def create_agent_parser():
+    p = create_parser()
+    p.add_argument('identity', type=str, default=None,
+                   help='proto://[user@]host[:port][/path]')
+
+    g = p.add_mutually_exclusive_group()
+    g.add_argument('-s', '--shell', default=False, action='store_true',
+                   help='run ${SHELL} as subprocess under SSH agent')
+    g.add_argument('-c', '--connect', default=False, action='store_true',
+                   help='connect to specified host via SSH')
+    g.add_argument('-g', '--git', default=False, action='store_true',
+                   help='run git using specified identity as remote name')
     return p
 
 
