@@ -91,8 +91,8 @@ def git_host(remote_name):
         raise ValueError('{:d} git remotes found: %s', matches)
     url = matches[0].strip()
     user, url = url.split('@', 1)
-    host, path = url.split(':', 1)
-    return 'ssh://{}@{}/{}'.format(user, host, path)
+    host, _ = url.split(':', 1)  # skip unused path (1 key per user@host)
+    return 'ssh://{}@{}'.format(user, host)
 
 
 def ssh_sign(conn, label, blob):
