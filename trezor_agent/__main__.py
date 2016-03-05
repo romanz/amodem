@@ -131,9 +131,7 @@ def run_agent(client_factory):
             handler = protocol.Handler(keys=public_keys, signer=signer,
                                        debug=args.debug)
             with server.serve(handler=handler, timeout=args.timeout) as env:
-                return server.run_process(command=command,
-                                          environ=env,
-                                          use_shell=use_shell)
+                return server.run_process(command=command, environ=env)
         except KeyboardInterrupt:
             log.info('server stopped')
 

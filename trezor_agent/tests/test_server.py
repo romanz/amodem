@@ -91,10 +91,8 @@ def test_spawn():
 def test_run():
     assert server.run_process(['true'], environ={}) == 0
     assert server.run_process(['false'], environ={}) == 1
-    assert server.run_process(
-        command='exit $X',
-        environ={'X': '42'},
-        use_shell=True) == 42
+    assert server.run_process(command=['bash', '-c', 'exit $X'],
+                              environ={'X': '42'}) == 42
 
     with pytest.raises(OSError):
         server.run_process([''], environ={})

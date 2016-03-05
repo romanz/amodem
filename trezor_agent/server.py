@@ -131,7 +131,7 @@ def serve(handler, sock_path=None, timeout=UNIX_SOCKET_TIMEOUT):
                 quit_event.set()
 
 
-def run_process(command, environ, use_shell=False):
+def run_process(command, environ):
     """
     Run the specified process and wait until it finishes.
 
@@ -141,7 +141,7 @@ def run_process(command, environ, use_shell=False):
     env = dict(os.environ)
     env.update(environ)
     try:
-        p = subprocess.Popen(args=command, env=env, shell=use_shell)
+        p = subprocess.Popen(args=command, env=env)
     except OSError as e:
         raise OSError('cannot run %r: %s' % (command, e))
     log.debug('subprocess %d is running', p.pid)
