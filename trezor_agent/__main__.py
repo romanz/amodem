@@ -41,22 +41,34 @@ def create_parser():
                    help='Timeout for accepting SSH client connections')
     p.add_argument('--debug', default=False, action='store_true',
                    help='Log SSH protocol messages for debugging.')
-    p.add_argument('command', type=str, nargs='*', metavar='ARGUMENT',
-                   help='command to run under the SSH agent')
     return p
 
+
 def create_agent_parser():
+    """Specific parser for SSH connection."""
     p = create_parser()
-    p.add_argument('identity', type=str, default=None,
-                   help='proto://[user@]host[:port][/path]')
 
     g = p.add_mutually_exclusive_group()
     g.add_argument('-s', '--shell', default=False, action='store_true',
                    help='run ${SHELL} as subprocess under SSH agent')
     g.add_argument('-c', '--connect', default=False, action='store_true',
                    help='connect to specified host via SSH')
-    g.add_argument('-g', '--git', default=False, action='store_true',
-                   help='run git using specified identity as remote name')
+
+    p.add_argument('identity', type=str, default=None,
+                   help='proto://[user@]host[:port][/path]')
+    p.add_argument('command', type=str, nargs='*', metavar='ARGUMENT',
+                   help='command to run under the SSH agent')
+    return p
+
+
+def create_git_parser():
+    """Specific parser for git commands."""
+    p = create_parser()
+
+    p.add_argument('-r', '--remote', default='origin',
+                   help='use this git remote URL to generate SSH identity')
+    p.add_argument('command', type=str, nargs='*', metavar='ARGUMENT',
+                   help='Git command to run under the SSH agent')
     return p
 
 
@@ -97,13 +109,6 @@ def run_agent(client_factory):
     with client_factory(curve=args.ecdsa_curve_name) as conn:
         label = args.identity
         command = args.command
-
-        if args.git:
-            label = git_host(remote_name=label)
-            log.debug('Git identity: %r', label)
-            if command:
-                command = ['git'] + command
-                log.debug('Git command: %r', command)
 
         public_key = conn.get_public_key(label=label)
 
