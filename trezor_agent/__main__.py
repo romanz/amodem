@@ -105,8 +105,9 @@ def run_server(conn, public_key, command, debug, timeout):
     """Common code for run_agent and run_git below."""
     try:
         signer = functools.partial(ssh_sign, conn=conn)
-        public_keys = [formats.import_public_key(public_key)]
-        handler = protocol.Handler(keys=public_keys, signer=signer,
+        public_key = formats.import_public_key(public_key)
+        log.info('using SSH public key: %s', public_key['fingerprint'])
+        handler = protocol.Handler(keys=[public_key], signer=signer,
                                    debug=debug)
         with server.serve(handler=handler, timeout=timeout) as env:
             return server.run_process(command=command, environ=env)
