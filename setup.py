@@ -24,6 +24,7 @@ setup(
         'Topic :: Communications',
     ],
     entry_points={'console_scripts': [
-        'trezor-agent = trezor_agent.__main__:main'
+        'trezor-agent = trezor_agent.__main__:run_agent',
+        'trezor-git = trezor_agent.__main__:run_git',
     ]},
 )

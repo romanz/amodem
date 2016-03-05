@@ -101,7 +101,20 @@ def ssh_sign(conn, label, blob):
     return conn.sign_ssh_challenge(label=label, blob=blob, visual=now)
 
 
-def run_agent(client_factory):
+def run_server(conn, public_key, command, debug, timeout):
+    """Common code for run_agent and run_git below."""
+    try:
+        signer = functools.partial(ssh_sign, conn=conn)
+        public_keys = [formats.import_public_key(public_key)]
+        handler = protocol.Handler(keys=public_keys, signer=signer,
+                                   debug=debug)
+        with server.serve(handler=handler, timeout=timeout) as env:
+            return server.run_process(command=command, environ=env)
+    except KeyboardInterrupt:
+        log.info('server stopped')
+
+
+def run_agent(client_factory=client.Client):
     """Run ssh-agent using given hardware client factory."""
     args = create_agent_parser().parse_args()
     setup_logging(verbosity=args.verbose)
@@ -125,17 +138,24 @@ def run_agent(client_factory):
             sys.stdout.write(public_key)
             return
 
-        try:
-            signer = functools.partial(ssh_sign, conn=conn)
-            public_keys = [formats.import_public_key(public_key)]
-            handler = protocol.Handler(keys=public_keys, signer=signer,
-                                       debug=args.debug)
-            with server.serve(handler=handler, timeout=args.timeout) as env:
-                return server.run_process(command=command, environ=env)
-        except KeyboardInterrupt:
-            log.info('server stopped')
+        return run_server(conn=conn, public_key=public_key, command=command,
+                          debug=args.debug, timeout=args.timeout)
 
 
-def main():
-    """Main entry point (see setup.py)."""
-    run_agent(client.Client)
+def run_git(client_factory=client.Client):
+    """Run git under ssh-agent using given hardware client factory."""
+    args = create_git_parser().parse_args()
+    setup_logging(verbosity=args.verbose)
+
+    with client_factory(curve=args.ecdsa_curve_name) as conn:
+        label = git_host(args.remote)
+
+        public_key = conn.get_public_key(label=label)
+
+        if not args.command:
+            sys.stdout.write(public_key)
+            return
+
+        return run_server(conn=conn, public_key=public_key,
+                          command=(['git'] + args.command),
+                          debug=args.debug, timeout=args.timeout)
