@@ -19,6 +19,9 @@ See SatoshiLabs' blog post about this feature:
 ### Advanced usage (multiple SSH sessions from a sub-shell)
 [![Subshell](https://asciinema.org/a/33240.png)](https://asciinema.org/a/33240)
 
+### Using for GitHub SSH authentication (via `trezor-git` utility)
+[![GitHub](https://asciinema.org/a/38337.png)](https://asciinema.org/a/38337)
+
 ## Installation
 
 First, make sure that the latest `trezorlib` Python package
