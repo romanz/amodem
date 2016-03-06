@@ -23,6 +23,7 @@ class Client(object):
         self.client = client_wrapper.connection
         self.identity_type = client_wrapper.identity_type
         self.device_name = client_wrapper.device_name
+        self.call_exception = client_wrapper.call_exception
         self.curve = curve
 
     def __enter__(self):
@@ -72,10 +73,15 @@ class Client(object):
         log.info('please confirm user "%s" login to "%s" using %s...',
                  msg['user'], label, self.device_name)
 
-        result = self.client.sign_identity(identity=identity,
-                                           challenge_hidden=blob,
-                                           challenge_visual=visual,
-                                           ecdsa_curve_name=self.curve)
+        try:
+            result = self.client.sign_identity(identity=identity,
+                                               challenge_hidden=blob,
+                                               challenge_visual=visual,
+                                               ecdsa_curve_name=self.curve)
+        except self.call_exception as e:
+            code, msg = e.args
+            log.warning('%s error #%s: %s', self.device_name, code, msg)
+            raise IOError(msg)
 
         verifying_key = formats.decompress_pubkey(pubkey=result.public_key,
                                                   curve_name=self.curve)
