@@ -9,12 +9,13 @@ log = logging.getLogger(__name__)
 
 ClientWrapper = collections.namedtuple(
     'ClientWrapper',
-    ['connection', 'identity_type', 'device_name'])
+    ['connection', 'identity_type', 'device_name', 'call_exception'])
 
 
 # pylint: disable=too-many-arguments
 def _load_client(name, client_type, hid_transport,
-                 passphrase_ack, identity_type, required_version):
+                 passphrase_ack, identity_type,
+                 required_version, call_exception):
 
     def empty_passphrase_handler(_):
         return passphrase_ack(passphrase='')
@@ -38,12 +39,13 @@ def _load_client(name, client_type, hid_transport,
                                         current_version))
         yield ClientWrapper(connection=connection,
                             identity_type=identity_type,
-                            device_name=name)
+                            device_name=name,
+                            call_exception=call_exception)
 
 
 def _load_trezor():
     # pylint: disable=import-error
-    from trezorlib.client import TrezorClient
+    from trezorlib.client import TrezorClient, CallException
     from trezorlib.transport_hid import HidTransport
     from trezorlib.messages_pb2 import PassphraseAck
     from trezorlib.types_pb2 import IdentityType
@@ -52,12 +54,13 @@ def _load_trezor():
                         hid_transport=HidTransport,
                         passphrase_ack=PassphraseAck,
                         identity_type=IdentityType,
-                        required_version='>=1.3.4')
+                        required_version='>=1.3.4',
+                        call_exception=CallException)
 
 
 def _load_keepkey():
     # pylint: disable=import-error
-    from keepkeylib.client import KeepKeyClient
+    from keepkeylib.client import KeepKeyClient, CallException
     from keepkeylib.transport_hid import HidTransport
     from keepkeylib.messages_pb2 import PassphraseAck
     from keepkeylib.types_pb2 import IdentityType
@@ -66,7 +69,8 @@ def _load_keepkey():
                         hid_transport=HidTransport,
                         passphrase_ack=PassphraseAck,
                         identity_type=IdentityType,
-                        required_version='>=1.0.4')
+                        required_version='>=1.0.4',
+                        call_exception=CallException)
 
 LOADERS = [
     _load_trezor,
