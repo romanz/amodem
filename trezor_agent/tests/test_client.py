@@ -52,7 +52,8 @@ def identity_type(**kwargs):
 def load_client():
     return factory.ClientWrapper(connection=FakeConnection(),
                                  identity_type=identity_type,
-                                 device_name='DEVICE_NAME')
+                                 device_name='DEVICE_NAME',
+                                 call_exception=Exception)
 
 
 BLOB = (b'\x00\x00\x00 \xce\xe0\xc9\xd5\xceu/\xe8\xc5\xf2\xbfR+x\xa1\xcf\xb0'

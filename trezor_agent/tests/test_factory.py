@@ -43,7 +43,8 @@ def test_load_nothing():
         hid_transport=hid_transport,
         passphrase_ack=None,
         identity_type=None,
-        required_version=None)
+        required_version=None,
+        call_exception=None)
     assert result == []
 
 
@@ -73,7 +74,8 @@ def test_load_single():
             hid_transport=hid_transport,
             passphrase_ack=passphrase_ack,
             identity_type=None,
-            required_version='>=1.3.4')
+            required_version='>=1.3.4',
+            call_exception=None)
         assert client_wrapper.connection is client_type.return_value
         assert client_wrapper.device_name == 'DEVICE_NAME'
         client_wrapper.connection.callback_PassphraseRequest('MESSAGE')
@@ -91,4 +93,5 @@ def test_load_old():
                 hid_transport=hid_transport,
                 passphrase_ack=None,
                 identity_type=None,
-                required_version='>=1.3.4')
+                required_version='>=1.3.4',
+                call_exception=None)
