@@ -81,18 +81,24 @@ def setup_logging(verbosity):
     logging.basicConfig(format=fmt, level=level)
 
 
-def git_host(remote_name):
+def git_host(remote_name, attributes):
     """Extract git SSH host for specified remote name."""
-    output = subprocess.check_output('git config --local --list'.split())
-    pattern = r'remote\.{}\.url=(.*)'.format(remote_name)
-    matches = re.findall(pattern, output)
-    log.debug('git remote "%r": %r', remote_name, matches)
-    if len(matches) != 1:
-        raise ValueError('{:d} git remotes found: %s', matches)
-    url = matches[0].strip()
-    user, url = url.split('@', 1)
-    host, _ = url.split(':', 1)  # skip unused path (1 key per user@host)
-    return 'ssh://{}@{}'.format(user, host)
+    try:
+        output = subprocess.check_output('git config --local --list'.split())
+    except subprocess.CalledProcessError:
+        return
+
+    for attribute in attributes:
+        name = r'remote.{0}.{1}'.format(remote_name, attribute)
+        matches = re.findall(re.escape(name) + '=(.*)', output)
+        log.debug('%r: %r', name, matches)
+        if not matches:
+            continue
+
+        url = matches[0].strip()
+        user, url = url.split('@', 1)
+        host, _ = url.split(':', 1)  # skip unused path (1 key per user@host)
+        return 'ssh://{}@{}'.format(user, host)
 
 
 def ssh_sign(conn, label, blob):
@@ -149,7 +155,10 @@ def run_git(client_factory=client.Client):
     setup_logging(verbosity=args.verbose)
 
     with client_factory(curve=args.ecdsa_curve_name) as conn:
-        label = git_host(args.remote)
+        label = git_host(args.remote, ['pushurl', 'url'])
+        if not label:
+            log.error('Could not find "%s" remote in .git/config', args.remote)
+            return
 
         public_key = conn.get_public_key(label=label)
 
