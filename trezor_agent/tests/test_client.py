@@ -1,6 +1,7 @@
 import io
 
 import mock
+import pytest
 
 from .. import client, factory, formats, util
 
@@ -112,6 +113,14 @@ def test_ssh_agent():
         assert s[:1] == b'\x00'
         assert r[1:] + s[1:] == SIG[1:]
 
+        c.client.call_exception = ValueError
+        def cancel_sign_identity(identity, challenge_hidden,
+                                 challenge_visual, ecdsa_curve_name):
+            raise c.client.call_exception(42, 'ERROR')
+
+        c.client.sign_identity = cancel_sign_identity
+        with pytest.raises(IOError):
+            c.sign_ssh_challenge(label=label, blob=BLOB, visual='VISUAL')
 
 def test_utils():
     identity = mock.Mock(spec=[])
