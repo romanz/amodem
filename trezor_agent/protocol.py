@@ -55,7 +55,8 @@ def msg_name(code):
     return ids[code]
 
 
-def _fail():
+def failure():
+    """Return error code to SSH binary."""
     error_msg = util.pack('B', msg_code('SSH_AGENT_FAILURE'))
     return util.frame(error_msg)
 
@@ -95,7 +96,7 @@ class Handler(object):
         code, = util.recv(buf, '>B')
         if code not in self.methods:
             log.warning('Unsupported command: %s (%d)', msg_name(code), code)
-            return _fail()
+            return failure()
 
         method = self.methods[code]
         log.debug('calling %s()', method.__name__)
@@ -142,7 +143,7 @@ class Handler(object):
         try:
             signature = self.signer(label=label, blob=blob)
         except IOError:
-            return _fail()
+            return failure()
         log.debug('signature: %s', binascii.hexlify(signature))
 
         try:
