@@ -67,6 +67,8 @@ def create_git_parser():
 
     p.add_argument('-r', '--remote', default='origin',
                    help='use this git remote URL to generate SSH identity')
+    p.add_argument('-t', '--test', action='store_true',
+                   help='test connection using `ssh -T user@host` command')
     p.add_argument('command', type=str, nargs='*', metavar='ARGUMENT',
                    help='Git command to run under the SSH agent')
     return p
@@ -98,7 +100,7 @@ def git_host(remote_name, attributes):
         url = matches[0].strip()
         user, url = url.split('@', 1)
         host, _ = url.split(':', 1)  # skip unused path (1 key per user@host)
-        return 'ssh://{}@{}'.format(user, host)
+        return '{}@{}'.format(user, host)
 
 
 def ssh_sign(conn, label, blob):
@@ -162,10 +164,14 @@ def run_git(client_factory=client.Client):
 
         public_key = conn.get_public_key(label=label)
 
-        if not args.command:
-            sys.stdout.write(public_key)
-            return
+        if not args.test:
+            if args.command:
+                command = ['git'] + args.command
+            else:
+                sys.stdout.write(public_key)
+                return
+        else:
+            command = ['ssh', '-T', label]
 
-        return run_server(conn=conn, public_key=public_key,
-                          command=(['git'] + args.command),
+        return run_server(conn=conn, public_key=public_key, command=command,
                           debug=args.debug, timeout=args.timeout)
