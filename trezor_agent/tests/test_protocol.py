@@ -22,6 +22,12 @@ def test_list():
     assert reply == LIST_NIST256_REPLY
 
 
+def test_unsupported():
+    h = protocol.Handler(keys=[], signer=None)
+    reply = h.handle(b'\x09')
+    assert reply == b'\x00\x00\x00\x01\x05'
+
+
 def ecdsa_signer(label, blob):
     assert label == 'ssh://localhost'
     assert blob == NIST256_BLOB

@@ -41,15 +41,22 @@ def test_handle():
     conn = FakeSocket()
     server.handle_connection(conn, handler)
 
-    msg = bytearray([protocol.SSH_AGENTC_REQUEST_RSA_IDENTITIES])
+    msg = bytearray([protocol.msg_code('SSH_AGENTC_REQUEST_RSA_IDENTITIES')])
     conn = FakeSocket(util.frame(msg))
     server.handle_connection(conn, handler)
     assert conn.tx.getvalue() == b'\x00\x00\x00\x05\x02\x00\x00\x00\x00'
 
-    msg = bytearray([protocol.SSH2_AGENTC_REQUEST_IDENTITIES])
+    msg = bytearray([protocol.msg_code('SSH2_AGENTC_REQUEST_IDENTITIES')])
     conn = FakeSocket(util.frame(msg))
     server.handle_connection(conn, handler)
     assert conn.tx.getvalue() == b'\x00\x00\x00\x05\x0C\x00\x00\x00\x00'
+
+    msg = bytearray([protocol.msg_code('SSH2_AGENTC_ADD_IDENTITY')])
+    conn = FakeSocket(util.frame(msg))
+    server.handle_connection(conn, handler)
+    conn.tx.seek(0)
+    reply = util.read_frame(conn.tx)
+    assert reply == util.pack('B', protocol.msg_code('SSH_AGENT_FAILURE'))
 
     conn_mock = mock.Mock(spec=FakeSocket)
     conn_mock.recv.side_effect = [Exception, EOFError]
