@@ -139,7 +139,10 @@ class Handler(object):
 
         log.debug('signing %d-byte blob', len(blob))
         label = key['name'].decode('ascii')  # label should be a string
-        signature = self.signer(label=label, blob=blob)
+        try:
+            signature = self.signer(label=label, blob=blob)
+        except IOError:
+            return _fail()
         log.debug('signature: %s', binascii.hexlify(signature))
 
         try:

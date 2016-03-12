@@ -81,7 +81,7 @@ class Client(object):
         except self.call_exception as e:
             code, msg = e.args
             log.warning('%s error #%s: %s', self.device_name, code, msg)
-            raise IOError(msg)
+            raise IOError(msg)  # close current connection, keep server open
 
         verifying_key = formats.decompress_pubkey(pubkey=result.public_key,
                                                   curve_name=self.curve)

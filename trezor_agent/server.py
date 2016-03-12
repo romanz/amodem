@@ -55,8 +55,6 @@ def handle_connection(conn, handler):
             msg = util.read_frame(conn)
             reply = handler.handle(msg=msg)
             util.send(conn, reply)
-    except IOError as e:
-        log.error('I/O error: %s', e)
     except EOFError:
         log.debug('goodbye agent')
     except Exception as e:  # pylint: disable=broad-except
