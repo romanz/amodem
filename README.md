@@ -24,17 +24,17 @@ See SatoshiLabs' blog post about this feature:
 
 ## Installation
 
-First, make sure that the latest `trezorlib` Python package
+First, make sure that the latest [trezorlib](https://pypi.python.org/pypi/trezor) Python package
 is installed correctly (at least v0.6.6):
 
 	$ apt-get install python-dev libusb-1.0-0-dev libudev-dev
 	$ pip install Cython trezor
 
-Then, install the latest `trezor_agent` package:
+Then, install the latest [trezor_agent](https://pypi.python.org/pypi/trezor_agent) package:
 
 	$ pip install trezor_agent
 
-Finally, verify that you are running the latest TREZOR firmware version (at least v1.3.4):
+Finally, verify that you are running the latest [TREZOR firmware](https://mytrezor.com/data/firmware/releases.json) version (at least v1.3.4):
 
 	$ trezorctl get_features
 	vendor: "bitcointrezor.com"
