@@ -51,7 +51,7 @@ class Client(object):
         label = identity_to_string(identity)  # canonize key label
         log.info('getting "%s" public key (%s) from %s...',
                  label, self.curve, self.device_name)
-        addr = _get_address(identity)
+        addr = get_address(identity)
         node = self.client.get_public_node(n=addr,
                                            ecdsa_curve_name=self.curve)
 
@@ -129,7 +129,8 @@ def identity_to_string(identity):
     return ''.join(result)
 
 
-def _get_address(identity):
+def get_address(identity):
+    """Compute BIP32 derivation address for SignIdentity API."""
     index = struct.pack('<L', identity.index)
     addr = index + identity_to_string(identity).encode('ascii')
     log.debug('address string: %r', addr)
