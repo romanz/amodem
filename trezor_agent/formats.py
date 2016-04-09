@@ -41,7 +41,7 @@ def parse_pubkey(blob):
     """
     Parse SSH public key from given blob.
 
-    Cnstruct a verifier for ECDSA signatures.
+    Construct a verifier for ECDSA signatures.
     The verifier returns the signatures in the required SSH format.
     Currently, NIST256P1 and ED25519 elliptic curves are supported.
     """
