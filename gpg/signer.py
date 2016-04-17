@@ -3,12 +3,15 @@ import argparse
 import base64
 import binascii
 import hashlib
+import io
 import logging
 import struct
+import subprocess
 import time
 
 import ecdsa
 
+import decode
 import trezor_agent.client
 import trezor_agent.formats
 import trezor_agent.util
@@ -196,20 +199,29 @@ def armor(blob, type_str):
     return head + split_lines(body, 64) + '=' + checksum + '\n' + tail
 
 
+def load_from_gpg(user_id):
+    pubkey_bytes = subprocess.check_output(['gpg2', '--export', user_id])
+    pubkey = decode.load_public_key(io.BytesIO(pubkey_bytes))
+    return pubkey
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument('user_id')
     p.add_argument('-t', '--time', type=int, default=int(time.time()))
-    p.add_argument('-f', '--filename')
     p.add_argument('-a', '--armor', action='store_true', default=False)
-    p.add_argument('-p', '--public-key', action='store_true', default=False)
     p.add_argument('-v', '--verbose', action='store_true', default=False)
+
+    g = p.add_mutually_exclusive_group()
+    g.add_argument('-f', '--filename', help='File to sign')
+    g.add_argument('-p', '--public-key', action='store_true', default=False)
 
     args = p.parse_args()
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
                         format='%(asctime)s %(levelname)-10s %(message)s')
-    s = Signer(user_id=args.user_id.encode('ascii'), created=args.time)
+    user_id = args.user_id.encode('ascii')
     if args.public_key:
+        s = Signer(user_id=user_id, created=args.time)
         pubkey = s.export()
         ext = '.pub'
         if args.armor:
@@ -217,11 +229,16 @@ def main():
             ext = '.asc'
         open(args.user_id + ext, 'wb').write(pubkey)
 
-    if args.filename:
+    elif args.filename:
+        pubkey = load_from_gpg(args.user_id)
+        s = Signer(user_id=user_id, created=pubkey['created'])
+        assert s.key_id == pubkey['key_id']
+
         data = open(args.filename, 'rb').read()
         sig, ext = s.sign(data), '.sig'
         if args.armor:
-            sig, ext = armor(sig, 'SIGNATURE'), '.asc'
+            sig = armor(sig, 'SIGNATURE')
+            ext = '.asc'
         open(args.filename + ext, 'wb').write(sig)
 
     s.close()

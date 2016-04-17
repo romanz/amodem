@@ -28,7 +28,7 @@ def check(pubkey, sig_file):
     parser = decode.Parser(decode.Reader(d), original_data(sig_file))
     signature, = list(parser)
     decode.verify_digest(pubkey=pubkey, digest=signature['digest'],
-                         signature=signature['sig'], label=sig_file)
+                         signature=signature['sig'], label='GPG signature')
 
 
 def main():
@@ -38,7 +38,7 @@ def main():
     p.add_argument('pubkey')
     p.add_argument('signature')
     args = p.parse_args()
-    check(pubkey=decode.load_public_key(args.pubkey),
+    check(pubkey=decode.load_public_key(open(args.pubkey, 'rb')),
           sig_file=args.signature)
 
 if __name__ == '__main__':
