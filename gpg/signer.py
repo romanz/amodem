@@ -132,7 +132,8 @@ class Signer(object):
             subpacket_byte(0x15, 8),  # preferred hash (SHA256)
             subpacket_byte(0x16, 0),  # preferred compression (none)
             subpacket_byte(0x17, 0x80)]  # key server prefs (no-modify)
-        signature = self._make_signature(visual='Sign GPG public key',
+        visual = hexlify(self.key_id[-4:])
+        signature = self._make_signature(visual=visual,
                                          data_to_sign=data_to_sign,
                                          sig_type=0x13,  # user id & public key
                                          hashed_subpackets=hashed_subpackets)
@@ -147,8 +148,9 @@ class Signer(object):
         log.info('signing message %r at %s', msg,
                  time_format(sign_time))
         hashed_subpackets = [subpacket_time(sign_time)]
+        visual = hexlify(self.key_id[-4:])
         blob = self._make_signature(
-            visual='Sign GPG message',
+            visual=visual,
             data_to_sign=msg, hashed_subpackets=hashed_subpackets)
         return packet(tag=2, blob=blob)
 
