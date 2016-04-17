@@ -70,21 +70,6 @@ def hexlify(blob):
     return binascii.hexlify(blob).decode('ascii').upper()
 
 
-def split_lines(body, size):
-    lines = []
-    for i in range(0, len(body), size):
-        lines.append(body[i:i+size] + '\n')
-    return ''.join(lines)
-
-
-def armor_sig(blob):
-    head = '-----BEGIN PGP SIGNATURE-----\nVersion: GnuPG v2\n\n'
-    body = base64.b64encode(blob)
-    checksum = base64.b64encode(util.crc24(blob))
-    tail = '-----END PGP SIGNATURE-----\n'
-    return head + split_lines(body + '=' + checksum, 64) + tail
-
-
 class Signer(object):
 
     curve = ecdsa.NIST256p
@@ -196,6 +181,21 @@ class Signer(object):
         return header + hashed + unhashed + hash_prefix + signature
 
 
+def split_lines(body, size):
+    lines = []
+    for i in range(0, len(body), size):
+        lines.append(body[i:i+size] + '\n')
+    return ''.join(lines)
+
+
+def armor(blob, type_str):
+    head = '-----BEGIN PGP {}-----\nVersion: GnuPG v2\n\n'.format(type_str)
+    body = base64.b64encode(blob)
+    checksum = base64.b64encode(util.crc24(blob))
+    tail = '-----END PGP {}-----\n'.format(type_str)
+    return head + split_lines(body, 64) + '=' + checksum + '\n' + tail
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument('user_id')
@@ -210,13 +210,20 @@ def main():
                         format='%(asctime)s %(levelname)-10s %(message)s')
     s = Signer(user_id=args.user_id.encode('ascii'), created=args.time)
     if args.public_key:
-        open(args.user_id + '.pub', 'wb').write(s.export())
+        pubkey = s.export()
+        ext = '.pub'
+        if args.armor:
+            pubkey = armor(pubkey, 'PUBLIC KEY BLOCK')
+            ext = '.asc'
+        open(args.user_id + ext, 'wb').write(pubkey)
+
     if args.filename:
         data = open(args.filename, 'rb').read()
         sig, ext = s.sign(data), '.sig'
         if args.armor:
-            sig, ext = armor_sig(sig), '.asc'
+            sig, ext = armor(sig, 'SIGNATURE'), '.asc'
         open(args.filename + ext, 'wb').write(sig)
+
     s.close()
 
 
