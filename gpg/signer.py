@@ -76,12 +76,14 @@ def split_lines(body, size):
         lines.append(body[i:i+size] + '\n')
     return ''.join(lines)
 
+
 def armor_sig(blob):
     head = '-----BEGIN PGP SIGNATURE-----\nVersion: GnuPG v2\n\n'
     body = base64.b64encode(blob)
     checksum = base64.b64encode(util.crc24(blob))
     tail = '-----END PGP SIGNATURE-----\n'
     return head + split_lines(body + '=' + checksum, 64) + tail
+
 
 class Signer(object):
 
