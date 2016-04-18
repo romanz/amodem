@@ -9,8 +9,6 @@ import struct
 import subprocess
 import time
 
-import ecdsa
-
 import decode
 import trezor_agent.client
 import trezor_agent.formats
@@ -75,18 +73,18 @@ def hexlify(blob):
 
 class Signer(object):
 
-    curve = ecdsa.NIST256p
     ecdsa_curve_name = trezor_agent.formats.CURVE_NIST256
 
     def __init__(self, user_id, created):
         self.user_id = user_id
         self.client_wrapper = trezor_agent.factory.load()
 
-        # This requires the following patch to trezor-mcu to work:
+        # This requires the following patch to trezor-mcu in order to work:
         # https://gist.github.com/romanz/b66f5df1ca8ef15641df8ea5bb09fd47
         self.identity = self.client_wrapper.identity_type()
         self.identity.proto = 'gpg'
         self.identity.host = user_id
+
         addr = trezor_agent.client.get_address(self.identity)
         public_node = self.client_wrapper.connection.get_public_node(
             n=addr, ecdsa_curve_name=self.ecdsa_curve_name)
@@ -96,36 +94,41 @@ class Signer(object):
             curve_name=self.ecdsa_curve_name)
 
         self.created = int(created)
+        self.pubkey_point = verifying_key.pubkey.point
+        log.info('key %s created at %s',
+                 hexlify(self._fingerprint()[-4:]), time_format(self.created))
+
+    def _pubkey_data(self):
         header = struct.pack('>BLB',
                              4,             # version
                              self.created,  # creation
                              19)            # ECDSA
-
         # https://tools.ietf.org/html/rfc6637#section-11  (NIST P-256 OID)
         oid = prefix_len('>B', b'\x2A\x86\x48\xCE\x3D\x03\x01\x07')
+        return header + oid + mpi((4 << 512) |
+                                  (self.pubkey_point.x() << 256) |
+                                  (self.pubkey_point.y()))
 
-        self._point = verifying_key.pubkey.point
-        self.pubkey_data = header + oid + mpi((4 << 512) |
-                                              (self._point.x() << 256) |
-                                              (self._point.y()))
+    def _pubkey_data_to_hash(self):
+        return b'\x99' + prefix_len('>H', self._pubkey_data())
 
-        self.data_to_hash = b'\x99' + prefix_len('>H', self.pubkey_data)
-        fingerprint = hashlib.sha1(self.data_to_hash).digest()
-        self.key_id = fingerprint[-8:]
-        log.info('key %s created at %s',
-                 hexlify(fingerprint[-4:]), time_format(self.created))
+    def _fingerprint(self):
+        return hashlib.sha1(self._pubkey_data_to_hash()).digest()
+
+    def key_id(self):
+        return self._fingerprint()[-8:]
 
     def close(self):
         self.client_wrapper.connection.clear_session()
         self.client_wrapper.connection.close()
 
     def export(self):
-        pubkey_packet = packet(tag=6, blob=self.pubkey_data)
+        pubkey_packet = packet(tag=6, blob=self._pubkey_data())
         user_id_packet = packet(tag=13, blob=self.user_id)
 
         user_id_to_hash = user_id_packet[:1] + prefix_len('>L', self.user_id)
-        data_to_sign = self.data_to_hash + user_id_to_hash
-        key_id = hexlify(self.key_id[-4:])
+        data_to_sign = self._pubkey_data_to_hash() + user_id_to_hash
+        key_id = hexlify(self.key_id()[-4:])
         log.info('signing public key "%s": %s', self.user_id, key_id)
         hashed_subpackets = [
             subpacket_time(self.created),  # signature creaion time
@@ -148,7 +151,7 @@ class Signer(object):
         log.info('signing message %r at %s', msg,
                  time_format(sign_time))
         hashed_subpackets = [subpacket_time(sign_time)]
-        key_id = hexlify(self.key_id[-4:])
+        key_id = hexlify(self.key_id()[-4:])
         blob = self._make_signature(
             visual=key_id,
             data_to_sign=msg, hashed_subpackets=hashed_subpackets)
@@ -163,7 +166,7 @@ class Signer(object):
                              8)         # hash_alg (SHA256)
         hashed = subpackets(*hashed_subpackets)
         unhashed = subpackets(
-            subpacket(16, self.key_id)  # issuer key id
+            subpacket(16, self.key_id())  # issuer key id
         )
         tail = b'\x04\xff' + struct.pack('>L', len(header) + len(hashed))
         data_to_hash = data_to_sign + header + hashed + tail
@@ -180,7 +183,8 @@ class Signer(object):
         sig = result.signature[1:]
         sig = [trezor_agent.util.bytes2num(sig[:32]),
                trezor_agent.util.bytes2num(sig[32:])]
-        decode.verify_digest(pubkey={'point': (self._point.x(), self._point.y())},
+        decode.verify_digest(pubkey={'point': (self.pubkey_point.x(),
+                                               self.pubkey_point.y())},
                              digest=digest,
                              signature=sig, label='GPG signature')
 
@@ -233,7 +237,7 @@ def main():
     else:
         pubkey = load_from_gpg(args.user_id)
         s = Signer(user_id=user_id, created=pubkey['created'])
-        assert s.key_id == pubkey['key_id']
+        assert s.key_id() == pubkey['key_id']
 
         data = open(args.filename, 'rb').read()
         sig, ext = s.sign(data), '.sig'
