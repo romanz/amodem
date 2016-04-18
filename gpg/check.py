@@ -40,6 +40,7 @@ def main():
     args = p.parse_args()
     check(pubkey=decode.load_public_key(open(args.pubkey, 'rb')),
           sig_file=args.signature)
+    log.info('OK')
 
 if __name__ == '__main__':
     main()

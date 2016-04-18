@@ -104,10 +104,10 @@ class Signer(object):
         # https://tools.ietf.org/html/rfc6637#section-11  (NIST P-256 OID)
         oid = prefix_len('>B', b'\x2A\x86\x48\xCE\x3D\x03\x01\x07')
 
-        point = verifying_key.pubkey.point
+        self._point = verifying_key.pubkey.point
         self.pubkey_data = header + oid + mpi((4 << 512) |
-                                              (point.x() << 256) |
-                                              (point.y()))
+                                              (self._point.x() << 256) |
+                                              (self._point.y()))
 
         self.data_to_hash = b'\x99' + prefix_len('>H', self.pubkey_data)
         fingerprint = hashlib.sha1(self.data_to_hash).digest()
@@ -125,15 +125,15 @@ class Signer(object):
 
         user_id_to_hash = user_id_packet[:1] + prefix_len('>L', self.user_id)
         data_to_sign = self.data_to_hash + user_id_to_hash
-        log.info('signing user_id: %r', self.user_id.decode('ascii'))
+        key_id = hexlify(self.key_id[-4:])
+        log.info('signing public key "%s": %s', self.user_id, key_id)
         hashed_subpackets = [
             subpacket_time(self.created),  # signature creaion time
             subpacket_byte(0x1B, 1 | 2),  # key flags (certify & sign)
             subpacket_byte(0x15, 8),  # preferred hash (SHA256)
             subpacket_byte(0x16, 0),  # preferred compression (none)
             subpacket_byte(0x17, 0x80)]  # key server prefs (no-modify)
-        visual = hexlify(self.key_id[-4:])
-        signature = self._make_signature(visual=visual,
+        signature = self._make_signature(visual=key_id,
                                          data_to_sign=data_to_sign,
                                          sig_type=0x13,  # user id & public key
                                          hashed_subpackets=hashed_subpackets)
@@ -148,9 +148,9 @@ class Signer(object):
         log.info('signing message %r at %s', msg,
                  time_format(sign_time))
         hashed_subpackets = [subpacket_time(sign_time)]
-        visual = hexlify(self.key_id[-4:])
+        key_id = hexlify(self.key_id[-4:])
         blob = self._make_signature(
-            visual=visual,
+            visual=key_id,
             data_to_sign=msg, hashed_subpackets=hashed_subpackets)
         return packet(tag=2, blob=blob)
 
@@ -173,13 +173,16 @@ class Signer(object):
 
         result = self.client_wrapper.connection.sign_identity(
             identity=self.identity,
-            challenge_hidden=hashlib.sha256(data_to_hash).digest(),
+            challenge_hidden=digest,
             challenge_visual=visual,
             ecdsa_curve_name=self.ecdsa_curve_name)
         assert result.signature[:1] == b'\x00'
         sig = result.signature[1:]
         sig = [trezor_agent.util.bytes2num(sig[:32]),
                trezor_agent.util.bytes2num(sig[32:])]
+        decode.verify_digest(pubkey={'point': (self._point.x(), self._point.y())},
+                             digest=digest,
+                             signature=sig, label='GPG signature')
 
         hash_prefix = digest[:2]  # used for decoder's sanity check
         signature = mpi(sig[0]) + mpi(sig[1])  # actual ECDSA signature
@@ -210,19 +213,16 @@ def load_from_gpg(user_id):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument('user_id')
+    p.add_argument('filename', nargs='?', )
     p.add_argument('-t', '--time', type=int, default=int(time.time()))
     p.add_argument('-a', '--armor', action='store_true', default=False)
     p.add_argument('-v', '--verbose', action='store_true', default=False)
-
-    g = p.add_mutually_exclusive_group()
-    g.add_argument('-f', '--filename', help='File to sign')
-    g.add_argument('-p', '--public-key', action='store_true', default=False)
 
     args = p.parse_args()
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
                         format='%(asctime)s %(levelname)-10s %(message)s')
     user_id = args.user_id.encode('ascii')
-    if args.public_key:
+    if not args.filename:
         s = Signer(user_id=user_id, created=args.time)
         pubkey = s.export()
         ext = '.pub'
@@ -230,8 +230,7 @@ def main():
             pubkey = armor(pubkey, 'PUBLIC KEY BLOCK')
             ext = '.asc'
         open(args.user_id + ext, 'wb').write(pubkey)
-
-    elif args.filename:
+    else:
         pubkey = load_from_gpg(args.user_id)
         s = Signer(user_id=user_id, created=pubkey['created'])
         assert s.key_id == pubkey['key_id']

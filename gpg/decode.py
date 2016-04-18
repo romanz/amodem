@@ -227,7 +227,7 @@ class Parser(object):
 def load_public_key(stream):
     parser = Parser(Reader(stream))
     pubkey, userid, signature = list(parser)
-    log.info('loaded %s public key', userid['value'])
+    log.debug('loaded public key "%s"', userid['value'])
     verify_digest(pubkey=pubkey, digest=signature['digest'],
                   signature=signature['sig'], label='GPG public key')
     return pubkey
@@ -244,7 +244,7 @@ def verify_digest(pubkey, digest, signature, label):
         v.verify_digest(signature=signature,
                         digest=digest,
                         sigdecode=lambda rs, order: rs)
-        log.info('%s is OK', label)
+        log.debug('%s is OK', label)
     except ecdsa.keys.BadSignatureError:
         log.error('Bad %s!', label)
         raise
