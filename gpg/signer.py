@@ -96,7 +96,7 @@ class Signer(object):
         self.created = int(created)
         self.pubkey_point = verifying_key.pubkey.point
         log.info('key %s created at %s',
-                 hexlify(self._fingerprint()[-4:]), time_format(self.created))
+                 self.hex_short_key_id(), time_format(self.created))
 
     def _pubkey_data(self):
         header = struct.pack('>BLB',
@@ -118,6 +118,9 @@ class Signer(object):
     def key_id(self):
         return self._fingerprint()[-8:]
 
+    def hex_short_key_id(self):
+        return hexlify(self.key_id()[-4:])
+
     def close(self):
         self.client_wrapper.connection.clear_session()
         self.client_wrapper.connection.close()
@@ -128,15 +131,14 @@ class Signer(object):
 
         user_id_to_hash = user_id_packet[:1] + prefix_len('>L', self.user_id)
         data_to_sign = self._pubkey_data_to_hash() + user_id_to_hash
-        key_id = hexlify(self.key_id()[-4:])
-        log.info('signing public key "%s": %s', self.user_id, key_id)
+        log.info('signing public key "%s"', self.user_id)
         hashed_subpackets = [
             subpacket_time(self.created),  # signature creaion time
             subpacket_byte(0x1B, 1 | 2),  # key flags (certify & sign)
             subpacket_byte(0x15, 8),  # preferred hash (SHA256)
             subpacket_byte(0x16, 0),  # preferred compression (none)
             subpacket_byte(0x17, 0x80)]  # key server prefs (no-modify)
-        signature = self._make_signature(visual=key_id,
+        signature = self._make_signature(visual=self.hex_short_key_id(),
                                          data_to_sign=data_to_sign,
                                          sig_type=0x13,  # user id & public key
                                          hashed_subpackets=hashed_subpackets)
@@ -151,9 +153,8 @@ class Signer(object):
         log.info('signing message %r at %s', msg,
                  time_format(sign_time))
         hashed_subpackets = [subpacket_time(sign_time)]
-        key_id = hexlify(self.key_id()[-4:])
         blob = self._make_signature(
-            visual=key_id,
+            visual=self.hex_short_key_id(),
             data_to_sign=msg, hashed_subpackets=hashed_subpackets)
         return packet(tag=2, blob=blob)
 
