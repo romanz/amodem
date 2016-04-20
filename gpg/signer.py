@@ -79,8 +79,8 @@ class Signer(object):
         self.user_id = user_id
         self.client_wrapper = trezor_agent.factory.load()
 
-        # This requires the following patch to trezor-mcu in order to work:
-        # https://gist.github.com/romanz/b66f5df1ca8ef15641df8ea5bb09fd47
+        # This requires the following patch to trezor-mcu in order to work correctly:
+        # https://github.com/trezor/trezor-mcu/pull/79
         self.identity = self.client_wrapper.identity_type()
         self.identity.proto = 'gpg'
         self.identity.host = user_id
