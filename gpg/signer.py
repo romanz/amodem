@@ -233,7 +233,7 @@ def main():
         if args.armor:
             pubkey = armor(pubkey, 'PUBLIC KEY BLOCK')
             ext = '.asc'
-        open(args.user_id + ext, 'wb').write(pubkey)
+        open(s.hex_short_key_id() + ext, 'wb').write(pubkey)
     else:
         pubkey = load_from_gpg(args.user_id)
         s = Signer(user_id=user_id, created=pubkey['created'])
