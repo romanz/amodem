@@ -60,7 +60,7 @@ def num2bytes(value, size):
         res.append(value & 0xFF)
         value = value >> 8
     assert value == 0
-    return bytearray(list(reversed(res)))
+    return bytes(bytearray(list(reversed(res))))
 
 
 def pack(fmt, *args):
