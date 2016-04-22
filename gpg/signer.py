@@ -210,6 +210,7 @@ def armor(blob, type_str):
 
 
 def load_from_gpg(user_id):
+    log.info('loading GPG public key for %r', user_id)
     pubkey_bytes = subprocess.check_output(['gpg2', '--export', user_id])
     pubkey = decode.load_public_key(io.BytesIO(pubkey_bytes))
     return pubkey
@@ -218,7 +219,7 @@ def load_from_gpg(user_id):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument('user_id')
-    p.add_argument('filename', nargs='?', )
+    p.add_argument('filename', nargs='?')
     p.add_argument('-t', '--time', type=int, default=int(time.time()))
     p.add_argument('-a', '--armor', action='store_true', default=False)
     p.add_argument('-v', '--verbose', action='store_true', default=False)
