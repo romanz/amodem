@@ -96,6 +96,11 @@ SUPPORTED_CURVES = {
     }
 }
 
+def find_curve_by_algo_id(algo_id):
+    curve_name, = [name for name, info in SUPPORTED_CURVES.items()
+                   if info['algo_id'] == algo_id]
+    return curve_name
+
 
 class Signer(object):
 
@@ -233,7 +238,11 @@ def load_from_gpg(user_id):
     log.info('loading GPG public key for %r', user_id)
     pubkey_bytes = subprocess.check_output(['gpg2', '--export', user_id])
     pubkey = decode.load_public_key(io.BytesIO(pubkey_bytes))
-    return pubkey
+    s = Signer(user_id=user_id,
+               created=pubkey['created'],
+               curve_name=find_curve_by_algo_id(pubkey['algo']))
+    assert s.key_id() == pubkey['key_id']
+    return s
 
 
 def main():
@@ -261,11 +270,7 @@ def main():
         open(filename, 'wb').write(pubkey)
         log.info('import to local keyring using "gpg2 --import %s"', filename)
     else:
-        pubkey = load_from_gpg(args.user_id)
-        s = Signer(user_id=user_id, created=pubkey['created'],
-                   curve_name=args.ecdsa_curve)  # TODO: deduce from existing pubkey
-        assert s.key_id() == pubkey['key_id']
-
+        s = load_from_gpg(user_id)
         data = open(args.filename, 'rb').read()
         sig, ext = s.sign(data), '.sig'
         if args.armor:

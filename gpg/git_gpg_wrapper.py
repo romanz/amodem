@@ -21,9 +21,7 @@ def main():
     else:
         command, user_id = args
         assert command == '-bsau'  # --detach-sign --sign --armor --local-user
-        pubkey = signer.load_from_gpg(user_id)
-        s = signer.Signer(user_id=user_id, created=pubkey['created'])
-        assert s.key_id() == pubkey['key_id']
+        s = signer.load_from_gpg(user_id)
 
         data = sys.stdin.read()
         sig = s.sign(data)
