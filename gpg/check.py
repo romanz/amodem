@@ -32,7 +32,7 @@ def check(pubkey, sig_file):
 
 
 def main():
-    logging.basicConfig(level=logging.INFO,
+    logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s %(levelname)-10s %(message)s')
     p = argparse.ArgumentParser()
     p.add_argument('pubkey')
