@@ -17,7 +17,7 @@ def main():
     log.debug('sys.argv: %s', sys.argv)
     args = sys.argv[1:]
     if '--verify' in args:
-        sp.check_call(['gpg2'] + args)
+        return sp.call(['gpg2'] + args)
     else:
         command, user_id = args
         assert command == '-bsau'  # --detach-sign --sign --armor --local-user
