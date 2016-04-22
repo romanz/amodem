@@ -71,43 +71,65 @@ def hexlify(blob):
     return binascii.hexlify(blob).decode('ascii').upper()
 
 
+def _dump_nist256(vk):
+    return mpi((4 << 512) |
+               (vk.pubkey.point.x() << 256) |
+               (vk.pubkey.point.y()))
+
+
+def _dump_ed25519(vk):
+    return mpi((0x40 << 256) |
+               trezor_agent.util.bytes2num(vk.to_bytes()))
+
+
+SUPPORTED_CURVES = {
+    trezor_agent.formats.CURVE_NIST256: {
+        # https://tools.ietf.org/html/rfc6637#section-11
+        'oid': b'\x2A\x86\x48\xCE\x3D\x03\x01\x07',
+        'algo_id': 19,
+        'dump': _dump_nist256
+    },
+    trezor_agent.formats.CURVE_ED25519: {
+        'oid': b'\x2B\x06\x01\x04\x01\xDA\x47\x0F\x01',
+        'algo_id': 22,
+        'dump': _dump_ed25519
+    }
+}
+
+
 class Signer(object):
 
-    ecdsa_curve_name = trezor_agent.formats.CURVE_NIST256
-
-    def __init__(self, user_id, created):
+    def __init__(self, user_id, created, curve_name):
         self.user_id = user_id
+        assert curve_name in trezor_agent.formats.SUPPORTED_CURVES
+        self.curve_name = curve_name
         self.client_wrapper = trezor_agent.factory.load()
 
-        # This requires the following patch to trezor-mcu in order to work correctly:
-        # https://github.com/trezor/trezor-mcu/pull/79
         self.identity = self.client_wrapper.identity_type()
         self.identity.proto = 'gpg'
         self.identity.host = user_id
 
         addr = trezor_agent.client.get_address(self.identity)
         public_node = self.client_wrapper.connection.get_public_node(
-            n=addr, ecdsa_curve_name=self.ecdsa_curve_name)
+            n=addr, ecdsa_curve_name=self.curve_name)
 
-        verifying_key = trezor_agent.formats.decompress_pubkey(
+        self.verifying_key = trezor_agent.formats.decompress_pubkey(
             pubkey=public_node.node.public_key,
-            curve_name=self.ecdsa_curve_name)
+            curve_name=self.curve_name)
 
         self.created = int(created)
-        self.pubkey_point = verifying_key.pubkey.point
         log.info('key %s created at %s',
                  self.hex_short_key_id(), time_format(self.created))
 
     def _pubkey_data(self):
+        curve_info = SUPPORTED_CURVES[self.curve_name]
         header = struct.pack('>BLB',
                              4,             # version
                              self.created,  # creation
-                             19)            # ECDSA
-        # https://tools.ietf.org/html/rfc6637#section-11  (NIST P-256 OID)
-        oid = prefix_len('>B', b'\x2A\x86\x48\xCE\x3D\x03\x01\x07')
-        return header + oid + mpi((4 << 512) |
-                                  (self.pubkey_point.x() << 256) |
-                                  (self.pubkey_point.y()))
+                             curve_info['algo_id'])
+        oid = prefix_len('>B', curve_info['oid'])
+        blob = curve_info['dump'](self.verifying_key)
+        return header + oid + blob
 
     def _pubkey_data_to_hash(self):
         return b'\x99' + prefix_len('>H', self._pubkey_data())
@@ -160,10 +182,11 @@ class Signer(object):
 
     def _make_signature(self, visual, data_to_sign,
                         hashed_subpackets, sig_type=0):
+        curve_info = SUPPORTED_CURVES[self.curve_name]
         header = struct.pack('>BBBB',
                              4,         # version
                              sig_type,  # rfc4880 (section-5.2.1)
-                             19,        # pubkey_alg (ECDSA)
+                             curve_info['algo_id'],
                              8)         # hash_alg (SHA256)
         hashed = subpackets(*hashed_subpackets)
         unhashed = subpackets(
@@ -179,19 +202,16 @@ class Signer(object):
             identity=self.identity,
             challenge_hidden=digest,
             challenge_visual=visual,
-            ecdsa_curve_name=self.ecdsa_curve_name)
+            ecdsa_curve_name=self.curve_name)
         assert result.signature[:1] == b'\x00'
         sig = result.signature[1:]
         sig = [trezor_agent.util.bytes2num(sig[:32]),
                trezor_agent.util.bytes2num(sig[32:])]
-        decode.verify_digest(pubkey={'point': (self.pubkey_point.x(),
-                                               self.pubkey_point.y())},
-                             digest=digest,
-                             signature=sig, label='GPG signature')
 
         hash_prefix = digest[:2]  # used for decoder's sanity check
         signature = mpi(sig[0]) + mpi(sig[1])  # actual ECDSA signature
         return header + hashed + unhashed + hash_prefix + signature
+        # TODO: add verification
 
 
 def split_lines(body, size):
@@ -223,22 +243,27 @@ def main():
     p.add_argument('-t', '--time', type=int, default=int(time.time()))
     p.add_argument('-a', '--armor', action='store_true', default=False)
     p.add_argument('-v', '--verbose', action='store_true', default=False)
+    p.add_argument('-e', '--ecdsa-curve', default='nist256p1')
 
     args = p.parse_args()
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
                         format='%(asctime)s %(levelname)-10s %(message)s')
     user_id = args.user_id.encode('ascii')
     if not args.filename:
-        s = Signer(user_id=user_id, created=args.time)
+        s = Signer(user_id=user_id, created=args.time,
+                   curve_name=args.ecdsa_curve)
         pubkey = s.export()
         ext = '.pub'
         if args.armor:
             pubkey = armor(pubkey, 'PUBLIC KEY BLOCK')
             ext = '.asc'
-        open(s.hex_short_key_id() + ext, 'wb').write(pubkey)
+        filename = s.hex_short_key_id() + ext
+        open(filename, 'wb').write(pubkey)
+        log.info('import to local keyring using "gpg2 --import %s"', filename)
     else:
         pubkey = load_from_gpg(args.user_id)
-        s = Signer(user_id=user_id, created=pubkey['created'])
+        s = Signer(user_id=user_id, created=pubkey['created'],
+                   curve_name=args.ecdsa_curve)  # TODO: deduce from existing pubkey
         assert s.key_id() == pubkey['key_id']
 
         data = open(args.filename, 'rb').read()

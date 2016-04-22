@@ -94,6 +94,7 @@ SUPPORTED_CURVES = {
     b'\x2B\x06\x01\x04\x01\xDA\x47\x0F\x01': 'ed25519',
 }
 
+
 class Parser(object):
     def __init__(self, stream, to_hash=None):
         self.stream = stream
@@ -191,11 +192,11 @@ class Parser(object):
 
                 def _nist256p1_verify(signature, digest):
                     vk.verify_digest(signature=signature,
-                                            digest=digest,
-                                            sigdecode=lambda rs, order: rs)
+                                     digest=digest,
+                                     sigdecode=lambda rs, order: rs)
                 p['verifier'] = _nist256p1_verify
             elif curve_name == 'ed25519':
-                prefix, value  = split_bits(mpi, 8, 256)
+                prefix, value = split_bits(mpi, 8, 256)
                 assert prefix == 0x40
                 vk = ed25519.VerifyingKey(num2bytes(value, size=32))
 
