@@ -7,16 +7,20 @@ import os
 
 import signer
 
-logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s %(levelname)-10s %(message)s')
+log = logging.getLogger(__name__)
+
 
 def main():
+    logging.basicConfig(level=logging.INFO,
+                        format='%(asctime)s %(levelname)-10s %(message)s')
+
+    log.debug('sys.argv: %s', sys.argv)
     args = sys.argv[1:]
     if '--verify' in args:
         sp.check_call(['gpg2'] + args)
     else:
-        user_id = os.environ['GPG_USER_ID']
-        user_id = user_id.encode('ascii')
+        command, user_id = args
+        assert command == '-bsau'  # --detach-sign --sign --armor --local-user
         pubkey = signer.load_from_gpg(user_id)
         s = signer.Signer(user_id=user_id, created=pubkey['created'])
         assert s.key_id() == pubkey['key_id']
