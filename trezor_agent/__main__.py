@@ -98,9 +98,9 @@ def git_host(remote_name, attributes):
             continue
 
         url = matches[0].strip()
-        user, url = url.split('@', 1)
-        host, _ = url.split(':', 1)  # skip unused path (1 key per user@host)
-        return '{}@{}'.format(user, host)
+        match = re.match('(?P<user>.*?)@(?P<host>.*?):(?P<path>.*)', url)
+        if match:
+            return '{user}@{host}'.format(**match.groupdict())
 
 
 def ssh_sign(conn, label, blob):
@@ -159,7 +159,8 @@ def run_git(client_factory=client.Client):
     with client_factory(curve=args.ecdsa_curve_name) as conn:
         label = git_host(args.remote, ['pushurl', 'url'])
         if not label:
-            log.error('Could not find "%s" remote in .git/config', args.remote)
+            log.error('Could not find "%s" SSH remote in .git/config',
+                      args.remote)
             return
 
         public_key = conn.get_public_key(label=label)
