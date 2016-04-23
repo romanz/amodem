@@ -17,7 +17,7 @@ def original_data(filename):
         return open(parts[0], 'rb').read()
 
 
-def check(pubkey, sig_file):
+def verify(pubkey, sig_file):
     d = open(sig_file, 'rb')
     if d.name.endswith('.asc'):
         lines = d.readlines()[3:-1]
@@ -29,6 +29,7 @@ def check(pubkey, sig_file):
     signature, = list(parser)
     decode.verify_digest(pubkey=pubkey, digest=signature['digest'],
                          signature=signature['sig'], label='GPG signature')
+    log.info('%s OK', sig_file)
 
 
 def main():
@@ -38,9 +39,8 @@ def main():
     p.add_argument('pubkey')
     p.add_argument('signature')
     args = p.parse_args()
-    check(pubkey=decode.load_public_key(open(args.pubkey, 'rb')),
+    verify(pubkey=decode.load_public_key(open(args.pubkey, 'rb')),
           sig_file=args.signature)
-    log.info('OK')
 
 if __name__ == '__main__':
     main()

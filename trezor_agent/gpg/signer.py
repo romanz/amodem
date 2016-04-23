@@ -9,9 +9,8 @@ import struct
 import subprocess
 import time
 
-from . import decode
-from .. import client, factory, formats
-from .. import util
+from . import decode, check
+from .. import client, factory, formats, util
 
 log = logging.getLogger(__name__)
 
@@ -125,6 +124,15 @@ class Signer(object):
         log.info('%s GPG public key %s created at %s', self.curve_name,
                  self.hex_short_key_id(), time_format(self.created))
 
+    @classmethod
+    def from_public_key(cls, pubkey, user_id):
+        s = Signer(user_id=user_id,
+                   created=pubkey['created'],
+                   curve_name=find_curve_by_algo_id(pubkey['algo']))
+        assert s.key_id() == pubkey['key_id']
+        return s
+
+
     def _pubkey_data(self):
         curve_info = SUPPORTED_CURVES[self.curve_name]
         header = struct.pack('>BLB',
@@ -237,12 +245,7 @@ def armor(blob, type_str):
 def load_from_gpg(user_id):
     log.info('loading public key %r from local GPG keyring', user_id)
     pubkey_bytes = subprocess.check_output(['gpg2', '--export', user_id])
-    pubkey = decode.load_public_key(io.BytesIO(pubkey_bytes))
-    s = Signer(user_id=user_id,
-               created=pubkey['created'],
-               curve_name=find_curve_by_algo_id(pubkey['algo']))
-    assert s.key_id() == pubkey['key_id']
-    return s
+    return decode.load_public_key(io.BytesIO(pubkey_bytes))
 
 
 def main():
@@ -270,13 +273,16 @@ def main():
         open(filename, 'wb').write(pubkey)
         log.info('import to local keyring using "gpg2 --import %s"', filename)
     else:
-        s = load_from_gpg(user_id)
+        pubkey = load_from_gpg(user_id)
+        s = Signer.from_public_key(pubkey=pubkey, user_id=user_id)
         data = open(args.filename, 'rb').read()
         sig, ext = s.sign(data), '.sig'
         if args.armor:
             sig = armor(sig, 'SIGNATURE')
             ext = '.asc'
-        open(args.filename + ext, 'wb').write(sig)
+        filename = args.filename + ext
+        open(filename, 'wb').write(sig)
+        check.verify(pubkey=pubkey, sig_file=filename)
 
     s.close()
 
