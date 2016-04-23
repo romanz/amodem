@@ -1,11 +1,9 @@
 #!/usr/bin/env python
-import sys
-import subprocess as sp
-import time
 import logging
-import os
+import subprocess as sp
+import sys
 
-import signer
+from . import signer
 
 log = logging.getLogger(__name__)
 

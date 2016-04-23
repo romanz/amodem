@@ -9,11 +9,9 @@ import struct
 import subprocess
 import time
 
-import decode
-import trezor_agent.client
-import trezor_agent.formats
-import trezor_agent.util
-import util
+from . import decode
+from .. import client, factory, formats
+from .. import util
 
 log = logging.getLogger(__name__)
 
@@ -79,22 +77,23 @@ def _dump_nist256(vk):
 
 def _dump_ed25519(vk):
     return mpi((0x40 << 256) |
-               trezor_agent.util.bytes2num(vk.to_bytes()))
+               util.bytes2num(vk.to_bytes()))
 
 
 SUPPORTED_CURVES = {
-    trezor_agent.formats.CURVE_NIST256: {
+    formats.CURVE_NIST256: {
         # https://tools.ietf.org/html/rfc6637#section-11
         'oid': b'\x2A\x86\x48\xCE\x3D\x03\x01\x07',
         'algo_id': 19,
         'dump': _dump_nist256
     },
-    trezor_agent.formats.CURVE_ED25519: {
+    formats.CURVE_ED25519: {
         'oid': b'\x2B\x06\x01\x04\x01\xDA\x47\x0F\x01',
         'algo_id': 22,
         'dump': _dump_ed25519
     }
 }
+
 
 def find_curve_by_algo_id(algo_id):
     curve_name, = [name for name, info in SUPPORTED_CURVES.items()
@@ -106,19 +105,19 @@ class Signer(object):
 
     def __init__(self, user_id, created, curve_name):
         self.user_id = user_id
-        assert curve_name in trezor_agent.formats.SUPPORTED_CURVES
+        assert curve_name in formats.SUPPORTED_CURVES
         self.curve_name = curve_name
-        self.client_wrapper = trezor_agent.factory.load()
+        self.client_wrapper = factory.load()
 
         self.identity = self.client_wrapper.identity_type()
         self.identity.proto = 'gpg'
         self.identity.host = user_id
 
-        addr = trezor_agent.client.get_address(self.identity)
+        addr = client.get_address(self.identity)
         public_node = self.client_wrapper.connection.get_public_node(
             n=addr, ecdsa_curve_name=self.curve_name)
 
-        self.verifying_key = trezor_agent.formats.decompress_pubkey(
+        self.verifying_key = formats.decompress_pubkey(
             pubkey=public_node.node.public_key,
             curve_name=self.curve_name)
 
@@ -185,6 +184,7 @@ class Signer(object):
             data_to_sign=msg, hashed_subpackets=hashed_subpackets)
         return packet(tag=2, blob=blob)
 
+
     def _make_signature(self, visual, data_to_sign,
                         hashed_subpackets, sig_type=0):
         curve_info = SUPPORTED_CURVES[self.curve_name]
@@ -210,8 +210,8 @@ class Signer(object):
             ecdsa_curve_name=self.curve_name)
         assert result.signature[:1] == b'\x00'
         sig = result.signature[1:]
-        sig = [trezor_agent.util.bytes2num(sig[:32]),
-               trezor_agent.util.bytes2num(sig[32:])]
+        sig = [util.bytes2num(sig[:32]),
+               util.bytes2num(sig[32:])]
 
         hash_prefix = digest[:2]  # used for decoder's sanity check
         signature = mpi(sig[0]) + mpi(sig[1])  # actual ECDSA signature

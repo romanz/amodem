@@ -4,8 +4,8 @@ import base64
 import io
 import logging
 
-import decode
-import util
+from . import decode
+from .. import util
 
 log = logging.getLogger(__name__)
 
