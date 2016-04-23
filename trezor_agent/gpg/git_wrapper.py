@@ -17,9 +17,11 @@ def main():
     if '--verify' in args:
         return sp.call(['gpg2'] + args)
     else:
-        command, user_id = args
+        command = args[0]
+        user_id = ' '.join(args[1:])
         assert command == '-bsau'  # --detach-sign --sign --armor --local-user
-        s = signer.load_from_gpg(user_id)
+        pubkey = signer.load_from_gpg(user_id)
+        s = signer.Signer.from_public_key(user_id=user_id, pubkey=pubkey)
 
         data = sys.stdin.read()
         sig = s.sign(data)
