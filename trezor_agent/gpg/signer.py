@@ -132,7 +132,6 @@ class Signer(object):
         assert s.key_id() == pubkey['key_id']
         return s
 
-
     def _pubkey_data(self):
         curve_info = SUPPORTED_CURVES[self.curve_name]
         header = struct.pack('>BLB',
@@ -192,7 +191,6 @@ class Signer(object):
             data_to_sign=msg, hashed_subpackets=hashed_subpackets)
         return packet(tag=2, blob=blob)
 
-
     def _make_signature(self, visual, data_to_sign,
                         hashed_subpackets, sig_type=0):
         curve_info = SUPPORTED_CURVES[self.curve_name]
@@ -224,7 +222,6 @@ class Signer(object):
         hash_prefix = digest[:2]  # used for decoder's sanity check
         signature = mpi(sig[0]) + mpi(sig[1])  # actual ECDSA signature
         return header + hashed + unhashed + hash_prefix + signature
-        # TODO: add verification
 
 
 def split_lines(body, size):
