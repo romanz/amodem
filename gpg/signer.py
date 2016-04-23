@@ -123,7 +123,7 @@ class Signer(object):
             curve_name=self.curve_name)
 
         self.created = int(created)
-        log.info('key %s created at %s',
+        log.info('%s GPG public key %s created at %s', self.curve_name,
                  self.hex_short_key_id(), time_format(self.created))
 
     def _pubkey_data(self):
@@ -177,8 +177,8 @@ class Signer(object):
         if sign_time is None:
             sign_time = int(time.time())
 
-        log.info('signing message %r at %s', msg,
-                 time_format(sign_time))
+        log.info('signing %d byte message at %s',
+                 len(msg), time_format(sign_time))
         hashed_subpackets = [subpacket_time(sign_time)]
         blob = self._make_signature(
             visual=self.hex_short_key_id(),
@@ -235,7 +235,7 @@ def armor(blob, type_str):
 
 
 def load_from_gpg(user_id):
-    log.info('loading GPG public key for %r', user_id)
+    log.info('loading public key %r from local GPG keyring', user_id)
     pubkey_bytes = subprocess.check_output(['gpg2', '--export', user_id])
     pubkey = decode.load_public_key(io.BytesIO(pubkey_bytes))
     s = Signer(user_id=user_id,
