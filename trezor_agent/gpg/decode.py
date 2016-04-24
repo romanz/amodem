@@ -89,9 +89,38 @@ def split_bits(value, *bits):
     assert value == 0
     return reversed(result)
 
+
+def _parse_nist256p1_verifier(mpi):
+    prefix, x, y = split_bits(mpi, 4, 256, 256)
+    assert prefix == 4
+    point = ecdsa.ellipticcurve.Point(curve=ecdsa.NIST256p.curve,
+                                      x=x, y=y)
+    vk = ecdsa.VerifyingKey.from_public_point(
+        point=point, curve=ecdsa.curves.NIST256p,
+        hashfunc=hashlib.sha256)
+
+    def _nist256p1_verify(signature, digest):
+        vk.verify_digest(signature=signature,
+                         digest=digest,
+                         sigdecode=lambda rs, order: rs)
+    return _nist256p1_verify
+
+
+def _parse_ed25519_verifier(mpi):
+    prefix, value = split_bits(mpi, 8, 256)
+    assert prefix == 0x40
+    vk = ed25519.VerifyingKey(num2bytes(value, size=32))
+
+    def _ed25519_verify(signature, digest):
+        sig = b''.join(num2bytes(val, size=32)
+                       for val in signature)
+        vk.verify(sig, digest)
+    return _ed25519_verify
+
+
 SUPPORTED_CURVES = {
-    b'\x2A\x86\x48\xCE\x3D\x03\x01\x07': 'nist256p1',
-    b'\x2B\x06\x01\x04\x01\xDA\x47\x0F\x01': 'ed25519',
+    b'\x2A\x86\x48\xCE\x3D\x03\x01\x07': _parse_nist256p1_verifier,
+    b'\x2B\x06\x01\x04\x01\xDA\x47\x0F\x01': _parse_ed25519_verifier,
 }
 
 
@@ -177,37 +206,11 @@ class Parser(object):
             oid_size = stream.readfmt('B')
             oid = stream.read(oid_size)
             assert oid in SUPPORTED_CURVES
-            curve_name = SUPPORTED_CURVES[oid]
+            parser = SUPPORTED_CURVES[oid]
 
             mpi = parse_mpi(stream)
             log.debug('mpi: %x (%d bits)', mpi, mpi.bit_length())
-            if curve_name == 'nist256p1':
-                prefix, x, y = split_bits(mpi, 4, 256, 256)
-                assert prefix == 4
-                point = ecdsa.ellipticcurve.Point(curve=ecdsa.NIST256p.curve,
-                                                  x=x, y=y)
-                vk = ecdsa.VerifyingKey.from_public_point(
-                    point=point, curve=ecdsa.curves.NIST256p,
-                    hashfunc=hashlib.sha256)
-
-                def _nist256p1_verify(signature, digest):
-                    vk.verify_digest(signature=signature,
-                                     digest=digest,
-                                     sigdecode=lambda rs, order: rs)
-                p['verifier'] = _nist256p1_verify
-            elif curve_name == 'ed25519':
-                prefix, value = split_bits(mpi, 8, 256)
-                assert prefix == 0x40
-                vk = ed25519.VerifyingKey(num2bytes(value, size=32))
-
-                def _ed25519_verify(signature, digest):
-                    sig = b''.join(num2bytes(val, size=32)
-                                   for val in signature)
-                    vk.verify(sig, digest)
-                p['verifier'] = _ed25519_verify
-            else:
-                raise ValueError('unsupported curve {}'.format(curve_name))
-
+            p['verifier'] = parser(mpi)
             assert not stream.read()
 
         # https://tools.ietf.org/html/rfc4880#section-12.2

@@ -78,8 +78,8 @@ def frame(*msgs):
 
 
 def crc24(blob):
-    CRC24_INIT = 0xB704CEL
-    CRC24_POLY = 0x1864CFBL
+    CRC24_INIT = 0x0B704CE
+    CRC24_POLY = 0x1864CFB
 
     crc = CRC24_INIT
     for octet in bytearray(blob):

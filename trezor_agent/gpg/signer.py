@@ -216,12 +216,11 @@ class Signer(object):
             ecdsa_curve_name=self.curve_name)
         assert result.signature[:1] == b'\x00'
         sig = result.signature[1:]
-        sig = [util.bytes2num(sig[:32]),
-               util.bytes2num(sig[32:])]
+        sig = mpi(util.bytes2num(sig[:32])) + mpi(util.bytes2num(sig[32:]))
 
-        hash_prefix = digest[:2]  # used for decoder's sanity check
-        signature = mpi(sig[0]) + mpi(sig[1])  # actual ECDSA signature
-        return header + hashed + unhashed + hash_prefix + signature
+        return (header + hashed + unhashed +
+                digest[:2] +  # used for decoder's sanity check
+                sig)  # actual ECDSA signature
 
 
 def split_lines(body, size):
@@ -240,9 +239,12 @@ def armor(blob, type_str):
 
 
 def load_from_gpg(user_id):
-    log.info('loading public key %r from local GPG keyring', user_id)
     pubkey_bytes = subprocess.check_output(['gpg2', '--export', user_id])
-    return decode.load_public_key(io.BytesIO(pubkey_bytes))
+    if pubkey_bytes:
+        return decode.load_public_key(io.BytesIO(pubkey_bytes))
+    else:
+        log.error('could not find public key %r in local GPG keyring', user_id)
+        raise KeyError(user_id)
 
 
 def main():
