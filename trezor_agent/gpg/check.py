@@ -40,7 +40,7 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument('pubkey')
     p.add_argument('signature')
-    p.add_argument('-v', '--verbose')
+    p.add_argument('-v', '--verbose', action='store_true', default=False)
     args = p.parse_args()
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
                         format='%(asctime)s %(levelname)-10s %(message)s')
