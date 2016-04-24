@@ -2,11 +2,16 @@
 """Create signatures and export public keys for GPG using TREZOR."""
 import argparse
 import logging
+import sys
 import time
 
 from . import check, decode, encode
 
 log = logging.getLogger(__name__)
+
+
+def _open_output(filename):
+    return sys.stdout if filename == '-' else open(filename, 'wb')
 
 
 def main():
@@ -18,6 +23,7 @@ def main():
     p.add_argument('-a', '--armor', action='store_true', default=False)
     p.add_argument('-v', '--verbose', action='store_true', default=False)
     p.add_argument('-e', '--ecdsa-curve', default='nist256p1')
+    p.add_argument('-o', '--output-file')
 
     args = p.parse_args()
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
@@ -31,8 +37,8 @@ def main():
         if args.armor:
             pubkey = encode.armor(pubkey, 'PUBLIC KEY BLOCK')
             ext = '.asc'
-        filename = s.hex_short_key_id() + ext
-        open(filename, 'wb').write(pubkey)
+        filename = args.output_file or (s.hex_short_key_id() + ext)
+        _open_output(filename).write(pubkey)
         log.info('import to local keyring using "gpg2 --import %s"', filename)
     else:
         pubkey = decode.load_from_gpg(user_id)
@@ -42,8 +48,8 @@ def main():
         if args.armor:
             sig = encode.armor(sig, 'SIGNATURE')
             ext = '.asc'
-        filename = args.filename + ext
-        open(filename, 'wb').write(sig)
+        filename = args.output_file or (args.filename + ext)
+        _open_output(filename).write(sig)
         check.verify(pubkey=pubkey, sig_file=filename)
 
     s.close()
