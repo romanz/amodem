@@ -1,3 +1,4 @@
+"""Decoders for GPG v2 data structures."""
 import binascii
 import contextlib
 import hashlib
@@ -14,31 +15,39 @@ log = logging.getLogger(__name__)
 
 
 def bit(value, i):
+    """Extract the i-th bit out of value."""
     return 1 if value & (1 << i) else 0
 
 
 def low_bits(value, n):
+    """Extract the lowest n bits out of value."""
     return value & ((1 << n) - 1)
 
 
 def readfmt(stream, fmt):
+    """Read and unpack an object from stream, using a struct format string."""
     size = struct.calcsize(fmt)
     blob = stream.read(size)
     return struct.unpack(fmt, blob)
 
 
 class Reader(object):
+    """Read basic type objects out of given stream."""
+
     def __init__(self, stream):
+        """Create a non-capturing reader."""
         self.s = stream
         self._captured = None
 
     def readfmt(self, fmt):
+        """Read a specified object, using a struct format string."""
         size = struct.calcsize(fmt)
         blob = self.read(size)
         obj, = struct.unpack(fmt, blob)
         return obj
 
     def read(self, size=None):
+        """Read `size` bytes from stream."""
         blob = self.s.read(size)
         if size is not None and len(blob) < size:
             raise EOFError
@@ -48,6 +57,7 @@ class Reader(object):
 
     @contextlib.contextmanager
     def capture(self, stream):
+        """Capture all data read during this context."""
         self._captured = stream
         try:
             yield
@@ -58,6 +68,7 @@ length_types = {0: '>B', 1: '>H', 2: '>L'}
 
 
 def parse_subpackets(s):
+    """See https://tools.ietf.org/html/rfc4880#section-5.2.3.1 for details."""
     subpackets = []
     total_size = s.readfmt('>H')
     data = s.read(total_size)
@@ -75,12 +86,18 @@ def parse_subpackets(s):
 
 
 def parse_mpi(s):
+    """See https://tools.ietf.org/html/rfc4880#section-3.2 for details."""
     bits = s.readfmt('>H')
     blob = bytearray(s.read(int((bits + 7) // 8)))
     return sum(v << (8 * i) for i, v in enumerate(reversed(blob)))
 
 
 def split_bits(value, *bits):
+    """
+    Split integer value into list of ints, according to `bits` list.
+
+    For example, split_bits(0x1234, 4, 8, 4) == [0x1, 0x23, 0x4]
+    """
     result = []
     for b in reversed(bits):
         mask = (1 << b) - 1
@@ -125,11 +142,13 @@ SUPPORTED_CURVES = {
 
 
 class Parser(object):
+    """Parse GPG packets from a given stream."""
+
     def __init__(self, stream, to_hash=None):
+        """Create an empty parser."""
         self.stream = stream
         self.packet_types = {
             2: self.signature,
-            4: self.onepass,
             6: self.pubkey,
             11: self.literal,
             13: self.user_id,
@@ -139,21 +158,11 @@ class Parser(object):
             self.to_hash.write(to_hash)
 
     def __iter__(self):
+        """Support iterative parsing of available GPG packets."""
         return self
 
-    def onepass(self, stream):
-        # pylint: disable=no-self-use
-        p = {'type': 'onepass'}
-        p['version'] = stream.readfmt('B')
-        p['sig_type'] = stream.readfmt('B')
-        p['hash_alg'] = stream.readfmt('B')
-        p['pubkey_alg'] = stream.readfmt('B')
-        p['key_id'] = stream.readfmt('8s')
-        p['nested'] = stream.readfmt('B')
-        assert not stream.read()
-        return p
-
     def literal(self, stream):
+        """See https://tools.ietf.org/html/rfc4880#section-5.9 for details."""
         p = {'type': 'literal'}
         p['format'] = stream.readfmt('c')
         filename_len = stream.readfmt('B')
@@ -164,6 +173,7 @@ class Parser(object):
         return p
 
     def signature(self, stream):
+        """See https://tools.ietf.org/html/rfc4880#section-5.2 for details."""
         p = {'type': 'signature'}
 
         to_hash = io.BytesIO()
@@ -195,6 +205,7 @@ class Parser(object):
         return p
 
     def pubkey(self, stream):
+        """See https://tools.ietf.org/html/rfc4880#section-5.5 for details."""
         p = {'type': 'pubkey'}
         packet = io.BytesIO()
         with stream.capture(packet):
@@ -224,14 +235,15 @@ class Parser(object):
         return p
 
     def user_id(self, stream):
+        """See https://tools.ietf.org/html/rfc4880#section-5.11 for details."""
         value = stream.read()
         self.to_hash.write(b'\xb4' + struct.pack('>L', len(value)))
         self.to_hash.write(value)
         return {'type': 'user_id', 'value': value}
 
     def __next__(self):
+        """See https://tools.ietf.org/html/rfc4880#section-4.2 for details."""
         try:
-            # https://tools.ietf.org/html/rfc4880#section-4.2
             value = self.stream.readfmt('B')
         except EOFError:
             raise StopIteration
@@ -252,7 +264,7 @@ class Parser(object):
         if packet_type:
             p = packet_type(Reader(io.BytesIO(packet_data)))
         else:
-            p = {'type': 'UNKNOWN'}
+            raise ValueError('Unknown packet type: {}'.format(packet_type))
         p['tag'] = tag
         log.debug('packet "%s": %s', p['type'], p)
         return p
@@ -261,6 +273,7 @@ class Parser(object):
 
 
 def load_public_key(stream):
+    """Parse and validate GPG public key from an input stream."""
     parser = Parser(Reader(stream))
     pubkey, userid, signature = list(parser)
     log.debug('loaded public key "%s"', userid['value'])
@@ -270,6 +283,7 @@ def load_public_key(stream):
 
 
 def verify_digest(pubkey, digest, signature, label):
+    """Verify a digest signature from a specified public key."""
     verifier = pubkey['verifier']
     try:
         verifier(signature, digest)

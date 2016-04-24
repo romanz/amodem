@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Check GPG v2 signature for a given public key."""
 import argparse
 import base64
 import io
@@ -11,6 +12,7 @@ log = logging.getLogger(__name__)
 
 
 def original_data(filename):
+    """Locate and load original file data, whose signature is provided."""
     parts = filename.rsplit('.', 1)
     if len(parts) == 2 and parts[1] in ('sig', 'asc'):
         log.debug('loading file %s', parts[0])
@@ -21,6 +23,7 @@ def verify(pubkey, sig_file):
     d = open(sig_file, 'rb')
     if d.name.endswith('.asc'):
         lines = d.readlines()[3:-1]
+    """Verify correctness of public key and signature."""
         data = base64.b64decode(''.join(lines))
         payload, checksum = data[:-3], data[-3:]
         assert util.crc24(payload) == checksum
@@ -33,6 +36,7 @@ def verify(pubkey, sig_file):
 
 
 def main():
+    """Main function."""
     logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s %(levelname)-10s %(message)s')
     p = argparse.ArgumentParser()

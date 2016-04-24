@@ -78,6 +78,7 @@ def frame(*msgs):
 
 
 def crc24(blob):
+    """See https://tools.ietf.org/html/rfc4880#section-6.1 for details."""
     CRC24_INIT = 0x0B704CE
     CRC24_POLY = 0x1864CFB
 

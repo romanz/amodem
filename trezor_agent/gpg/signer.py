@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Create GPG ECDSA signatures and public keys using TREZOR device."""
 import argparse
 import base64
 import binascii
@@ -16,10 +17,12 @@ log = logging.getLogger(__name__)
 
 
 def prefix_len(fmt, blob):
+    """Prefix `blob` with its size, serialized using `fmt` format."""
     return struct.pack(fmt, len(blob)) + blob
 
 
 def packet(tag, blob):
+    """Create small GPG packet."""
     assert len(blob) < 256
     length_type = 0  # : 1 byte for length
     leading_byte = 0x80 | (tag << 2) | (length_type)
@@ -27,28 +30,34 @@ def packet(tag, blob):
 
 
 def subpacket(subpacket_type, fmt, *values):
+    """Create GPG subpacket."""
     blob = struct.pack(fmt, *values) if values else fmt
     return struct.pack('>B', subpacket_type) + blob
 
 
 def subpacket_long(subpacket_type, value):
+    """Create GPG subpacket with 32-bit unsigned integer."""
     return subpacket(subpacket_type, '>L', value)
 
 
 def subpacket_time(value):
+    """Create GPG subpacket with time in seconds (since Epoch)."""
     return subpacket_long(2, value)
 
 
 def subpacket_byte(subpacket_type, value):
+    """Create GPG subpacket with 8-bit unsigned integer."""
     return subpacket(subpacket_type, '>B', value)
 
 
 def subpackets(*items):
+    """Serialize several GPG subpackets."""
     prefixed = [prefix_len('>B', item) for item in items]
     return prefix_len('>H', b''.join(prefixed))
 
 
 def mpi(value):
+    """Serialize multipresicion integer using GPG format."""
     bits = value.bit_length()
     data_size = (bits + 7) // 8
     data_bytes = [0] * data_size
@@ -61,10 +70,12 @@ def mpi(value):
 
 
 def time_format(t):
+    """Utility for consistent time formatting."""
     return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(t))
 
 
 def hexlify(blob):
+    """Utility for consistent hexadecimal formatting."""
     return binascii.hexlify(blob).decode('ascii').upper()
 
 
@@ -94,15 +105,17 @@ SUPPORTED_CURVES = {
 }
 
 
-def find_curve_by_algo_id(algo_id):
+def _find_curve_by_algo_id(algo_id):
     curve_name, = [name for name, info in SUPPORTED_CURVES.items()
                    if info['algo_id'] == algo_id]
     return curve_name
 
 
 class Signer(object):
+    """Performs GPG operations with the TREZOR."""
 
     def __init__(self, user_id, created, curve_name):
+        """Construct and loads a public key from the device."""
         self.user_id = user_id
         assert curve_name in formats.SUPPORTED_CURVES
         self.curve_name = curve_name
@@ -126,9 +139,15 @@ class Signer(object):
 
     @classmethod
     def from_public_key(cls, pubkey, user_id):
+        """
+        Create from an existing GPG public key.
+
+        `pubkey` should be loaded via `load_from_gpg(user_id)`
+        from the local GPG keyring.
+        """
         s = Signer(user_id=user_id,
                    created=pubkey['created'],
-                   curve_name=find_curve_by_algo_id(pubkey['algo']))
+                   curve_name=_find_curve_by_algo_id(pubkey['algo']))
         assert s.key_id() == pubkey['key_id']
         return s
 
@@ -149,16 +168,20 @@ class Signer(object):
         return hashlib.sha1(self._pubkey_data_to_hash()).digest()
 
     def key_id(self):
+        """Short (8 byte) GPG key ID."""
         return self._fingerprint()[-8:]
 
     def hex_short_key_id(self):
+        """Short (8 hexadecimal digits) GPG key ID."""
         return hexlify(self.key_id()[-4:])
 
     def close(self):
+        """Close connection and turn off the screen of the device."""
         self.client_wrapper.connection.clear_session()
         self.client_wrapper.connection.close()
 
     def export(self):
+        """Export GPG public key, ready for "gpg2 --import"."""
         pubkey_packet = packet(tag=6, blob=self._pubkey_data())
         user_id_packet = packet(tag=13, blob=self.user_id)
 
@@ -180,6 +203,7 @@ class Signer(object):
         return pubkey_packet + user_id_packet + sign_packet
 
     def sign(self, msg, sign_time=None):
+        """Sign GPG message at specified time."""
         if sign_time is None:
             sign_time = int(time.time())
 
@@ -223,7 +247,7 @@ class Signer(object):
                 sig)  # actual ECDSA signature
 
 
-def split_lines(body, size):
+def _split_lines(body, size):
     lines = []
     for i in range(0, len(body), size):
         lines.append(body[i:i+size] + '\n')
@@ -231,14 +255,16 @@ def split_lines(body, size):
 
 
 def armor(blob, type_str):
+    """See https://tools.ietf.org/html/rfc4880#section-6 for details."""
     head = '-----BEGIN PGP {}-----\nVersion: GnuPG v2\n\n'.format(type_str)
     body = base64.b64encode(blob)
     checksum = base64.b64encode(util.crc24(blob))
     tail = '-----END PGP {}-----\n'.format(type_str)
-    return head + split_lines(body, 64) + '=' + checksum + '\n' + tail
+    return head + _split_lines(body, 64) + '=' + checksum + '\n' + tail
 
 
 def load_from_gpg(user_id):
+    """Load existing GPG public key for `user_id` from local keyring."""
     pubkey_bytes = subprocess.check_output(['gpg2', '--export', user_id])
     if pubkey_bytes:
         return decode.load_public_key(io.BytesIO(pubkey_bytes))
@@ -248,6 +274,7 @@ def load_from_gpg(user_id):
 
 
 def main():
+    """Main function."""
     p = argparse.ArgumentParser()
     p.add_argument('user_id')
     p.add_argument('filename', nargs='?')

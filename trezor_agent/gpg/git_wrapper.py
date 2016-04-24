@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""A simple wrapper for Git commit/tag GPG signing."""
 import logging
 import subprocess as sp
 import sys
@@ -9,6 +10,7 @@ log = logging.getLogger(__name__)
 
 
 def main():
+    """Main function."""
     logging.basicConfig(level=logging.INFO,
                         format='%(asctime)s %(levelname)-10s %(message)s')
 
