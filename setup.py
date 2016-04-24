@@ -30,5 +30,7 @@ setup(
     entry_points={'console_scripts': [
         'trezor-agent = trezor_agent.__main__:run_agent',
         'trezor-git = trezor_agent.__main__:run_git',
+        'trezor-gpg = trezor_agent.gpg.signer:main',
+        'trezor-git-gpg-wrapper = trezor_agent.gpg.git_wrapper:main',
     ]},
 )
