@@ -1,6 +1,9 @@
 """Various I/O and serialization utilities."""
+import binascii
+import contextlib
 import io
 import struct
+import time
 
 
 def send(conn, data):
@@ -93,3 +96,84 @@ def crc24(blob):
     crc_bytes = struct.pack('>L', crc)
     assert crc_bytes[0] == b'\x00'
     return crc_bytes[1:]
+
+
+def bit(value, i):
+    """Extract the i-th bit out of value."""
+    return 1 if value & (1 << i) else 0
+
+
+def low_bits(value, n):
+    """Extract the lowest n bits out of value."""
+    return value & ((1 << n) - 1)
+
+
+def split_bits(value, *bits):
+    """
+    Split integer value into list of ints, according to `bits` list.
+
+    For example, split_bits(0x1234, 4, 8, 4) == [0x1, 0x23, 0x4]
+    """
+    result = []
+    for b in reversed(bits):
+        mask = (1 << b) - 1
+        result.append(value & mask)
+        value = value >> b
+    assert value == 0
+    return reversed(result)
+
+
+def readfmt(stream, fmt):
+    """Read and unpack an object from stream, using a struct format string."""
+    size = struct.calcsize(fmt)
+    blob = stream.read(size)
+    return struct.unpack(fmt, blob)
+
+
+def prefix_len(fmt, blob):
+    """Prefix `blob` with its size, serialized using `fmt` format."""
+    return struct.pack(fmt, len(blob)) + blob
+
+
+def time_format(t):
+    """Utility for consistent time formatting."""
+    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(t))
+
+
+def hexlify(blob):
+    """Utility for consistent hexadecimal formatting."""
+    return binascii.hexlify(blob).decode('ascii').upper()
+
+
+class Reader(object):
+    """Read basic type objects out of given stream."""
+
+    def __init__(self, stream):
+        """Create a non-capturing reader."""
+        self.s = stream
+        self._captured = None
+
+    def readfmt(self, fmt):
+        """Read a specified object, using a struct format string."""
+        size = struct.calcsize(fmt)
+        blob = self.read(size)
+        obj, = struct.unpack(fmt, blob)
+        return obj
+
+    def read(self, size=None):
+        """Read `size` bytes from stream."""
+        blob = self.s.read(size)
+        if size is not None and len(blob) < size:
+            raise EOFError
+        if self._captured:
+            self._captured.write(blob)
+        return blob
+
+    @contextlib.contextmanager
+    def capture(self, stream):
+        """Capture all data read during this context."""
+        self._captured = stream
+        try:
+            yield
+        finally:
+            self._captured = None

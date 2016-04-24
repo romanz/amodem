@@ -4,7 +4,7 @@ import logging
 import subprocess as sp
 import sys
 
-from . import signer
+from . import decode, encode
 
 log = logging.getLogger(__name__)
 
@@ -22,12 +22,12 @@ def main():
         command = args[0]
         user_id = ' '.join(args[1:])
         assert command == '-bsau'  # --detach-sign --sign --armor --local-user
-        pubkey = signer.load_from_gpg(user_id)
-        s = signer.Signer.from_public_key(user_id=user_id, pubkey=pubkey)
+        pubkey = decode.load_from_gpg(user_id)
+        s = encode.Signer.from_public_key(user_id=user_id, pubkey=pubkey)
 
         data = sys.stdin.read()
         sig = s.sign(data)
-        sig = signer.armor(sig, 'SIGNATURE')
+        sig = encode.armor(sig, 'SIGNATURE')
         sys.stdout.write(sig)
         s.close()
 

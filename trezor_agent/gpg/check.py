@@ -20,15 +20,15 @@ def original_data(filename):
 
 
 def verify(pubkey, sig_file):
-    d = open(sig_file, 'rb')
-    if d.name.endswith('.asc'):
-        lines = d.readlines()[3:-1]
     """Verify correctness of public key and signature."""
+    stream = open(sig_file, 'rb')
+    if stream.name.endswith('.asc'):
+        lines = stream.readlines()[3:-1]
         data = base64.b64decode(''.join(lines))
         payload, checksum = data[:-3], data[-3:]
         assert util.crc24(payload) == checksum
-        d = io.BytesIO(payload)
-    parser = decode.Parser(decode.Reader(d), original_data(sig_file))
+        stream = io.BytesIO(payload)
+    parser = decode.Parser(util.Reader(stream), original_data(sig_file))
     signature, = list(parser)
     decode.verify_digest(pubkey=pubkey, digest=signature['digest'],
                          signature=signature['sig'], label='GPG signature')

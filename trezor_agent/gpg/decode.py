@@ -1,70 +1,16 @@
 """Decoders for GPG v2 data structures."""
-import binascii
-import contextlib
 import hashlib
 import io
 import logging
 import struct
+import subprocess
 
 import ecdsa
 import ed25519
 
-from trezor_agent.util import num2bytes
+from .. import util
 
 log = logging.getLogger(__name__)
-
-
-def bit(value, i):
-    """Extract the i-th bit out of value."""
-    return 1 if value & (1 << i) else 0
-
-
-def low_bits(value, n):
-    """Extract the lowest n bits out of value."""
-    return value & ((1 << n) - 1)
-
-
-def readfmt(stream, fmt):
-    """Read and unpack an object from stream, using a struct format string."""
-    size = struct.calcsize(fmt)
-    blob = stream.read(size)
-    return struct.unpack(fmt, blob)
-
-
-class Reader(object):
-    """Read basic type objects out of given stream."""
-
-    def __init__(self, stream):
-        """Create a non-capturing reader."""
-        self.s = stream
-        self._captured = None
-
-    def readfmt(self, fmt):
-        """Read a specified object, using a struct format string."""
-        size = struct.calcsize(fmt)
-        blob = self.read(size)
-        obj, = struct.unpack(fmt, blob)
-        return obj
-
-    def read(self, size=None):
-        """Read `size` bytes from stream."""
-        blob = self.s.read(size)
-        if size is not None and len(blob) < size:
-            raise EOFError
-        if self._captured:
-            self._captured.write(blob)
-        return blob
-
-    @contextlib.contextmanager
-    def capture(self, stream):
-        """Capture all data read during this context."""
-        self._captured = stream
-        try:
-            yield
-        finally:
-            self._captured = None
-
-length_types = {0: '>B', 1: '>H', 2: '>L'}
 
 
 def parse_subpackets(s):
@@ -72,7 +18,7 @@ def parse_subpackets(s):
     subpackets = []
     total_size = s.readfmt('>H')
     data = s.read(total_size)
-    s = Reader(io.BytesIO(data))
+    s = util.Reader(io.BytesIO(data))
 
     while True:
         try:
@@ -92,23 +38,8 @@ def parse_mpi(s):
     return sum(v << (8 * i) for i, v in enumerate(reversed(blob)))
 
 
-def split_bits(value, *bits):
-    """
-    Split integer value into list of ints, according to `bits` list.
-
-    For example, split_bits(0x1234, 4, 8, 4) == [0x1, 0x23, 0x4]
-    """
-    result = []
-    for b in reversed(bits):
-        mask = (1 << b) - 1
-        result.append(value & mask)
-        value = value >> b
-    assert value == 0
-    return reversed(result)
-
-
 def _parse_nist256p1_verifier(mpi):
-    prefix, x, y = split_bits(mpi, 4, 256, 256)
+    prefix, x, y = util.split_bits(mpi, 4, 256, 256)
     assert prefix == 4
     point = ecdsa.ellipticcurve.Point(curve=ecdsa.NIST256p.curve,
                                       x=x, y=y)
@@ -124,12 +55,12 @@ def _parse_nist256p1_verifier(mpi):
 
 
 def _parse_ed25519_verifier(mpi):
-    prefix, value = split_bits(mpi, 8, 256)
+    prefix, value = util.split_bits(mpi, 8, 256)
     assert prefix == 0x40
-    vk = ed25519.VerifyingKey(num2bytes(value, size=32))
+    vk = ed25519.VerifyingKey(util.num2bytes(value, size=32))
 
     def _ed25519_verify(signature, digest):
-        sig = b''.join(num2bytes(val, size=32)
+        sig = b''.join(util.num2bytes(val, size=32)
                        for val in signature)
         vk.verify(sig, digest)
     return _ed25519_verify
@@ -229,7 +160,7 @@ class Parser(object):
         data_to_hash = (b'\x99' + struct.pack('>H', len(packet_data)) +
                         packet_data)
         p['key_id'] = hashlib.sha1(data_to_hash).digest()[-8:]
-        log.debug('key ID: %s', binascii.hexlify(p['key_id']).decode('ascii'))
+        log.debug('key ID: %s', util.hexlify(p['key_id']))
         self.to_hash.write(data_to_hash)
 
         return p
@@ -249,20 +180,20 @@ class Parser(object):
             raise StopIteration
 
         log.debug('prefix byte: %02x', value)
-        assert bit(value, 7) == 1
-        assert bit(value, 6) == 0  # new format not supported yet
+        assert util.bit(value, 7) == 1
+        assert util.bit(value, 6) == 0  # new format not supported yet
 
-        tag = low_bits(value, 6)
-        length_type = low_bits(tag, 2)
+        tag = util.low_bits(value, 6)
+        length_type = util.low_bits(tag, 2)
         tag = tag >> 2
-        fmt = length_types[length_type]
+        fmt = {0: '>B', 1: '>H', 2: '>L'}[length_type]
         log.debug('length_type: %s', fmt)
         packet_size = self.stream.readfmt(fmt)
         log.debug('packet length: %d', packet_size)
         packet_data = self.stream.read(packet_size)
         packet_type = self.packet_types.get(tag)
         if packet_type:
-            p = packet_type(Reader(io.BytesIO(packet_data)))
+            p = packet_type(util.Reader(io.BytesIO(packet_data)))
         else:
             raise ValueError('Unknown packet type: {}'.format(packet_type))
         p['tag'] = tag
@@ -274,12 +205,22 @@ class Parser(object):
 
 def load_public_key(stream):
     """Parse and validate GPG public key from an input stream."""
-    parser = Parser(Reader(stream))
+    parser = Parser(util.Reader(stream))
     pubkey, userid, signature = list(parser)
     log.debug('loaded public key "%s"', userid['value'])
     verify_digest(pubkey=pubkey, digest=signature['digest'],
                   signature=signature['sig'], label='GPG public key')
     return pubkey
+
+
+def load_from_gpg(user_id):
+    """Load existing GPG public key for `user_id` from local keyring."""
+    pubkey_bytes = subprocess.check_output(['gpg2', '--export', user_id])
+    if pubkey_bytes:
+        return load_public_key(io.BytesIO(pubkey_bytes))
+    else:
+        log.error('could not find public key %r in local GPG keyring', user_id)
+        raise KeyError(user_id)
 
 
 def verify_digest(pubkey, digest, signature, label):
