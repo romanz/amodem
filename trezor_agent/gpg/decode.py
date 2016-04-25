@@ -195,7 +195,7 @@ class Parser(object):
         if packet_type:
             p = packet_type(util.Reader(io.BytesIO(packet_data)))
         else:
-            raise ValueError('Unknown packet type: {}'.format(packet_type))
+            raise ValueError('Unknown packet type: {}'.format(tag))
         p['tag'] = tag
         log.debug('packet "%s": %s', p['type'], p)
         return p
