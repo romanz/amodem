@@ -83,6 +83,7 @@ class Parser(object):
             6: self.pubkey,
             11: self.literal,
             13: self.user_id,
+            14: self.subkey,
         }
 
     def __iter__(self):
@@ -151,7 +152,35 @@ class Parser(object):
         p['key_id'] = hashlib.sha1(data_to_hash).digest()[-8:]
         p['_to_hash'] = data_to_hash
         log.debug('key ID: %s', util.hexlify(p['key_id']))
+        return p
 
+    def subkey(self, stream):
+        """See https://tools.ietf.org/html/rfc4880#section-5.5 for details."""
+        p = {'type': 'subkey'}
+        packet = io.BytesIO()
+        with stream.capture(packet):
+            p['version'] = stream.readfmt('B')
+            p['created'] = stream.readfmt('>L')
+            p['algo'] = stream.readfmt('B')
+
+            # https://tools.ietf.org/html/rfc6637#section-11
+            oid_size = stream.readfmt('B')
+            oid = stream.read(oid_size)
+            assert oid in SUPPORTED_CURVES
+            parser = SUPPORTED_CURVES[oid]
+
+            mpi = parse_mpi(stream)
+            log.debug('mpi: %x (%d bits)', mpi, mpi.bit_length())
+            p['verifier'] = parser(mpi)
+            p['leftover'] = stream.read()  # TBD: what is this?
+
+        # https://tools.ietf.org/html/rfc4880#section-12.2
+        packet_data = packet.getvalue()
+        data_to_hash = (b'\x99' + struct.pack('>H', len(packet_data)) +
+                        packet_data)
+        p['key_id'] = hashlib.sha1(data_to_hash).digest()[-8:]
+        p['_to_hash'] = data_to_hash
+        log.debug('key ID: %s', util.hexlify(p['key_id']))
         return p
 
     def user_id(self, stream):
@@ -208,6 +237,7 @@ def load_public_key(stream):
     verify_digest(pubkey=pubkey, digest=digest,
                   signature=signature['sig'], label='GPG public key')
     return pubkey
+
 
 def load_signature(stream, original_data):
     parser = Parser(util.Reader(stream))
