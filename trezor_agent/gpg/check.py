@@ -28,9 +28,9 @@ def verify(pubkey, sig_file):
         payload, checksum = data[:-3], data[-3:]
         assert util.crc24(payload) == checksum
         stream = io.BytesIO(payload)
-    parser = decode.Parser(util.Reader(stream), original_data(sig_file))
-    signature, = list(parser)
-    decode.verify_digest(pubkey=pubkey, digest=signature['digest'],
+
+    signature, digest = decode.load_signature(stream, original_data(sig_file))
+    decode.verify_digest(pubkey=pubkey, digest=digest,
                          signature=signature['sig'], label='GPG signature')
     log.info('%s OK', sig_file)
 
