@@ -48,9 +48,10 @@ def _parse_nist256p1_verifier(mpi):
         hashfunc=hashlib.sha256)
 
     def _nist256p1_verify(signature, digest):
-        vk.verify_digest(signature=signature,
-                         digest=digest,
-                         sigdecode=lambda rs, order: rs)
+        result = vk.verify_digest(signature=signature,
+                                  digest=digest,
+                                  sigdecode=lambda rs, order: rs)
+        log.debug('nist256p1 ECDSA signature is OK (%s)', result)
     return _nist256p1_verify
 
 
@@ -62,7 +63,8 @@ def _parse_ed25519_verifier(mpi):
     def _ed25519_verify(signature, digest):
         sig = b''.join(util.num2bytes(val, size=32)
                        for val in signature)
-        vk.verify(sig, digest)
+        result = vk.verify(sig, digest)
+        log.debug('ed25519 ECDSA signature is OK (%s)', result)
     return _ed25519_verify
 
 
