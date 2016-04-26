@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 """Check GPG v2 signature for a given public key."""
 import argparse
-import base64
-import io
 import logging
-import pprint
 
 from . import decode
 from .. import util
@@ -21,7 +18,7 @@ def main():
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
                         format='%(asctime)s %(levelname)-10s %(message)s')
     stream = open(args.pubkey, 'rb')
-    parser = decode.Parser(util.Reader(stream))
+    parser = decode.parse_packets(util.Reader(stream))
     pubkey, userid, sig1, subkey, sig2 = parser
 
     digest = decode.digest_packets([pubkey, userid, sig1])
