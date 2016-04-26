@@ -221,7 +221,6 @@ def parse_packets(stream):
         length_type = util.low_bits(tag, 2)
         tag = tag >> 2
         fmt = {0: '>B', 1: '>H', 2: '>L'}[length_type]
-        log.debug('length_type: %s', fmt)
         packet_size = stream.readfmt(fmt)
 
         log.debug('packet length: %d', packet_size)
