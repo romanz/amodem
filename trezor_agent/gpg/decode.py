@@ -103,6 +103,15 @@ class Parser(object):
         p['_to_hash'] = p['content']
         return p
 
+    def _embedded_signatures(self, subpackets):
+        for packet in subpackets:
+            data = bytearray(packet)
+            if data[0] == 32:
+                # https://tools.ietf.org/html/rfc4880#section-5.2.3.26
+                stream = io.BytesIO(data[1:])
+                yield self.signature(util.Reader(stream))
+
+
     def signature(self, stream):
         """See https://tools.ietf.org/html/rfc4880#section-5.2 for details."""
         p = {'type': 'signature'}
@@ -121,6 +130,10 @@ class Parser(object):
         p['_to_hash'] = to_hash.getvalue() + tail_to_hash
 
         p['unhashed_subpackets'] = parse_subpackets(stream)
+        embedded = list(self._embedded_signatures(p['unhashed_subpackets']))
+        if embedded:
+            p['embedded'] = embedded
+
         p['hash_prefix'] = stream.readfmt('2s')
         p['sig'] = (parse_mpi(stream), parse_mpi(stream))
         assert not stream.read()
@@ -174,7 +187,9 @@ class Parser(object):
             mpi = parse_mpi(stream)
             log.debug('mpi: %x (%d bits)', mpi, mpi.bit_length())
             p['verifier'] = parser(mpi)
-            p['leftover'] = stream.read()  # TBD: what is this?
+            leftover = stream.read()  # TBD: what is this?
+            if leftover:
+                log.warning('unexpected subkey leftover: %r', leftover)
 
         # https://tools.ietf.org/html/rfc4880#section-12.2
         packet_data = packet.getvalue()
