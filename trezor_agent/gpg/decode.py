@@ -52,7 +52,7 @@ def _parse_nist256p1_verifier(mpi):
                                   digest=digest,
                                   sigdecode=lambda rs, order: rs)
         log.debug('nist256p1 ECDSA signature is OK (%s)', result)
-    return _nist256p1_verify
+    return _nist256p1_verify, vk
 
 
 def _parse_ed25519_verifier(mpi):
@@ -65,7 +65,7 @@ def _parse_ed25519_verifier(mpi):
                        for val in signature)
         result = vk.verify(sig, digest)
         log.debug('ed25519 ECDSA signature is OK (%s)', result)
-    return _ed25519_verify
+    return _ed25519_verify, vk
 
 
 SUPPORTED_CURVES = {
@@ -140,7 +140,7 @@ def _parse_pubkey(stream):
 
         mpi = parse_mpi(stream)
         log.debug('mpi: %x (%d bits)', mpi, mpi.bit_length())
-        p['verifier'] = parser(mpi)
+        p['verifier'], p['verifying_key'] = parser(mpi)
         assert not stream.read()
 
     # https://tools.ietf.org/html/rfc4880#section-12.2
@@ -170,7 +170,7 @@ def _parse_subkey(stream):
 
         mpi = parse_mpi(stream)
         log.debug('mpi: %x (%d bits)', mpi, mpi.bit_length())
-        p['verifier'] = parser(mpi)
+        p['verifier'], p['verifying_key'] = parser(mpi)
         leftover = stream.read()  # TBD: what is this?
         if leftover:
             log.warning('unexpected subkey leftover: %r', leftover)
