@@ -18,6 +18,7 @@ log = logging.getLogger(__name__)
 def connect(sock_path='~/.gnupg/S.gpg-agent'):
     """Connect to GPG agent's UNIX socket."""
     sock_path = os.path.expanduser(sock_path)
+    sp.check_call(['gpg-connect-agent', '/bye'])
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     sock.connect(sock_path)
     return sock
