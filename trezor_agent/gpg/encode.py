@@ -58,13 +58,13 @@ def mpi(value):
     return struct.pack('>H', bits) + bytearray(data_bytes)
 
 
-def _dump_nist256(vk):
+def _serialize_nist256(vk):
     return mpi((4 << 512) |
                (vk.pubkey.point.x() << 256) |
                (vk.pubkey.point.y()))
 
 
-def _dump_ed25519(vk):
+def _serialize_ed25519(vk):
     return mpi((0x40 << 256) |
                util.bytes2num(vk.to_bytes()))
 
@@ -74,12 +74,12 @@ SUPPORTED_CURVES = {
         # https://tools.ietf.org/html/rfc6637#section-11
         'oid': b'\x2A\x86\x48\xCE\x3D\x03\x01\x07',
         'algo_id': 19,
-        'dump': _dump_nist256
+        'serialize': _serialize_nist256
     },
     formats.CURVE_ED25519: {
         'oid': b'\x2B\x06\x01\x04\x01\xDA\x47\x0F\x01',
         'algo_id': 22,
-        'dump': _dump_ed25519
+        'serialize': _serialize_ed25519
     }
 }
 
@@ -137,7 +137,7 @@ class Signer(object):
                              self.created,  # creation
                              curve_info['algo_id'])
         oid = util.prefix_len('>B', curve_info['oid'])
-        blob = curve_info['dump'](self.verifying_key)
+        blob = curve_info['serialize'](self.verifying_key)
         return header + oid + blob
 
     def _pubkey_data_to_hash(self):
