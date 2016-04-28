@@ -115,6 +115,7 @@ def _parse_signature(stream):
     p['unhashed_subpackets'] = parse_subpackets(stream)
     embedded = list(_parse_embedded_signatures(p['unhashed_subpackets']))
     if embedded:
+        log.info('embedded sigs: %s', embedded)
         p['embedded'] = embedded
 
     p['hash_prefix'] = stream.readfmt('2s')
@@ -248,13 +249,18 @@ def digest_packets(packets):
 def load_public_key(stream):
     """Parse and validate GPG public key from an input stream."""
     packets = list(parse_packets(util.Reader(stream)))
-    pubkey, userid, signature = packets[:3]
+    subkey = subsig = None
+    if len(packets) == 5:
+        pubkey, userid, signature, subkey, subsig = packets
+    else:
+        pubkey, userid, signature = packets
+
     digest = digest_packets([pubkey, userid, signature])
     assert signature['hash_prefix'] == digest[:2]
     log.debug('loaded public key "%s"', userid['value'])
     verify_digest(pubkey=pubkey, digest=digest,
                   signature=signature['sig'], label='GPG public key')
-    return pubkey
+    return subkey or pubkey
 
 
 def load_signature(stream, original_data):
