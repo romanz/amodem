@@ -229,16 +229,23 @@ class Signer(object):
         log.info('adding as subkey to %s (%s)', user_id, keygrip)
         data_to_sign = primary['_to_hash'] + self._pubkey_data_to_hash()
         hashed_subpackets = [
+            subpacket_time(self.created)]  # signature creaion time
+        back_sign = self._make_signature(visual='Add subkey',
+                                         data_to_sign=data_to_sign,
+                                         sig_type=0x19,  # Primary Key Binding Signature
+                                         hashed_subpackets=hashed_subpackets)
+        log.info('back_sign: %r', back_sign)
+        hashed_subpackets = [
             subpacket_time(self.created),  # signature creaion time
             subpacket_byte(0x1B, 2)]  # key flags (certify & sign)
-
         _conn = self.conn
         self.conn = AgentSigner(user_id, curve_name=formats.CURVE_NIST256)
         self.key_id = lambda: primary['key_id']
         signature = self._make_signature(visual='Add subkey',
                                          data_to_sign=data_to_sign,
                                          sig_type=0x18,  # Subkey Binding Signature
-                                         hashed_subpackets=hashed_subpackets)
+                                         hashed_subpackets=hashed_subpackets,
+                                         unhashed=[subpacket(32, bytes(back_sign))])
         self.conn = _conn
 
         sign_packet = packet(tag=2, blob=signature)
@@ -259,7 +266,7 @@ class Signer(object):
         return packet(tag=2, blob=blob)
 
     def _make_signature(self, visual, data_to_sign,
-                        hashed_subpackets, sig_type=0):
+                        hashed_subpackets, sig_type=0, unhashed=()):
         curve_info = SUPPORTED_CURVES[self.conn.curve_name]
         header = struct.pack('>BBBB',
                              4,         # version
@@ -269,7 +276,8 @@ class Signer(object):
         hashed = subpackets(*hashed_subpackets)
         log.info('key_id: %s', util.hexlify(self.key_id()))
         unhashed = subpackets(
-            subpacket(16, self.key_id())  # issuer key id
+            subpacket(16, self.key_id()),  # issuer key id
+            *unhashed
         )
         tail = b'\x04\xff' + struct.pack('>L', len(header) + len(hashed))
         data_to_hash = data_to_sign + header + hashed + tail
