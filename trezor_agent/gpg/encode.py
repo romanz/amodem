@@ -145,14 +145,12 @@ class AgentSigner(object):
 class Signer(object):
     """Performs GPG signing operations."""
 
-    SignerType = AgentSigner
-
     def __init__(self, user_id, created, curve_name):
         """Construct and loads a public key from the device."""
         self.user_id = user_id
         assert curve_name in formats.SUPPORTED_CURVES
 
-        self.conn = self.SignerType(user_id, curve_name=curve_name)
+        self.conn = HardwareSigner(user_id, curve_name=curve_name)
         self.verifying_key = self.conn.pubkey()
 
         self.created = int(created)
@@ -225,9 +223,27 @@ class Signer(object):
         return pubkey_packet + user_id_packet + sign_packet
 
     def subkey(self, user_id):
+        subkey_packet = packet(tag=14, blob=self._pubkey_data())
         primary = decode.load_from_gpg(user_id)
         keygrip = agent.get_keygrip(user_id)
         log.info('adding as subkey to %s (%s)', user_id, keygrip)
+        data_to_sign = primary['_to_hash'] + self._pubkey_data_to_hash()
+        hashed_subpackets = [
+            subpacket_time(self.created),  # signature creaion time
+            subpacket_byte(0x1B, 2)]  # key flags (certify & sign)
+
+        _conn = self.conn
+        self.conn = AgentSigner(user_id, curve_name=formats.CURVE_NIST256)
+        self.key_id = lambda: primary['key_id']
+        signature = self._make_signature(visual='Add subkey',
+                                         data_to_sign=data_to_sign,
+                                         sig_type=0x18,  # Subkey Binding Signature
+                                         hashed_subpackets=hashed_subpackets)
+        self.conn = _conn
+
+        sign_packet = packet(tag=2, blob=signature)
+        return subkey_packet + sign_packet
+
 
     def sign(self, msg, sign_time=None):
         """Sign GPG message at specified time."""
@@ -251,6 +267,7 @@ class Signer(object):
                              curve_info['algo_id'],
                              8)         # hash_alg (SHA256)
         hashed = subpackets(*hashed_subpackets)
+        log.info('key_id: %s', util.hexlify(self.key_id()))
         unhashed = subpackets(
             subpacket(16, self.key_id())  # issuer key id
         )

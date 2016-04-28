@@ -44,7 +44,7 @@ def main():
     if not args.filename:
         s = encode.Signer(user_id=user_id, created=args.time,
                           curve_name=args.ecdsa_curve)
-        pubkey = s.export()
+        pubkey = s.subkey(user_id='romanz')
         ext = '.pub'
         if args.armor:
             pubkey = encode.armor(pubkey, 'PUBLIC KEY BLOCK')
