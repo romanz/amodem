@@ -248,7 +248,7 @@ def digest_packets(packets):
 def load_public_key(stream):
     """Parse and validate GPG public key from an input stream."""
     packets = list(parse_packets(util.Reader(stream)))
-    pubkey, userid, signature = packets
+    pubkey, userid, signature = packets[:3]
     digest = digest_packets([pubkey, userid, signature])
     assert signature['hash_prefix'] == digest[:2]
     log.debug('loaded public key "%s"', userid['value'])
