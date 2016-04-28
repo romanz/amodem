@@ -121,7 +121,7 @@ class Signer(object):
         """
         Create from an existing GPG public key.
 
-        `pubkey` should be loaded via `load_from_gpg(user_id)`
+        `pubkey` should be loaded via `decode.load_from_gpg(user_id)`
         from the local GPG keyring.
         """
         s = Signer(user_id=user_id,
