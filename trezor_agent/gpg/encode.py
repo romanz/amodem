@@ -227,7 +227,7 @@ class Signer(object):
             subpacket(16, self.pubkey.key_id())]  # issuer key id
 
         signature = _make_signature(
-            pubkey=self.pubkey, conn=self.conn,
+            conn=self.conn,
             data_to_sign=data_to_sign,
             sig_type=0x13,  # user id & public key
             hashed_subpackets=hashed_subpackets,
@@ -248,7 +248,7 @@ class Signer(object):
             subpacket(16, self.pubkey.key_id())]  # issuer key id
 
         # Primary Key Binding Signature
-        back_sign = _make_signature(pubkey=self.pubkey, conn=self.conn,
+        back_sign = _make_signature(conn=self.conn,
                                     data_to_sign=data_to_sign,
                                     sig_type=0x19,
                                     hashed_subpackets=hashed_subpackets,
@@ -264,7 +264,7 @@ class Signer(object):
         conn = AgentSigner(user_id, curve_name=formats.CURVE_NIST256)
 
         # Subkey Binding Signature
-        signature = _make_signature(pubkey=self.pubkey, conn=conn,
+        signature = _make_signature(conn=conn,
                                     data_to_sign=data_to_sign,
                                     sig_type=0x18,
                                     hashed_subpackets=hashed_subpackets,
@@ -285,15 +285,15 @@ class Signer(object):
             subpacket(16, self.pubkey.key_id())]  # issuer key id
 
         blob = _make_signature(
-            pubkey=self.pubkey, conn=self.conn, data_to_sign=msg,
+            conn=self.conn, data_to_sign=msg,
             hashed_subpackets=hashed_subpackets,
             unhashed_subpackets=unhashed_subpackets)
         return packet(tag=2, blob=blob)
 
 
-def _make_signature(pubkey, conn, data_to_sign,
+def _make_signature(conn, data_to_sign,
                     hashed_subpackets, unhashed_subpackets, sig_type=0):
-    curve_info = SUPPORTED_CURVES[pubkey.curve_name]
+    curve_info = SUPPORTED_CURVES[conn.curve_name]
     header = struct.pack('>BBBB',
                          4,         # version
                          sig_type,  # rfc4880 (section-5.2.1)
