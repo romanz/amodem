@@ -188,7 +188,8 @@ class Signer(object):
             verifying_key=self.conn.pubkey())
 
         log.info('%s GPG public key %s created at %s', curve_name,
-                 self.pubkey.hex_short_key_id(), util.time_format(self.pubkey.created))
+                 self.pubkey.hex_short_key_id(),
+                 util.time_format(self.pubkey.created))
 
     @classmethod
     def from_public_key(cls, pubkey, user_id):
@@ -261,16 +262,14 @@ class Signer(object):
             subpacket(16, primary['key_id']),  # issuer key id
             subpacket(32, back_sign)]
 
-        _conn = self.conn
-        self.conn = AgentSigner(user_id, curve_name=formats.CURVE_NIST256)
+        conn = AgentSigner(user_id, curve_name=formats.CURVE_NIST256)
 
         # Subkey Binding Signature
-        signature = _make_signature(pubkey=self.pubkey, conn=self.conn,
+        signature = _make_signature(pubkey=self.pubkey, conn=conn,
                                     data_to_sign=data_to_sign,
                                     sig_type=0x18,
                                     hashed_subpackets=hashed_subpackets,
                                     unhashed_subpackets=unhashed_subpackets)
-        self.conn = _conn
 
         sign_packet = packet(tag=2, blob=signature)
         return subkey_packet + sign_packet
