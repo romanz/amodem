@@ -108,11 +108,11 @@ class HardwareSigner(object):
             pubkey=public_node.node.public_key,
             curve_name=self.curve_name)
 
-    def sign(self, digest, visual):
+    def sign(self, digest):
         result = self.client_wrapper.connection.sign_identity(
             identity=self.identity,
             challenge_hidden=digest,
-            challenge_visual=visual,
+            challenge_visual=util.hexlify(digest),
             ecdsa_curve_name=self.curve_name)
         assert result.signature[:1] == b'\x00'
         sig = result.signature[1:]
@@ -134,8 +134,7 @@ class AgentSigner(object):
     def pubkey(self):
         return self.public_key['verifying_key']
 
-    def sign(self, digest, visual):
-        log.info('signing %r using gpg-agent', visual)
+    def sign(self, digest):
         r, s = agent.sign(sock=self.sock, keygrip=self.keygrip, digest=digest)
         return mpi(r) + mpi(s)
 
@@ -308,8 +307,7 @@ def _make_signature(pubkey, conn, data_to_sign,
     log.debug('hashing %d bytes', len(data_to_hash))
     digest = hashlib.sha256(data_to_hash).digest()
 
-    visual = pubkey.hex_short_key_id()
-    sig = conn.sign(digest=digest, visual=visual)
+    sig = conn.sign(digest=digest)
 
     return bytes(header + hashed + unhashed +
                  digest[:2] +  # used for decoder's sanity check
