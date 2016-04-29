@@ -76,6 +76,16 @@ def _parse(s):
         return _parse_term(s)
 
 
+def _parse_ecdsa_sig(sig):
+    data, (algo, (r, sig_r), (s, sig_s)) = sig
+    assert data == 'sig-val'
+    assert algo == 'ecdsa'
+    assert r == 'r'
+    assert s == 's'
+    return (util.bytes2num(sig_r),
+            util.bytes2num(sig_s))
+
+
 def sign(sock, keygrip, digest):
     """Sign a digest using specified key using GPG agent."""
     hash_algo = 8  # SHA256
@@ -105,14 +115,7 @@ def sign(sock, keygrip, digest):
 
     sig, leftover = _parse(sig)
     assert not leftover
-
-    data, (algo, (r, sig_r), (s, sig_s)) = sig
-    assert data == 'sig-val'
-    assert algo == 'ecdsa'
-    assert r == 'r'
-    assert s == 's'
-    return (util.bytes2num(sig_r),
-            util.bytes2num(sig_s))
+    return _parse_ecdsa_sig(sig)
 
 
 def get_keygrip(user_id):

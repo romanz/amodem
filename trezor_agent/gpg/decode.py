@@ -252,6 +252,9 @@ def load_public_key(stream):
     subkey = subsig = None
     if len(packets) == 5:
         pubkey, userid, signature, subkey, subsig = packets
+        # TODO: refactor this out!
+        log.debug('subkey: %s', subkey)
+        log.debug('subsig: %s', subsig)
     else:
         pubkey, userid, signature = packets
 
