@@ -91,9 +91,10 @@ def sign(sock, keygrip, digest):
     assert _communicate(sock, 'SIGKEY {}'.format(keygrip)) == 'OK'
     assert _communicate(sock, 'SETHASH {} {}'.format(hash_algo,
                                                      _hex(digest))) == 'OK'
-    assert _communicate(sock, 'SETKEYDESC '
-                        'Please+enter+the+passphrase+to+unlock+the+OpenPGP%0A'
-                        'secret+key,+to+sign+a+new+TREZOR-based+subkey') == 'OK'
+
+    desc = ('Please+enter+the+passphrase+to+unlock+the+OpenPGP%0A'
+            'secret+key,+to+sign+a+new+TREZOR-based+subkey')
+    assert _communicate(sock, 'SETKEYDESC {}'.format(desc)) == 'OK'
     assert _communicate(sock, 'PKSIGN') == 'OK'
     line = _recvline(sock).strip()
 
@@ -122,8 +123,9 @@ def get_keygrip(user_id):
 
 
 def _main():
-    logging.basicConfig(level=logging.INFO,
-                        format='%(asctime)s %(levelname)-10s %(message)s')
+    logging.basicConfig(level=logging.DEBUG,
+                        format='%(asctime)s %(levelname)-10s %(message)-100s '
+                        '%(filename)s:%(lineno)d')
 
     p = argparse.ArgumentParser()
     p.add_argument('user_id')
