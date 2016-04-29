@@ -148,7 +148,8 @@ class PublicKey(object):
         self.created = int(created)
         self.verifying_key = verifying_key
 
-    def _pubkey_data(self):
+    def data(self):
+        """Data for packet creation."""
         curve_info = SUPPORTED_CURVES[self.curve_name]
         header = struct.pack('>BLB',
                              4,             # version
@@ -158,15 +159,14 @@ class PublicKey(object):
         blob = curve_info['serialize'](self.verifying_key)
         return header + oid + blob
 
-    def _pubkey_data_to_hash(self):
-        return b'\x99' + util.prefix_len('>H', self._pubkey_data())
-
-    def _fingerprint(self):
-        return hashlib.sha1(self._pubkey_data_to_hash()).digest()
+    def data_to_hash(self):
+        """Data for digest computation."""
+        return b'\x99' + util.prefix_len('>H', self.data())
 
     def key_id(self):
         """Short (8 byte) GPG key ID."""
-        return self._fingerprint()[-8:]
+        fingerprint = hashlib.sha1(self.data_to_hash()).digest()
+        return fingerprint[-8:]
 
     def hex_short_key_id(self):
         """Short (8 hexadecimal digits) GPG key ID."""
@@ -210,10 +210,10 @@ class Signer(object):
 
     def export(self):
         """Export GPG public key, ready for "gpg2 --import"."""
-        pubkey_packet = packet(tag=6, blob=self.pubkey._pubkey_data())
+        pubkey_packet = packet(tag=6, blob=self.pubkey.data())
         user_id_packet = packet(tag=13, blob=self.user_id)
 
-        data_to_sign = (self.pubkey._pubkey_data_to_hash() +
+        data_to_sign = (self.pubkey.data_to_hash() +
                         user_id_packet[:1] +
                         util.prefix_len('>L', self.user_id))
         log.info('signing public key "%s"', self.user_id)
@@ -237,11 +237,11 @@ class Signer(object):
         return pubkey_packet + user_id_packet + sign_packet
 
     def subkey(self, user_id):
-        subkey_packet = packet(tag=14, blob=self.pubkey._pubkey_data())
+        subkey_packet = packet(tag=14, blob=self.pubkey.data())
         primary = decode.load_from_gpg(user_id)
         keygrip = agent.get_keygrip(user_id)
         log.info('adding as subkey to %s (%s)', user_id, keygrip)
-        data_to_sign = primary['_to_hash'] + self.pubkey._pubkey_data_to_hash()
+        data_to_sign = primary['_to_hash'] + self.pubkey.data_to_hash()
         hashed_subpackets = [
             subpacket_time(self.pubkey.created)]  # signature creaion time
         unhashed_subpackets = [
