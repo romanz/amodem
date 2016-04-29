@@ -31,6 +31,7 @@ def main():
     p.add_argument('-t', '--time', type=int, default=int(time.time()))
     p.add_argument('-a', '--armor', action='store_true', default=False)
     p.add_argument('-v', '--verbose', action='store_true', default=False)
+    p.add_argument('-s', '--subkey', action='store_true', default=False)
     p.add_argument('-e', '--ecdsa-curve', default='nist256p1')
     p.add_argument('-o', '--output',
                    help='Output file name for the results. '
@@ -44,12 +45,16 @@ def main():
     if not args.filename:
         s = encode.Signer(user_id=user_id, created=args.time,
                           curve_name=args.ecdsa_curve)
-        pubkey = s.subkey(user_id='romanz')
+        if args.subkey:
+            pubkey = s.subkey()
+        else:
+            pubkey = s.export()
+
         ext = '.pub'
         if args.armor:
             pubkey = encode.armor(pubkey, 'PUBLIC KEY BLOCK')
             ext = '.asc'
-        filename = args.output or (s.hex_short_key_id() + ext)
+        filename = args.output or '-'  # use stdout if no file specified
         if filename == 'GPG':
             log.info('importing public key to local keyring')
             _call_with_input(['gpg2', '--import'], pubkey)

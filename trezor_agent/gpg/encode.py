@@ -163,14 +163,18 @@ class PublicKey(object):
         """Data for digest computation."""
         return b'\x99' + util.prefix_len('>H', self.data())
 
+    def _fingerprint(self):
+        return hashlib.sha1(self.data_to_hash()).digest()
+
     def key_id(self):
         """Short (8 byte) GPG key ID."""
-        fingerprint = hashlib.sha1(self.data_to_hash()).digest()
-        return fingerprint[-8:]
+        return self._fingerprint()[-8:]
 
-    def hex_short_key_id(self):
+    def __repr__(self):
         """Short (8 hexadecimal digits) GPG key ID."""
-        return util.hexlify(self.key_id()[-4:])
+        return '<{}>'.format(util.hexlify(self.key_id()))
+
+    __str__ = __repr__
 
 
 class Signer(object):
@@ -187,8 +191,7 @@ class Signer(object):
             verifying_key=self.conn.pubkey())
 
         log.info('%s GPG public key %s created at %s', curve_name,
-                 self.pubkey.hex_short_key_id(),
-                 util.time_format(self.pubkey.created))
+                 self.pubkey, util.time_format(self.pubkey.created))
 
     @classmethod
     def from_public_key(cls, pubkey, user_id):
@@ -236,11 +239,11 @@ class Signer(object):
         sign_packet = packet(tag=2, blob=signature)
         return pubkey_packet + user_id_packet + sign_packet
 
-    def subkey(self, user_id):
+    def subkey(self):
         subkey_packet = packet(tag=14, blob=self.pubkey.data())
-        primary = decode.load_from_gpg(user_id)
-        keygrip = agent.get_keygrip(user_id)
-        log.info('adding as subkey to %s (%s)', user_id, keygrip)
+        primary = decode.load_from_gpg(self.user_id)
+        keygrip = agent.get_keygrip(self.user_id)
+        log.info('adding as subkey to %s (%s)', self.user_id, keygrip)
         data_to_sign = primary['_to_hash'] + self.pubkey.data_to_hash()
         hashed_subpackets = [
             subpacket_time(self.pubkey.created)]  # signature creaion time
@@ -261,7 +264,7 @@ class Signer(object):
             subpacket(16, primary['key_id']),  # issuer key id
             subpacket(32, back_sign)]
 
-        conn = AgentSigner(user_id, curve_name=formats.CURVE_NIST256)
+        conn = AgentSigner(self.user_id, curve_name=formats.CURVE_NIST256)
 
         # Subkey Binding Signature
         signature = _make_signature(conn=conn,

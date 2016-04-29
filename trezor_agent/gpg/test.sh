@@ -4,10 +4,10 @@ set -x -e -u
 gpg2 --full-gen-key --expert
 gpg2 --export > romanz.pub
 NOW=`date +%s`
-trezor-gpg -t $NOW "romanz" -o subkey.pub
+trezor-gpg -t $NOW -v --subkey "romanz" -o subkey.pub
 gpg2 -K
 gpg2 -vv --import <(cat romanz.pub subkey.pub)
 gpg2 -K
 
-trezor-gpg -t $NOW "romanz" EXAMPLE
+trezor-gpg -t $NOW -v "romanz" EXAMPLE
 gpg2 --verify EXAMPLE.sig
