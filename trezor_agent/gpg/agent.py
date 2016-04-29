@@ -82,9 +82,18 @@ def sign(sock, keygrip, digest):
     assert len(digest) == 32
 
     assert _communicate(sock, 'RESET').startswith('OK')
+
+    ttyname = sp.check_output('tty').strip()
+    options = ['ttyname={}'.format(ttyname)]  # set TTY for passphrase entry
+    for opt in options:
+        assert _communicate(sock, 'OPTION {}'.format(opt)) == 'OK'
+
     assert _communicate(sock, 'SIGKEY {}'.format(keygrip)) == 'OK'
     assert _communicate(sock, 'SETHASH {} {}'.format(hash_algo,
                                                      _hex(digest))) == 'OK'
+    assert _communicate(sock, 'SETKEYDESC '
+                        'Please+enter+the+passphrase+to+unlock+the+OpenPGP%0A'
+                        'secret+key,+to+sign+a+new+TREZOR-based+subkey') == 'OK'
     assert _communicate(sock, 'PKSIGN') == 'OK'
     line = _recvline(sock).strip()
 
