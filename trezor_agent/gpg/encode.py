@@ -13,6 +13,7 @@ log = logging.getLogger(__name__)
 
 def packet(tag, blob):
     """Create small GPG packet."""
+    # TODO: allow larger sizes.
     assert len(blob) < 256
     length_type = 0  # : 1 byte for length
     leading_byte = 0x80 | (tag << 2) | (length_type)
@@ -50,13 +51,13 @@ def mpi(value):
     """Serialize multipresicion integer using GPG format."""
     bits = value.bit_length()
     data_size = (bits + 7) // 8
-    data_bytes = [0] * data_size
+    data_bytes = bytearray(data_size)
     for i in range(data_size):
         data_bytes[i] = value & 0xFF
         value = value >> 8
 
     data_bytes.reverse()
-    return struct.pack('>H', bits) + bytearray(data_bytes)
+    return struct.pack('>H', bits) + bytes(data_bytes)
 
 
 def _serialize_nist256(vk):
@@ -113,7 +114,7 @@ class HardwareSigner(object):
             curve_name=self.curve_name)
 
     def sign(self, digest):
-        """Sign the digest and return an ECDSA signature."""
+        """Sign the digest and return a serialized signature."""
         result = self.client_wrapper.connection.sign_identity(
             identity=self.identity,
             challenge_hidden=digest,
@@ -146,8 +147,8 @@ class AgentSigner(object):
 
     def sign(self, digest):
         """Sign the digest and return an ECDSA signature."""
-        s, = agent.sign(sock=self.sock, keygrip=self.keygrip, digest=digest)
-        return mpi(s)
+        params = agent.sign(sock=self.sock, keygrip=self.keygrip, digest=digest)
+        return b''.join(mpi(p) for p in params)
 
     def close(self):
         """Close the connection to gpg-agent."""
