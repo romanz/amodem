@@ -76,15 +76,47 @@ def _parse(s):
         return _parse_term(s)
 
 
+def _parse_ecdsa_sig(args):
+    (r, sig_r), (s, sig_s) = args
+    assert r == 'r'
+    assert s == 's'
+    return (util.bytes2num(sig_r),
+            util.bytes2num(sig_s))
+
+
+def _parse_rsa_sig(args):
+    (s, sig_s), = args
+    assert s == 's'
+    return (util.bytes2num(sig_s),)
+
+
+def _parse_sig(sig):
+    label, sig = sig
+    assert label == 'sig-val'
+    algo_name = sig[0]
+    parser = {'rsa': _parse_rsa_sig, 'ecdsa': _parse_ecdsa_sig}[algo_name]
+    return parser(args=sig[1:])
+
+
 def sign(sock, keygrip, digest):
     """Sign a digest using specified key using GPG agent."""
     hash_algo = 8  # SHA256
     assert len(digest) == 32
 
     assert _communicate(sock, 'RESET').startswith('OK')
+
+    ttyname = sp.check_output('tty').strip()
+    options = ['ttyname={}'.format(ttyname)]  # set TTY for passphrase entry
+    for opt in options:
+        assert _communicate(sock, 'OPTION {}'.format(opt)) == 'OK'
+
     assert _communicate(sock, 'SIGKEY {}'.format(keygrip)) == 'OK'
     assert _communicate(sock, 'SETHASH {} {}'.format(hash_algo,
                                                      _hex(digest))) == 'OK'
+
+    desc = ('Please+enter+the+passphrase+to+unlock+the+OpenPGP%0A'
+            'secret+key,+to+sign+a+new+TREZOR-based+subkey')
+    assert _communicate(sock, 'SETKEYDESC {}'.format(desc)) == 'OK'
     assert _communicate(sock, 'PKSIGN') == 'OK'
     line = _recvline(sock).strip()
 
@@ -95,14 +127,7 @@ def sign(sock, keygrip, digest):
 
     sig, leftover = _parse(sig)
     assert not leftover
-
-    data, (algo, (r, sig_r), (s, sig_s)) = sig
-    assert data == 'sig-val'
-    assert algo == 'ecdsa'
-    assert r == 'r'
-    assert s == 's'
-    return (util.bytes2num(sig_r),
-            util.bytes2num(sig_s))
+    return _parse_sig(sig)
 
 
 def get_keygrip(user_id):
@@ -113,8 +138,9 @@ def get_keygrip(user_id):
 
 
 def _main():
-    logging.basicConfig(level=logging.INFO,
-                        format='%(asctime)s %(levelname)-10s %(message)s')
+    logging.basicConfig(level=logging.DEBUG,
+                        format='%(asctime)s %(levelname)-10s %(message)-100s '
+                        '%(filename)s:%(lineno)d')
 
     p = argparse.ArgumentParser()
     p.add_argument('user_id')

@@ -68,10 +68,26 @@ def _parse_ed25519_verifier(mpi):
     return _ed25519_verify, vk
 
 
+def _create_rsa_verifier(n, e):
+    def verifier(signature, digest):
+        s, = signature
+        size = n.bit_length()
+        result = pow(s, e, n) % (2 ** 256)
+        digest = util.bytes2num(digest)
+        if result == digest:
+            log.debug('RSA-%d signature is OK', size)
+            return True
+        else:
+            raise ValueError('invalid RSA signature')
+
+    return verifier
+
 SUPPORTED_CURVES = {
     b'\x2A\x86\x48\xCE\x3D\x03\x01\x07': _parse_nist256p1_verifier,
     b'\x2B\x06\x01\x04\x01\xDA\x47\x0F\x01': _parse_ed25519_verifier,
 }
+
+ECDSA_ALGO_IDS = (19, 22)  # (nist256, ed25519)
 
 
 def _parse_literal(stream):
@@ -115,10 +131,15 @@ def _parse_signature(stream):
     p['unhashed_subpackets'] = parse_subpackets(stream)
     embedded = list(_parse_embedded_signatures(p['unhashed_subpackets']))
     if embedded:
+        log.info('embedded sigs: %s', embedded)
         p['embedded'] = embedded
 
     p['hash_prefix'] = stream.readfmt('2s')
-    p['sig'] = (parse_mpi(stream), parse_mpi(stream))
+    if p['pubkey_alg'] in ECDSA_ALGO_IDS:
+        p['sig'] = (parse_mpi(stream), parse_mpi(stream))
+    else:  # RSA
+        p['sig'] = (parse_mpi(stream),)
+
     assert not stream.read()
     return p
 
@@ -131,16 +152,23 @@ def _parse_pubkey(stream):
         p['version'] = stream.readfmt('B')
         p['created'] = stream.readfmt('>L')
         p['algo'] = stream.readfmt('B')
+        if p['algo'] in ECDSA_ALGO_IDS:
+            # https://tools.ietf.org/html/rfc6637#section-11
+            oid_size = stream.readfmt('B')
+            oid = stream.read(oid_size)
+            assert oid in SUPPORTED_CURVES, util.hexlify(oid)
+            parser = SUPPORTED_CURVES[oid]
 
-        # https://tools.ietf.org/html/rfc6637#section-11
-        oid_size = stream.readfmt('B')
-        oid = stream.read(oid_size)
-        assert oid in SUPPORTED_CURVES
-        parser = SUPPORTED_CURVES[oid]
+            mpi = parse_mpi(stream)
+            log.debug('mpi: %x (%d bits)', mpi, mpi.bit_length())
+            p['verifier'], p['verifying_key'] = parser(mpi)
+        else:  # RSA
+            n = parse_mpi(stream)
+            e = parse_mpi(stream)
+            log.debug('n: %x (%d bits)', n, n.bit_length())
+            log.debug('e: %x (%d bits)', e, e.bit_length())
+            p['verifier'] = _create_rsa_verifier(n, e)
 
-        mpi = parse_mpi(stream)
-        log.debug('mpi: %x (%d bits)', mpi, mpi.bit_length())
-        p['verifier'], p['verifying_key'] = parser(mpi)
         assert not stream.read()
 
     # https://tools.ietf.org/html/rfc4880#section-12.2
@@ -248,13 +276,20 @@ def digest_packets(packets):
 def load_public_key(stream):
     """Parse and validate GPG public key from an input stream."""
     packets = list(parse_packets(util.Reader(stream)))
-    pubkey, userid, signature = packets[:3]
+    subkey = subsig = None
+    if len(packets) == 5:
+        pubkey, userid, signature, subkey, subsig = packets
+        log.debug('subkey: %s', subkey)
+        log.debug('subsig: %s', subsig)
+    else:
+        pubkey, userid, signature = packets
+
     digest = digest_packets([pubkey, userid, signature])
     assert signature['hash_prefix'] == digest[:2]
     log.debug('loaded public key "%s"', userid['value'])
     verify_digest(pubkey=pubkey, digest=digest,
                   signature=signature['sig'], label='GPG public key')
-    return pubkey
+    return subkey or pubkey
 
 
 def load_signature(stream, original_data):
