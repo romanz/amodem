@@ -133,11 +133,9 @@ class HardwareSigner(object):
 class AgentSigner(object):
     """Sign messages and get public keys using gpg-agent tool."""
 
-    def __init__(self, user_id, curve_name):
+    def __init__(self, user_id):
         """Connect to the agent and retrieve required public key."""
         self.sock = agent.connect()
-        assert curve_name == formats.CURVE_NIST256
-        self.curve_name = curve_name
         self.keygrip = agent.get_keygrip(user_id)
         self.public_key = decode.load_from_gpg(user_id)
 
@@ -163,13 +161,14 @@ class PublicKey(object):
         self.curve_info = SUPPORTED_CURVES[curve_name]
         self.created = int(created)  # time since Epoch
         self.verifying_key = verifying_key
+        self.algo_id = self.curve_info['algo_id']
 
     def data(self):
         """Data for packet creation."""
         header = struct.pack('>BLB',
                              4,             # version
                              self.created,  # creation
-                             self.curve_info['algo_id'])
+                             self.algo_id)  # public key algorithm ID
         oid = util.prefix_len('>B', self.curve_info['oid'])
         blob = self.curve_info['serialize'](self.verifying_key)
         return header + oid + blob
@@ -245,7 +244,8 @@ class Signer(object):
             subpacket(16, self.pubkey.key_id())]  # issuer key id
 
         signature = _make_signature(
-            conn=self.conn,
+            signer_func=self.conn.sign,
+            public_algo=self.pubkey.algo_id,
             data_to_sign=data_to_sign,
             sig_type=0x13,  # user id & public key
             hashed_subpackets=hashed_subpackets,
@@ -267,8 +267,9 @@ class Signer(object):
             subpacket(16, self.pubkey.key_id())]  # issuer key id
 
         # Primary Key Binding Signature
-        back_sign = _make_signature(conn=self.conn,
+        back_sign = _make_signature(signer_func=self.conn.sign,
                                     data_to_sign=data_to_sign,
+                                    public_algo=self.pubkey.algo_id,
                                     sig_type=0x19,
                                     hashed_subpackets=hashed_subpackets,
                                     unhashed_subpackets=unhashed_subpackets)
@@ -280,10 +281,9 @@ class Signer(object):
             subpacket(16, primary['key_id']),  # issuer key id
             subpacket(32, back_sign)]
 
-        conn = AgentSigner(self.user_id, curve_name=formats.CURVE_NIST256)
-
         # Subkey Binding Signature
-        signature = _make_signature(conn=conn,
+        gpg_agent = AgentSigner(self.user_id)
+        signature = _make_signature(signer_func=gpg_agent.sign,
                                     data_to_sign=data_to_sign,
                                     sig_type=0x18,
                                     hashed_subpackets=hashed_subpackets,
@@ -305,20 +305,19 @@ class Signer(object):
             subpacket(16, self.pubkey.key_id())]  # issuer key id
 
         blob = _make_signature(
-            conn=self.conn, data_to_sign=msg,
+            signer_func=self.conn.sign, data_to_sign=msg,
+            public_algo=self.pubkey.algo_id,
             hashed_subpackets=hashed_subpackets,
             unhashed_subpackets=unhashed_subpackets)
         return packet(tag=2, blob=blob)
 
 
-def _make_signature(conn, data_to_sign,
-                    hashed_subpackets, unhashed_subpackets, sig_type=0,
-                    public_algo=None):
-    curve_info = SUPPORTED_CURVES[conn.curve_name]
+def _make_signature(signer_func, data_to_sign, public_algo,
+                    hashed_subpackets, unhashed_subpackets, sig_type=0):
     header = struct.pack('>BBBB',
                          4,         # version
                          sig_type,  # rfc4880 (section-5.2.1)
-                         public_algo or curve_info['algo_id'],
+                         public_algo,
                          8)         # hash_alg (SHA256)
     hashed = subpackets(*hashed_subpackets)
     unhashed = subpackets(*unhashed_subpackets)
@@ -328,7 +327,7 @@ def _make_signature(conn, data_to_sign,
     log.debug('hashing %d bytes', len(data_to_hash))
     digest = hashlib.sha256(data_to_hash).digest()
 
-    sig = conn.sign(digest=digest)
+    sig = signer_func(digest=digest)
 
     return bytes(header + hashed + unhashed +
                  digest[:2] +  # used for decoder's sanity check
