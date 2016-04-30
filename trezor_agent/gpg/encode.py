@@ -146,8 +146,8 @@ class AgentSigner(object):
 
     def sign(self, digest):
         """Sign the digest and return an ECDSA signature."""
-        r, s = agent.sign(sock=self.sock, keygrip=self.keygrip, digest=digest)
-        return mpi(r) + mpi(s)
+        s, = agent.sign(sock=self.sock, keygrip=self.keygrip, digest=digest)
+        return mpi(s)
 
     def close(self):
         """Close the connection to gpg-agent."""
@@ -286,7 +286,8 @@ class Signer(object):
                                     data_to_sign=data_to_sign,
                                     sig_type=0x18,
                                     hashed_subpackets=hashed_subpackets,
-                                    unhashed_subpackets=unhashed_subpackets)
+                                    unhashed_subpackets=unhashed_subpackets,
+                                    public_algo=1)
 
         sign_packet = packet(tag=2, blob=signature)
         return subkey_packet + sign_packet
@@ -310,12 +311,13 @@ class Signer(object):
 
 
 def _make_signature(conn, data_to_sign,
-                    hashed_subpackets, unhashed_subpackets, sig_type=0):
+                    hashed_subpackets, unhashed_subpackets, sig_type=0,
+                    public_algo=None):
     curve_info = SUPPORTED_CURVES[conn.curve_name]
     header = struct.pack('>BBBB',
                          4,         # version
                          sig_type,  # rfc4880 (section-5.2.1)
-                         curve_info['algo_id'],
+                         public_algo or curve_info['algo_id'],
                          8)         # hash_alg (SHA256)
     hashed = subpackets(*hashed_subpackets)
     unhashed = subpackets(*unhashed_subpackets)

@@ -94,7 +94,7 @@ def _parse_rsa_sig(sig):
     return (util.bytes2num(sig_s),)
 
 
-def sign(sock, keygrip, digest, algo='ecdsa'):
+def sign(sock, keygrip, digest, algo='rsa'):
     """Sign a digest using specified key using GPG agent."""
     hash_algo = 8  # SHA256
     assert len(digest) == 32
