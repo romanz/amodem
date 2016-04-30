@@ -1,4 +1,5 @@
 """Decoders for GPG v2 data structures."""
+import functools
 import hashlib
 import io
 import logging
@@ -147,9 +148,9 @@ def _parse_signature(stream):
     return p
 
 
-def _parse_pubkey(stream):
+def _parse_pubkey(stream, packet_type='pubkey'):
     """See https://tools.ietf.org/html/rfc4880#section-5.5 for details."""
-    p = {'type': 'pubkey'}
+    p = {'type': packet_type}
     packet = io.BytesIO()
     with stream.capture(packet):
         p['version'] = stream.readfmt('B')
@@ -183,37 +184,7 @@ def _parse_pubkey(stream):
     log.debug('key ID: %s', util.hexlify(p['key_id']))
     return p
 
-
-def _parse_subkey(stream):
-    """See https://tools.ietf.org/html/rfc4880#section-5.5 for details."""
-    p = {'type': 'subkey'}
-    packet = io.BytesIO()
-    with stream.capture(packet):
-        p['version'] = stream.readfmt('B')
-        p['created'] = stream.readfmt('>L')
-        p['algo'] = stream.readfmt('B')
-
-        # https://tools.ietf.org/html/rfc6637#section-11
-        oid_size = stream.readfmt('B')
-        oid = stream.read(oid_size)
-        assert oid in SUPPORTED_CURVES
-        parser = SUPPORTED_CURVES[oid]
-
-        mpi = parse_mpi(stream)
-        log.debug('mpi: %x (%d bits)', mpi, mpi.bit_length())
-        p['verifier'], p['verifying_key'] = parser(mpi)
-        leftover = stream.read()  # TBD: what is this?
-        if leftover:
-            log.warning('unexpected subkey leftover: %r', leftover)
-
-    # https://tools.ietf.org/html/rfc4880#section-12.2
-    packet_data = packet.getvalue()
-    data_to_hash = (b'\x99' + struct.pack('>H', len(packet_data)) +
-                    packet_data)
-    p['key_id'] = hashlib.sha1(data_to_hash).digest()[-8:]
-    p['_to_hash'] = data_to_hash
-    log.debug('key ID: %s', util.hexlify(p['key_id']))
-    return p
+_parse_subkey = functools.partial(_parse_pubkey, packet_type='subkey')
 
 
 def _parse_user_id(stream):
