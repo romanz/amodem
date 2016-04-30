@@ -143,20 +143,22 @@ class AgentSigner(object):
 
 
 class PublicKey(object):
+    """GPG representation for public key packets."""
+
     def __init__(self, curve_name, created, verifying_key):
-        self.curve_name = str(curve_name)
-        self.created = int(created)
+        """Contruct using a ECDSA VerifyingKey object."""
+        self.curve_info = SUPPORTED_CURVES[curve_name]
+        self.created = int(created)  # time since Epoch
         self.verifying_key = verifying_key
 
     def data(self):
         """Data for packet creation."""
-        curve_info = SUPPORTED_CURVES[self.curve_name]
         header = struct.pack('>BLB',
                              4,             # version
                              self.created,  # creation
-                             curve_info['algo_id'])
-        oid = util.prefix_len('>B', curve_info['oid'])
-        blob = curve_info['serialize'](self.verifying_key)
+                             self.curve_info['algo_id'])
+        oid = util.prefix_len('>B', self.curve_info['oid'])
+        blob = self.curve_info['serialize'](self.verifying_key)
         return header + oid + blob
 
     def data_to_hash(self):
