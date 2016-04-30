@@ -13,11 +13,9 @@ log = logging.getLogger(__name__)
 
 def packet(tag, blob):
     """Create small GPG packet."""
-    # TODO: allow larger sizes.
-    assert len(blob) < 256
-    length_type = 0  # : 1 byte for length
+    length_type = 1  # : 2 bytes for length
     leading_byte = 0x80 | (tag << 2) | (length_type)
-    return struct.pack('>B', leading_byte) + util.prefix_len('>B', blob)
+    return struct.pack('>B', leading_byte) + util.prefix_len('>H', blob)
 
 
 def subpacket(subpacket_type, fmt, *values):
