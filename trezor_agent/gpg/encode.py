@@ -189,6 +189,7 @@ class Signer(object):
             proto.subpacket_time(self.pubkey.created)]  # signature time
         unhashed_subpackets = [
             proto.subpacket(16, self.pubkey.key_id())]  # issuer key id
+        log.info('confirm signing subkey with hardware device')
         embedded_sig = _make_signature(signer_func=self.conn.sign,
                                        data_to_sign=data_to_sign,
                                        public_algo=self.pubkey.algo_id,
@@ -204,6 +205,7 @@ class Signer(object):
             proto.subpacket(16, primary['key_id']),  # issuer key id
             proto.subpacket(32, embedded_sig),
             proto.CUSTOM_SUBPACKET]
+        log.info('confirm signing subkey with gpg-agent')
         gpg_agent = AgentSigner(self.user_id)
         signature = _make_signature(signer_func=gpg_agent.sign,
                                     data_to_sign=data_to_sign,

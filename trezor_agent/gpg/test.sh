@@ -12,5 +12,5 @@ gpg2 -K
 gpg2 -v --import <(cat romanz.pub subkey.pub)
 gpg2 -K
 
-trezor-gpg -t $NOW -e $CURVE $USERID EXAMPLE
+trezor-gpg -t $NOW -e $CURVE "$USERID" EXAMPLE
 gpg2 --verify EXAMPLE.sig
