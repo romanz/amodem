@@ -76,22 +76,26 @@ def _parse(s):
         return _parse_term(s)
 
 
-def _parse_ecdsa_sig(sig):
-    data, (algo, (r, sig_r), (s, sig_s)) = sig
-    assert data == 'sig-val'
-    assert algo == 'ecdsa'
+def _parse_ecdsa_sig(args):
+    (r, sig_r), (s, sig_s) = args
     assert r == 'r'
     assert s == 's'
     return (util.bytes2num(sig_r),
             util.bytes2num(sig_s))
 
 
-def _parse_rsa_sig(sig):
-    data, (algo, (s, sig_s)) = sig
-    assert data == 'sig-val'
-    assert algo == 'rsa'
+def _parse_rsa_sig(args):
+    (s, sig_s), = args
     assert s == 's'
     return (util.bytes2num(sig_s),)
+
+
+def _parse_sig(sig):
+    label, sig = sig
+    assert label == 'sig-val'
+    algo_name = sig[0]
+    parser = {'rsa': _parse_rsa_sig, 'ecdsa': _parse_ecdsa_sig}[algo_name]
+    return parser(args=sig[1:])
 
 
 def sign(sock, keygrip, digest, algo='rsa'):
@@ -123,7 +127,7 @@ def sign(sock, keygrip, digest, algo='rsa'):
 
     sig, leftover = _parse(sig)
     assert not leftover
-    return {'ecdsa': _parse_ecdsa_sig, 'rsa': _parse_rsa_sig}[algo](sig)
+    return _parse_sig(sig)
 
 
 def get_keygrip(user_id):
