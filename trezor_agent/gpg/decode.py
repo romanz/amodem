@@ -8,6 +8,7 @@ import subprocess
 import ecdsa
 import ed25519
 
+from . import proto
 from .. import util
 
 log = logging.getLogger(__name__)
@@ -133,6 +134,8 @@ def _parse_signature(stream):
     if embedded:
         log.info('embedded sigs: %s', embedded)
         p['embedded'] = embedded
+
+    p['_is_custom'] = (proto.CUSTOM_SUBPACKET in p['unhashed_subpackets'])
 
     p['hash_prefix'] = stream.readfmt('2s')
     if p['pubkey_alg'] in ECDSA_ALGO_IDS:
@@ -273,23 +276,28 @@ def digest_packets(packets):
     return hashlib.sha256(data_to_hash.getvalue()).digest()
 
 
-def load_public_key(stream):
+def load_public_key(stream, use_custom=False):
     """Parse and validate GPG public key from an input stream."""
     packets = list(parse_packets(util.Reader(stream)))
-    subkey = subsig = None
-    if len(packets) == 5:
-        pubkey, userid, signature, subkey, subsig = packets
-        log.debug('subkey: %s', subkey)
-        log.debug('subsig: %s', subsig)
-    else:
-        pubkey, userid, signature = packets
+    pubkey, userid, signature = packets[:3]
+    packets = packets[3:]
 
     digest = digest_packets([pubkey, userid, signature])
     assert signature['hash_prefix'] == digest[:2]
     log.debug('loaded public key "%s"', userid['value'])
     verify_digest(pubkey=pubkey, digest=digest,
                   signature=signature['sig'], label='GPG public key')
-    return subkey or pubkey
+
+    packet = pubkey
+    while use_custom:
+        if packet['type'] in ('pubkey', 'subkey') and signature['_is_custom']:
+            log.debug('found custom %s', packet['type'])
+            break
+
+        packet, signature = packets[:2]
+        packets = packets[2:]
+
+    return packet
 
 
 def load_signature(stream, original_data):
@@ -300,11 +308,11 @@ def load_signature(stream, original_data):
     return signature, digest
 
 
-def load_from_gpg(user_id):
+def load_from_gpg(user_id, use_custom=False):
     """Load existing GPG public key for `user_id` from local keyring."""
     pubkey_bytes = subprocess.check_output(['gpg2', '--export', user_id])
     if pubkey_bytes:
-        return load_public_key(io.BytesIO(pubkey_bytes))
+        return load_public_key(io.BytesIO(pubkey_bytes), use_custom=use_custom)
     else:
         log.error('could not find public key %r in local GPG keyring', user_id)
         raise KeyError(user_id)

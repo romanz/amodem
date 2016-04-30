@@ -61,7 +61,7 @@ def main():
         else:
             _open_output(filename).write(pubkey)
     else:
-        pubkey = decode.load_from_gpg(user_id)
+        pubkey = decode.load_from_gpg(user_id, use_custom=True)
         s = encode.Signer.from_public_key(pubkey=pubkey, user_id=user_id)
         data = open(args.filename, 'rb').read()
         sig, ext = s.sign(data), '.sig'

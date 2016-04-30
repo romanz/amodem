@@ -163,7 +163,7 @@ class Signer(object):
             proto.subpacket_byte(0x17, 0x80)]  # key server prefs (no-modify)
         unhashed_subpackets = [
             proto.subpacket(16, self.pubkey.key_id()),  # issuer key id
-            proto.MARKER_SUBPACKET]
+            proto.CUSTOM_SUBPACKET]
 
         signature = _make_signature(
             signer_func=self.conn.sign,
@@ -204,7 +204,7 @@ class Signer(object):
         unhashed_subpackets = [
             proto.subpacket(16, primary['key_id']),  # issuer key id
             proto.subpacket(32, embedded_sig),
-            proto.MARKER_SUBPACKET]
+            proto.CUSTOM_SUBPACKET]
         gpg_agent = AgentSigner(self.user_id)
         signature = _make_signature(signer_func=gpg_agent.sign,
                                     data_to_sign=data_to_sign,

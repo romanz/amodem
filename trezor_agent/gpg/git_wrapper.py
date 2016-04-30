@@ -22,7 +22,7 @@ def main():
         command = args[0]
         user_id = ' '.join(args[1:])
         assert command == '-bsau'  # --detach-sign --sign --armor --local-user
-        pubkey = decode.load_from_gpg(user_id)
+        pubkey = decode.load_from_gpg(user_id, use_custom=True)
         s = encode.Signer.from_public_key(user_id=user_id, pubkey=pubkey)
 
         data = sys.stdin.read()
