@@ -92,7 +92,10 @@ def _find_curve_by_algo_id(algo_id):
 
 
 class HardwareSigner(object):
+    """Sign messages and get public keys from a hardware device."""
+
     def __init__(self, user_id, curve_name):
+        """Connect to the device and retrieve required public key."""
         self.client_wrapper = factory.load()
         self.identity = self.client_wrapper.identity_type()
         self.identity.proto = 'gpg'
@@ -100,6 +103,7 @@ class HardwareSigner(object):
         self.curve_name = curve_name
 
     def pubkey(self):
+        """Return public key as VerifyingKey object."""
         addr = client.get_address(self.identity)
         public_node = self.client_wrapper.connection.get_public_node(
             n=addr, ecdsa_curve_name=self.curve_name)
@@ -109,6 +113,7 @@ class HardwareSigner(object):
             curve_name=self.curve_name)
 
     def sign(self, digest):
+        """Sign the digest and return an ECDSA signature."""
         result = self.client_wrapper.connection.sign_identity(
             identity=self.identity,
             challenge_hidden=digest,
@@ -119,12 +124,16 @@ class HardwareSigner(object):
         return mpi(util.bytes2num(sig[:32])) + mpi(util.bytes2num(sig[32:]))
 
     def close(self):
+        """Close the connection to the device."""
         self.client_wrapper.connection.clear_session()
         self.client_wrapper.connection.close()
 
 
 class AgentSigner(object):
+    """Sign messages and get public keys using gpg-agent tool."""
+
     def __init__(self, user_id, curve_name):
+        """Connect to the agent and retrieve required public key."""
         self.sock = agent.connect()
         assert curve_name == formats.CURVE_NIST256
         self.curve_name = curve_name
@@ -132,13 +141,16 @@ class AgentSigner(object):
         self.public_key = decode.load_from_gpg(user_id)
 
     def pubkey(self):
+        """Return public key as VerifyingKey object."""
         return self.public_key['verifying_key']
 
     def sign(self, digest):
+        """Sign the digest and return an ECDSA signature."""
         r, s = agent.sign(sock=self.sock, keygrip=self.keygrip, digest=digest)
         return mpi(r) + mpi(s)
 
     def close(self):
+        """Close the connection to gpg-agent."""
         self.sock.close()
 
 
@@ -242,6 +254,7 @@ class Signer(object):
         return pubkey_packet + user_id_packet + sign_packet
 
     def subkey(self):
+        """Export a subkey to `self.user_id` GPG primary key."""
         subkey_packet = packet(tag=14, blob=self.pubkey.data())
         primary = decode.load_from_gpg(self.user_id)
         keygrip = agent.get_keygrip(self.user_id)
