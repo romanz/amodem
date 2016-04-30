@@ -181,7 +181,8 @@ class Signer(object):
         subkey_packet = proto.packet(tag=14, blob=self.pubkey.data())
         primary = decode.load_from_gpg(self.user_id)
         keygrip = agent.get_keygrip(self.user_id)
-        log.info('adding as subkey to %s (%s)', self.user_id, keygrip)
+        log.info('adding subkey to primary GPG key "%s" (%s)',
+                 self.user_id, util.hexlify(primary['key_id']))
         data_to_sign = primary['_to_hash'] + self.pubkey.data_to_hash()
 
         # Primary Key Binding Signature
@@ -195,7 +196,6 @@ class Signer(object):
                                        sig_type=0x19,
                                        hashed_subpackets=hashed_subpackets,
                                        unhashed_subpackets=unhashed_subpackets)
-        log.info('embedded signature: %r', embedded_sig)
 
         # Subkey Binding Signature
         hashed_subpackets = [
@@ -249,7 +249,6 @@ def _make_signature(signer_func, data_to_sign, public_algo,
 
     log.debug('hashing %d bytes', len(data_to_hash))
     digest = hashlib.sha256(data_to_hash).digest()
-
     sig = signer_func(digest=digest)
 
     return bytes(header + hashed + unhashed +

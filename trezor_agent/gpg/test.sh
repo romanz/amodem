@@ -6,10 +6,11 @@ CURVE=ed25519
 gpg2 --full-gen-key --expert
 gpg2 --export > romanz.pub
 NOW=`date +%s`
-trezor-gpg -t $NOW -v -e $CURVE --subkey "romanz" -o subkey.pub
+USERID="Roman Zeyde <roman.zeyde@gmail.com>"
+trezor-gpg -t $NOW -e $CURVE --subkey "$USERID" -o subkey.pub
 gpg2 -K
-gpg2 -vv --import <(cat romanz.pub subkey.pub)
+gpg2 -v --import <(cat romanz.pub subkey.pub)
 gpg2 -K
 
-trezor-gpg -t $NOW -v -e $CURVE "romanz" EXAMPLE
+trezor-gpg -t $NOW -e $CURVE $USERID EXAMPLE
 gpg2 --verify EXAMPLE.sig

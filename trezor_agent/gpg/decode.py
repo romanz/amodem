@@ -133,7 +133,7 @@ def _parse_signature(stream):
     p['unhashed_subpackets'] = parse_subpackets(stream)
     embedded = list(_parse_embedded_signatures(p['unhashed_subpackets']))
     if embedded:
-        log.info('embedded sigs: %s', embedded)
+        log.debug('embedded sigs: %s', embedded)
         p['embedded'] = embedded
 
     p['_is_custom'] = (proto.CUSTOM_SUBPACKET in p['unhashed_subpackets'])
