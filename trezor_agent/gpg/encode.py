@@ -152,7 +152,8 @@ class AgentSigner(object):
 
     def sign(self, digest):
         """Sign the digest and return an ECDSA signature."""
-        params = agent.sign(sock=self.sock, keygrip=self.keygrip, digest=digest)
+        params = agent.sign(sock=self.sock,
+                            keygrip=self.keygrip, digest=digest)
         return b''.join(mpi(p) for p in params)
 
     def close(self):
@@ -274,13 +275,13 @@ class Signer(object):
             subpacket_time(self.pubkey.created)]  # signature creaion time
         unhashed_subpackets = [
             subpacket(16, self.pubkey.key_id())]  # issuer key id
-        back_sign = _make_signature(signer_func=self.conn.sign,
-                                    data_to_sign=data_to_sign,
-                                    public_algo=self.pubkey.algo_id,
-                                    sig_type=0x19,
-                                    hashed_subpackets=hashed_subpackets,
-                                    unhashed_subpackets=unhashed_subpackets)
-        log.info('back_sign: %r', back_sign)
+        embedded_sig = _make_signature(signer_func=self.conn.sign,
+                                       data_to_sign=data_to_sign,
+                                       public_algo=self.pubkey.algo_id,
+                                       sig_type=0x19,
+                                       hashed_subpackets=hashed_subpackets,
+                                       unhashed_subpackets=unhashed_subpackets)
+        log.info('embedded signature: %r', embedded_sig)
 
         # Subkey Binding Signature
         hashed_subpackets = [
@@ -288,7 +289,7 @@ class Signer(object):
             subpacket_byte(0x1B, 2)]  # key flags (certify & sign)
         unhashed_subpackets = [
             subpacket(16, primary['key_id']),  # issuer key id
-            subpacket(32, back_sign)]
+            subpacket(32, embedded_sig)]
         gpg_agent = AgentSigner(self.user_id)
         signature = _make_signature(signer_func=gpg_agent.sign,
                                     data_to_sign=data_to_sign,
@@ -320,6 +321,7 @@ class Signer(object):
 
 def _make_signature(signer_func, data_to_sign, public_algo,
                     hashed_subpackets, unhashed_subpackets, sig_type=0):
+    # pylint: disable=too-many-arguments
     header = struct.pack('>BBBB',
                          4,         # version
                          sig_type,  # rfc4880 (section-5.2.1)
