@@ -93,6 +93,9 @@ SUPPORTED_CURVES = {
 }
 
 
+MARKER = b'TREZOR-GPG'
+
+
 def _find_curve_by_algo_id(algo_id):
     curve_name, = [name for name, info in SUPPORTED_CURVES.items()
                    if info['algo_id'] == algo_id]
@@ -249,7 +252,8 @@ class Signer(object):
             subpacket_byte(0x16, 0),  # preferred compression (none)
             subpacket_byte(0x17, 0x80)]  # key server prefs (no-modify)
         unhashed_subpackets = [
-            subpacket(16, self.pubkey.key_id())]  # issuer key id
+            subpacket(16, self.pubkey.key_id()),  # issuer key id
+            subpacket(100, MARKER)]
 
         signature = _make_signature(
             signer_func=self.conn.sign,
@@ -289,7 +293,8 @@ class Signer(object):
             subpacket_byte(0x1B, 2)]  # key flags (certify & sign)
         unhashed_subpackets = [
             subpacket(16, primary['key_id']),  # issuer key id
-            subpacket(32, embedded_sig)]
+            subpacket(32, embedded_sig),
+            subpacket(100, MARKER)]
         gpg_agent = AgentSigner(self.user_id)
         signature = _make_signature(signer_func=gpg_agent.sign,
                                     data_to_sign=data_to_sign,
