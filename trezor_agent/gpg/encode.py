@@ -261,12 +261,12 @@ class Signer(object):
         keygrip = agent.get_keygrip(self.user_id)
         log.info('adding as subkey to %s (%s)', self.user_id, keygrip)
         data_to_sign = primary['_to_hash'] + self.pubkey.data_to_hash()
+
+        # Primary Key Binding Signature
         hashed_subpackets = [
             subpacket_time(self.pubkey.created)]  # signature creaion time
         unhashed_subpackets = [
             subpacket(16, self.pubkey.key_id())]  # issuer key id
-
-        # Primary Key Binding Signature
         back_sign = _make_signature(signer_func=self.conn.sign,
                                     data_to_sign=data_to_sign,
                                     public_algo=self.pubkey.algo_id,
@@ -274,22 +274,21 @@ class Signer(object):
                                     hashed_subpackets=hashed_subpackets,
                                     unhashed_subpackets=unhashed_subpackets)
         log.info('back_sign: %r', back_sign)
+
+        # Subkey Binding Signature
         hashed_subpackets = [
             subpacket_time(self.pubkey.created),  # signature creaion time
             subpacket_byte(0x1B, 2)]  # key flags (certify & sign)
         unhashed_subpackets = [
             subpacket(16, primary['key_id']),  # issuer key id
             subpacket(32, back_sign)]
-
-        # Subkey Binding Signature
         gpg_agent = AgentSigner(self.user_id)
         signature = _make_signature(signer_func=gpg_agent.sign,
                                     data_to_sign=data_to_sign,
+                                    public_algo=primary['algo'],
                                     sig_type=0x18,
                                     hashed_subpackets=hashed_subpackets,
-                                    unhashed_subpackets=unhashed_subpackets,
-                                    public_algo=1)
-
+                                    unhashed_subpackets=unhashed_subpackets)
         sign_packet = packet(tag=2, blob=signature)
         return subkey_packet + sign_packet
 
@@ -304,11 +303,11 @@ class Signer(object):
         unhashed_subpackets = [
             subpacket(16, self.pubkey.key_id())]  # issuer key id
 
-        blob = _make_signature(
-            signer_func=self.conn.sign, data_to_sign=msg,
-            public_algo=self.pubkey.algo_id,
-            hashed_subpackets=hashed_subpackets,
-            unhashed_subpackets=unhashed_subpackets)
+        blob = _make_signature(signer_func=self.conn.sign,
+                               data_to_sign=msg,
+                               public_algo=self.pubkey.algo_id,
+                               hashed_subpackets=hashed_subpackets,
+                               unhashed_subpackets=unhashed_subpackets)
         return packet(tag=2, blob=blob)
 
 
