@@ -180,7 +180,6 @@ class Signer(object):
         """Export a subkey to `self.user_id` GPG primary key."""
         subkey_packet = proto.packet(tag=14, blob=self.pubkey.data())
         primary = decode.load_from_gpg(self.user_id)
-        keygrip = agent.get_keygrip(self.user_id)
         log.info('adding subkey to primary GPG key "%s" (%s)',
                  self.user_id, util.hexlify(primary['key_id']))
         data_to_sign = primary['_to_hash'] + self.pubkey.data_to_hash()
