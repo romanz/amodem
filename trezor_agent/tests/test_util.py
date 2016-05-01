@@ -46,3 +46,54 @@ def test_send_recv():
     assert util.recv(s, 2) == b'3*'
 
     pytest.raises(EOFError, util.recv, s, 1)
+
+
+def test_crc24():
+    assert util.crc24(b'') == b'\xb7\x04\xce'
+    assert util.crc24(b'1234567890') == b'\x8c\x00\x72'
+
+
+def test_bit():
+    assert util.bit(6, 3) == 0
+    assert util.bit(6, 2) == 1
+    assert util.bit(6, 1) == 1
+    assert util.bit(6, 0) == 0
+
+
+def test_split_bits():
+    assert util.split_bits(0x1234, 4, 8, 4) == [0x1, 0x23, 0x4]
+
+
+def test_hexlify():
+    assert util.hexlify(b'\x12\x34\xab\xcd') == '1234ABCD'
+
+
+def test_low_bits():
+    assert util.low_bits(0x1234, 12) == 0x234
+    assert util.low_bits(0x1234, 32) == 0x1234
+    assert util.low_bits(0x1234, 0) == 0
+
+
+def test_readfmt():
+    stream = io.BytesIO(b'ABC\x12\x34')
+    assert util.readfmt(stream, 'B') == (65,)
+    assert util.readfmt(stream, '>2sH') == (b'BC', 0x1234)
+
+
+def test_prefix_len():
+    assert util.prefix_len('>H', b'ABCD') == b'\x00\x04ABCD'
+
+
+def test_reader():
+    stream = io.BytesIO(b'ABC\x12\x34')
+    r = util.Reader(stream)
+    assert r.read(1) == b'A'
+    assert r.readfmt('2s') == b'BC'
+
+    dst = io.BytesIO()
+    with r.capture(dst):
+        assert r.readfmt('>H') == 0x1234
+    assert dst.getvalue() == b'\x12\x34'
+
+    with pytest.raises(EOFError):
+        r.read(1)

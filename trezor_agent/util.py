@@ -94,7 +94,7 @@ def crc24(blob):
                 crc ^= CRC24_POLY
     assert 0 <= crc < 0x1000000
     crc_bytes = struct.pack('>L', crc)
-    assert crc_bytes[0] == b'\x00'
+    assert crc_bytes[:1] == b'\x00'
     return crc_bytes[1:]
 
 
@@ -120,7 +120,9 @@ def split_bits(value, *bits):
         result.append(value & mask)
         value = value >> b
     assert value == 0
-    return reversed(result)
+
+    result.reverse()
+    return result
 
 
 def readfmt(stream, fmt):
