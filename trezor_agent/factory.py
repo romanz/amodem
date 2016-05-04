@@ -44,33 +44,38 @@ def _load_client(name, client_type, hid_transport,
 
 
 def _load_trezor():
-    # pylint: disable=import-error
-    from trezorlib.client import TrezorClient, CallException
-    from trezorlib.transport_hid import HidTransport
-    from trezorlib.messages_pb2 import PassphraseAck
-    from trezorlib.types_pb2 import IdentityType
-    return _load_client(name='Trezor',
-                        client_type=TrezorClient,
-                        hid_transport=HidTransport,
-                        passphrase_ack=PassphraseAck,
-                        identity_type=IdentityType,
-                        required_version='>=1.3.4',
-                        call_exception=CallException)
+    try:
+        from trezorlib.client import TrezorClient, CallException
+        from trezorlib.transport_hid import HidTransport
+        from trezorlib.messages_pb2 import PassphraseAck
+        from trezorlib.types_pb2 import IdentityType
+        return _load_client(name='Trezor',
+                            client_type=TrezorClient,
+                            hid_transport=HidTransport,
+                            passphrase_ack=PassphraseAck,
+                            identity_type=IdentityType,
+                            required_version='>=1.3.4',
+                            call_exception=CallException)
+    except ImportError:
+        log.exception('Missing module: install via "pip install trezor"')
 
 
 def _load_keepkey():
-    # pylint: disable=import-error
-    from keepkeylib.client import KeepKeyClient, CallException
-    from keepkeylib.transport_hid import HidTransport
-    from keepkeylib.messages_pb2 import PassphraseAck
-    from keepkeylib.types_pb2 import IdentityType
-    return _load_client(name='KeepKey',
-                        client_type=KeepKeyClient,
-                        hid_transport=HidTransport,
-                        passphrase_ack=PassphraseAck,
-                        identity_type=IdentityType,
-                        required_version='>=1.0.4',
-                        call_exception=CallException)
+    try:
+        from keepkeylib.client import KeepKeyClient, CallException
+        from keepkeylib.transport_hid import HidTransport
+        from keepkeylib.messages_pb2 import PassphraseAck
+        from keepkeylib.types_pb2 import IdentityType
+        return _load_client(name='KeepKey',
+                            client_type=KeepKeyClient,
+                            hid_transport=HidTransport,
+                            passphrase_ack=PassphraseAck,
+                            identity_type=IdentityType,
+                            required_version='>=1.0.4',
+                            call_exception=CallException)
+    except ImportError:
+        log.exception('Missing module: install via "pip install keepkey"')
+
 
 LOADERS = [
     _load_trezor,
@@ -83,7 +88,9 @@ def load(loaders=None):
     loaders = loaders if loaders is not None else LOADERS
     device_list = []
     for loader in loaders:
-        device_list.extend(loader())
+        device = loader()
+        if device:
+            device_list.extend(device)
 
     if len(device_list) == 1:
         return device_list[0]
