@@ -128,7 +128,7 @@ def run_agent(client_factory=client.Client):
     args = create_agent_parser().parse_args()
     setup_logging(verbosity=args.verbose)
 
-    with client_factory(curve=args.ecdsa_curve_name) as conn:
+    with client_factory(curve=args.ecdsa_curve_name.encode('ascii')) as conn:
         label = args.identity
         command = args.command
 
@@ -156,7 +156,7 @@ def run_git(client_factory=client.Client):
     args = create_git_parser().parse_args()
     setup_logging(verbosity=args.verbose)
 
-    with client_factory(curve=args.ecdsa_curve_name) as conn:
+    with client_factory(curve=args.ecdsa_curve_name.encode('ascii')) as conn:
         label = git_host(args.remote, ['pushurl', 'url'])
         if not label:
             log.error('Could not find "%s" SSH remote in .git/config',
