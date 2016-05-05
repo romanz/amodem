@@ -12,8 +12,8 @@ from . import util
 log = logging.getLogger(__name__)
 
 # Supported ECDSA curves
-CURVE_NIST256 = b'nist256p1'
-CURVE_ED25519 = b'ed25519'
+CURVE_NIST256 = 'nist256p1'
+CURVE_ED25519 = 'ed25519'
 SUPPORTED_CURVES = {CURVE_NIST256, CURVE_ED25519}
 
 # SSH key types
