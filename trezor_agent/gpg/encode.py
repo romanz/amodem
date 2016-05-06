@@ -125,8 +125,9 @@ class Signer(object):
             curve_name=curve_name, created=created,
             verifying_key=self.conn.pubkey())
 
-        log.info('%s GPG public key %s created at %s', curve_name,
-                 self.pubkey, util.time_format(self.pubkey.created))
+        log.info('%s GPG public key %s created at %s for "%s"',
+                 curve_name, self.pubkey,
+                 util.time_format(self.pubkey.created), user_id)
 
     @classmethod
     def from_public_key(cls, pubkey, user_id):

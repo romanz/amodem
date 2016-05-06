@@ -1,4 +1,5 @@
 """Decoders for GPG v2 data structures."""
+import base64
 import functools
 import hashlib
 import io
@@ -268,6 +269,7 @@ def load_public_key(stream, use_custom=False):
         packet, signature = packets[:2]
         packets = packets[2:]
 
+    packet['user_id'] = userid['value']
     return packet
 
 
@@ -281,7 +283,8 @@ def load_signature(stream, original_data):
 
 def load_from_gpg(user_id, use_custom=False):
     """Load existing GPG public key for `user_id` from local keyring."""
-    pubkey_bytes = subprocess.check_output(['gpg2', '--export', user_id])
+    args = ['gpg2', '--export'] + ([user_id] if user_id else [])
+    pubkey_bytes = subprocess.check_output(args=args)
     if pubkey_bytes:
         return load_public_key(io.BytesIO(pubkey_bytes), use_custom=use_custom)
     else:
@@ -298,3 +301,19 @@ def verify_digest(pubkey, digest, signature, label):
     except ecdsa.keys.BadSignatureError:
         log.error('Bad %s!', label)
         raise
+
+
+def verify(pubkey, signature, original_data):
+    """Verify correctness of public key and signature."""
+    stream = io.BytesIO(signature)
+
+    # remove GPG armor
+    lines = stream.readlines()[3:-1]
+    data = base64.b64decode(''.join(lines))
+    payload, checksum = data[:-3], data[-3:]
+    assert util.crc24(payload) == checksum
+    stream = io.BytesIO(payload)
+
+    signature, digest = load_signature(stream, original_data)
+    verify_digest(pubkey=pubkey, digest=digest,
+                  signature=signature['sig'], label='GPG signature')
