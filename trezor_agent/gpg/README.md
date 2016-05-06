@@ -1,4 +1,4 @@
-# Generate new stand-along GPG identity
+# Generate new stand-alone GPG identity
 
 ```
 $ USER_ID="Satoshi Nakamoto <satoshi@nakamoto.bit>"
