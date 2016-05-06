@@ -6,7 +6,7 @@ python:
 
 install:
   - pip install ecdsa ed25519 semver  # test without trezorlib for now
-  - pip install pylint coverage pep8 pydocstyle
+  - pip install -U pylint coverage pep8 pydocstyle  # use latest tools
 
 script:
   - pep8 trezor_agent
