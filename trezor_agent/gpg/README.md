@@ -7,6 +7,11 @@ $ gpg2 --version | head -n1
 gpg (GnuPG) 2.1.11
 ```
 
+Install the latest development version of `trezor-agent`:
+```
+$ pip install git+https://github.com/romanz/trezor-agent.git@master
+```
+
 Define your GPG user ID as an environment variable:
 ```
 $ export TREZOR_GPG_USER_ID="John Doe <john@doe.bit>"
