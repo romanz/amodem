@@ -1,97 +1,51 @@
 # Using TREZOR as hardware GPG agent
 
 ## Generate new GPG signing key:
+First, verify that you have GPG 2.1+ [installed](https://gist.github.com/vt0r/a2f8c0bcb1400131ff51):
+```
+$ gpg2 --version | head -n1
+gpg (GnuPG) 2.1.11
+```
+
+Define your GPG user ID as an environment variable:
 ```
 $ export TREZOR_GPG_USER_ID="John Doe <john@doe.bit>"
 ```
 
-### Create new GPG identity:
+There are two ways to generate TREZOR-based GPG public keys, as described below.
+
+### (1) create new GPG identity:
 ```
-$ trezor-gpg create > identity.pub                  # create new TREZOR-based GPG identity
-2016-05-07 13:05:30,380 INFO       nist256p1 GPG public key <976C7E8C5BF0EB2A> created at 2016-05-07 13:05:30 for "John Doe <john@doe.bit>"
-2016-05-07 13:05:30,380 INFO       signing public key "John Doe <john@doe.bit>"
-2016-05-07 13:05:30,381 INFO       signing digest: 32D9A9C5E6B39819A84B1B735FD7BB224E599D06AFCB1CD012992E5F2A7BEF2D
-
-$ gpg2 --import identity.pub                        # import into local GPG public keyring
-gpg: key 5BF0EB2A: public key "John Doe <john@doe.bit>" imported
-gpg: Total number processed: 1
-gpg:               imported: 1
-
-$ gpg2 -k                                           # verify that the new identity is created correctly
-pub   nistp256/2576C1EF 2016-05-07 [SC]
-uid         [ unknown] John Doe <john@doe.bit>
-
-$ gpg2 --edit "${TREZOR_GPG_USER_ID}" trust         # OPTIONAL: mark the key as trusted
+$ trezor-gpg create > identity.pub           # create new TREZOR-based GPG identity
+$ gpg2 --import identity.pub                 # import into local GPG public keyring
+$ gpg2 --list-keys                           # verify that the new identity is created correctly
+$ gpg2 --edit "${TREZOR_GPG_USER_ID}" trust  # OPTIONAL: mark the key as trusted
 ```
+[![asciicast](https://asciinema.org/a/44880.png)](https://asciinema.org/a/44880)
 
-### Create new subkey for an existing GPG identity:
+### (2) create new subkey for an existing GPG identity:
 ```
-$ gpg2 --list-keys "${TREZOR_GPG_USER_ID}"          # make sure this identity already exists
-pub   rsa2048/39ADCBA2 2016-05-07 [SC]
-uid         [ultimate] John Doe <john@doe.bit>
-sub   rsa2048/0F1AA6CA 2016-05-07 [E]
-
-$ trezor-gpg create --subkey > identity.pub         # create new TREZOR-based GPG public key
-2016-05-07 13:09:53,097 INFO       nist256p1 GPG public key <302CE72CAF4A5DD7> created at 2016-05-07 13:09:52 for "John Doe <john@doe.bit>"
-2016-05-07 13:09:53,102 INFO       adding subkey to primary GPG key "John Doe <john@doe.bit>" (FC527CB939ADCBA2)
-2016-05-07 13:09:53,102 INFO       confirm signing subkey with hardware device
-2016-05-07 13:09:53,103 INFO       signing digest: C8686DF576AB3AC13F0CD65F1D3F9575709A56598849CE43882C2609F861FE29
-2016-05-07 13:09:56,305 INFO       confirm signing subkey with gpg-agent
-2016-05-07 13:09:56,323 INFO       signing digest: CB02710AB6554D0D2734D2BEDAC0D914D2402644EE2C8E5F68422F6B71A22248
-
-$ gpg2 --import identity.pub                        # append it to existing identity
-gpg: key 39ADCBA2: "John Doe <john@doe.bit>" 1 new signature
-gpg: key 39ADCBA2: "John Doe <john@doe.bit>" 1 new subkey
-gpg: Total number processed: 1
-gpg:            new subkeys: 1
-gpg:         new signatures: 1
-
-$ gpg2 --list-keys "${TREZOR_GPG_USER_ID}"          # verify that the new subkey is added to existing keyring
-pub   rsa2048/39ADCBA2 2016-05-07 [SC]
-uid         [ultimate] John Doe <john@doe.bit>
-sub   rsa2048/0F1AA6CA 2016-05-07 [E]
-sub   nistp256/AF4A5DD7 2016-05-07 [S]
+$ gpg2 --list-keys "${TREZOR_GPG_USER_ID}"   # make sure this identity already exists
+$ trezor-gpg create --subkey > identity.pub  # create new TREZOR-based GPG subkey
+$ gpg2 --import identity.pub                 # append it to an existing identity
+$ gpg2 --list-keys "${TREZOR_GPG_USER_ID}"   # verify that the new subkey is added to keyring
 ```
+[![subkey](https://asciinema.org/a/8t78s6pqo5yocisaiolqnjp63.png)](https://asciinema.org/a/8t78s6pqo5yocisaiolqnjp63)
 
 ## Generate GPG signatures using a TREZOR device:
 ```
-$ trezor-gpg sign EXAMPLE                           # confirm signature using the device
-2016-05-07 13:06:35,464 INFO       nist256p1 GPG public key <976C7E8C5BF0EB2A> created at 2016-05-07 13:05:30 for "John Doe <john@doe.bit>"
-2016-05-07 13:06:35,464 INFO       signing 7 byte message at 2016-05-07 13:06:35
-2016-05-07 13:06:35,464 INFO       signing digest: A0D6CD4FA3AC68FED14EA8B4A712F4EA06426655911067C85FCB087F19043114
-
-$ gpg2 --verify EXAMPLE.asc                         # verify using standard GPG binary
-gpg: assuming signed data in 'EXAMPLE'
-gpg: Signature made Sat 07 May 2016 01:06:35 PM IDT using ECDSA key ID 5BF0EB2A
-gpg: Good signature from "John Doe <john@doe.bit>" [ultimate]
+$ trezor-gpg sign EXAMPLE                    # confirm signature using the device
+$ gpg2 --verify EXAMPLE.asc                  # verify using standard GPG binary
 ```
+[![sign](https://asciinema.org/a/f1unkptesb7anq09i8wugoko6.png)](https://asciinema.org/a/f1unkptesb7anq09i8wugoko6)
 
-## Git commit/tag signature:
+## Git commit & tag signatures:
+Git can use GPG to sign and verify commits and tags (see [here](https://git-scm.com/book/en/v2/Git-Tools-Signing-Your-Work)):
 ```
 $ git config --local gpg.program "trezor-git-gpg-wrapper.sh"
-$ git commit --gpg-sign                             # create GPG-signed commit
-2016-05-07 13:17:33,986 INFO       nist256p1 GPG public key <4286F5982576C1EF> created at 2016-05-07 13:13:47 for "John Doe <john@doe.bit>"
-2016-05-07 13:17:33,986 INFO       signing 240 byte message at 2016-05-07 13:17:33
-2016-05-07 13:17:33,987 INFO       signing digest: A442D5C91058C53DC2A4E8CC9624FF6786AE2364D2FD326D72CA1271CBD36FA3
-[master dd11ad4] A commit to be signed
- Date: Fri Apr 22 12:00:38 2016 +0300
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-$ git log --show-signature -1                       # verify commits' signatures
-commit dd11ad4e9ed43ed5c4ee114f50e3b943d4a48232
-gpg: Signature made Sat 07 May 2016 01:17:33 PM IDT using ECDSA key ID 2576C1EF
-gpg: Good signature from "John Doe <john@doe.bit>" [ultimate]
-Author: Roman Zeyde <roman.zeyde@gmail.com>
-Date:   Fri Apr 22 12:00:38 2016 +0300
-
-    A commit to be signed
-
-$ git tag --sign "TAG"                              # create GPG-signed tag
-2016-05-07 13:23:20,256 INFO       nist256p1 GPG public key <4286F5982576C1EF> created at 2016-05-07 13:13:47 for "John Doe <john@doe.bit>"
-2016-05-07 13:23:20,256 INFO       signing 149 byte message at 2016-05-07 13:23:20
-2016-05-07 13:23:20,256 INFO       signing digest: 55A930F2646132BCFC05C550ED3394C6ED3EAF2F82F5400B079D1E8F3B78C8AC
-
-$ git verify-tag "TAG"                              # verify tag signature
-gpg: Signature made Sat 07 May 2016 01:23:20 PM IDT using ECDSA key ID 2576C1EF
-gpg: Good signature from "John Doe <john@doe.bit>" [ultimate]
+$ git commit --gpg-sign                      # create GPG-signed commit
+$ git log --show-signature -1                # verify commit signature
+$ git tag --sign "TAG"                       # create GPG-signed tag
+$ git verify-tag "TAG"                       # verify tag signature
 ```
+[![asciicast](https://asciinema.org/a/44879.png)](https://asciinema.org/a/44879)
