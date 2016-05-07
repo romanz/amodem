@@ -123,10 +123,11 @@ def sign(sock, keygrip, digest):
     line = _unescape(line)
     log.debug('line: %r', line)
     prefix, sig = line.split(' ', 1)
-    assert prefix == 'D'
+    if prefix != 'D':
+        raise ValueError(line)
 
     sig, leftover = _parse(sig)
-    assert not leftover
+    assert not leftover, leftover
     return _parse_sig(sig)
 
 
