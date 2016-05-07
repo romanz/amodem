@@ -70,7 +70,28 @@ gpg: Good signature from "John Doe <john@doe.bit>" [ultimate]
 ```
 $ git config --local gpg.program "trezor-git-gpg-wrapper.sh"
 $ git commit --gpg-sign                             # create GPG-signed commit
-$ git log --show-signature                          # verify commits' signatures
+2016-05-07 13:17:33,986 INFO       nist256p1 GPG public key <4286F5982576C1EF> created at 2016-05-07 13:13:47 for "John Doe <john@doe.bit>"
+2016-05-07 13:17:33,986 INFO       signing 240 byte message at 2016-05-07 13:17:33
+2016-05-07 13:17:33,987 INFO       signing digest: A442D5C91058C53DC2A4E8CC9624FF6786AE2364D2FD326D72CA1271CBD36FA3
+[master dd11ad4] A commit to be signed
+ Date: Fri Apr 22 12:00:38 2016 +0300
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+$ git log --show-signature -1                       # verify commits' signatures
+commit dd11ad4e9ed43ed5c4ee114f50e3b943d4a48232
+gpg: Signature made Sat 07 May 2016 01:17:33 PM IDT using ECDSA key ID 2576C1EF
+gpg: Good signature from "John Doe <john@doe.bit>" [ultimate]
+Author: Roman Zeyde <roman.zeyde@gmail.com>
+Date:   Fri Apr 22 12:00:38 2016 +0300
+
+    A commit to be signed
+
 $ git tag --sign "TAG"                              # create GPG-signed tag
+2016-05-07 13:23:20,256 INFO       nist256p1 GPG public key <4286F5982576C1EF> created at 2016-05-07 13:13:47 for "John Doe <john@doe.bit>"
+2016-05-07 13:23:20,256 INFO       signing 149 byte message at 2016-05-07 13:23:20
+2016-05-07 13:23:20,256 INFO       signing digest: 55A930F2646132BCFC05C550ED3394C6ED3EAF2F82F5400B079D1E8F3B78C8AC
+
 $ git verify-tag "TAG"                              # verify tag signature
+gpg: Signature made Sat 07 May 2016 01:23:20 PM IDT using ECDSA key ID 2576C1EF
+gpg: Good signature from "John Doe <john@doe.bit>" [ultimate]
 ```
