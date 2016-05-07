@@ -251,7 +251,7 @@ def _make_signature(signer_func, data_to_sign, public_algo,
 
     log.debug('hashing %d bytes', len(data_to_hash))
     digest = hashlib.sha256(data_to_hash).digest()
-    log.info('SHA256 digest to sign: %s', util.hexlify(digest))
+    log.info('signing digest: %s', util.hexlify(digest))
     sig = signer_func(digest=digest)
 
     return bytes(header + hashed + unhashed +
