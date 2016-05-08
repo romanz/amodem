@@ -6,6 +6,7 @@ First, verify that you have GPG 2.1+ [installed](https://gist.github.com/vt0r/a2
 $ gpg2 --version | head -n1
 gpg (GnuPG) 2.1.11
 ```
+Update you TREZOR firmware to the latest version (at least [5430c82](https://github.com/trezor/trezor-mcu/commit/5430c82b2b1dbdd43c89de419ef92b754bed4c91)): see [a sample build log](https://gist.github.com/romanz/324c8e513abf5b5a452602ed648fa2cf).
 
 Install the latest development version of `trezor-agent`:
 ```
