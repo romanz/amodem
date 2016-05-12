@@ -158,10 +158,16 @@ class Signer(object):
         log.info('signing public key "%s"', self.user_id)
         hashed_subpackets = [
             proto.subpacket_time(self.pubkey.created),  # signature time
+            # https://tools.ietf.org/html/rfc4880#section-5.2.3.4
             proto.subpacket_byte(0x1B, 1 | 2),  # key flags (certify & sign)
+            # https://tools.ietf.org/html/rfc4880#section-5.2.3.21
             proto.subpacket_byte(0x15, 8),  # preferred hash (SHA256)
+            # https://tools.ietf.org/html/rfc4880#section-5.2.3.8
             proto.subpacket_byte(0x16, 0),  # preferred compression (none)
-            proto.subpacket_byte(0x17, 0x80)]  # key server prefs (no-modify)
+            # https://tools.ietf.org/html/rfc4880#section-5.2.3.9
+            proto.subpacket_byte(0x17, 0x80)  # key server prefs (no-modify)
+            # https://tools.ietf.org/html/rfc4880#section-5.2.3.17
+        ]
         unhashed_subpackets = [
             proto.subpacket(16, self.pubkey.key_id()),  # issuer key id
             proto.CUSTOM_SUBPACKET]
