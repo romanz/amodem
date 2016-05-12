@@ -90,7 +90,7 @@ SUPPORTED_CURVES = {
     b'\x2B\x06\x01\x04\x01\xDA\x47\x0F\x01': _parse_ed25519_verifier,
 }
 
-ECDSA_ALGO_IDS = (19, 22)  # (nist256, ed25519)
+ECDSA_ALGO_IDS = {18, 19, 22}  # {ecdsa, nist256, ed25519}
 
 
 def _parse_literal(stream):
@@ -158,6 +158,7 @@ def _parse_pubkey(stream, packet_type='pubkey'):
         p['created'] = stream.readfmt('>L')
         p['algo'] = stream.readfmt('B')
         if p['algo'] in ECDSA_ALGO_IDS:
+            log.debug('parsing elliptic curve key')
             # https://tools.ietf.org/html/rfc6637#section-11
             oid_size = stream.readfmt('B')
             oid = stream.read(oid_size)
@@ -167,14 +168,22 @@ def _parse_pubkey(stream, packet_type='pubkey'):
             mpi = parse_mpi(stream)
             log.debug('mpi: %x (%d bits)', mpi, mpi.bit_length())
             p['verifier'], p['verifying_key'] = parser(mpi)
+            leftover = stream.read()
+            if leftover:
+                leftover = io.BytesIO(leftover)
+                # https://tools.ietf.org/html/rfc6637#section-8
+                # should be b'\x03\x01\x08\x07': SHA256 + AES128
+                size, = util.readfmt(leftover, 'B')
+                p['kdf'] = leftover.read(size)
+                assert not leftover.read()
         else:  # RSA
+            log.debug('parsing RSA key')
             n = parse_mpi(stream)
             e = parse_mpi(stream)
             log.debug('n: %x (%d bits)', n, n.bit_length())
             log.debug('e: %x (%d bits)', e, e.bit_length())
             p['verifier'] = _create_rsa_verifier(n, e)
-
-        assert not stream.read()
+            assert not stream.read()
 
     # https://tools.ietf.org/html/rfc4880#section-12.2
     packet_data = packet.getvalue()
