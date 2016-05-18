@@ -29,7 +29,7 @@ def test_parse_public_key():
     assert key['name'] == b'home'
     assert key['point'] == _point
 
-    assert key['curve'] == b'nist256p1'
+    assert key['curve'] == 'nist256p1'
     assert key['fingerprint'] == '4b:19:bc:0f:c8:7e:dc:fa:1a:e3:c2:ff:6f:e0:80:a2'  # nopep8
     assert key['type'] == b'ecdsa-sha2-nistp256'
 
@@ -46,7 +46,7 @@ def test_parse_ed25519():
               'fSO8nLIi736is+f0erq28RTc7CkM11NZtTKR hello\n')
     p = formats.import_public_key(pubkey)
     assert p['name'] == b'hello'
-    assert p['curve'] == b'ed25519'
+    assert p['curve'] == 'ed25519'
 
     BLOB = (b'\x00\x00\x00\x0bssh-ed25519\x00\x00\x00 P]\x17kc}#'
             b'\xbc\x9c\xb2"\xef~\xa2\xb3\xe7\xf4z\xba\xb6\xf1\x14'

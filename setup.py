@@ -10,7 +10,7 @@ setup(
     url='http://github.com/romanz/trezor-agent',
     packages=['trezor_agent', 'trezor_agent.gpg'],
     scripts=['trezor_agent/gpg/trezor-git-gpg-wrapper.sh'],
-    install_requires=['ecdsa>=0.13', 'ed25519>=1.4', 'Cython>=0.23.4', 'trezor>=0.6.6', 'keepkey>=0.7.0', 'semver>=2.2'],
+    install_requires=['ecdsa>=0.13', 'ed25519>=1.4', 'Cython>=0.23.4', 'protobuf>=3.0.0b2.post2', 'trezor>=0.6.12', 'semver>=2.2'],
     platforms=['POSIX'],
     classifiers=[
         'Environment :: Console',

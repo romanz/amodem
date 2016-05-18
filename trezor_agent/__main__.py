@@ -31,7 +31,7 @@ def create_parser():
     p = argparse.ArgumentParser()
     p.add_argument('-v', '--verbose', default=0, action='count')
 
-    curve_names = [name.decode('ascii') for name in formats.SUPPORTED_CURVES]
+    curve_names = [name for name in formats.SUPPORTED_CURVES]
     curve_names = ', '.join(sorted(curve_names))
     p.add_argument('-e', '--ecdsa-curve-name', metavar='CURVE',
                    default=formats.CURVE_NIST256,
@@ -128,7 +128,7 @@ def run_agent(client_factory=client.Client):
     args = create_agent_parser().parse_args()
     setup_logging(verbosity=args.verbose)
 
-    with client_factory(curve=args.ecdsa_curve_name.encode('ascii')) as conn:
+    with client_factory(curve=args.ecdsa_curve_name) as conn:
         label = args.identity
         command = args.command
 
@@ -156,7 +156,7 @@ def run_git(client_factory=client.Client):
     args = create_git_parser().parse_args()
     setup_logging(verbosity=args.verbose)
 
-    with client_factory(curve=args.ecdsa_curve_name.encode('ascii')) as conn:
+    with client_factory(curve=args.ecdsa_curve_name) as conn:
         label = git_host(args.remote, ['pushurl', 'url'])
         if not label:
             log.error('Could not find "%s" SSH remote in .git/config',

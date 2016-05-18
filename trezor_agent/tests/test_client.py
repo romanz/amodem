@@ -29,7 +29,7 @@ class FakeConnection(object):
     def get_public_node(self, n, ecdsa_curve_name=b'secp256k1'):
         assert not self.closed
         assert n == ADDR
-        assert ecdsa_curve_name in {b'secp256k1', b'nist256p1'}
+        assert ecdsa_curve_name in {'secp256k1', 'nist256p1'}
         result = mock.Mock(spec=[])
         result.node = mock.Mock(spec=[])
         result.node.public_key = PUBKEY
@@ -91,7 +91,7 @@ def test_ssh_agent():
                     client.identity_to_string(ident))
             assert challenge_hidden == BLOB
             assert challenge_visual == 'VISUAL'
-            assert ecdsa_curve_name == b'nist256p1'
+            assert ecdsa_curve_name == 'nist256p1'
 
             result = mock.Mock(spec=[])
             result.public_key = PUBKEY
