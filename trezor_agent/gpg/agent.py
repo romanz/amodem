@@ -83,6 +83,8 @@ def _parse_ecdsa_sig(args):
     return (util.bytes2num(sig_r),
             util.bytes2num(sig_s))
 
+_parse_dsa_sig = _parse_ecdsa_sig
+
 
 def _parse_rsa_sig(args):
     (s, sig_s), = args
@@ -94,7 +96,9 @@ def _parse_sig(sig):
     label, sig = sig
     assert label == 'sig-val'
     algo_name = sig[0]
-    parser = {'rsa': _parse_rsa_sig, 'ecdsa': _parse_ecdsa_sig}[algo_name]
+    parser = {'rsa': _parse_rsa_sig,
+              'ecdsa': _parse_ecdsa_sig,
+              'dsa': _parse_dsa_sig}[algo_name]
     return parser(args=sig[1:])
 
 

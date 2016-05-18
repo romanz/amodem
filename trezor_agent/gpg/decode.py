@@ -41,6 +41,11 @@ def parse_mpi(s):
     return sum(v << (8 * i) for i, v in enumerate(reversed(blob)))
 
 
+def parse_mpis(s, n):
+    """Parse multiple MPIs from stream."""
+    return [parse_mpi(s) for _ in range(n)]
+
+
 def _parse_nist256p1_verifier(mpi):
     prefix, x, y = util.split_bits(mpi, 4, 256, 256)
     assert prefix == 4
@@ -90,6 +95,9 @@ SUPPORTED_CURVES = {
     b'\x2B\x06\x01\x04\x01\xDA\x47\x0F\x01': _parse_ed25519_verifier,
 }
 
+RSA_ALGO_IDS = {1, 2, 3}
+ELGAMAL_ALGO_ID = 16
+DSA_ALGO_ID = 17
 ECDSA_ALGO_IDS = {18, 19, 22}  # {ecdsa, nist256, ed25519}
 
 
@@ -142,8 +150,12 @@ def _parse_signature(stream):
     p['hash_prefix'] = stream.readfmt('2s')
     if p['pubkey_alg'] in ECDSA_ALGO_IDS:
         p['sig'] = (parse_mpi(stream), parse_mpi(stream))
-    else:  # RSA
+    elif p['pubkey_alg'] in RSA_ALGO_IDS:  # RSA
         p['sig'] = (parse_mpi(stream),)
+    elif p['pubkey_alg'] == DSA_ALGO_ID:
+        p['sig'] = (parse_mpi(stream), parse_mpi(stream))
+    else:
+        log.error('unsupported public key algo: %d', p['pubkey_alg'])
 
     assert not stream.read()
     return p
@@ -176,12 +188,15 @@ def _parse_pubkey(stream, packet_type='pubkey'):
                 size, = util.readfmt(leftover, 'B')
                 p['kdf'] = leftover.read(size)
                 assert not leftover.read()
-        else:  # RSA
+        elif p['algo'] == DSA_ALGO_ID:
+            log.warning('DSA signatures are not verified')
+            parse_mpis(stream, n=4)
+        elif p['algo'] == ELGAMAL_ALGO_ID:
+            log.warning('ElGamal signatures are not verified')
+            parse_mpis(stream, n=3)
+        else:  # assume RSA
             log.debug('parsing RSA key')
-            n = parse_mpi(stream)
-            e = parse_mpi(stream)
-            log.debug('n: %x (%d bits)', n, n.bit_length())
-            log.debug('e: %x (%d bits)', e, e.bit_length())
+            n, e = parse_mpis(stream, n=2)
             p['verifier'] = _create_rsa_verifier(n, e)
             assert not stream.read()
 
@@ -266,8 +281,11 @@ def load_public_key(stream, use_custom=False):
     digest = digest_packets([pubkey, userid, signature])
     assert signature['hash_prefix'] == digest[:2]
     log.debug('loaded public key "%s"', userid['value'])
-    verify_digest(pubkey=pubkey, digest=digest,
-                  signature=signature['sig'], label='GPG public key')
+    if pubkey.get('verifier'):
+        verify_digest(pubkey=pubkey, digest=digest,
+                      signature=signature['sig'], label='GPG public key')
+    else:
+        log.warning('public key %s cannot be verified!', util.hexlify(pubkey['key_id']))
 
     packet = pubkey
     while use_custom:
