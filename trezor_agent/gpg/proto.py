@@ -1,5 +1,6 @@
 """GPG protocol utilities."""
 
+import hashlib
 import logging
 import struct
 
@@ -98,3 +99,41 @@ def find_curve_by_algo_id(algo_id):
     curve_name, = [name for name, info in SUPPORTED_CURVES.items()
                    if info['algo_id'] == algo_id]
     return curve_name
+
+
+class PublicKey(object):
+    """GPG representation for public key packets."""
+
+    def __init__(self, curve_name, created, verifying_key):
+        """Contruct using a ECDSA VerifyingKey object."""
+        self.curve_info = SUPPORTED_CURVES[curve_name]
+        self.created = int(created)  # time since Epoch
+        self.verifying_key = verifying_key
+        self.algo_id = self.curve_info['algo_id']
+
+    def data(self):
+        """Data for packet creation."""
+        header = struct.pack('>BLB',
+                             4,             # version
+                             self.created,  # creation
+                             self.algo_id)  # public key algorithm ID
+        oid = util.prefix_len('>B', self.curve_info['oid'])
+        blob = self.curve_info['serialize'](self.verifying_key)
+        return header + oid + blob
+
+    def data_to_hash(self):
+        """Data for digest computation."""
+        return b'\x99' + util.prefix_len('>H', self.data())
+
+    def _fingerprint(self):
+        return hashlib.sha1(self.data_to_hash()).digest()
+
+    def key_id(self):
+        """Short (8 byte) GPG key ID."""
+        return self._fingerprint()[-8:]
+
+    def __repr__(self):
+        """Short (8 hexadecimal digits) GPG key ID."""
+        return '<{}>'.format(util.hexlify(self.key_id()))
+
+    __str__ = __repr__
