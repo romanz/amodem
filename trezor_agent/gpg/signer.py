@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Create signatures and export public keys for GPG using TREZOR."""
 import argparse
+import contextlib
 import logging
 import subprocess as sp
 import sys
@@ -17,13 +18,14 @@ def run_create(args):
     user_id = os.environ['TREZOR_GPG_USER_ID']
     s = encode.Signer(user_id=user_id, created=args.time,
                       curve_name=args.ecdsa_curve)
-    if args.subkey:
-        subkey = s.subkey()
-        primary = sp.check_output(['gpg2', '--export', user_id])
-        result = primary + subkey
-    else:
-        result = s.export()
-    s.close()
+
+    with contextlib.closing(s):
+        if args.subkey:
+            subkey = s.subkey()
+            primary = sp.check_output(['gpg2', '--export', user_id])
+            result = primary + subkey
+        else:
+            result = s.export()
 
     sys.stdout.write(proto.armor(result, 'PUBLIC KEY BLOCK'))
 
@@ -32,12 +34,12 @@ def run_sign(args):
     """Generate a GPG signature using hardware-based device."""
     pubkey = decode.load_from_gpg(user_id=None, use_custom=True)
     s = encode.Signer.from_public_key(pubkey=pubkey, user_id=pubkey['user_id'])
-    if args.filename:
-        data = open(args.filename, 'rb').read()
-    else:
-        data = sys.stdin.read()
-    sig = s.sign(data)
-    s.close()
+    with contextlib.closing(s):
+        if args.filename:
+            data = open(args.filename, 'rb').read()
+        else:
+            data = sys.stdin.read()
+        sig = s.sign(data)
 
     sig = proto.armor(sig, 'SIGNATURE')
     decode.verify(pubkey=pubkey, signature=sig, original_data=data)
