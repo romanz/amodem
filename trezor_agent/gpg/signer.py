@@ -17,7 +17,7 @@ def run_create(args):
     """Generate a new pubkey for a new/existing GPG identity."""
     user_id = os.environ['TREZOR_GPG_USER_ID']
     f = encode.Factory(user_id=user_id, created=args.time,
-                      curve_name=args.ecdsa_curve)
+                       curve_name=args.ecdsa_curve)
 
     with contextlib.closing(f):
         if args.subkey:
@@ -33,7 +33,8 @@ def run_create(args):
 def run_sign(args):
     """Generate a GPG signature using hardware-based device."""
     pubkey = decode.load_from_gpg(user_id=None, use_custom=True)
-    f = encode.Factory.from_public_key(pubkey=pubkey, user_id=pubkey['user_id'])
+    f = encode.Factory.from_public_key(pubkey=pubkey,
+                                       user_id=pubkey['user_id'])
     with contextlib.closing(f):
         if args.filename:
             data = open(args.filename, 'rb').read()

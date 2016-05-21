@@ -285,7 +285,8 @@ def load_public_key(stream, use_custom=False):
         verify_digest(pubkey=pubkey, digest=digest,
                       signature=signature['sig'], label='GPG public key')
     else:
-        log.warning('public key %s cannot be verified!', util.hexlify(pubkey['key_id']))
+        log.warning('public key %s cannot be verified!',
+                    util.hexlify(pubkey['key_id']))
 
     packet = pubkey
     while use_custom:

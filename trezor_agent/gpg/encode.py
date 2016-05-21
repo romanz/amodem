@@ -1,7 +1,5 @@
 """Create GPG ECDSA signatures and public keys using TREZOR device."""
-import hashlib
 import logging
-import struct
 import time
 
 from . import agent, decode, proto

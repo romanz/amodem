@@ -3,7 +3,6 @@ import binascii
 import contextlib
 import io
 import struct
-import time
 
 
 def send(conn, data):
