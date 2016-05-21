@@ -2,7 +2,7 @@
 import logging
 import time
 
-from . import agent, decode, proto
+from . import decode, keyring, proto
 from .. import client, factory, formats, util
 
 log = logging.getLogger(__name__)
@@ -52,13 +52,13 @@ class AgentSigner(object):
 
     def __init__(self, user_id):
         """Connect to the agent and retrieve required public key."""
-        self.sock = agent.connect()
-        self.keygrip = agent.get_keygrip(user_id)
+        self.sock = keyring.connect_to_agent()
+        self.keygrip = keyring.get_keygrip(user_id)
 
     def sign(self, digest):
         """Sign the digest and return an ECDSA signature."""
-        params = agent.sign(sock=self.sock,
-                            keygrip=self.keygrip, digest=digest)
+        params = keyring.sign_digest(sock=self.sock,
+                                     keygrip=self.keygrip, digest=digest)
         return b''.join(proto.mpi(p) for p in params)
 
     def close(self):

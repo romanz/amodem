@@ -15,7 +15,7 @@ from .. import util
 log = logging.getLogger(__name__)
 
 
-def connect(sock_path='~/.gnupg/S.gpg-agent'):
+def connect_to_agent(sock_path='~/.gnupg/S.gpg-agent'):
     """Connect to GPG agent's UNIX socket."""
     sock_path = os.path.expanduser(sock_path)
     sp.check_call(['gpg-connect-agent', '/bye'])
@@ -102,7 +102,7 @@ def _parse_sig(sig):
     return parser(args=sig[1:])
 
 
-def sign(sock, keygrip, digest):
+def sign_digest(sock, keygrip, digest):
     """Sign a digest using specified key using GPG agent."""
     hash_algo = 8  # SHA256
     assert len(digest) == 32
