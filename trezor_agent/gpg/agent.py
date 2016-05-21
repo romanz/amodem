@@ -140,25 +140,3 @@ def get_keygrip(user_id):
     args = ['gpg2', '--list-keys', '--with-keygrip', user_id]
     output = sp.check_output(args)
     return re.findall(r'Keygrip = (\w+)', output)[0]
-
-
-def _main():
-    logging.basicConfig(level=logging.DEBUG,
-                        format='%(asctime)s %(levelname)-10s %(message)-100s '
-                        '%(filename)s:%(lineno)d')
-
-    p = argparse.ArgumentParser()
-    p.add_argument('user_id')
-    args = p.parse_args()
-
-    p = decode.load_from_gpg(args.user_id)
-
-    digest = os.urandom(32)
-    sig = sign(sock=connect(),
-               keygrip=get_keygrip(args.user_id),
-               digest=digest)
-    decode.verify_digest(p, digest, sig, 'gpg-agent signature')
-
-
-if __name__ == '__main__':
-    _main()
