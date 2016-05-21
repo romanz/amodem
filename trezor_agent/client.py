@@ -59,7 +59,7 @@ class Client(object):
         vk = formats.decompress_pubkey(pubkey=pubkey, curve_name=self.curve)
         return formats.export_public_key(vk=vk, label=label)
 
-    def sign_ssh_challenge(self, label, blob, visual=''):
+    def sign_ssh_challenge(self, label, blob):
         """Sign given blob using a private key, specified by the label."""
         identity = self.get_identity(label=label)
         msg = _parse_ssh_blob(blob)
@@ -68,7 +68,6 @@ class Client(object):
         log.debug('nonce: %s', binascii.hexlify(msg['nonce']))
         log.debug('fingerprint: %s', msg['public_key']['fingerprint'])
         log.debug('hidden challenge size: %d bytes', len(blob))
-        log.debug('visual challenge size: %d bytes = %r', len(visual), visual)
 
         log.info('please confirm user "%s" login to "%s" using %s...',
                  msg['user'], label, self.device_name)
@@ -76,7 +75,7 @@ class Client(object):
         try:
             result = self.client.sign_identity(identity=identity,
                                                challenge_hidden=blob,
-                                               challenge_visual=visual,
+                                               challenge_visual='',
                                                ecdsa_curve_name=self.curve)
         except self.call_exception as e:
             code, msg = e.args

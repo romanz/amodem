@@ -1,12 +1,10 @@
 """SSH-agent implementation using hardware authentication devices."""
 import argparse
-import functools
 import logging
 import os
 import re
 import subprocess
 import sys
-import time
 
 from . import client, formats, protocol, server
 
@@ -103,16 +101,10 @@ def git_host(remote_name, attributes):
             return '{user}@{host}'.format(**match.groupdict())
 
 
-def ssh_sign(conn, label, blob):
-    """Perform SSH signature using given hardware device connection."""
-    now = time.strftime('%Y-%m-%d %H:%M:%S')
-    return conn.sign_ssh_challenge(label=label, blob=blob, visual=now)
-
-
 def run_server(conn, public_key, command, debug, timeout):
     """Common code for run_agent and run_git below."""
     try:
-        signer = functools.partial(ssh_sign, conn=conn)
+        signer = conn.sign_ssh_challenge
         public_key = formats.import_public_key(public_key)
         log.info('using SSH public key: %s', public_key['fingerprint'])
         handler = protocol.Handler(keys=[public_key], signer=signer,
