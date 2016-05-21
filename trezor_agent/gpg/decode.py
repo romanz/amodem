@@ -309,17 +309,6 @@ def load_signature(stream, original_data):
     return signature, digest
 
 
-def load_from_gpg(user_id, use_custom=False):
-    """Load existing GPG public key for `user_id` from local keyring."""
-    args = ['gpg2', '--export'] + ([user_id] if user_id else [])
-    pubkey_bytes = subprocess.check_output(args=args)
-    if pubkey_bytes:
-        return load_public_key(io.BytesIO(pubkey_bytes), use_custom=use_custom)
-    else:
-        log.error('could not find public key %r in local GPG keyring', user_id)
-        raise KeyError(user_id)
-
-
 def verify_digest(pubkey, digest, signature, label):
     """Verify a digest signature from a specified public key."""
     verifier = pubkey['verifier']

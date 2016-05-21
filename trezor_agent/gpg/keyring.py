@@ -7,7 +7,7 @@ import logging
 import os
 import re
 import socket
-import subprocess as sp
+import subprocess
 
 from . import decode
 from .. import util
@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 def connect_to_agent(sock_path='~/.gnupg/S.gpg-agent'):
     """Connect to GPG agent's UNIX socket."""
     sock_path = os.path.expanduser(sock_path)
-    sp.check_call(['gpg-connect-agent', '/bye'])
+    subprocess.check_call(['gpg-connect-agent', '/bye'])
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     sock.connect(sock_path)
     return sock
@@ -109,7 +109,7 @@ def sign_digest(sock, keygrip, digest):
 
     assert _communicate(sock, 'RESET').startswith('OK')
 
-    ttyname = sp.check_output('tty').strip()
+    ttyname = subprocess.check_output('tty').strip()
     options = ['ttyname={}'.format(ttyname)]  # set TTY for passphrase entry
     for opt in options:
         assert _communicate(sock, 'OPTION {}'.format(opt)) == 'OK'
@@ -138,5 +138,16 @@ def sign_digest(sock, keygrip, digest):
 def get_keygrip(user_id):
     """Get a keygrip of the primary GPG key of the specified user."""
     args = ['gpg2', '--list-keys', '--with-keygrip', user_id]
-    output = sp.check_output(args)
+    output = subprocess.check_output(args)
     return re.findall(r'Keygrip = (\w+)', output)[0]
+
+
+def get_public_key(user_id, use_custom=False):
+    """Load existing GPG public key for `user_id` from local keyring."""
+    args = ['gpg2', '--export'] + ([user_id] if user_id else [])
+    pubkey_bytes = subprocess.check_output(args=args)
+    if pubkey_bytes:
+        return decode.load_public_key(io.BytesIO(pubkey_bytes), use_custom=use_custom)
+    else:
+        log.error('could not find public key %r in local GPG keyring', user_id)
+        raise KeyError(user_id)

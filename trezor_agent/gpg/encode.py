@@ -89,12 +89,7 @@ class Factory(object):
 
     @classmethod
     def from_public_key(cls, pubkey, user_id):
-        """
-        Create from an existing GPG public key.
-
-        `pubkey` should be loaded via `decode.load_from_gpg(user_id)`
-        from the local GPG keyring.
-        """
+        """Create from an existing GPG public key."""
         s = cls(user_id=user_id,
                 created=pubkey['created'],
                 curve_name=proto.find_curve_by_algo_id(pubkey['algo']))
@@ -144,7 +139,7 @@ class Factory(object):
     def create_subkey(self):
         """Export new subkey to `self.user_id` GPG primary key."""
         subkey_packet = proto.packet(tag=14, blob=self.pubkey.data())
-        primary = decode.load_from_gpg(self.user_id)
+        primary = keyring.get_public_key(self.user_id)
         log.info('adding subkey to primary GPG key "%s" (%s)',
                  self.user_id, util.hexlify(primary['key_id']))
         data_to_sign = primary['_to_hash'] + self.pubkey.data_to_hash()

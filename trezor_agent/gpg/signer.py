@@ -8,7 +8,7 @@ import sys
 import time
 import os
 
-from . import decode, encode, proto
+from . import decode, encode, keyring, proto
 
 log = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ def run_create(args):
 
 def run_sign(args):
     """Generate a GPG signature using hardware-based device."""
-    pubkey = decode.load_from_gpg(user_id=None, use_custom=True)
+    pubkey = keyring.get_public_key(user_id=None, use_custom=True)
     f = encode.Factory.from_public_key(pubkey=pubkey,
                                        user_id=pubkey['user_id'])
     with contextlib.closing(f):
