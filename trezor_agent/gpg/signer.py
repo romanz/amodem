@@ -16,16 +16,16 @@ log = logging.getLogger(__name__)
 def run_create(args):
     """Generate a new pubkey for a new/existing GPG identity."""
     user_id = os.environ['TREZOR_GPG_USER_ID']
-    s = encode.Signer(user_id=user_id, created=args.time,
+    f = encode.Factory(user_id=user_id, created=args.time,
                       curve_name=args.ecdsa_curve)
 
-    with contextlib.closing(s):
+    with contextlib.closing(f):
         if args.subkey:
-            subkey = s.subkey()
+            subkey = f.create_subkey()
             primary = sp.check_output(['gpg2', '--export', user_id])
             result = primary + subkey
         else:
-            result = s.export()
+            result = f.create_primary()
 
     sys.stdout.write(proto.armor(result, 'PUBLIC KEY BLOCK'))
 
@@ -33,13 +33,13 @@ def run_create(args):
 def run_sign(args):
     """Generate a GPG signature using hardware-based device."""
     pubkey = decode.load_from_gpg(user_id=None, use_custom=True)
-    s = encode.Signer.from_public_key(pubkey=pubkey, user_id=pubkey['user_id'])
-    with contextlib.closing(s):
+    f = encode.Factory.from_public_key(pubkey=pubkey, user_id=pubkey['user_id'])
+    with contextlib.closing(f):
         if args.filename:
             data = open(args.filename, 'rb').read()
         else:
             data = sys.stdin.read()
-        sig = s.sign(data)
+        sig = f.sign_message(data)
 
     sig = proto.armor(sig, 'SIGNATURE')
     decode.verify(pubkey=pubkey, signature=sig, original_data=data)

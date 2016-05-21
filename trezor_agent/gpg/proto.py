@@ -154,3 +154,27 @@ def armor(blob, type_str):
     checksum = base64.b64encode(util.crc24(blob))
     tail = '-----END PGP {}-----\n'.format(type_str)
     return head + _split_lines(body, 64) + '=' + checksum + '\n' + tail
+
+
+def make_signature(signer_func, data_to_sign, public_algo,
+                   hashed_subpackets, unhashed_subpackets, sig_type=0):
+    """Create new GPG signature."""
+    # pylint: disable=too-many-arguments
+    header = struct.pack('>BBBB',
+                         4,         # version
+                         sig_type,  # rfc4880 (section-5.2.1)
+                         public_algo,
+                         8)         # hash_alg (SHA256)
+    hashed = subpackets(*hashed_subpackets)
+    unhashed = subpackets(*unhashed_subpackets)
+    tail = b'\x04\xff' + struct.pack('>L', len(header) + len(hashed))
+    data_to_hash = data_to_sign + header + hashed + tail
+
+    log.debug('hashing %d bytes', len(data_to_hash))
+    digest = hashlib.sha256(data_to_hash).digest()
+    log.info('signing digest: %s', util.hexlify(digest))
+    sig = signer_func(digest=digest)
+
+    return bytes(header + hashed + unhashed +
+                 digest[:2] +  # used for decoder's sanity check
+                 sig)  # actual ECDSA signature
