@@ -137,11 +137,6 @@ def prefix_len(fmt, blob):
     return struct.pack(fmt, len(blob)) + blob
 
 
-def time_format(t):
-    """Utility for consistent time formatting."""
-    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(t))
-
-
 def hexlify(blob):
     """Utility for consistent hexadecimal formatting."""
     return binascii.hexlify(blob).decode('ascii').upper()

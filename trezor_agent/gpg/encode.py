@@ -112,6 +112,10 @@ class PublicKey(object):
     __str__ = __repr__
 
 
+def _time_format(t):
+    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(t))
+
+
 class Signer(object):
     """Performs GPG signing operations."""
 
@@ -127,7 +131,7 @@ class Signer(object):
 
         log.info('%s GPG public key %s created at %s for "%s"',
                  curve_name, self.pubkey,
-                 util.time_format(self.pubkey.created), user_id)
+                 _time_format(self.pubkey.created), user_id)
 
     @classmethod
     def from_public_key(cls, pubkey, user_id):
@@ -229,7 +233,7 @@ class Signer(object):
             sign_time = int(time.time())
 
         log.info('signing %d byte message at %s',
-                 len(msg), util.time_format(sign_time))
+                 len(msg), _time_format(sign_time))
         hashed_subpackets = [proto.subpacket_time(sign_time)]
         unhashed_subpackets = [
             proto.subpacket(16, self.pubkey.key_id())]  # issuer key id
