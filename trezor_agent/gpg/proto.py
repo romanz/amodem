@@ -1,5 +1,6 @@
 """GPG protocol utilities."""
 
+import base64
 import hashlib
 import logging
 import struct
@@ -137,3 +138,19 @@ class PublicKey(object):
         return '<{}>'.format(util.hexlify(self.key_id()))
 
     __str__ = __repr__
+
+
+def _split_lines(body, size):
+    lines = []
+    for i in range(0, len(body), size):
+        lines.append(body[i:i+size] + '\n')
+    return ''.join(lines)
+
+
+def armor(blob, type_str):
+    """See https://tools.ietf.org/html/rfc4880#section-6 for details."""
+    head = '-----BEGIN PGP {}-----\nVersion: GnuPG v2\n\n'.format(type_str)
+    body = base64.b64encode(blob)
+    checksum = base64.b64encode(util.crc24(blob))
+    tail = '-----END PGP {}-----\n'.format(type_str)
+    return head + _split_lines(body, 64) + '=' + checksum + '\n' + tail

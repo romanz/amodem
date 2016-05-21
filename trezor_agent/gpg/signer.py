@@ -7,7 +7,7 @@ import sys
 import time
 import os
 
-from . import decode, encode
+from . import decode, encode, proto
 
 log = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ def run_create(args):
         result = s.export()
     s.close()
 
-    sys.stdout.write(encode.armor(result, 'PUBLIC KEY BLOCK'))
+    sys.stdout.write(proto.armor(result, 'PUBLIC KEY BLOCK'))
 
 
 def run_sign(args):
@@ -39,7 +39,7 @@ def run_sign(args):
     sig = s.sign(data)
     s.close()
 
-    sig = encode.armor(sig, 'SIGNATURE')
+    sig = proto.armor(sig, 'SIGNATURE')
     decode.verify(pubkey=pubkey, signature=sig, original_data=data)
 
     filename = '-'  # write to stdout
