@@ -37,7 +37,7 @@ class HardwareSigner(object):
         result = self.client_wrapper.connection.sign_identity(
             identity=self.identity,
             challenge_hidden=digest,
-            challenge_visual=util.hexlify(digest),
+            challenge_visual='',
             ecdsa_curve_name=self.curve_name)
         assert result.signature[:1] == b'\x00'
         sig = result.signature[1:]
