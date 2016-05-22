@@ -64,6 +64,8 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument('-v', '--verbose', action='store_true', default=False)
     subparsers = p.add_subparsers()
+    subparsers.required = True
+    subparsers.dest = 'command'
 
     create = subparsers.add_parser('create')
     create.add_argument('-s', '--subkey', action='store_true', default=False)
