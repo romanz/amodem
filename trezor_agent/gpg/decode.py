@@ -5,7 +5,6 @@ import hashlib
 import io
 import logging
 import struct
-import subprocess
 
 import ecdsa
 import ed25519

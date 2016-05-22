@@ -1,6 +1,5 @@
 """Tools for doing signature using gpg-agent."""
 
-import argparse
 import binascii
 import io
 import logging
@@ -147,7 +146,8 @@ def get_public_key(user_id, use_custom=False):
     args = ['gpg2', '--export'] + ([user_id] if user_id else [])
     pubkey_bytes = subprocess.check_output(args=args)
     if pubkey_bytes:
-        return decode.load_public_key(io.BytesIO(pubkey_bytes), use_custom=use_custom)
+        return decode.load_public_key(io.BytesIO(pubkey_bytes),
+                                      use_custom=use_custom)
     else:
         log.error('could not find public key %r in local GPG keyring', user_id)
         raise KeyError(user_id)

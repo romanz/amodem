@@ -2,7 +2,7 @@
 import logging
 import time
 
-from . import decode, keyring, proto
+from . import keyring, proto
 from .. import client, factory, formats, util
 
 log = logging.getLogger(__name__)
