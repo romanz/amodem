@@ -42,7 +42,7 @@ def run_sign(args):
             data = sys.stdin.read()
         sig = f.sign_message(data)
 
-    sig = proto.armor(sig, 'SIGNATURE')
+    sig = proto.armor(sig, 'SIGNATURE').encode('ascii')
     decode.verify(pubkey=pubkey, signature=sig, original_data=data)
 
     filename = '-'  # write to stdout

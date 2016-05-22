@@ -325,7 +325,7 @@ def verify(pubkey, signature, original_data):
 
     # remove GPG armor
     lines = stream.readlines()[3:-1]
-    data = base64.b64decode(''.join(lines))
+    data = base64.b64decode(b''.join(lines))
     payload, checksum = data[:-3], data[-3:]
     assert util.crc24(payload) == checksum
     stream = io.BytesIO(payload)

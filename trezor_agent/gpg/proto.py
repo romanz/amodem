@@ -150,8 +150,8 @@ def _split_lines(body, size):
 def armor(blob, type_str):
     """See https://tools.ietf.org/html/rfc4880#section-6 for details."""
     head = '-----BEGIN PGP {}-----\nVersion: GnuPG v2\n\n'.format(type_str)
-    body = base64.b64encode(blob)
-    checksum = base64.b64encode(util.crc24(blob))
+    body = base64.b64encode(blob).decode('ascii')
+    checksum = base64.b64encode(util.crc24(blob)).decode('ascii')
     tail = '-----END PGP {}-----\n'.format(type_str)
     return head + _split_lines(body, 64) + '=' + checksum + '\n' + tail
 

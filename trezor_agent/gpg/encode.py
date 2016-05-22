@@ -103,11 +103,12 @@ class Factory(object):
     def create_primary(self):
         """Export new primary GPG public key, ready for "gpg2 --import"."""
         pubkey_packet = proto.packet(tag=6, blob=self.pubkey.data())
-        user_id_packet = proto.packet(tag=13, blob=self.user_id)
+        user_id_packet = proto.packet(tag=13,
+                                      blob=self.user_id.encode('ascii'))
 
         data_to_sign = (self.pubkey.data_to_hash() +
                         user_id_packet[:1] +
-                        util.prefix_len('>L', self.user_id))
+                        util.prefix_len('>L', self.user_id.encode('ascii')))
         log.info('signing public key "%s"', self.user_id)
         hashed_subpackets = [
             proto.subpacket_time(self.pubkey.created),  # signature time
