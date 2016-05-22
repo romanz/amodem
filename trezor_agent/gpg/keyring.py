@@ -137,7 +137,7 @@ def sign_digest(sock, keygrip, digest):
 def get_keygrip(user_id):
     """Get a keygrip of the primary GPG key of the specified user."""
     args = ['gpg2', '--list-keys', '--with-keygrip', user_id]
-    output = subprocess.check_output(args)
+    output = subprocess.check_output(args).decode('ascii')
     return re.findall(r'Keygrip = (\w+)', output)[0]
 
 
