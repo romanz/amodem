@@ -24,7 +24,9 @@ def connect_to_agent(sock_path='~/.gnupg/S.gpg-agent'):
 
 
 def _communicate(sock, msg):
-    sock.sendall(msg + '\n')
+    msg += '\n'
+    sock.sendall(msg.encode('ascii'))
+    log.debug('-> %r', msg)
     return _recvline(sock)
 
 
@@ -33,15 +35,17 @@ def _recvline(sock):
 
     while True:
         c = sock.recv(1)
-        if c == '\n':
+        if c == b'\n':
             break
         reply.write(c)
 
-    return reply.getvalue()
+    result = reply.getvalue()
+    log.debug('<- %r', result)
+    return result
 
 
 def _hex(data):
-    return binascii.hexlify(data).upper()
+    return binascii.hexlify(data).upper().decode('ascii')
 
 
 def _unescape(s):
@@ -49,25 +53,25 @@ def _unescape(s):
     i = 0
     while i < len(s):
         if s[i] == ord('%'):
-            hex_bytes = s[i+1:i+3]
-            value = int(str(hex_bytes), 16)
+            hex_bytes = bytes(s[i+1:i+3])
+            value = int(hex_bytes.decode('ascii'), 16)
             s[i:i+3] = [value]
         i += 1
     return bytes(s)
 
 
 def _parse_term(s):
-    size, s = s.split(':', 1)
+    size, s = s.split(b':', 1)
     size = int(size)
     return s[:size], s[size:]
 
 
 def _parse(s):
-    if s[0] == '(':
+    if s.startswith(b'('):
         s = s[1:]
         name, s = _parse_term(s)
         values = [name]
-        while s[0] != ')':
+        while not s.startswith(b')'):
             value, s = _parse(s)
             values.append(value)
         return values, s[1:]
@@ -77,8 +81,8 @@ def _parse(s):
 
 def _parse_ecdsa_sig(args):
     (r, sig_r), (s, sig_s) = args
-    assert r == 'r'
-    assert s == 's'
+    assert r == b'r'
+    assert s == b's'
     return (util.bytes2num(sig_r),
             util.bytes2num(sig_s))
 
@@ -87,17 +91,17 @@ _parse_dsa_sig = _parse_ecdsa_sig
 
 def _parse_rsa_sig(args):
     (s, sig_s), = args
-    assert s == 's'
+    assert s == b's'
     return (util.bytes2num(sig_s),)
 
 
 def _parse_sig(sig):
     label, sig = sig
-    assert label == 'sig-val'
+    assert label == b'sig-val'
     algo_name = sig[0]
-    parser = {'rsa': _parse_rsa_sig,
-              'ecdsa': _parse_ecdsa_sig,
-              'dsa': _parse_dsa_sig}[algo_name]
+    parser = {b'rsa': _parse_rsa_sig,
+              b'ecdsa': _parse_ecdsa_sig,
+              b'dsa': _parse_dsa_sig}[algo_name]
     return parser(args=sig[1:])
 
 
@@ -106,28 +110,27 @@ def sign_digest(sock, keygrip, digest):
     hash_algo = 8  # SHA256
     assert len(digest) == 32
 
-    assert _communicate(sock, 'RESET').startswith('OK')
+    assert _communicate(sock, 'RESET').startswith(b'OK')
 
     ttyname = subprocess.check_output('tty').strip()
     options = ['ttyname={}'.format(ttyname)]  # set TTY for passphrase entry
     for opt in options:
-        assert _communicate(sock, 'OPTION {}'.format(opt)) == 'OK'
+        assert _communicate(sock, 'OPTION {}'.format(opt)) == b'OK'
 
-    assert _communicate(sock, 'SIGKEY {}'.format(keygrip)) == 'OK'
+    assert _communicate(sock, 'SIGKEY {}'.format(keygrip)) == b'OK'
     assert _communicate(sock, 'SETHASH {} {}'.format(hash_algo,
-                                                     _hex(digest))) == 'OK'
+                                                     _hex(digest))) == b'OK'
 
     desc = ('Please+enter+the+passphrase+to+unlock+the+OpenPGP%0A'
             'secret+key,+to+sign+a+new+TREZOR-based+subkey')
-    assert _communicate(sock, 'SETKEYDESC {}'.format(desc)) == 'OK'
-    assert _communicate(sock, 'PKSIGN') == 'OK'
+    assert _communicate(sock, 'SETKEYDESC {}'.format(desc)) == b'OK'
+    assert _communicate(sock, 'PKSIGN') == b'OK'
     line = _recvline(sock).strip()
-
     line = _unescape(line)
-    log.debug('line: %r', line)
-    prefix, sig = line.split(' ', 1)
-    if prefix != 'D':
-        raise ValueError(line)
+    log.debug('unescaped: %r', line)
+    prefix, sig = line.split(b' ', 1)
+    if prefix != b'D':
+        raise ValueError(prefix)
 
     sig, leftover = _parse(sig)
     assert not leftover, leftover
