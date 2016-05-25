@@ -114,6 +114,11 @@ def sign_digest(sock, keygrip, digest):
 
     ttyname = subprocess.check_output('tty').strip()
     options = ['ttyname={}'.format(ttyname)]  # set TTY for passphrase entry
+
+    display = os.environ.get('DISPLAY')
+    if display is not None:
+        options.append('display={}'.format(display))
+
     for opt in options:
         assert _communicate(sock, 'OPTION {}'.format(opt)) == b'OK'
 
