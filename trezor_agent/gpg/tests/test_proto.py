@@ -73,7 +73,7 @@ def test_nist256p1():
     vk = sk.get_verifying_key()
     pk = proto.PublicKey(curve_name=formats.CURVE_NIST256,
                          created=42, verifying_key=vk)
-    assert repr(pk) == '<E41511BAF82361D9>'
+    assert repr(pk) == 'GPG public key nist256p1/F82361D9'
 
 
 def test_ed25519():
@@ -81,4 +81,4 @@ def test_ed25519():
     vk = sk.get_verifying_key()
     pk = proto.PublicKey(curve_name=formats.CURVE_ED25519,
                          created=42, verifying_key=vk)
-    assert repr(pk) == '<545170A236B40FE6>'
+    assert repr(pk) == 'GPG public key ed25519/36B40FE6'

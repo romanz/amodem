@@ -111,6 +111,8 @@ class PublicKey(object):
         self.created = int(created)  # time since Epoch
         self.verifying_key = verifying_key
         self.algo_id = self.curve_info['algo_id']
+        hex_key_id = util.hexlify(self.key_id())[-8:]
+        self.desc = 'GPG public key {}/{}'.format(curve_name, hex_key_id)
 
     def data(self):
         """Data for packet creation."""
@@ -135,7 +137,7 @@ class PublicKey(object):
 
     def __repr__(self):
         """Short (8 hexadecimal digits) GPG key ID."""
-        return '<{}>'.format(util.hexlify(self.key_id()))
+        return self.desc
 
     __str__ = __repr__
 
@@ -172,7 +174,7 @@ def make_signature(signer_func, data_to_sign, public_algo,
 
     log.debug('hashing %d bytes', len(data_to_hash))
     digest = hashlib.sha256(data_to_hash).digest()
-    log.info('signing digest: %s', util.hexlify(digest))
+    log.debug('signing digest: %s', util.hexlify(digest))
     sig = signer_func(digest=digest)
 
     return bytes(header + hashed + unhashed +
