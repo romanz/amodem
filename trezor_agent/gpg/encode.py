@@ -56,7 +56,7 @@ class AgentSigner(object):
         self.keygrip = keyring.get_keygrip(user_id)
 
     def sign(self, digest):
-        """Sign the digest and return an ECDSA signature."""
+        """Sign the digest and return an ECDSA/RSA/DSA signature."""
         params = keyring.sign_digest(sock=self.sock,
                                      keygrip=self.keygrip, digest=digest)
         return b''.join(proto.mpi(p) for p in params)
