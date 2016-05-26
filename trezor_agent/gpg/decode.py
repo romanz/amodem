@@ -319,17 +319,18 @@ def verify_digest(pubkey, digest, signature, label):
         raise
 
 
-def verify(pubkey, signature, original_data):
-    """Verify correctness of public key and signature."""
-    stream = io.BytesIO(signature)
-
-    # remove GPG armor
+def _remove_armor(armored_data):
+    stream = io.BytesIO(armored_data)
     lines = stream.readlines()[3:-1]
     data = base64.b64decode(b''.join(lines))
     payload, checksum = data[:-3], data[-3:]
     assert util.crc24(payload) == checksum
-    stream = io.BytesIO(payload)
+    return payload
 
+
+def verify(pubkey, signature, original_data):
+    """Verify correctness of public key and signature."""
+    stream = io.BytesIO(_remove_armor(signature))
     signature, digest = load_signature(stream, original_data)
     verify_digest(pubkey=pubkey, digest=digest,
                   signature=signature['sig'], label='GPG signature')
