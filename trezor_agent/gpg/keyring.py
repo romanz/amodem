@@ -44,11 +44,8 @@ def _recvline(sock):
     return result
 
 
-def _hex(data):
-    return binascii.hexlify(data).upper().decode('ascii')
-
-
-def _unescape(s):
+def unescape(s):
+    """Unescape ASSUAN message."""
     s = bytearray(s)
     i = 0
     while i < len(s):
@@ -60,23 +57,25 @@ def _unescape(s):
     return bytes(s)
 
 
-def _parse_term(s):
+def parse_term(s):
+    """Parse single s-expr term from bytes."""
     size, s = s.split(b':', 1)
     size = int(size)
     return s[:size], s[size:]
 
 
-def _parse(s):
+def parse(s):
+    """Parse full s-expr from bytes."""
     if s.startswith(b'('):
         s = s[1:]
-        name, s = _parse_term(s)
+        name, s = parse_term(s)
         values = [name]
         while not s.startswith(b')'):
-            value, s = _parse(s)
+            value, s = parse(s)
             values.append(value)
         return values, s[1:]
     else:
-        return _parse_term(s)
+        return parse_term(s)
 
 
 def _parse_ecdsa_sig(args):
@@ -86,6 +85,7 @@ def _parse_ecdsa_sig(args):
     return (util.bytes2num(sig_r),
             util.bytes2num(sig_s))
 
+# DSA happens to have the same structure as ECDSA signatures
 _parse_dsa_sig = _parse_ecdsa_sig
 
 
@@ -95,7 +95,8 @@ def _parse_rsa_sig(args):
     return (util.bytes2num(sig_s),)
 
 
-def _parse_sig(sig):
+def parse_sig(sig):
+    """Parse signature integer values from s-expr."""
     label, sig = sig
     assert label == b'sig-val'
     algo_name = sig[0]
@@ -123,23 +124,24 @@ def sign_digest(sock, keygrip, digest):
         assert _communicate(sock, 'OPTION {}'.format(opt)) == b'OK'
 
     assert _communicate(sock, 'SIGKEY {}'.format(keygrip)) == b'OK'
+    hex_digest = binascii.hexlify(digest).upper().decode('ascii')
     assert _communicate(sock, 'SETHASH {} {}'.format(hash_algo,
-                                                     _hex(digest))) == b'OK'
+                                                     hex_digest)) == b'OK'
 
     desc = ('Please+enter+the+passphrase+to+unlock+the+OpenPGP%0A'
             'secret+key,+to+sign+a+new+TREZOR-based+subkey')
     assert _communicate(sock, 'SETKEYDESC {}'.format(desc)) == b'OK'
     assert _communicate(sock, 'PKSIGN') == b'OK'
     line = _recvline(sock).strip()
-    line = _unescape(line)
+    line = unescape(line)
     log.debug('unescaped: %r', line)
     prefix, sig = line.split(b' ', 1)
     if prefix != b'D':
         raise ValueError(prefix)
 
-    sig, leftover = _parse(sig)
+    sig, leftover = parse(sig)
     assert not leftover, leftover
-    return _parse_sig(sig)
+    return parse_sig(sig)
 
 
 def get_keygrip(user_id):
