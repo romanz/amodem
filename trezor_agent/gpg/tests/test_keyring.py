@@ -1,3 +1,6 @@
+import io
+import mock
+
 from .. import keyring
 
 
@@ -35,3 +38,39 @@ def test_parse_rsa():
     assert sig == [b'sig-val', [b'rsa', [b's', b'\x01\x02\x03\x04']]]
     assert rest == b''
     assert keyring.parse_sig(sig) == (0x1020304,)
+
+
+class FakeSocket(object):
+    def __init__(self):
+        self.rx = io.BytesIO()
+        self.tx = io.BytesIO()
+
+    def recv(self, n):
+        return self.rx.read(n)
+
+    def sendall(self, data):
+        self.tx.write(data)
+
+
+def test_sign_digest():
+    sock = FakeSocket()
+    sock.rx.write(b'OK Pleased to meet you, process XYZ\n')
+    sock.rx.write(b'OK\n' * 6)
+    sock.rx.write(b'D (7:sig-val(3:rsa(1:s16:0123456789ABCDEF)))\n')
+    sock.rx.seek(0)
+    keygrip = '1234'
+    digest = b'A' * 32
+    sp = mock.Mock(spec=['check_output'])
+    sp.check_output.return_value = '/dev/pts/0'
+    sig = keyring.sign_digest(sock=sock, keygrip=keygrip,
+                              digest=digest, sp=sp,
+                              environ={'DISPLAY': ':0'})
+    assert sig == (0x30313233343536373839414243444546,)
+    assert sock.tx.getvalue() == b'''RESET
+OPTION ttyname=/dev/pts/0
+OPTION display=:0
+SIGKEY 1234
+SETHASH 8 4141414141414141414141414141414141414141414141414141414141414141
+SETKEYDESC Sign+a+new+TREZOR-based+subkey
+PKSIGN
+'''

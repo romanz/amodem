@@ -34,6 +34,8 @@ def _recvline(sock):
 
     while True:
         c = sock.recv(1)
+        if not c:
+            raise EOFError
         if c == b'\n':
             break
         reply.write(c)
@@ -105,7 +107,7 @@ def parse_sig(sig):
     return parser(args=sig[1:])
 
 
-def sign_digest(sock, keygrip, digest, sp=subprocess):
+def sign_digest(sock, keygrip, digest, sp=subprocess, environ=None):
     """Sign a digest using specified key using GPG agent."""
     hash_algo = 8  # SHA256
     assert len(digest) == 32
@@ -115,7 +117,7 @@ def sign_digest(sock, keygrip, digest, sp=subprocess):
     ttyname = sp.check_output(['tty']).strip()
     options = ['ttyname={}'.format(ttyname)]  # set TTY for passphrase entry
 
-    display = os.environ.get('DISPLAY')
+    display = (environ or os.environ).get('DISPLAY')
     if display is not None:
         options.append('display={}'.format(display))
 
@@ -127,9 +129,8 @@ def sign_digest(sock, keygrip, digest, sp=subprocess):
     assert _communicate(sock, 'SETHASH {} {}'.format(hash_algo,
                                                      hex_digest)) == b'OK'
 
-    desc = ('Please+enter+the+passphrase+to+unlock+the+OpenPGP%0A'
-            'secret+key,+to+sign+a+new+TREZOR-based+subkey')
-    assert _communicate(sock, 'SETKEYDESC {}'.format(desc)) == b'OK'
+    assert _communicate(sock, 'SETKEYDESC '
+                        'Sign+a+new+TREZOR-based+subkey') == b'OK'
     assert _communicate(sock, 'PKSIGN') == b'OK'
     line = _recvline(sock).strip()
     line = unescape(line)
