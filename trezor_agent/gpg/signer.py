@@ -73,8 +73,10 @@ def main():
     create.set_defaults(run=run_create)
 
     sign = subparsers.add_parser('sign')
-    sign.add_argument('filename', nargs='?')
-    sign.add_argument('-o', '--output', default=None)
+    sign.add_argument('filename', nargs='?',
+                      help='Use stdin, if not specified.')
+    sign.add_argument('-o', '--output', default=None,
+                      help='Use stdout, if equals to "-".')
     sign.set_defaults(run=run_sign)
 
     args = p.parse_args()
