@@ -39,11 +39,12 @@ zpR9luXTKwMEl+mlZmwEFKZXBmir
 '''
     stream = util.Reader(io.BytesIO(decode.remove_armor(data)))
     pubkey, user_id, signature = list(decode.parse_packets(stream))
-    assert_subdict(pubkey, {
+    expected_pubkey = {
         'created': 1464355030, 'type': 'pubkey', 'tag': 6,
         'version': 4, 'algo': 19, 'key_id': b'M\xc0\x9e\x85\xfaD \xf2',
         '_to_hash': b'\x99\x00R\x04WHH\xd6\x13\x08*\x86H\xce=\x03\x01\x07\x02\x03\x04\xd7c\xb6\xaa\xd3\\L=%;\x811\xd4\xf4\x1e\xd9\xd8!h\nMX\xe1f\x1b\xf18\xb2\x86\xea\xef!\x9eek\xaf\x94\x12\x00\n\x17\xd1\xd7\xa5\n4\xc8O\x87@\xe8.~\x82\xe5\n\x97D\xec\xda\x04Q\xbf\x87'  # nopep8
-    })
+    }
+    assert_subdict(pubkey, expected_pubkey)
     point = pubkey['verifying_key'].pubkey.point
     assert point.x(), point.y() == (
         97423441028100245505102979561460969898742433559010922791700160771755342491425,
@@ -84,3 +85,12 @@ KDQU0N5KmNwLlt2kwo4A/jQkBII2cI8tTqOVTLNRXXqIOsMf/fG4jKM/VOFc/01c
 -----END PGP SIGNATURE-----
 '''
     decode.verify(pubkey=pubkey, signature=signature, original_data=message)
+
+    pubkey = decode.load_public_key(pubkey_bytes=decode.remove_armor(data))
+    assert_subdict(pubkey, expected_pubkey)
+    assert_subdict(pubkey, {'user_id': b'testing'})
+
+    pubkey = decode.load_public_key(pubkey_bytes=decode.remove_armor(data),
+                                    use_custom=True)
+    assert_subdict(pubkey, expected_pubkey)
+    assert_subdict(pubkey, {'user_id': b'testing'})
