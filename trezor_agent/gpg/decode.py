@@ -252,12 +252,9 @@ def parse_packets(stream):
         log.debug('packet length: %d', packet_size)
         packet_data = stream.read(packet_size)
         packet_type = PACKET_TYPES.get(tag)
+        assert packet_type is not None, tag
 
-        if packet_type:
-            p = packet_type(util.Reader(io.BytesIO(packet_data)))
-        else:
-            raise ValueError('Unknown packet type: {}'.format(tag))
-
+        p = packet_type(util.Reader(io.BytesIO(packet_data)))
         p['tag'] = tag
         log.debug('packet "%s": %s', p['type'], p)
         yield p
@@ -317,7 +314,7 @@ def verify_digest(pubkey, digest, signature, label):
         log.debug('%s is OK', label)
     except ecdsa.keys.BadSignatureError:
         log.error('Bad %s!', label)
-        raise
+        raise ValueError('Invalid ECDSA signature for {}'.format(label))
 
 
 def remove_armor(armored_data):

@@ -1,5 +1,7 @@
 import io
 
+import pytest
+
 from .. import decode
 from ... import util
 
@@ -12,6 +14,9 @@ def test_subpackets():
 def test_mpi():
     s = io.BytesIO(b'\x00\x09\x01\x23')
     assert decode.parse_mpi(util.Reader(s)) == 0x123
+
+    s = io.BytesIO(b'\x00\x09\x01\x23\x00\x03\x05')
+    assert decode.parse_mpis(util.Reader(s), n=2) == [0x123, 5]
 
 
 def assert_subdict(d, s):
@@ -57,3 +62,25 @@ zpR9luXTKwMEl+mlZmwEFKZXBmir
         'unhashed_subpackets': [b'\x10M\xc0\x9e\x85\xfaD \xf2', b'dTREZOR-GPG'],
         '_to_hash': b'\x04\x13\x13\x08\x00\x12\x05\x02WHH\xd6\x02\x1b\x03\x02\x15\x08\x02\x16\x00\x02\x17\x80\x04\xff\x00\x00\x00\x18'  # nopep8
     })
+
+    digest = decode.digest_packets(packets=[pubkey, user_id, signature])
+    decode.verify_digest(pubkey=pubkey, digest=digest,
+                         signature=signature['sig'],
+                         label='GPG primary public key')
+
+    with pytest.raises(ValueError):
+        bad_digest = b'\x00' * len(digest)
+        decode.verify_digest(pubkey=pubkey, digest=bad_digest,
+                             signature=signature['sig'],
+                             label='GPG primary public key')
+
+    message = b'Hello, World!\n'
+    signature = b'''-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iF4EABMIAAYFAldIlfQACgkQTcCehfpEIPKOUgD9FjaeWla4wOuDZ7P6fhkT5nZp
+KDQU0N5KmNwLlt2kwo4A/jQkBII2cI8tTqOVTLNRXXqIOsMf/fG4jKM/VOFc/01c
+=dC+z
+-----END PGP SIGNATURE-----
+'''
+    decode.verify(pubkey=pubkey, signature=signature, original_data=message)
