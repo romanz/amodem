@@ -2,7 +2,7 @@
 import logging
 import time
 
-from . import keyring, proto
+from . import decode, keyring, proto
 from .. import client, factory, formats, util
 
 log = logging.getLogger(__name__)
@@ -136,10 +136,10 @@ class Factory(object):
         sign_packet = proto.packet(tag=2, blob=signature)
         return pubkey_packet + user_id_packet + sign_packet
 
-    def create_subkey(self):
+    def create_subkey(self, primary_bytes):
         """Export new subkey to `self.user_id` GPG primary key."""
         subkey_packet = proto.packet(tag=14, blob=self.pubkey.data())
-        primary = keyring.get_public_key(self.user_id)
+        primary = decode.load_public_key(primary_bytes)
         log.info('adding subkey to primary GPG key "%s" (%s)',
                  self.user_id, util.hexlify(primary['key_id']))
         data_to_sign = primary['_to_hash'] + self.pubkey.data_to_hash()
@@ -176,7 +176,7 @@ class Factory(object):
             hashed_subpackets=hashed_subpackets,
             unhashed_subpackets=unhashed_subpackets)
         sign_packet = proto.packet(tag=2, blob=signature)
-        return subkey_packet + sign_packet
+        return primary_bytes + subkey_packet + sign_packet
 
     def sign_message(self, msg, sign_time=None):
         """Sign GPG message at specified time."""

@@ -8,7 +8,6 @@ import re
 import socket
 import subprocess
 
-from . import decode
 from .. import util
 
 log = logging.getLogger(__name__)
@@ -45,7 +44,7 @@ def _recvline(sock):
 
 
 def unescape(s):
-    """Unescape ASSUAN message."""
+    """Unescape ASSUAN message (0xAB <-> '%AB')."""
     s = bytearray(s)
     i = 0
     while i < len(s):
@@ -151,13 +150,11 @@ def get_keygrip(user_id):
     return re.findall(r'Keygrip = (\w+)', output)[0]
 
 
-def get_public_key(user_id, use_custom=False):
-    """Load existing GPG public key for `user_id` from local keyring."""
+def export_public_key(user_id):
+    """Export GPG public key for specified `user_id`."""
     args = ['gpg2', '--export'] + ([user_id] if user_id else [])
-    pubkey_bytes = subprocess.check_output(args=args)
-    if pubkey_bytes:
-        return decode.load_public_key(io.BytesIO(pubkey_bytes),
-                                      use_custom=use_custom)
-    else:
+    result = subprocess.check_output(args=args)
+    if not result:
         log.error('could not find public key %r in local GPG keyring', user_id)
         raise KeyError(user_id)
+    return result

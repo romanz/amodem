@@ -271,8 +271,9 @@ def digest_packets(packets):
     return hashlib.sha256(data_to_hash.getvalue()).digest()
 
 
-def load_public_key(stream, use_custom=False):
+def load_public_key(pubkey_bytes, use_custom=False):
     """Parse and validate GPG public key from an input stream."""
+    stream = io.BytesIO(pubkey_bytes)
     packets = list(parse_packets(util.Reader(stream)))
     pubkey, userid, signature = packets[:3]
     packets = packets[3:]

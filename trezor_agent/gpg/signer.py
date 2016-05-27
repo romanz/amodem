@@ -3,7 +3,6 @@
 import argparse
 import contextlib
 import logging
-import subprocess as sp
 import sys
 import time
 import os
@@ -21,9 +20,8 @@ def run_create(args):
 
     with contextlib.closing(f):
         if args.subkey:
-            subkey = f.create_subkey()
-            primary = sp.check_output(['gpg2', '--export', user_id])
-            result = primary + subkey
+            primary_key = keyring.export_public_key(user_id=user_id)
+            result = f.create_subkey(primary_bytes=primary_key)
         else:
             result = f.create_primary()
 
@@ -32,7 +30,8 @@ def run_create(args):
 
 def run_sign(args):
     """Generate a GPG signature using hardware-based device."""
-    pubkey = keyring.get_public_key(user_id=None, use_custom=True)
+    pubkey = decode.load_public_key(keyring.export_public_key(user_id=None),
+                                    use_custom=True)
     f = encode.Factory.from_public_key(pubkey=pubkey,
                                        user_id=pubkey['user_id'])
     with contextlib.closing(f):
