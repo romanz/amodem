@@ -3,9 +3,9 @@
 import argparse
 import contextlib
 import logging
+import os
 import sys
 import time
-import os
 
 from . import decode, encode, keyring, proto
 

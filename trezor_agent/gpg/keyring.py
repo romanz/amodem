@@ -22,14 +22,14 @@ def connect_to_agent(sock_path='~/.gnupg/S.gpg-agent', sp=subprocess):
     return sock
 
 
-def _communicate(sock, msg):
+def communicate(sock, msg):
     msg += '\n'
     sock.sendall(msg.encode('ascii'))
     log.debug('-> %r', msg)
-    return _recvline(sock)
+    return recvline(sock)
 
 
-def _recvline(sock):
+def recvline(sock):
     reply = io.BytesIO()
 
     while True:
@@ -112,7 +112,7 @@ def sign_digest(sock, keygrip, digest, sp=subprocess, environ=None):
     hash_algo = 8  # SHA256
     assert len(digest) == 32
 
-    assert _communicate(sock, 'RESET').startswith(b'OK')
+    assert communicate(sock, 'RESET').startswith(b'OK')
 
     ttyname = sp.check_output(['tty']).strip()
     options = ['ttyname={}'.format(ttyname)]  # set TTY for passphrase entry
@@ -122,17 +122,17 @@ def sign_digest(sock, keygrip, digest, sp=subprocess, environ=None):
         options.append('display={}'.format(display))
 
     for opt in options:
-        assert _communicate(sock, 'OPTION {}'.format(opt)) == b'OK'
+        assert communicate(sock, 'OPTION {}'.format(opt)) == b'OK'
 
-    assert _communicate(sock, 'SIGKEY {}'.format(keygrip)) == b'OK'
+    assert communicate(sock, 'SIGKEY {}'.format(keygrip)) == b'OK'
     hex_digest = binascii.hexlify(digest).upper().decode('ascii')
-    assert _communicate(sock, 'SETHASH {} {}'.format(hash_algo,
+    assert communicate(sock, 'SETHASH {} {}'.format(hash_algo,
                                                      hex_digest)) == b'OK'
 
-    assert _communicate(sock, 'SETKEYDESC '
+    assert communicate(sock, 'SETKEYDESC '
                         'Sign+a+new+TREZOR-based+subkey') == b'OK'
-    assert _communicate(sock, 'PKSIGN') == b'OK'
-    line = _recvline(sock).strip()
+    assert communicate(sock, 'PKSIGN') == b'OK'
+    line = recvline(sock).strip()
     line = unescape(line)
     log.debug('unescaped: %r', line)
     prefix, sig = line.split(b' ', 1)
