@@ -38,8 +38,7 @@ class HardwareSigner(object):
             ecdsa_curve_name=self.curve_name)
         assert result.signature[:1] == b'\x00'
         sig = result.signature[1:]
-        return (proto.mpi(util.bytes2num(sig[:32])) +
-                proto.mpi(util.bytes2num(sig[32:])))
+        return (util.bytes2num(sig[:32]), util.bytes2num(sig[32:]))
 
     def close(self):
         """Close the connection to the device."""
@@ -57,9 +56,8 @@ class AgentSigner(object):
 
     def sign(self, digest):
         """Sign the digest and return an ECDSA/RSA/DSA signature."""
-        params = keyring.sign_digest(sock=self.sock,
-                                     keygrip=self.keygrip, digest=digest)
-        return b''.join(proto.mpi(p) for p in params)
+        return keyring.sign_digest(sock=self.sock,
+                                   keygrip=self.keygrip, digest=digest)
 
     def close(self):
         """Close the connection to gpg-agent."""

@@ -23,6 +23,7 @@ def connect_to_agent(sock_path='~/.gnupg/S.gpg-agent', sp=subprocess):
 
 
 def communicate(sock, msg):
+    """Send a message and receive a single line."""
     msg += '\n'
     sock.sendall(msg.encode('ascii'))
     log.debug('-> %r', msg)
@@ -30,6 +31,7 @@ def communicate(sock, msg):
 
 
 def recvline(sock):
+    """Receive a single line from the socket."""
     reply = io.BytesIO()
 
     while True:
@@ -127,10 +129,10 @@ def sign_digest(sock, keygrip, digest, sp=subprocess, environ=None):
     assert communicate(sock, 'SIGKEY {}'.format(keygrip)) == b'OK'
     hex_digest = binascii.hexlify(digest).upper().decode('ascii')
     assert communicate(sock, 'SETHASH {} {}'.format(hash_algo,
-                                                     hex_digest)) == b'OK'
+                                                    hex_digest)) == b'OK'
 
     assert communicate(sock, 'SETKEYDESC '
-                        'Sign+a+new+TREZOR-based+subkey') == b'OK'
+                       'Sign+a+new+TREZOR-based+subkey') == b'OK'
     assert communicate(sock, 'PKSIGN') == b'OK'
     line = recvline(sock).strip()
     line = unescape(line)
