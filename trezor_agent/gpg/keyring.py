@@ -25,9 +25,14 @@ def connect_to_agent(sock_path='~/.gnupg/S.gpg-agent', sp=subprocess):
 def communicate(sock, msg):
     """Send a message and receive a single line."""
     msg += '\n'
-    sock.sendall(msg.encode('ascii'))
-    log.debug('-> %r', msg)
+    sendline(sock, msg.encode('ascii'))
     return recvline(sock)
+
+
+def sendline(sock, msg):
+    """Send a binary message, followed by EOL."""
+    log.debug('<- %r', msg)
+    sock.sendall(msg + b'\n')
 
 
 def recvline(sock):
@@ -43,7 +48,7 @@ def recvline(sock):
         reply.write(c)
 
     result = reply.getvalue()
-    log.debug('<- %r', result)
+    log.debug('-> %r', result)
     return result
 
 

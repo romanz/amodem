@@ -31,7 +31,7 @@ def sig_encode(r, s):
     """Serialize ECDSA signature data into GPG S-expression."""
     r = serialize(util.num2bytes(r, 32))
     s = serialize(util.num2bytes(s, 32))
-    return '(7:sig-val(5:ecdsa(1:r32:{})(1:s32:{})))\n'.format(r, s)
+    return '(7:sig-val(5:ecdsa(1:r32:{})(1:s32:{})))'.format(r, s)
 
 
 def pksign(keygrip, digest, algo):
@@ -55,7 +55,7 @@ def handle_connection(conn):
     digest = None
     algo = None
 
-    conn.sendall('OK\n')
+    keyring.sendline(conn, b'OK')
     while True:
         line = keyring.recvline(conn)
         parts = line.split(' ')
@@ -64,21 +64,21 @@ def handle_connection(conn):
         if command in {'RESET', 'OPTION', 'HAVEKEY', 'SETKEYDESC'}:
             pass  # reply with OK
         elif command == 'GETINFO':
-            conn.sendall('D 2.1.11\n')
+            keyring.sendline(conn, b'D 2.1.11')
         elif command == 'AGENT_ID':
-            conn.sendall('D TREZOR\n')
+            keyring.sendline(conn, b'D TREZOR')
         elif command == 'SIGKEY':
             keygrip, = args
         elif command == 'SETHASH':
             algo, digest = args
         elif command == 'PKSIGN':
             sig = pksign(keygrip, digest, algo)
-            conn.sendall('D ' + sig)
+            keyring.sendline(conn, b'D ' + sig)
         else:
             log.error('unknown request: %r', line)
             return
 
-        conn.sendall('OK\n')
+        keyring.sendline(conn, b'OK')
 
 
 def main():
