@@ -16,7 +16,7 @@ def run_create(args):
     """Generate a new pubkey for a new/existing GPG identity."""
     user_id = os.environ['TREZOR_GPG_USER_ID']
     f = encode.Factory(user_id=user_id, created=args.time,
-                       curve_name=args.ecdsa_curve)
+                       curve_name=args.ecdsa_curve, ecdh=args.ecdh)
 
     with contextlib.closing(f):
         if args.subkey:
@@ -38,6 +38,7 @@ def main():
 
     create = subparsers.add_parser('create')
     create.add_argument('-s', '--subkey', action='store_true', default=False)
+    create.add_argument('--ecdh', action='store_true', default=False)
     create.add_argument('-e', '--ecdsa-curve', default='nist256p1')
     create.add_argument('-t', '--time', type=int, default=int(time.time()))
     create.set_defaults(run=run_create)

@@ -131,6 +131,7 @@ SUPPORTED_CURVES = {
     }
 }
 
+ECDH_ALGO_ID = 18
 
 CUSTOM_SUBPACKET = subpacket(100, b'TREZOR-GPG')  # marks "our" pubkey
 
@@ -145,12 +146,18 @@ def find_curve_by_algo_id(algo_id):
 class PublicKey(object):
     """GPG representation for public key packets."""
 
-    def __init__(self, curve_name, created, verifying_key):
+    def __init__(self, curve_name, created, verifying_key, ecdh=False):
         """Contruct using a ECDSA VerifyingKey object."""
         self.curve_info = SUPPORTED_CURVES[curve_name]
         self.created = int(created)  # time since Epoch
         self.verifying_key = verifying_key
-        self.algo_id = self.curve_info['algo_id']
+        if ecdh:
+            self.algo_id = ECDH_ALGO_ID
+            self.ecdh_packet = b'\x03\x01\x08\x07'
+        else:
+            self.algo_id = self.curve_info['algo_id']
+            self.ecdh_packet = b''
+
         self.keygrip = self.curve_info['keygrip'](verifying_key)
         hex_key_id = util.hexlify(self.key_id())[-8:]
         self.desc = 'GPG public key {}/{}'.format(curve_name, hex_key_id)
@@ -163,7 +170,7 @@ class PublicKey(object):
                              self.algo_id)  # public key algorithm ID
         oid = util.prefix_len('>B', self.curve_info['oid'])
         blob = self.curve_info['serialize'](self.verifying_key)
-        return header + oid + blob
+        return header + oid + blob + self.ecdh_packet
 
     def data_to_hash(self):
         """Data for digest computation."""

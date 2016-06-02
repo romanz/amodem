@@ -71,7 +71,7 @@ def _time_format(t):
 class Factory(object):
     """Performs GPG signing operations."""
 
-    def __init__(self, user_id, created, curve_name):
+    def __init__(self, user_id, created, curve_name, ecdh=False):
         """Construct and loads a public key from the device."""
         self.user_id = user_id
         assert curve_name in formats.SUPPORTED_CURVES
@@ -79,7 +79,8 @@ class Factory(object):
         self.conn = HardwareSigner(user_id, curve_name=curve_name)
         self.pubkey = proto.PublicKey(
             curve_name=curve_name, created=created,
-            verifying_key=self.conn.pubkey())
+            verifying_key=self.conn.pubkey(), ecdh=ecdh)
+        self.ecdh = ecdh
 
         log.info('%s created at %s for "%s"',
                  self.pubkey, _time_format(self.pubkey.created), user_id)
@@ -142,28 +143,38 @@ class Factory(object):
                  self.user_id, util.hexlify(primary['key_id']))
         data_to_sign = primary['_to_hash'] + self.pubkey.data_to_hash()
 
-        # Primary Key Binding Signature
-        hashed_subpackets = [
-            proto.subpacket_time(self.pubkey.created)]  # signature time
-        unhashed_subpackets = [
-            proto.subpacket(16, self.pubkey.key_id())]  # issuer key id
-        log.info('confirm signing subkey with hardware device')
-        embedded_sig = proto.make_signature(
-            signer_func=self.conn.sign,
-            data_to_sign=data_to_sign,
-            public_algo=self.pubkey.algo_id,
-            sig_type=0x19,
-            hashed_subpackets=hashed_subpackets,
-            unhashed_subpackets=unhashed_subpackets)
+        if self.ecdh:
+            embedded_sig = None
+        else:
+            # Primary Key Binding Signature
+            hashed_subpackets = [
+                proto.subpacket_time(self.pubkey.created)]  # signature time
+            unhashed_subpackets = [
+                proto.subpacket(16, self.pubkey.key_id())]  # issuer key id
+            log.info('confirm signing subkey with hardware device')
+            embedded_sig = proto.make_signature(
+                signer_func=self.conn.sign,
+                data_to_sign=data_to_sign,
+                public_algo=self.pubkey.algo_id,
+                sig_type=0x19,
+                hashed_subpackets=hashed_subpackets,
+                unhashed_subpackets=unhashed_subpackets)
 
         # Subkey Binding Signature
+        flags = 2  # key flags (certify & sign)
+        if self.ecdh:
+            flags = 4 | 8
+
         hashed_subpackets = [
             proto.subpacket_time(self.pubkey.created),  # signature time
-            proto.subpacket_byte(0x1B, 2)]  # key flags (certify & sign)
-        unhashed_subpackets = [
-            proto.subpacket(16, primary['key_id']),  # issuer key id
-            proto.subpacket(32, embedded_sig),
-            proto.CUSTOM_SUBPACKET]
+            proto.subpacket_byte(0x1B, flags)]
+
+        unhashed_subpackets = []
+        unhashed_subpackets.append(proto.subpacket(16, primary['key_id']))
+        if embedded_sig is not None:
+            unhashed_subpackets.append(proto.subpacket(32, embedded_sig))
+        unhashed_subpackets.append(proto.CUSTOM_SUBPACKET)
+
         log.info('confirm signing subkey with gpg-agent')
         gpg_agent = AgentSigner(self.user_id)
         signature = proto.make_signature(
