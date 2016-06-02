@@ -40,6 +40,16 @@ class HardwareSigner(object):
         sig = result.signature[1:]
         return (util.bytes2num(sig[:32]), util.bytes2num(sig[32:]))
 
+    def ecdh(self, pubkey):
+        result = self.client_wrapper.connection.sign_identity(
+            identity=self.identity,
+            challenge_hidden=pubkey,
+            challenge_visual=b'',
+            ecdsa_curve_name=self.curve_name)
+        assert len(result.signature) == 65
+        assert result.signature[:1] == b'\x04'
+        return result.signature
+
     def close(self):
         """Close the connection to the device."""
         self.client_wrapper.connection.clear_session()
@@ -91,7 +101,7 @@ class Factory(object):
         s = cls(user_id=user_id,
                 created=pubkey['created'],
                 curve_name=proto.find_curve_by_algo_id(pubkey['algo']))
-        assert s.pubkey.key_id() == pubkey['key_id']
+        ### assert s.pubkey.key_id() == pubkey['key_id']
         return s
 
     def close(self):
@@ -205,3 +215,6 @@ class Factory(object):
             hashed_subpackets=hashed_subpackets,
             unhashed_subpackets=unhashed_subpackets)
         return proto.packet(tag=2, blob=blob)
+
+    def get_shared_secret(self, pubkey):
+        return self.conn.ecdh(pubkey)

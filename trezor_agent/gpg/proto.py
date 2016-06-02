@@ -138,6 +138,9 @@ CUSTOM_SUBPACKET = subpacket(100, b'TREZOR-GPG')  # marks "our" pubkey
 
 def find_curve_by_algo_id(algo_id):
     """Find curve name that matches a public key algorith ID."""
+    if algo_id == ECDH_ALGO_ID:
+        return formats.CURVE_NIST256
+
     curve_name, = [name for name, info in SUPPORTED_CURVES.items()
                    if info['algo_id'] == algo_id]
     return curve_name

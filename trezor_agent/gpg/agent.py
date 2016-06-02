@@ -49,6 +49,37 @@ def pksign(keygrip, digest, algo):
         return result
 
 
+def _serialize_point(data):
+    data = '{}:'.format(len(data)) + data
+    # https://www.gnupg.org/documentation/manuals/assuan/Server-responses.html
+    for c in ['%', '\n', '\r']:
+        data = data.replace(c, '%{:02X}'.format(ord(c)))
+    return '(5:value' + data + ')'
+
+
+def pkdecrypt(keygrip, conn):
+    for msg in [b'S INQUIRE_MAXLEN 4096', b'INQUIRE CIPHERTEXT']:
+        keyring.sendline(conn, msg)
+
+    line = keyring.recvline(conn)
+    prefix, line = line.split(' ', 1)
+    assert prefix == 'D'
+    exp, leftover = keyring.parse(keyring.unescape(line))
+
+    pubkey = decode.load_public_key(keyring.export_public_key(user_id=None),
+                                    use_custom=True)
+    f = encode.Factory.from_public_key(pubkey=pubkey,
+                                       user_id=pubkey['user_id'])
+    with contextlib.closing(f):
+        ### assert f.pubkey.keygrip == binascii.unhexlify(keygrip)
+        pubkey = dict(exp[1][1:])['e']
+        shared_secret = f.get_shared_secret(pubkey)
+
+    assert len(shared_secret) == 65
+    assert shared_secret[:1] == b'\x04'
+    return _serialize_point(shared_secret)
+
+
 def iterlines(conn):
     """Iterate over input, split by lines."""
     while True:
@@ -75,13 +106,19 @@ def handle_connection(conn):
             keyring.sendline(conn, b'D 2.1.11')
         elif command == 'AGENT_ID':
             keyring.sendline(conn, b'D TREZOR')
-        elif command == 'SIGKEY':
+        elif command in {'SIGKEY', 'SETKEY'}:
             keygrip, = args
         elif command == 'SETHASH':
             algo, digest = args
         elif command == 'PKSIGN':
             sig = pksign(keygrip, digest, algo)
             keyring.sendline(conn, b'D ' + sig)
+        elif command == 'PKDECRYPT':
+            sec = pkdecrypt(keygrip, conn)
+            keyring.sendline(conn, b'D ' + sec)
+        elif command == 'END':
+            log.error('closing connection')
+            return
         else:
             log.error('unknown request: %r', line)
             return
