@@ -78,9 +78,12 @@ def _serialize_ed25519(vk):
 
 
 def _compute_keygrip(params):
-    exp = ''.join('(1:{}{}:{})'.format(name, len(value), value)
-                  for name, value in params)
-    return hashlib.sha1(exp).digest()
+    parts = []
+    for name, value in params:
+        exp = '1:{}{}'.format(name, len(value))
+        parts.append(b'(' + exp.encode('ascii') + value + b')')
+
+    return hashlib.sha1(b''.join(parts)).digest()
 
 
 def _keygrip_nist256(vk):

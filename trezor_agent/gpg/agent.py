@@ -50,6 +50,7 @@ def pksign(keygrip, digest, algo):
 
 
 def iterlines(conn):
+    """Iterate over input, split by lines."""
     while True:
         line = keyring.recvline(conn)
         if line is None:

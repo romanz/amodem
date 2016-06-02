@@ -24,7 +24,6 @@ def connect_to_agent(sock_path='~/.gnupg/S.gpg-agent', sp=subprocess):
 
 def communicate(sock, msg):
     """Send a message and receive a single line."""
-    msg += '\n'
     sendline(sock, msg.encode('ascii'))
     return recvline(sock)
 

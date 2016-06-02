@@ -55,7 +55,7 @@ def test_make_signature():
     def signer_func(digest):
         assert digest == (b'\xd0\xe5]|\x8bP\xe6\x91\xb3\xe8+\xf4A\xf0`(\xb1'
                           b'\xc7\xf4;\x86\x97s\xdb\x9a\xda\xee< \xcb\x9e\x00')
-        return b'SIGNATURE'
+        return (7, 8)
 
     sig = proto.make_signature(
         signer_func=signer_func,
@@ -65,7 +65,7 @@ def test_make_signature():
         unhashed_subpackets=[],
         sig_type=25)
     assert sig == (b'\x04\x19\x16\x08\x00\x06\x05\x02'
-                   b'\x00\x00\x00\x01\x00\x00\xd0\xe5SIGNATURE')
+                   b'\x00\x00\x00\x01\x00\x00\xd0\xe5\x00\x03\x07\x00\x04\x08')
 
 
 def test_nist256p1():
