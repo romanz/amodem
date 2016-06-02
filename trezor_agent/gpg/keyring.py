@@ -42,7 +42,8 @@ def recvline(sock):
     while True:
         c = sock.recv(1)
         if not c:
-            raise EOFError
+            return None  # socket is closed
+
         if c == b'\n':
             break
         reply.write(c)

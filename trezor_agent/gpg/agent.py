@@ -49,6 +49,14 @@ def pksign(keygrip, digest, algo):
         return result
 
 
+def iterlines(conn):
+    while True:
+        line = keyring.recvline(conn)
+        if line is None:
+            break
+        yield line
+
+
 def handle_connection(conn):
     """Handle connection from GPG binary using the ASSUAN protocol."""
     keygrip = None
@@ -56,8 +64,7 @@ def handle_connection(conn):
     algo = None
 
     keyring.sendline(conn, b'OK')
-    while True:
-        line = keyring.recvline(conn)
+    for line in iterlines(conn):
         parts = line.split(' ')
         command = parts[0]
         args = parts[1:]
@@ -90,10 +97,7 @@ def main():
     with server.unix_domain_socket_server(sock_path) as sock:
         for conn in yield_connections(sock):
             with contextlib.closing(conn):
-                try:
-                    handle_connection(conn)
-                except EOFError:
-                    break
+                handle_connection(conn)
 
 
 if __name__ == '__main__':
