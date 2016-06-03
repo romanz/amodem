@@ -57,23 +57,36 @@ def _serialize_point(data):
     return '(5:value' + data + ')'
 
 
+def parse_ecdh(line):
+    prefix, line = line.split(' ', 1)
+    assert prefix == 'D'
+    exp, leftover = keyring.parse(keyring.unescape(line))
+    log.debug('ECDH s-exp: %r', exp)
+    assert not leftover
+    label, exp = exp
+    assert label == b'enc-val'
+    assert exp[0] == b'ecdh'
+    items = exp[1:]
+    log.debug('ECDH parameters: %r', items)
+    return dict(items)['e']
+
+
 def pkdecrypt(keygrip, conn):
     for msg in [b'S INQUIRE_MAXLEN 4096', b'INQUIRE CIPHERTEXT']:
         keyring.sendline(conn, msg)
 
     line = keyring.recvline(conn)
-    prefix, line = line.split(' ', 1)
-    assert prefix == 'D'
-    exp, leftover = keyring.parse(keyring.unescape(line))
+    assert keyring.recvline(conn) == b'END'
+    remote_pubkey = parse_ecdh(line)
 
-    pubkey = decode.load_public_key(keyring.export_public_key(user_id=None),
-                                    use_custom=True)
-    f = encode.Factory.from_public_key(pubkey=pubkey,
-                                       user_id=pubkey['user_id'])
+    local_pubkey = decode.load_public_key(
+        pubkey_bytes=keyring.export_public_key(user_id=None),
+        use_custom=True)
+    f = encode.Factory.from_public_key(
+        pubkey=local_pubkey, user_id=local_pubkey['user_id'])
     with contextlib.closing(f):
         ### assert f.pubkey.keygrip == binascii.unhexlify(keygrip)
-        pubkey = dict(exp[1][1:])['e']
-        shared_secret = f.get_shared_secret(pubkey)
+        shared_secret = f.get_shared_secret(remote_pubkey)
 
     assert len(shared_secret) == 65
     assert shared_secret[:1] == b'\x04'
@@ -116,9 +129,6 @@ def handle_connection(conn):
         elif command == 'PKDECRYPT':
             sec = pkdecrypt(keygrip, conn)
             keyring.sendline(conn, b'D ' + sec)
-        elif command == 'END':
-            log.error('closing connection')
-            return
         else:
             log.error('unknown request: %r', line)
             return
