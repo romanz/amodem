@@ -14,7 +14,10 @@ def yield_connections(sock):
     """Run a server on the specified socket."""
     while True:
         log.debug('waiting for connection on %s', sock.getsockname())
-        conn, _ = sock.accept()
+        try:
+            conn, _ = sock.accept()
+        except KeyboardInterrupt:
+            return
         conn.settimeout(None)
         log.debug('accepted connection on %s', sock.getsockname())
         yield conn
