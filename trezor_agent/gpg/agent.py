@@ -61,6 +61,7 @@ def _serialize_point(data):
 
 
 def parse_ecdh(line):
+    """Parse ECDH request and return remote public key."""
     prefix, line = line.split(' ', 1)
     assert prefix == 'D'
     exp, leftover = keyring.parse(keyring.unescape(line))
@@ -75,6 +76,7 @@ def parse_ecdh(line):
 
 
 def pkdecrypt(keygrip, conn):
+    """Handle decryption using ECDH."""
     for msg in [b'S INQUIRE_MAXLEN 4096', b'INQUIRE CIPHERTEXT']:
         keyring.sendline(conn, msg)
 

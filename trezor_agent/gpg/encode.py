@@ -41,6 +41,7 @@ class HardwareSigner(object):
         return (util.bytes2num(sig[:32]), util.bytes2num(sig[32:]))
 
     def ecdh(self, pubkey):
+        """Derive shared secret using ECDH from remote public key."""
         result = self.client_wrapper.connection.sign_identity(
             identity=self.identity,
             challenge_hidden=pubkey,
@@ -221,4 +222,5 @@ class Factory(object):
         return proto.packet(tag=2, blob=blob)
 
     def get_shared_secret(self, pubkey):
+        """Derive shared secret using ECDH from remote public key."""
         return self.conn.ecdh(pubkey)
