@@ -88,7 +88,7 @@ def pkdecrypt(keygrip, conn):
     f = encode.Factory.from_public_key(
         pubkey=local_pubkey, user_id=local_pubkey['user_id'])
     with contextlib.closing(f):
-        ### assert f.pubkey.keygrip == binascii.unhexlify(keygrip)
+        assert f.pubkey.keygrip == binascii.unhexlify(keygrip)
         shared_secret = f.get_shared_secret(remote_pubkey)
 
     assert len(shared_secret) == 65
