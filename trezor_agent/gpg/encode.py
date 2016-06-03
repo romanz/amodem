@@ -189,6 +189,7 @@ class Factory(object):
         unhashed_subpackets.append(proto.CUSTOM_SUBPACKET)
 
         log.info('confirm signing subkey with gpg-agent')
+        # TODO: support TREZOR-based primary key
         gpg_agent = AgentSigner(self.user_id)
         signature = proto.make_signature(
             signer_func=gpg_agent.sign,
