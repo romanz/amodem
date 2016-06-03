@@ -173,9 +173,10 @@ class Factory(object):
                 unhashed_subpackets=unhashed_subpackets)
 
         # Subkey Binding Signature
-        flags = 2  # key flags (certify & sign)
-        if self.ecdh:
-            flags = 4 | 8
+
+        # Key flags: https://tools.ietf.org/html/rfc4880#section-5.2.3.21
+        # (certify & sign)               (encrypt)
+        flags = (2) if (not self.ecdh) else (4 | 8)
 
         hashed_subpackets = [
             proto.subpacket_time(self.pubkey.created),  # signature time
