@@ -132,6 +132,8 @@ def handle_connection(conn):
         elif command == 'PKDECRYPT':
             sec = pkdecrypt(keygrip, conn)
             keyring.sendline(conn, b'D ' + sec)
+        elif command == 'BYE':
+            return
         else:
             log.error('unknown request: %r', line)
             return
