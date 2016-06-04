@@ -2,10 +2,9 @@
 import binascii
 import contextlib
 import logging
-import os
 
 from . import decode, encode, keyring
-from .. import server, util
+from .. import util
 
 log = logging.getLogger(__name__)
 
@@ -141,19 +140,3 @@ def handle_connection(conn):
             return
 
         keyring.sendline(conn, b'OK')
-
-
-def main():
-    """Run a simple GPG-agent server."""
-    logging.basicConfig(level=logging.INFO,
-                        format='%(asctime)s %(levelname)-10s %(message)s')
-
-    sock_path = os.path.expanduser('~/.gnupg/S.gpg-agent')
-    with server.unix_domain_socket_server(sock_path) as sock:
-        for conn in yield_connections(sock):
-            with contextlib.closing(conn):
-                handle_connection(conn)
-
-
-if __name__ == '__main__':
-    main()

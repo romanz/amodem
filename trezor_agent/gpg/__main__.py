@@ -7,7 +7,8 @@ import os
 import sys
 import time
 
-from . import encode, keyring, proto
+from . import agent, encode, keyring, proto
+from .. import server
 
 log = logging.getLogger(__name__)
 
@@ -28,6 +29,15 @@ def run_create(args):
     sys.stdout.write(proto.armor(result, 'PUBLIC KEY BLOCK'))
 
 
+def run_agent(_):
+    """Run a simple GPG-agent server."""
+    sock_path = os.path.expanduser('~/.gnupg/S.gpg-agent')
+    with server.unix_domain_socket_server(sock_path) as sock:
+        for conn in agent.yield_connections(sock):
+            with contextlib.closing(conn):
+                agent.handle_connection(conn)
+
+
 def main():
     """Main function."""
     p = argparse.ArgumentParser()
@@ -36,12 +46,15 @@ def main():
     subparsers.required = True
     subparsers.dest = 'command'
 
-    create = subparsers.add_parser('create')
-    create.add_argument('-s', '--subkey', action='store_true', default=False)
-    create.add_argument('--ecdh', action='store_true', default=False)
-    create.add_argument('-e', '--ecdsa-curve', default='nist256p1')
-    create.add_argument('-t', '--time', type=int, default=int(time.time()))
-    create.set_defaults(run=run_create)
+    create_cmd = subparsers.add_parser('create')
+    create_cmd.add_argument('-s', '--subkey', action='store_true', default=False)
+    create_cmd.add_argument('--ecdh', action='store_true', default=False)
+    create_cmd.add_argument('-e', '--ecdsa-curve', default='nist256p1')
+    create_cmd.add_argument('-t', '--time', type=int, default=int(time.time()))
+    create_cmd.set_defaults(run=run_create)
+
+    agent_cmd = subparsers.add_parser('agent')
+    agent_cmd.set_defaults(run=run_agent)
 
     args = p.parse_args()
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
