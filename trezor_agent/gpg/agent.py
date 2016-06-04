@@ -109,6 +109,7 @@ def handle_connection(conn):
     keygrip = None
     digest = None
     algo = None
+    version = keyring.gpg_version()
 
     keyring.sendline(conn, b'OK')
     for line in iterlines(conn):
@@ -118,7 +119,7 @@ def handle_connection(conn):
         if command in {'RESET', 'OPTION', 'HAVEKEY', 'SETKEYDESC'}:
             pass  # reply with OK
         elif command == 'GETINFO':
-            keyring.sendline(conn, b'D 2.1.11')
+            keyring.sendline(conn, b'D ' + version)
         elif command == 'AGENT_ID':
             keyring.sendline(conn, b'D TREZOR')
         elif command in {'SIGKEY', 'SETKEY'}:

@@ -158,6 +158,14 @@ def get_keygrip(user_id, sp=subprocess):
     return re.findall(r'Keygrip = (\w+)', output)[0]
 
 
+def gpg_version(sp=subprocess):
+    """Get a keygrip of the primary GPG key of the specified user."""
+    args = ['gpg2', '--version']
+    output = sp.check_output(args).decode('ascii')
+    line = output.split(b'\n')[0]  # b'gpg (GnuPG) 2.1.11'
+    return line.split(b' ')[-1]  # b'2.1.11'
+
+
 def export_public_key(user_id, sp=subprocess):
     """Export GPG public key for specified `user_id`."""
     args = ['gpg2', '--export'] + ([user_id] if user_id else [])
