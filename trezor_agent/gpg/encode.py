@@ -97,13 +97,12 @@ class Factory(object):
                  self.pubkey, _time_format(self.pubkey.created), user_id)
 
     @classmethod
-    def from_public_key(cls, pubkey, user_id):
+    def from_public_key(cls, pubkey):
         """Create from an existing GPG public key."""
-        is_ecdh = (pubkey['algo'] == proto.ECDH_ALGO_ID)
-        f = cls(user_id=user_id,
+        f = cls(user_id=pubkey['user_id'],
                 created=pubkey['created'],
                 curve_name=proto.find_curve_by_algo_id(pubkey['algo']),
-                ecdh=is_ecdh)
+                ecdh=(pubkey['algo'] == proto.ECDH_ALGO_ID))
         assert f.pubkey.key_id() == pubkey['key_id']
         return f
 

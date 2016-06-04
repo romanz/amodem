@@ -41,8 +41,7 @@ def pksign(keygrip, digest, algo):
     assert algo == '8'
     pubkey = decode.load_public_key(keyring.export_public_key(user_id=None),
                                     use_custom=True)
-    f = encode.Factory.from_public_key(pubkey=pubkey,
-                                       user_id=pubkey['user_id'])
+    f = encode.Factory.from_public_key(pubkey=pubkey)
     with contextlib.closing(f):
         assert f.pubkey.keygrip == binascii.unhexlify(keygrip)
         r, s = f.conn.sign(binascii.unhexlify(digest))
@@ -86,8 +85,7 @@ def pkdecrypt(keygrip, conn):
     local_pubkey = decode.load_public_key(
         pubkey_bytes=keyring.export_public_key(user_id=None),
         use_custom=True)
-    f = encode.Factory.from_public_key(
-        pubkey=local_pubkey, user_id=local_pubkey['user_id'])
+    f = encode.Factory.from_public_key(pubkey=local_pubkey)
     with contextlib.closing(f):
         assert f.pubkey.keygrip == binascii.unhexlify(keygrip)
         shared_secret = f.get_shared_secret(remote_pubkey)
