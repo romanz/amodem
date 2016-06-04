@@ -79,6 +79,99 @@ def _time_format(t):
     return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(t))
 
 
+def create_primary(user_id, pubkey, signer_func):
+    """Export new primary GPG public key, ready for "gpg2 --import"."""
+    pubkey_packet = proto.packet(tag=6, blob=pubkey.data())
+    user_id_packet = proto.packet(tag=13,
+                                  blob=user_id.encode('ascii'))
+
+    data_to_sign = (pubkey.data_to_hash() +
+                    user_id_packet[:1] +
+                    util.prefix_len('>L', user_id.encode('ascii')))
+    log.info('signing public key "%s"', user_id)
+    hashed_subpackets = [
+        proto.subpacket_time(pubkey.created),  # signature time
+        # https://tools.ietf.org/html/rfc4880#section-5.2.3.4
+        proto.subpacket_byte(0x1B, 1 | 2),  # key flags (certify & sign)
+        # https://tools.ietf.org/html/rfc4880#section-5.2.3.21
+        proto.subpacket_byte(0x15, 8),  # preferred hash (SHA256)
+        # https://tools.ietf.org/html/rfc4880#section-5.2.3.8
+        proto.subpacket_byte(0x16, 0),  # preferred compression (none)
+        # https://tools.ietf.org/html/rfc4880#section-5.2.3.9
+        proto.subpacket_byte(0x17, 0x80)  # key server prefs (no-modify)
+        # https://tools.ietf.org/html/rfc4880#section-5.2.3.17
+    ]
+    unhashed_subpackets = [
+        proto.subpacket(16, pubkey.key_id()),  # issuer key id
+        proto.CUSTOM_SUBPACKET]
+
+    signature = proto.make_signature(
+        signer_func=signer_func,
+        public_algo=pubkey.algo_id,
+        data_to_sign=data_to_sign,
+        sig_type=0x13,  # user id & public key
+        hashed_subpackets=hashed_subpackets,
+        unhashed_subpackets=unhashed_subpackets)
+
+    sign_packet = proto.packet(tag=2, blob=signature)
+    return pubkey_packet + user_id_packet + sign_packet
+
+
+def create_subkey(primary_bytes, pubkey, signer_func, ecdh=False):
+    """Export new subkey to GPG primary key."""
+    subkey_packet = proto.packet(tag=14, blob=pubkey.data())
+    primary = decode.load_public_key(primary_bytes)
+    log.info('adding subkey to primary GPG key "%s" (%s)',
+             primary['user_id'], util.hexlify(primary['key_id']))
+    data_to_sign = primary['_to_hash'] + pubkey.data_to_hash()
+
+    if ecdh:
+        embedded_sig = None
+    else:
+        # Primary Key Binding Signature
+        hashed_subpackets = [
+            proto.subpacket_time(pubkey.created)]  # signature time
+        unhashed_subpackets = [
+            proto.subpacket(16, pubkey.key_id())]  # issuer key id
+        log.info('confirm signing subkey with hardware device')
+        embedded_sig = proto.make_signature(
+            signer_func=signer_func,
+            data_to_sign=data_to_sign,
+            public_algo=pubkey.algo_id,
+            sig_type=0x19,
+            hashed_subpackets=hashed_subpackets,
+            unhashed_subpackets=unhashed_subpackets)
+
+    # Subkey Binding Signature
+
+    # Key flags: https://tools.ietf.org/html/rfc4880#section-5.2.3.21
+    # (certify & sign)               (encrypt)
+    flags = (2) if (not ecdh) else (4 | 8)
+
+    hashed_subpackets = [
+        proto.subpacket_time(pubkey.created),  # signature time
+        proto.subpacket_byte(0x1B, flags)]
+
+    unhashed_subpackets = []
+    unhashed_subpackets.append(proto.subpacket(16, primary['key_id']))
+    if embedded_sig is not None:
+        unhashed_subpackets.append(proto.subpacket(32, embedded_sig))
+    unhashed_subpackets.append(proto.CUSTOM_SUBPACKET)
+
+    log.info('confirm signing subkey with gpg-agent')
+    # TODO: support TREZOR-based primary key
+    gpg_agent = AgentSigner(primary['user_id'])
+    signature = proto.make_signature(
+        signer_func=gpg_agent.sign,
+        data_to_sign=data_to_sign,
+        public_algo=primary['algo'],
+        sig_type=0x18,
+        hashed_subpackets=hashed_subpackets,
+        unhashed_subpackets=unhashed_subpackets)
+    sign_packet = proto.packet(tag=2, blob=signature)
+    return primary_bytes + subkey_packet + sign_packet
+
+
 class Factory(object):
     """Performs GPG signing operations."""
 
@@ -111,95 +204,14 @@ class Factory(object):
         self.conn.close()
 
     def create_primary(self):
-        """Export new primary GPG public key, ready for "gpg2 --import"."""
-        pubkey_packet = proto.packet(tag=6, blob=self.pubkey.data())
-        user_id_packet = proto.packet(tag=13,
-                                      blob=self.user_id.encode('ascii'))
-
-        data_to_sign = (self.pubkey.data_to_hash() +
-                        user_id_packet[:1] +
-                        util.prefix_len('>L', self.user_id.encode('ascii')))
-        log.info('signing public key "%s"', self.user_id)
-        hashed_subpackets = [
-            proto.subpacket_time(self.pubkey.created),  # signature time
-            # https://tools.ietf.org/html/rfc4880#section-5.2.3.4
-            proto.subpacket_byte(0x1B, 1 | 2),  # key flags (certify & sign)
-            # https://tools.ietf.org/html/rfc4880#section-5.2.3.21
-            proto.subpacket_byte(0x15, 8),  # preferred hash (SHA256)
-            # https://tools.ietf.org/html/rfc4880#section-5.2.3.8
-            proto.subpacket_byte(0x16, 0),  # preferred compression (none)
-            # https://tools.ietf.org/html/rfc4880#section-5.2.3.9
-            proto.subpacket_byte(0x17, 0x80)  # key server prefs (no-modify)
-            # https://tools.ietf.org/html/rfc4880#section-5.2.3.17
-        ]
-        unhashed_subpackets = [
-            proto.subpacket(16, self.pubkey.key_id()),  # issuer key id
-            proto.CUSTOM_SUBPACKET]
-
-        signature = proto.make_signature(
-            signer_func=self.conn.sign,
-            public_algo=self.pubkey.algo_id,
-            data_to_sign=data_to_sign,
-            sig_type=0x13,  # user id & public key
-            hashed_subpackets=hashed_subpackets,
-            unhashed_subpackets=unhashed_subpackets)
-
-        sign_packet = proto.packet(tag=2, blob=signature)
-        return pubkey_packet + user_id_packet + sign_packet
+        """Export new subkey to GPG primary key."""
+        return create_primary(user_id=self.user_id, pubkey=self.pubkey,
+                              signer_func=self.conn.sign)
 
     def create_subkey(self, primary_bytes):
-        """Export new subkey to `self.user_id` GPG primary key."""
-        subkey_packet = proto.packet(tag=14, blob=self.pubkey.data())
-        primary = decode.load_public_key(primary_bytes)
-        log.info('adding subkey to primary GPG key "%s" (%s)',
-                 self.user_id, util.hexlify(primary['key_id']))
-        data_to_sign = primary['_to_hash'] + self.pubkey.data_to_hash()
-
-        if self.ecdh:
-            embedded_sig = None
-        else:
-            # Primary Key Binding Signature
-            hashed_subpackets = [
-                proto.subpacket_time(self.pubkey.created)]  # signature time
-            unhashed_subpackets = [
-                proto.subpacket(16, self.pubkey.key_id())]  # issuer key id
-            log.info('confirm signing subkey with hardware device')
-            embedded_sig = proto.make_signature(
-                signer_func=self.conn.sign,
-                data_to_sign=data_to_sign,
-                public_algo=self.pubkey.algo_id,
-                sig_type=0x19,
-                hashed_subpackets=hashed_subpackets,
-                unhashed_subpackets=unhashed_subpackets)
-
-        # Subkey Binding Signature
-
-        # Key flags: https://tools.ietf.org/html/rfc4880#section-5.2.3.21
-        # (certify & sign)               (encrypt)
-        flags = (2) if (not self.ecdh) else (4 | 8)
-
-        hashed_subpackets = [
-            proto.subpacket_time(self.pubkey.created),  # signature time
-            proto.subpacket_byte(0x1B, flags)]
-
-        unhashed_subpackets = []
-        unhashed_subpackets.append(proto.subpacket(16, primary['key_id']))
-        if embedded_sig is not None:
-            unhashed_subpackets.append(proto.subpacket(32, embedded_sig))
-        unhashed_subpackets.append(proto.CUSTOM_SUBPACKET)
-
-        log.info('confirm signing subkey with gpg-agent')
-        # TODO: support TREZOR-based primary key
-        gpg_agent = AgentSigner(self.user_id)
-        signature = proto.make_signature(
-            signer_func=gpg_agent.sign,
-            data_to_sign=data_to_sign,
-            public_algo=primary['algo'],
-            sig_type=0x18,
-            hashed_subpackets=hashed_subpackets,
-            unhashed_subpackets=unhashed_subpackets)
-        sign_packet = proto.packet(tag=2, blob=signature)
-        return primary_bytes + subkey_packet + sign_packet
+        """Export new subkey to GPG primary key."""
+        return create_subkey(primary_bytes=primary_bytes, pubkey=self.pubkey,
+                             signer_func=self.conn.sign, ecdh=self.ecdh)
 
     def sign_message(self, msg, sign_time=None):
         """Sign GPG message at specified time."""
