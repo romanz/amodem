@@ -48,7 +48,7 @@ $ gpg2 --verify EXAMPLE.asc                  # verify using standard GPG binary
 ## Git commit & tag signatures:
 Git can use GPG to sign and verify commits and tags (see [here](https://git-scm.com/book/en/v2/Git-Tools-Signing-Your-Work)):
 ```
-$ git config --local gpg.program "trezor-git-gpg-wrapper.sh"
+$ git config --local gpg.program "gpg2"
 $ git commit --gpg-sign                      # create GPG-signed commit
 $ git log --show-signature -1                # verify commit signature
 $ git tag --sign "TAG"                       # create GPG-signed tag
