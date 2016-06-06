@@ -172,6 +172,23 @@ def create_subkey(primary_bytes, pubkey, signer_func, ecdh=False):
     return primary_bytes + subkey_packet + sign_packet
 
 
+def sign_message(signer_func, msg, pubkey, sign_time):
+    """Sign GPG message at specified time."""
+    log.info('signing %d byte message at %s',
+             len(msg), _time_format(sign_time))
+    hashed_subpackets = [proto.subpacket_time(sign_time)]
+    unhashed_subpackets = [
+        proto.subpacket(16, pubkey.key_id())]  # issuer key id
+
+    blob = proto.make_signature(
+        signer_func=signer_func,
+        data_to_sign=msg,
+        public_algo=pubkey.algo_id,
+        hashed_subpackets=hashed_subpackets,
+        unhashed_subpackets=unhashed_subpackets)
+    return proto.packet(tag=2, blob=blob)
+
+
 class Factory(object):
     """Performs GPG signing operations."""
 
@@ -217,20 +234,8 @@ class Factory(object):
         """Sign GPG message at specified time."""
         if sign_time is None:
             sign_time = int(time.time())
-
-        log.info('signing %d byte message at %s',
-                 len(msg), _time_format(sign_time))
-        hashed_subpackets = [proto.subpacket_time(sign_time)]
-        unhashed_subpackets = [
-            proto.subpacket(16, self.pubkey.key_id())]  # issuer key id
-
-        blob = proto.make_signature(
-            signer_func=self.conn.sign,
-            data_to_sign=msg,
-            public_algo=self.pubkey.algo_id,
-            hashed_subpackets=hashed_subpackets,
-            unhashed_subpackets=unhashed_subpackets)
-        return proto.packet(tag=2, blob=blob)
+        return sign_message(signer_func=self.conn.sign, pubkey=self.pubkey,
+                            msg=msg, sign_time=sign_time)
 
     def get_shared_secret(self, pubkey):
         """Derive shared secret using ECDH from remote public key."""
