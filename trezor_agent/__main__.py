@@ -1,5 +1,6 @@
 """SSH-agent implementation using hardware authentication devices."""
 import argparse
+import functools
 import logging
 import os
 import re
@@ -115,6 +116,19 @@ def run_server(conn, public_key, command, debug, timeout):
         log.info('server stopped')
 
 
+def handle_connection_error(func):
+    """Fail with non-zero exit code."""
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except IOError as e:
+            log.error('Connection error: %s', e)
+            return 1
+    return wrapper
+
+
+@handle_connection_error
 def run_agent(client_factory=client.Client):
     """Run ssh-agent using given hardware client factory."""
     args = create_agent_parser().parse_args()
@@ -143,6 +157,7 @@ def run_agent(client_factory=client.Client):
                           debug=args.debug, timeout=args.timeout)
 
 
+@handle_connection_error
 def run_git(client_factory=client.Client):
     """Run git under ssh-agent using given hardware client factory."""
     args = create_git_parser().parse_args()
