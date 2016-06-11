@@ -135,7 +135,7 @@ def create_subkey(primary_bytes, pubkey, signer_func, ecdh=False):
             proto.subpacket_time(pubkey.created)]  # signature time
         unhashed_subpackets = [
             proto.subpacket(16, pubkey.key_id())]  # issuer key id
-        log.info('confirm signing subkey with hardware device')
+        log.info('confirm signing with new subkey')
         embedded_sig = proto.make_signature(
             signer_func=signer_func,
             data_to_sign=data_to_sign,
@@ -160,11 +160,12 @@ def create_subkey(primary_bytes, pubkey, signer_func, ecdh=False):
         unhashed_subpackets.append(proto.subpacket(32, embedded_sig))
     unhashed_subpackets.append(proto.CUSTOM_SUBPACKET)
 
-    log.info('confirm signing subkey with gpg-agent')
-    # TODO: support TREZOR-based primary key
-    gpg_agent = AgentSigner(primary['user_id'])
+    log.info('confirm signing with primary key')
+    if not primary['_is_custom']:
+        signer_func = AgentSigner(primary['user_id']).sign
+
     signature = proto.make_signature(
-        signer_func=gpg_agent.sign,
+        signer_func=signer_func,
         data_to_sign=data_to_sign,
         public_algo=primary['algo'],
         sig_type=0x18,

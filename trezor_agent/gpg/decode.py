@@ -295,6 +295,7 @@ def load_public_key(pubkey_bytes, use_custom=False):
         packets = packets[2:]
 
     packet['user_id'] = userid['value']
+    packet['_is_custom'] = signature['_is_custom']
     return packet
 
 
