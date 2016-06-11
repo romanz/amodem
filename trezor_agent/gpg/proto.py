@@ -154,6 +154,7 @@ class PublicKey(object):
         self.curve_info = SUPPORTED_CURVES[curve_name]
         self.created = int(created)  # time since Epoch
         self.verifying_key = verifying_key
+        self.ecdh = ecdh
         if ecdh:
             self.algo_id = ECDH_ALGO_ID
             self.ecdh_packet = b'\x03\x01\x08\x07'
@@ -161,9 +162,13 @@ class PublicKey(object):
             self.algo_id = self.curve_info['algo_id']
             self.ecdh_packet = b''
 
-        self.keygrip = self.curve_info['keygrip'](verifying_key)
         hex_key_id = util.hexlify(self.key_id())[-8:]
         self.desc = 'GPG public key {}/{}'.format(curve_name, hex_key_id)
+
+    @property
+    def keygrip(self):
+        """Compute GPG2 keygrip."""
+        return self.curve_info['keygrip'](self.verifying_key)
 
     def data(self):
         """Data for packet creation."""

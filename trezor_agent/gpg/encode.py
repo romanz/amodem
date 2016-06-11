@@ -119,7 +119,7 @@ def create_primary(user_id, pubkey, signer_func):
     return pubkey_packet + user_id_packet + sign_packet
 
 
-def create_subkey(primary_bytes, pubkey, signer_func, ecdh=False):
+def create_subkey(primary_bytes, pubkey, signer_func):
     """Export new subkey to GPG primary key."""
     subkey_packet = proto.packet(tag=14, blob=pubkey.data())
     primary = decode.load_public_key(primary_bytes)
@@ -127,7 +127,7 @@ def create_subkey(primary_bytes, pubkey, signer_func, ecdh=False):
              primary['user_id'], util.hexlify(primary['key_id']))
     data_to_sign = primary['_to_hash'] + pubkey.data_to_hash()
 
-    if ecdh:
+    if pubkey.ecdh:
         embedded_sig = None
     else:
         # Primary Key Binding Signature
@@ -147,8 +147,8 @@ def create_subkey(primary_bytes, pubkey, signer_func, ecdh=False):
     # Subkey Binding Signature
 
     # Key flags: https://tools.ietf.org/html/rfc4880#section-5.2.3.21
-    # (certify & sign)               (encrypt)
-    flags = (2) if (not ecdh) else (4 | 8)
+    # (certify & sign)                   (encrypt)
+    flags = (2) if (not pubkey.ecdh) else (4 | 8)
 
     hashed_subpackets = [
         proto.subpacket_time(pubkey.created),  # signature time
@@ -222,16 +222,6 @@ class Factory(object):
     def close(self):
         """Close connection and turn off the screen of the device."""
         self.conn.close()
-
-    def create_primary(self):
-        """Export new subkey to GPG primary key."""
-        return create_primary(user_id=self.user_id, pubkey=self.pubkey,
-                              signer_func=self.conn.sign)
-
-    def create_subkey(self, primary_bytes):
-        """Export new subkey to GPG primary key."""
-        return create_subkey(primary_bytes=primary_bytes, pubkey=self.pubkey,
-                             signer_func=self.conn.sign, ecdh=self.ecdh)
 
     def sign_message(self, msg, sign_time=None):
         """Sign GPG message at specified time."""

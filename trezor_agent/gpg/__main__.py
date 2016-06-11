@@ -16,15 +16,42 @@ log = logging.getLogger(__name__)
 def run_create(args):
     """Generate a new pubkey for a new/existing GPG identity."""
     user_id = os.environ['TREZOR_GPG_USER_ID']
-    f = encode.Factory(user_id=user_id, created=args.time,
-                       curve_name=args.ecdsa_curve, ecdh=args.ecdh)
+    conn = encode.HardwareSigner(user_id=user_id,
+                                 curve_name=args.ecdsa_curve)
+    verifying_key = conn.pubkey()
 
-    with contextlib.closing(f):
-        if args.subkey:
-            primary_key = keyring.export_public_key(user_id=user_id)
-            result = f.create_subkey(primary_bytes=primary_key)
-        else:
-            result = f.create_primary()
+    if args.subkey:
+        primary_bytes = keyring.export_public_key(user_id=user_id)
+        # subkey for signing
+        signing_key = proto.PublicKey(
+            curve_name=args.ecdsa_curve, created=args.time,
+            verifying_key=verifying_key, ecdh=False)
+        # subkey for encryption
+        encryption_key = proto.PublicKey(
+            curve_name=args.ecdsa_curve, created=args.time,
+            verifying_key=verifying_key, ecdh=True)
+        result = encode.create_subkey(primary_bytes=primary_bytes,
+                                      pubkey=signing_key,
+                                      signer_func=conn.sign)
+        result = encode.create_subkey(primary_bytes=result,
+                                      pubkey=encryption_key,
+                                      signer_func=conn.sign)
+    else:
+        # primary key for signing
+        primary = proto.PublicKey(
+            curve_name=args.ecdsa_curve, created=args.time,
+            verifying_key=verifying_key, ecdh=False)
+        # subkey for encryption
+        subkey = proto.PublicKey(
+            curve_name=args.ecdsa_curve, created=args.time,
+            verifying_key=verifying_key, ecdh=True)
+
+        result = encode.create_primary(user_id=user_id,
+                                       pubkey=primary,
+                                       signer_func=conn.sign)
+        result = encode.create_subkey(primary_bytes=result,
+                                      pubkey=subkey,
+                                      signer_func=conn.sign)
 
     sys.stdout.write(proto.armor(result, 'PUBLIC KEY BLOCK'))
 
@@ -48,7 +75,6 @@ def main():
 
     create_cmd = subparsers.add_parser('create')
     create_cmd.add_argument('-s', '--subkey', action='store_true', default=False)
-    create_cmd.add_argument('--ecdh', action='store_true', default=False)
     create_cmd.add_argument('-e', '--ecdsa-curve', default='nist256p1')
     create_cmd.add_argument('-t', '--time', type=int, default=int(time.time()))
     create_cmd.set_defaults(run=run_create)
