@@ -74,6 +74,7 @@ def test_nist256p1():
     pk = proto.PublicKey(curve_name=formats.CURVE_NIST256,
                          created=42, verifying_key=vk)
     assert repr(pk) == 'GPG public key nist256p1/F82361D9'
+    assert pk.keygrip == b'\x95\x85.\x91\x7f\xe2\xc3\x91R\xba\x99\x81\x92\xb5y\x1d\xb1\\\xdc\xf0'
 
 
 def test_nist256p1_ecdh():
@@ -82,6 +83,7 @@ def test_nist256p1_ecdh():
     pk = proto.PublicKey(curve_name=formats.CURVE_NIST256,
                          created=42, verifying_key=vk, ecdh=True)
     assert repr(pk) == 'GPG public key nist256p1/5811DF46'
+    assert pk.keygrip == b'\x95\x85.\x91\x7f\xe2\xc3\x91R\xba\x99\x81\x92\xb5y\x1d\xb1\\\xdc\xf0'
 
 
 def test_ed25519():
@@ -90,3 +92,4 @@ def test_ed25519():
     pk = proto.PublicKey(curve_name=formats.CURVE_ED25519,
                          created=42, verifying_key=vk)
     assert repr(pk) == 'GPG public key ed25519/36B40FE6'
+    assert pk.keygrip == b'\xbf\x01\x90l\x17\xb64\xa3-\xf4\xc0gr\x99\x18<\xddBQ?'
