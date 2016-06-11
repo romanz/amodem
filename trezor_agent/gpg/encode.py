@@ -192,44 +192,20 @@ def sign_message(signer_func, msg, pubkey, sign_time):
     return proto.packet(tag=2, blob=blob)
 
 
-class Factory(object):
-    """Performs GPG signing operations."""
+def load_from_public_key(pubkey_dict):
+    """Load correct public key from the device."""
+    user_id = pubkey_dict['user_id']
+    created = pubkey_dict['created']
+    curve_name = proto.find_curve_by_algo_id(pubkey_dict['algo'])
+    assert curve_name in formats.SUPPORTED_CURVES
+    ecdh = (pubkey_dict['algo'] == proto.ECDH_ALGO_ID)
 
-    def __init__(self, user_id, created, curve_name, ecdh=False):
-        """Construct and loads a public key from the device."""
-        self.user_id = user_id
-        assert curve_name in formats.SUPPORTED_CURVES
+    conn = HardwareSigner(user_id, curve_name=curve_name)
+    pubkey = proto.PublicKey(
+        curve_name=curve_name, created=created,
+        verifying_key=conn.pubkey(), ecdh=ecdh)
+    assert pubkey.key_id() == pubkey_dict['key_id']
+    log.info('%s created at %s for "%s"',
+             pubkey, _time_format(pubkey.created), user_id)
 
-        self.conn = HardwareSigner(user_id, curve_name=curve_name)
-        self.pubkey = proto.PublicKey(
-            curve_name=curve_name, created=created,
-            verifying_key=self.conn.pubkey(), ecdh=ecdh)
-        self.ecdh = ecdh
-
-        log.info('%s created at %s for "%s"',
-                 self.pubkey, _time_format(self.pubkey.created), user_id)
-
-    @classmethod
-    def from_public_key(cls, pubkey):
-        """Create from an existing GPG public key."""
-        f = cls(user_id=pubkey['user_id'],
-                created=pubkey['created'],
-                curve_name=proto.find_curve_by_algo_id(pubkey['algo']),
-                ecdh=(pubkey['algo'] == proto.ECDH_ALGO_ID))
-        assert f.pubkey.key_id() == pubkey['key_id']
-        return f
-
-    def close(self):
-        """Close connection and turn off the screen of the device."""
-        self.conn.close()
-
-    def sign_message(self, msg, sign_time=None):
-        """Sign GPG message at specified time."""
-        if sign_time is None:
-            sign_time = int(time.time())
-        return sign_message(signer_func=self.conn.sign, pubkey=self.pubkey,
-                            msg=msg, sign_time=sign_time)
-
-    def get_shared_secret(self, pubkey):
-        """Derive shared secret using ECDH from remote public key."""
-        return self.conn.ecdh(pubkey)
+    return pubkey, conn

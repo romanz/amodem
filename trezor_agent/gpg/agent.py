@@ -39,12 +39,13 @@ def sig_encode(r, s):
 def pksign(keygrip, digest, algo):
     """Sign a message digest using a private EC key."""
     assert algo == '8'
-    pubkey = decode.load_public_key(keyring.export_public_key(user_id=None),
-                                    use_custom=True)
-    f = encode.Factory.from_public_key(pubkey=pubkey)
-    with contextlib.closing(f):
-        assert f.pubkey.keygrip == binascii.unhexlify(keygrip)
-        r, s = f.conn.sign(binascii.unhexlify(digest))
+    pubkey_dict = decode.load_public_key(
+        pubkey_bytes=keyring.export_public_key(user_id=None),
+        use_custom=True)
+    pubkey, conn = encode.load_from_public_key(pubkey_dict=pubkey_dict)
+    with contextlib.closing(conn):
+        assert pubkey.keygrip == binascii.unhexlify(keygrip)
+        r, s = conn.sign(binascii.unhexlify(digest))
         result = sig_encode(r, s)
         log.debug('result: %r', result)
         return result
@@ -85,10 +86,10 @@ def pkdecrypt(keygrip, conn):
     local_pubkey = decode.load_public_key(
         pubkey_bytes=keyring.export_public_key(user_id=None),
         use_custom=True)
-    f = encode.Factory.from_public_key(pubkey=local_pubkey)
-    with contextlib.closing(f):
-        assert f.pubkey.keygrip == binascii.unhexlify(keygrip)
-        shared_secret = f.get_shared_secret(remote_pubkey)
+    pubkey, conn = encode.load_from_public_key(pubkey_dict=local_pubkey)
+    with contextlib.closing(conn):
+        assert pubkey.keygrip == binascii.unhexlify(keygrip)
+        shared_secret = conn.ecdh(remote_pubkey)
 
     assert len(shared_secret) == 65
     assert shared_secret[:1] == b'\x04'
