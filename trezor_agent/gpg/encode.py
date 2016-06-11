@@ -91,6 +91,8 @@ def create_primary(user_id, pubkey, signer_func):
     log.info('signing public key "%s"', user_id)
     hashed_subpackets = [
         proto.subpacket_time(pubkey.created),  # signature time
+        # https://tools.ietf.org/html/rfc4880#section-5.2.3.7
+        proto.subpacket_byte(0x0B, 9),  # preferred symmetric algo (AES-256)
         # https://tools.ietf.org/html/rfc4880#section-5.2.3.4
         proto.subpacket_byte(0x1B, 1 | 2),  # key flags (certify & sign)
         # https://tools.ietf.org/html/rfc4880#section-5.2.3.21
