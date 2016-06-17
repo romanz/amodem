@@ -87,7 +87,7 @@ def create_primary(user_id, pubkey, signer_func):
     data_to_sign = (pubkey.data_to_hash() +
                     user_id_packet[:1] +
                     util.prefix_len('>L', user_id.encode('ascii')))
-    log.info('signing public key "%s"', user_id)
+    log.info('creating primary GPG key "%s"', user_id)
     hashed_subpackets = [
         proto.subpacket_time(pubkey.created),  # signature time
         # https://tools.ietf.org/html/rfc4880#section-5.2.3.7
@@ -106,6 +106,7 @@ def create_primary(user_id, pubkey, signer_func):
         proto.subpacket(16, pubkey.key_id()),  # issuer key id
         proto.CUSTOM_SUBPACKET]
 
+    log.info('confirm signing with primary key')
     signature = proto.make_signature(
         signer_func=signer_func,
         public_algo=pubkey.algo_id,
@@ -122,8 +123,7 @@ def create_subkey(primary_bytes, pubkey, signer_func):
     """Export new subkey to GPG primary key."""
     subkey_packet = proto.packet(tag=14, blob=pubkey.data())
     primary = decode.load_public_key(primary_bytes)
-    log.info('adding subkey to primary GPG key "%s" (%s)',
-             primary['user_id'], util.hexlify(primary['key_id']))
+    log.info('adding subkey to primary GPG key "%s"', primary['user_id'])
     data_to_sign = primary['_to_hash'] + pubkey.data_to_hash()
 
     if pubkey.ecdh:
