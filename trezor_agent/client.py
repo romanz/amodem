@@ -128,8 +128,8 @@ def identity_to_string(identity):
     return ''.join(result)
 
 
-def get_address(identity):
-    """Compute BIP32 derivation address for SignIdentity API."""
+def get_address(identity, ecdh=False):
+    """Compute BIP32 derivation address according to SLIP-0013/0017."""
     index = struct.pack('<L', identity.index)
     addr = index + identity_to_string(identity).encode('ascii')
     log.debug('address string: %r', addr)
@@ -137,7 +137,8 @@ def get_address(identity):
     s = io.BytesIO(bytearray(digest))
 
     hardened = 0x80000000
-    address_n = [13] + list(util.recv(s, '<LLLL'))
+    addr_0 = [13, 17][bool(ecdh)]
+    address_n = [addr_0] + list(util.recv(s, '<LLLL'))
     return [(hardened | value) for value in address_n]
 
 

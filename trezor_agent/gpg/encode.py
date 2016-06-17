@@ -19,9 +19,9 @@ class HardwareSigner(object):
         self.identity.host = user_id
         self.curve_name = curve_name
 
-    def pubkey(self):
+    def pubkey(self, ecdh=False):
         """Return public key as VerifyingKey object."""
-        addr = client.get_address(self.identity)
+        addr = client.get_address(identity=self.identity, ecdh=ecdh)
         public_node = self.client_wrapper.connection.get_public_node(
             n=addr, ecdsa_curve_name=self.curve_name)
 
@@ -42,14 +42,13 @@ class HardwareSigner(object):
 
     def ecdh(self, pubkey):
         """Derive shared secret using ECDH from remote public key."""
-        result = self.client_wrapper.connection.sign_identity(
+        result = self.client_wrapper.connection.get_ecdh_session_key(
             identity=self.identity,
-            challenge_hidden=pubkey,
-            challenge_visual=b'',
+            peer_public_key=pubkey,
             ecdsa_curve_name=self.curve_name)
-        assert len(result.signature) == 65
-        assert result.signature[:1] == b'\x04'
-        return result.signature
+        assert len(result.session_key) == 65
+        assert result.session_key[:1] == b'\x04'
+        return result.session_key
 
     def close(self):
         """Close the connection to the device."""
