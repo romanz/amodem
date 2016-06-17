@@ -93,8 +93,9 @@ def _parse_ecdsa_sig(args):
     return (util.bytes2num(sig_r),
             util.bytes2num(sig_s))
 
-# DSA happens to have the same structure as ECDSA signatures
+# DSA and EDDSA happen to have the same structure as ECDSA signatures
 _parse_dsa_sig = _parse_ecdsa_sig
+_parse_eddsa_sig = _parse_ecdsa_sig
 
 
 def _parse_rsa_sig(args):
@@ -110,6 +111,7 @@ def parse_sig(sig):
     algo_name = sig[0]
     parser = {b'rsa': _parse_rsa_sig,
               b'ecdsa': _parse_ecdsa_sig,
+              b'eddsa': _parse_eddsa_sig,
               b'dsa': _parse_dsa_sig}[algo_name]
     return parser(args=sig[1:])
 
