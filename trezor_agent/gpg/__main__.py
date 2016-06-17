@@ -18,7 +18,8 @@ def run_create(args):
     user_id = os.environ['TREZOR_GPG_USER_ID']
     conn = encode.HardwareSigner(user_id=user_id,
                                  curve_name=args.ecdsa_curve)
-    verifying_key = conn.pubkey()
+    verifying_key = conn.pubkey(ecdh=False)
+    decryption_key = conn.pubkey(ecdh=True)
 
     if args.subkey:
         primary_bytes = keyring.export_public_key(user_id=user_id)
@@ -29,7 +30,7 @@ def run_create(args):
         # subkey for encryption
         encryption_key = proto.PublicKey(
             curve_name=args.ecdsa_curve, created=args.time,
-            verifying_key=verifying_key, ecdh=True)
+            verifying_key=decryption_key, ecdh=True)
         result = encode.create_subkey(primary_bytes=primary_bytes,
                                       pubkey=signing_key,
                                       signer_func=conn.sign)
@@ -44,7 +45,7 @@ def run_create(args):
         # subkey for encryption
         subkey = proto.PublicKey(
             curve_name=args.ecdsa_curve, created=args.time,
-            verifying_key=verifying_key, ecdh=True)
+            verifying_key=decryption_key, ecdh=True)
 
         result = encode.create_primary(user_id=user_id,
                                        pubkey=primary,
