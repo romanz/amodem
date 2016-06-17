@@ -202,7 +202,7 @@ def load_from_public_key(pubkey_dict):
     conn = HardwareSigner(user_id, curve_name=curve_name)
     pubkey = proto.PublicKey(
         curve_name=curve_name, created=created,
-        verifying_key=conn.pubkey(), ecdh=ecdh)
+        verifying_key=conn.pubkey(ecdh=ecdh), ecdh=ecdh)
     assert pubkey.key_id() == pubkey_dict['key_id']
     log.info('%s created at %s for "%s"',
              pubkey, _time_format(pubkey.created), user_id)

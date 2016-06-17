@@ -268,7 +268,7 @@ def digest_packets(packets):
     return hashlib.sha256(data_to_hash.getvalue()).digest()
 
 
-def load_public_key(pubkey_bytes, use_custom=False):
+def load_public_key(pubkey_bytes, use_custom=False, ecdh=False):
     """Parse and validate GPG public key from an input stream."""
     stream = io.BytesIO(pubkey_bytes)
     packets = list(parse_packets(util.Reader(stream)))
@@ -288,8 +288,9 @@ def load_public_key(pubkey_bytes, use_custom=False):
     packet = pubkey
     while use_custom:
         if packet['type'] in ('pubkey', 'subkey') and signature['_is_custom']:
-            log.debug('found custom %s', packet['type'])
-            break
+            if ecdh == (packet['algo'] == proto.ECDH_ALGO_ID):
+                log.debug('found custom %s', packet['type'])
+                break
 
         packet, signature = packets[:2]
         packets = packets[2:]
