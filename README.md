@@ -1,4 +1,4 @@
-# Using TREZOR as a hardware SSH agent
+# Using TREZOR as a hardware SSH/GPG agent
 
 [![Build Status](https://travis-ci.org/romanz/trezor-agent.svg?branch=master)](https://travis-ci.org/romanz/trezor-agent)
 [![Python Versions](https://img.shields.io/pypi/pyversions/trezor_agent.svg)](https://pypi.python.org/pypi/trezor_agent/)
@@ -13,3 +13,6 @@ See SatoshiLabs' blog post about this feature:
 
 ## SSH usage
 See the following [link](README-SSH.md) for instructions.
+
+## GPG usage
+See the following [link](README-GPG.md) for instructions.
