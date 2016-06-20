@@ -22,26 +22,33 @@ def connect_to_agent(sock_path='~/.gnupg/S.gpg-agent', sp=subprocess):
     return sock
 
 
-def _communicate(sock, msg):
-    msg += '\n'
-    sock.sendall(msg.encode('ascii'))
-    log.debug('-> %r', msg)
-    return _recvline(sock)
+def communicate(sock, msg):
+    """Send a message and receive a single line."""
+    sendline(sock, msg.encode('ascii'))
+    return recvline(sock)
 
 
-def _recvline(sock):
+def sendline(sock, msg):
+    """Send a binary message, followed by EOL."""
+    log.debug('<- %r', msg)
+    sock.sendall(msg + b'\n')
+
+
+def recvline(sock):
+    """Receive a single line from the socket."""
     reply = io.BytesIO()
 
     while True:
         c = sock.recv(1)
         if not c:
-            raise EOFError
+            return None  # socket is closed
+
         if c == b'\n':
             break
         reply.write(c)
 
     result = reply.getvalue()
-    log.debug('<- %r', result)
+    log.debug('-> %r', result)
     return result
 
 
@@ -86,8 +93,9 @@ def _parse_ecdsa_sig(args):
     return (util.bytes2num(sig_r),
             util.bytes2num(sig_s))
 
-# DSA happens to have the same structure as ECDSA signatures
+# DSA and EDDSA happen to have the same structure as ECDSA signatures
 _parse_dsa_sig = _parse_ecdsa_sig
+_parse_eddsa_sig = _parse_ecdsa_sig
 
 
 def _parse_rsa_sig(args):
@@ -103,6 +111,7 @@ def parse_sig(sig):
     algo_name = sig[0]
     parser = {b'rsa': _parse_rsa_sig,
               b'ecdsa': _parse_ecdsa_sig,
+              b'eddsa': _parse_eddsa_sig,
               b'dsa': _parse_dsa_sig}[algo_name]
     return parser(args=sig[1:])
 
@@ -112,7 +121,7 @@ def sign_digest(sock, keygrip, digest, sp=subprocess, environ=None):
     hash_algo = 8  # SHA256
     assert len(digest) == 32
 
-    assert _communicate(sock, 'RESET').startswith(b'OK')
+    assert communicate(sock, 'RESET').startswith(b'OK')
 
     ttyname = sp.check_output(['tty']).strip()
     options = ['ttyname={}'.format(ttyname)]  # set TTY for passphrase entry
@@ -122,17 +131,17 @@ def sign_digest(sock, keygrip, digest, sp=subprocess, environ=None):
         options.append('display={}'.format(display))
 
     for opt in options:
-        assert _communicate(sock, 'OPTION {}'.format(opt)) == b'OK'
+        assert communicate(sock, 'OPTION {}'.format(opt)) == b'OK'
 
-    assert _communicate(sock, 'SIGKEY {}'.format(keygrip)) == b'OK'
+    assert communicate(sock, 'SIGKEY {}'.format(keygrip)) == b'OK'
     hex_digest = binascii.hexlify(digest).upper().decode('ascii')
-    assert _communicate(sock, 'SETHASH {} {}'.format(hash_algo,
-                                                     hex_digest)) == b'OK'
+    assert communicate(sock, 'SETHASH {} {}'.format(hash_algo,
+                                                    hex_digest)) == b'OK'
 
-    assert _communicate(sock, 'SETKEYDESC '
-                        'Sign+a+new+TREZOR-based+subkey') == b'OK'
-    assert _communicate(sock, 'PKSIGN') == b'OK'
-    line = _recvline(sock).strip()
+    assert communicate(sock, 'SETKEYDESC '
+                       'Sign+a+new+TREZOR-based+subkey') == b'OK'
+    assert communicate(sock, 'PKSIGN') == b'OK'
+    line = recvline(sock).strip()
     line = unescape(line)
     log.debug('unescaped: %r', line)
     prefix, sig = line.split(b' ', 1)
@@ -149,6 +158,14 @@ def get_keygrip(user_id, sp=subprocess):
     args = ['gpg2', '--list-keys', '--with-keygrip', user_id]
     output = sp.check_output(args).decode('ascii')
     return re.findall(r'Keygrip = (\w+)', output)[0]
+
+
+def gpg_version(sp=subprocess):
+    """Get a keygrip of the primary GPG key of the specified user."""
+    args = ['gpg2', '--version']
+    output = sp.check_output(args).decode('ascii')
+    line = output.split(b'\n')[0]  # b'gpg (GnuPG) 2.1.11'
+    return line.split(b' ')[-1]  # b'2.1.11'
 
 
 def export_public_key(user_id, sp=subprocess):

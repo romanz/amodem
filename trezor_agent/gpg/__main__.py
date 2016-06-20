@@ -3,11 +3,12 @@
 import argparse
 import contextlib
 import logging
+import os
 import sys
 import time
-import os
 
-from . import decode, encode, keyring, proto
+from . import agent, encode, keyring, proto
+from .. import server
 
 log = logging.getLogger(__name__)
 
@@ -15,47 +16,54 @@ log = logging.getLogger(__name__)
 def run_create(args):
     """Generate a new pubkey for a new/existing GPG identity."""
     user_id = os.environ['TREZOR_GPG_USER_ID']
-    f = encode.Factory(user_id=user_id, created=args.time,
-                       curve_name=args.ecdsa_curve)
+    conn = encode.HardwareSigner(user_id=user_id,
+                                 curve_name=args.ecdsa_curve)
+    verifying_key = conn.pubkey(ecdh=False)
+    decryption_key = conn.pubkey(ecdh=True)
 
-    with contextlib.closing(f):
-        if args.subkey:
-            primary_key = keyring.export_public_key(user_id=user_id)
-            result = f.create_subkey(primary_bytes=primary_key)
-        else:
-            result = f.create_primary()
+    if args.subkey:
+        primary_bytes = keyring.export_public_key(user_id=user_id)
+        # subkey for signing
+        signing_key = proto.PublicKey(
+            curve_name=args.ecdsa_curve, created=args.time,
+            verifying_key=verifying_key, ecdh=False)
+        # subkey for encryption
+        encryption_key = proto.PublicKey(
+            curve_name=args.ecdsa_curve, created=args.time,
+            verifying_key=decryption_key, ecdh=True)
+        result = encode.create_subkey(primary_bytes=primary_bytes,
+                                      pubkey=signing_key,
+                                      signer_func=conn.sign)
+        result = encode.create_subkey(primary_bytes=result,
+                                      pubkey=encryption_key,
+                                      signer_func=conn.sign)
+    else:
+        # primary key for signing
+        primary = proto.PublicKey(
+            curve_name=args.ecdsa_curve, created=args.time,
+            verifying_key=verifying_key, ecdh=False)
+        # subkey for encryption
+        subkey = proto.PublicKey(
+            curve_name=args.ecdsa_curve, created=args.time,
+            verifying_key=decryption_key, ecdh=True)
+
+        result = encode.create_primary(user_id=user_id,
+                                       pubkey=primary,
+                                       signer_func=conn.sign)
+        result = encode.create_subkey(primary_bytes=result,
+                                      pubkey=subkey,
+                                      signer_func=conn.sign)
 
     sys.stdout.write(proto.armor(result, 'PUBLIC KEY BLOCK'))
 
 
-def run_sign(args):
-    """Generate a GPG signature using hardware-based device."""
-    pubkey = decode.load_public_key(keyring.export_public_key(user_id=None),
-                                    use_custom=True)
-    f = encode.Factory.from_public_key(pubkey=pubkey,
-                                       user_id=pubkey['user_id'])
-    with contextlib.closing(f):
-        if args.filename:
-            data = open(args.filename, 'rb').read()
-        else:
-            data = sys.stdin.read()
-        sig = f.sign_message(data)
-
-    sig = proto.armor(sig, 'SIGNATURE').encode('ascii')
-    decode.verify(pubkey=pubkey, signature=sig, original_data=data)
-
-    filename = '-'  # write to stdout
-    if args.output:
-        filename = args.output
-    elif args.filename:
-        filename = args.filename + '.asc'
-
-    if filename == '-':
-        output = sys.stdout
-    else:
-        output = open(filename, 'wb')
-
-    output.write(sig)
+def run_agent(args):
+    """Run a simple GPG-agent server."""
+    sock_path = os.path.expanduser(args.sock_path)
+    with server.unix_domain_socket_server(sock_path) as sock:
+        for conn in agent.yield_connections(sock):
+            with contextlib.closing(conn):
+                agent.handle_connection(conn)
 
 
 def main():
@@ -66,18 +74,15 @@ def main():
     subparsers.required = True
     subparsers.dest = 'command'
 
-    create = subparsers.add_parser('create')
-    create.add_argument('-s', '--subkey', action='store_true', default=False)
-    create.add_argument('-e', '--ecdsa-curve', default='nist256p1')
-    create.add_argument('-t', '--time', type=int, default=int(time.time()))
-    create.set_defaults(run=run_create)
+    create_cmd = subparsers.add_parser('create')
+    create_cmd.add_argument('-s', '--subkey', action='store_true', default=False)
+    create_cmd.add_argument('-e', '--ecdsa-curve', default='nist256p1')
+    create_cmd.add_argument('-t', '--time', type=int, default=int(time.time()))
+    create_cmd.set_defaults(run=run_create)
 
-    sign = subparsers.add_parser('sign')
-    sign.add_argument('filename', nargs='?',
-                      help='Use stdin, if not specified.')
-    sign.add_argument('-o', '--output', default=None,
-                      help='Use stdout, if equals to "-".')
-    sign.set_defaults(run=run_sign)
+    agent_cmd = subparsers.add_parser('agent')
+    agent_cmd.add_argument('-s', '--sock-path', default='~/.gnupg/S.gpg-agent')
+    agent_cmd.set_defaults(run=run_agent)
 
     args = p.parse_args()
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,

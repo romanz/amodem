@@ -1,2 +1,2 @@
 [MESSAGES CONTROL]
-disable=invalid-name, missing-docstring, locally-disabled, unbalanced-tuple-unpacking
+disable=fixme, invalid-name, missing-docstring, locally-disabled, unbalanced-tuple-unpacking

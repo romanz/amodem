@@ -1,16 +1,17 @@
 # Using TREZOR as hardware GPG agent
 
-## Generate new GPG signing key:
 First, verify that you have GPG 2.1+ [installed](https://gist.github.com/vt0r/a2f8c0bcb1400131ff51):
+
 ```
 $ gpg2 --version | head -n1
 gpg (GnuPG) 2.1.11
 ```
-Update you TREZOR firmware to the latest version (at least [5430c82](https://github.com/trezor/trezor-mcu/commit/5430c82b2b1dbdd43c89de419ef92b754bed4c91)): see [a sample build log](https://gist.github.com/romanz/324c8e513abf5b5a452602ed648fa2cf).
 
-Install the latest development version of `trezor-agent`:
+Update you TREZOR firmware to the latest version (at least [c720614](https://github.com/trezor/trezor-mcu/commit/c720614f6e9b9c07f446c95bda0257980d942871)).
+
+Install latest `trezor-agent` package from [gpg-agent](https://github.com/romanz/trezor-agent/commits/gpg-agent) branch:
 ```
-$ pip install git+https://github.com/romanz/trezor-agent.git@master
+$ pip install git+https://github.com/romanz/trezor-agent.git@gpg-agent
 ```
 
 Define your GPG user ID as an environment variable:
@@ -20,38 +21,80 @@ $ export TREZOR_GPG_USER_ID="John Doe <john@doe.bit>"
 
 There are two ways to generate TREZOR-based GPG public keys, as described below.
 
-### (1) create new GPG identity:
-```
-$ trezor-gpg create > identity.pub           # create new TREZOR-based GPG identity
-$ gpg2 --import identity.pub                 # import into local GPG public keyring
-$ gpg2 --list-keys                           # verify that the new identity is created correctly
-$ gpg2 --edit "${TREZOR_GPG_USER_ID}" trust  # OPTIONAL: mark the key as trusted
-```
-[![asciicast](https://asciinema.org/a/44880.png)](https://asciinema.org/a/44880)
+## 1. generate a new GPG identity:
 
-### (2) create new subkey for an existing GPG identity:
 ```
-$ gpg2 --list-keys "${TREZOR_GPG_USER_ID}"   # make sure this identity already exists
-$ trezor-gpg create --subkey > identity.pub  # create new TREZOR-based GPG subkey
-$ gpg2 --import identity.pub                 # append it to an existing identity
-$ gpg2 --list-keys "${TREZOR_GPG_USER_ID}"   # verify that the new subkey is added to keyring
-```
-[![subkey](https://asciinema.org/a/8t78s6pqo5yocisaiolqnjp63.png)](https://asciinema.org/a/8t78s6pqo5yocisaiolqnjp63)
+$ trezor-gpg create | gpg2 --import              # use the TREZOR to confirm signing the primary key
+gpg: key 5E4D684D: public key "John Doe <john@doe.bit>" imported
+gpg: Total number processed: 1
+gpg:               imported: 1
 
-## Generate GPG signatures using a TREZOR device:
+$ gpg2 --edit "${TREZOR_GPG_USER_ID}" trust      # set this key to ultimate trust (option #5)
+
+$ gpg2 -k
+/home/roman/.gnupg/pubring.kbx
+------------------------------
+pub   nistp256/5E4D684D 2016-06-17 [SC]
+uid         [ultimate] John Doe <john@doe.bit>
+sub   nistp256/A31D9E25 2016-06-17 [E]
 ```
-$ trezor-gpg sign EXAMPLE                    # confirm signature using the device
-$ gpg2 --verify EXAMPLE.asc                  # verify using standard GPG binary
+
+## 2. generate a new subkey for an existing GPG identity:
+
 ```
-[![sign](https://asciinema.org/a/f1unkptesb7anq09i8wugoko6.png)](https://asciinema.org/a/f1unkptesb7anq09i8wugoko6)
+$ gpg2 -k                                        # suppose there is already a GPG primary key
+/home/roman/.gnupg/pubring.kbx
+------------------------------
+pub   rsa2048/87BB07B4 2016-06-17 [SC]
+uid         [ultimate] John Doe <john@doe.bit>
+sub   rsa2048/7176D31F 2016-06-17 [E]
+
+$ trezor-gpg create --subkey | gpg2 --import     # use the TREZOR to confirm signing the subkey
+gpg: key 87BB07B4: "John Doe <john@doe.bit>" 2 new signatures
+gpg: key 87BB07B4: "John Doe <john@doe.bit>" 2 new subkeys
+gpg: Total number processed: 1
+gpg:            new subkeys: 2
+gpg:         new signatures: 2
+
+$ gpg2 -k
+/home/roman/.gnupg/pubring.kbx
+------------------------------
+pub   rsa2048/87BB07B4 2016-06-17 [SC]
+uid         [ultimate] John Doe <john@doe.bit>
+sub   rsa2048/7176D31F 2016-06-17 [E]
+sub   nistp256/DDE80B36 2016-06-17 [S]
+sub   nistp256/E3D0BA19 2016-06-17 [E]
+```
+
+# Usage examples:
+
+## Start the TREZOR-based gpg-agent:
+```
+$ trezor-gpg agent &
+```
+Note: this agent intercepts all GPG requests, so make sure to close it (e.g. by using `killall trezor-gpg`),
+when you are done with the TREZOR-based GPG operations.
+
+## Sign and verify GPG messages:
+```
+$ echo "Hello World!" | gpg2 --sign | gpg2 --verify
+gpg: Signature made Fri 17 Jun 2016 08:55:13 PM IDT using ECDSA key ID 5E4D684D
+gpg: Good signature from "Roman Zeyde <roman.zeyde@gmail.com>" [ultimate]
+```
+## Encrypt and decrypt GPG messages:
+```
+$ date | gpg2 --encrypt -r "${TREZOR_GPG_USER_ID}" | gpg2 --decrypt
+gpg: encrypted with 256-bit ECDH key, ID A31D9E25, created 2016-06-17
+      "Roman Zeyde <roman.zeyde@gmail.com>"
+Fri Jun 17 20:55:31 IDT 2016
+```
 
 ## Git commit & tag signatures:
 Git can use GPG to sign and verify commits and tags (see [here](https://git-scm.com/book/en/v2/Git-Tools-Signing-Your-Work)):
 ```
-$ git config --local gpg.program "trezor-git-gpg-wrapper.sh"
+$ git config --local gpg.program gpg2
 $ git commit --gpg-sign                      # create GPG-signed commit
 $ git log --show-signature -1                # verify commit signature
 $ git tag --sign "TAG"                       # create GPG-signed tag
 $ git verify-tag "TAG"                       # verify tag signature
 ```
-[![asciicast](https://asciinema.org/a/44879.png)](https://asciinema.org/a/44879)

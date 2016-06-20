@@ -77,26 +77,70 @@ def _serialize_ed25519(vk):
                util.bytes2num(vk.to_bytes()))
 
 
+def _compute_keygrip(params):
+    parts = []
+    for name, value in params:
+        exp = '1:{}{}:'.format(name, len(value))
+        parts.append(b'(' + exp.encode('ascii') + value + b')')
+
+    return hashlib.sha1(b''.join(parts)).digest()
+
+
+def _keygrip_nist256(vk):
+    curve = vk.curve.curve
+    gen = vk.curve.generator
+    g = (4 << 512) | (gen.x() << 256) | gen.y()
+    point = vk.pubkey.point
+    q = (4 << 512) | (point.x() << 256) | point.y()
+
+    return _compute_keygrip([
+        ['p', util.num2bytes(curve.p(), size=32)],
+        ['a', util.num2bytes(curve.a() % curve.p(), size=32)],
+        ['b', util.num2bytes(curve.b() % curve.p(), size=32)],
+        ['g', util.num2bytes(g, size=65)],
+        ['n', util.num2bytes(vk.curve.order, size=32)],
+        ['q', util.num2bytes(q, size=65)],
+    ])
+
+
+def _keygrip_ed25519(vk):
+    # pylint: disable=line-too-long
+    return _compute_keygrip([
+        ['p', util.num2bytes(0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFED, size=32)],  # nopep8
+        ['a', b'\x01'],
+        ['b', util.num2bytes(0x2DFC9311D490018C7338BF8688861767FF8FF5B2BEBE27548A14B235ECA6874A, size=32)],  # nopep8
+        ['g', util.num2bytes(0x04216936D3CD6E53FEC0A4E231FDD6DC5C692CC7609525A7B2C9562D608F25D51A6666666666666666666666666666666666666666666666666666666666666658, size=65)],  # nopep8
+        ['n', util.num2bytes(0x1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED, size=32)],  # nopep8
+        ['q', vk.to_bytes()],
+    ])
+
+
 SUPPORTED_CURVES = {
     formats.CURVE_NIST256: {
         # https://tools.ietf.org/html/rfc6637#section-11
         'oid': b'\x2A\x86\x48\xCE\x3D\x03\x01\x07',
         'algo_id': 19,
-        'serialize': _serialize_nist256
+        'serialize': _serialize_nist256,
+        'keygrip': _keygrip_nist256,
     },
     formats.CURVE_ED25519: {
         'oid': b'\x2B\x06\x01\x04\x01\xDA\x47\x0F\x01',
         'algo_id': 22,
-        'serialize': _serialize_ed25519
+        'serialize': _serialize_ed25519,
+        'keygrip': _keygrip_ed25519,
     }
 }
 
+ECDH_ALGO_ID = 18
 
 CUSTOM_SUBPACKET = subpacket(100, b'TREZOR-GPG')  # marks "our" pubkey
 
 
 def find_curve_by_algo_id(algo_id):
     """Find curve name that matches a public key algorith ID."""
+    if algo_id == ECDH_ALGO_ID:
+        return formats.CURVE_NIST256
+
     curve_name, = [name for name, info in SUPPORTED_CURVES.items()
                    if info['algo_id'] == algo_id]
     return curve_name
@@ -105,14 +149,26 @@ def find_curve_by_algo_id(algo_id):
 class PublicKey(object):
     """GPG representation for public key packets."""
 
-    def __init__(self, curve_name, created, verifying_key):
+    def __init__(self, curve_name, created, verifying_key, ecdh=False):
         """Contruct using a ECDSA VerifyingKey object."""
         self.curve_info = SUPPORTED_CURVES[curve_name]
         self.created = int(created)  # time since Epoch
         self.verifying_key = verifying_key
-        self.algo_id = self.curve_info['algo_id']
+        self.ecdh = ecdh
+        if ecdh:
+            self.algo_id = ECDH_ALGO_ID
+            self.ecdh_packet = b'\x03\x01\x08\x07'
+        else:
+            self.algo_id = self.curve_info['algo_id']
+            self.ecdh_packet = b''
+
         hex_key_id = util.hexlify(self.key_id())[-8:]
         self.desc = 'GPG public key {}/{}'.format(curve_name, hex_key_id)
+
+    @property
+    def keygrip(self):
+        """Compute GPG2 keygrip."""
+        return self.curve_info['keygrip'](self.verifying_key)
 
     def data(self):
         """Data for packet creation."""
@@ -122,7 +178,7 @@ class PublicKey(object):
                              self.algo_id)  # public key algorithm ID
         oid = util.prefix_len('>B', self.curve_info['oid'])
         blob = self.curve_info['serialize'](self.verifying_key)
-        return header + oid + blob
+        return header + oid + blob + self.ecdh_packet
 
     def data_to_hash(self):
         """Data for digest computation."""
@@ -175,7 +231,8 @@ def make_signature(signer_func, data_to_sign, public_algo,
     log.debug('hashing %d bytes', len(data_to_hash))
     digest = hashlib.sha256(data_to_hash).digest()
     log.debug('signing digest: %s', util.hexlify(digest))
-    sig = signer_func(digest=digest)
+    params = signer_func(digest=digest)
+    sig = b''.join(mpi(p) for p in params)
 
     return bytes(header + hashed + unhashed +
                  digest[:2] +  # used for decoder's sanity check
