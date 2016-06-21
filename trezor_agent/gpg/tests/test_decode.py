@@ -1,3 +1,4 @@
+import hashlib
 import io
 
 import pytest
@@ -64,7 +65,7 @@ zpR9luXTKwMEl+mlZmwEFKZXBmir
         '_to_hash': b'\x04\x13\x13\x08\x00\x12\x05\x02WHH\xd6\x02\x1b\x03\x02\x15\x08\x02\x16\x00\x02\x17\x80\x04\xff\x00\x00\x00\x18'  # nopep8
     })
 
-    digest = decode.digest_packets(packets=[pubkey, user_id, signature])
+    digest = decode.digest_packets(packets=[pubkey, user_id, signature], hashalg=hashlib.sha256)
     decode.verify_digest(pubkey=pubkey, digest=digest,
                          signature=signature['sig'],
                          label='GPG primary public key')
