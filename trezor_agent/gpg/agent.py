@@ -2,6 +2,7 @@
 import binascii
 import contextlib
 import logging
+import os
 
 from . import decode, encode, keyring
 from .. import util
@@ -39,8 +40,9 @@ def sig_encode(r, s):
 def pksign(keygrip, digest, algo):
     """Sign a message digest using a private EC key."""
     assert algo == '8'
+    user_id = os.environ['TREZOR_GPG_USER_ID']
     pubkey_dict = decode.load_public_key(
-        pubkey_bytes=keyring.export_public_key(user_id=None),
+        pubkey_bytes=keyring.export_public_key(user_id=user_id),
         use_custom=True, ecdh=False)
     pubkey, conn = encode.load_from_public_key(pubkey_dict=pubkey_dict)
     with contextlib.closing(conn):
@@ -83,8 +85,9 @@ def pkdecrypt(keygrip, conn):
     assert keyring.recvline(conn) == b'END'
     remote_pubkey = parse_ecdh(line)
 
+    user_id = os.environ['TREZOR_GPG_USER_ID']
     local_pubkey = decode.load_public_key(
-        pubkey_bytes=keyring.export_public_key(user_id=None),
+        pubkey_bytes=keyring.export_public_key(user_id=user_id),
         use_custom=True, ecdh=True)
     pubkey, conn = encode.load_from_public_key(pubkey_dict=local_pubkey)
     with contextlib.closing(conn):
