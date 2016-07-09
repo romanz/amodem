@@ -75,20 +75,6 @@ def _parse_ed25519_verifier(mpi):
     return _ed25519_verify, vk
 
 
-def _create_rsa_verifier(n, e):
-    def verifier(signature, digest):
-        s, = signature
-        size = n.bit_length()
-        result = pow(s, e, n) % (2 ** 256)
-        digest = util.bytes2num(digest)
-        if result == digest:
-            log.debug('RSA-%d signature is OK', size)
-            return True
-        else:
-            raise ValueError('invalid RSA signature')
-
-    return verifier
-
 SUPPORTED_CURVES = {
     b'\x2A\x86\x48\xCE\x3D\x03\x01\x07': _parse_nist256p1_verifier,
     b'\x2B\x06\x01\x04\x01\xDA\x47\x0F\x01': _parse_ed25519_verifier,
@@ -194,10 +180,9 @@ def _parse_pubkey(stream, packet_type='pubkey'):
             log.warning('ElGamal signatures are not verified')
             parse_mpis(stream, n=3)
         else:  # assume RSA
-            log.debug('parsing RSA key')
-            n, e = parse_mpis(stream, n=2)
-            p['verifier'] = _create_rsa_verifier(n, e)
-            assert not stream.read()
+            log.warning('RSA signatures are not verified')
+            parse_mpis(stream, n=2)
+        assert not stream.read()
 
     # https://tools.ietf.org/html/rfc4880#section-12.2
     packet_data = packet.getvalue()
@@ -316,7 +301,7 @@ def load_public_key(pubkey_bytes, use_custom=False, ecdh=False):
         verify_digest(pubkey=pubkey, digest=digest,
                       signature=signature['sig'], label='GPG public key')
     else:
-        log.warning('public key %s cannot be verified!',
+        log.warning('public key %s is not verified!',
                     util.hexlify(pubkey['key_id']))
 
     packet = pubkey
