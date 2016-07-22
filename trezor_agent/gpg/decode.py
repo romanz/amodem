@@ -196,12 +196,15 @@ def _parse_pubkey(stream, packet_type='pubkey'):
 _parse_subkey = functools.partial(_parse_pubkey, packet_type='subkey')
 
 
-def _parse_user_id(stream):
+def _parse_user_id(stream, packet_type='user_id'):
     """See https://tools.ietf.org/html/rfc4880#section-5.11 for details."""
     value = stream.read()
     to_hash = b'\xb4' + util.prefix_len('>L', value)
-    return {'type': 'user_id', 'value': value, '_to_hash': to_hash}
+    return {'type': packet_type, 'value': value, '_to_hash': to_hash}
 
+# User attribute is handled as an opaque user ID
+_parse_attribute = functools.partial(_parse_user_id,
+                                     packet_type='user_attribute')
 
 PACKET_TYPES = {
     2: _parse_signature,
@@ -209,6 +212,7 @@ PACKET_TYPES = {
     11: _parse_literal,
     13: _parse_user_id,
     14: _parse_subkey,
+    17: _parse_attribute,
 }
 
 
