@@ -40,7 +40,7 @@ zpR9luXTKwMEl+mlZmwEFKZXBmir
 =oyj0
 -----END PGP PUBLIC KEY BLOCK-----
 '''
-    stream = util.Reader(io.BytesIO(decode.remove_armor(data)))
+    stream = io.BytesIO(decode.remove_armor(data))
     pubkey, user_id, signature = list(decode.parse_packets(stream))
     expected_pubkey = {
         'created': 1464355030, 'type': 'pubkey', 'tag': 6,
