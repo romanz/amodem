@@ -12,8 +12,6 @@ See SatoshiLabs' blog posts about this feature:
 - [TREZOR Firmware 1.3.4 enables SSH login](https://medium.com/@satoshilabs/trezor-firmware-1-3-4-enables-ssh-login-86a622d7e609)
 - [TREZOR Firmware 1.3.6 — GPG Signing, SSH Login Updates and Advanced Transaction Features for Segwit](https://medium.com/@satoshilabs/trezor-firmware-1-3-6-20a7df6e692)
 
-## SSH usage
-See the following [link](README-SSH.md) for instructions.
+For usage with SSH, see the [following instructions](README-SSH.md).
 
-## GPG usage
-See the following [link](README-GPG.md) for instructions.
+For usage with GPG, see the [following instructions](README-GPG.md).
