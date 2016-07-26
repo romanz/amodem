@@ -74,3 +74,9 @@ SETHASH 8 4141414141414141414141414141414141414141414141414141414141414141
 SETKEYDESC Sign+a+new+TREZOR-based+subkey
 PKSIGN
 '''
+
+
+def test_iterlines():
+    sock = FakeSocket()
+    sock.rx.write(b'foo\nbar\nxyz')
+    assert list(keyring.iterlines(sock)) == []

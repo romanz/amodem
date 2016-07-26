@@ -99,15 +99,6 @@ def pkdecrypt(keygrip, conn):
     return _serialize_point(shared_secret)
 
 
-def iterlines(conn):
-    """Iterate over input, split by lines."""
-    while True:
-        line = keyring.recvline(conn)
-        if line is None:
-            break
-        yield line
-
-
 def handle_connection(conn):
     """Handle connection from GPG binary using the ASSUAN protocol."""
     keygrip = None
@@ -116,7 +107,7 @@ def handle_connection(conn):
     version = keyring.gpg_version()
 
     keyring.sendline(conn, b'OK')
-    for line in iterlines(conn):
+    for line in keyring.iterlines(conn):
         parts = line.split(' ')
         command = parts[0]
         args = parts[1:]

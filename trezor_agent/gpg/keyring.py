@@ -52,6 +52,15 @@ def recvline(sock):
     return result
 
 
+def iterlines(conn):
+    """Iterate over input, split by lines."""
+    while True:
+        line = recvline(conn)
+        if line is None:
+            break
+        yield line
+
+
 def unescape(s):
     """Unescape ASSUAN message (0xAB <-> '%AB')."""
     s = bytearray(s)
