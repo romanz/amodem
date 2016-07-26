@@ -80,7 +80,7 @@ def _serialize_ed25519(vk):
 def _compute_keygrip(params):
     parts = []
     for name, value in params:
-        exp = '1:{}{}:'.format(name, len(value))
+        exp = '{}:{}{}:'.format(len(name), name, len(value))
         parts.append(b'(' + exp.encode('ascii') + value + b')')
 
     return hashlib.sha1(b''.join(parts)).digest()
