@@ -111,4 +111,5 @@ def public_key_path(request):
 
 def test_gpg_files(public_key_path):  # pylint: disable=redefined-outer-name
     with open(public_key_path, 'rb') as f:
-        decode.parse_public_key(f)
+        keys = decode.parse_public_keys(f)
+        assert len(keys) > 0
