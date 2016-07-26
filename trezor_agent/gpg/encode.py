@@ -174,23 +174,6 @@ def create_subkey(primary_bytes, pubkey, signer_func):
     return primary_bytes + subkey_packet + sign_packet
 
 
-def sign_message(signer_func, msg, pubkey, sign_time):
-    """Sign GPG message at specified time."""
-    log.info('signing %d byte message at %s',
-             len(msg), _time_format(sign_time))
-    hashed_subpackets = [proto.subpacket_time(sign_time)]
-    unhashed_subpackets = [
-        proto.subpacket(16, pubkey.key_id())]  # issuer key id
-
-    blob = proto.make_signature(
-        signer_func=signer_func,
-        data_to_sign=msg,
-        public_algo=pubkey.algo_id,
-        hashed_subpackets=hashed_subpackets,
-        unhashed_subpackets=unhashed_subpackets)
-    return proto.packet(tag=2, blob=blob)
-
-
 def load_from_public_key(pubkey_dict):
     """Load correct public key from the device."""
     user_id = pubkey_dict['user_id']
