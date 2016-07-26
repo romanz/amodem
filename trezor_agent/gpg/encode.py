@@ -2,7 +2,7 @@
 import logging
 import time
 
-from . import decode, keyring, proto
+from . import decode, keyring, protocol
 from .. import client, factory, formats, util
 
 log = logging.getLogger(__name__)
@@ -80,34 +80,34 @@ def _time_format(t):
 
 def create_primary(user_id, pubkey, signer_func):
     """Export new primary GPG public key, ready for "gpg2 --import"."""
-    pubkey_packet = proto.packet(tag=6, blob=pubkey.data())
-    user_id_packet = proto.packet(tag=13,
-                                  blob=user_id.encode('ascii'))
+    pubkey_packet = protocol.packet(tag=6, blob=pubkey.data())
+    user_id_packet = protocol.packet(tag=13,
+                                     blob=user_id.encode('ascii'))
 
     data_to_sign = (pubkey.data_to_hash() +
                     user_id_packet[:1] +
                     util.prefix_len('>L', user_id.encode('ascii')))
     log.info('creating primary GPG key "%s"', user_id)
     hashed_subpackets = [
-        proto.subpacket_time(pubkey.created),  # signature time
+        protocol.subpacket_time(pubkey.created),  # signature time
         # https://tools.ietf.org/html/rfc4880#section-5.2.3.7
-        proto.subpacket_byte(0x0B, 9),  # preferred symmetric algo (AES-256)
+        protocol.subpacket_byte(0x0B, 9),  # preferred symmetric algo (AES-256)
         # https://tools.ietf.org/html/rfc4880#section-5.2.3.4
-        proto.subpacket_byte(0x1B, 1 | 2),  # key flags (certify & sign)
+        protocol.subpacket_byte(0x1B, 1 | 2),  # key flags (certify & sign)
         # https://tools.ietf.org/html/rfc4880#section-5.2.3.21
-        proto.subpacket_byte(0x15, 8),  # preferred hash (SHA256)
+        protocol.subpacket_byte(0x15, 8),  # preferred hash (SHA256)
         # https://tools.ietf.org/html/rfc4880#section-5.2.3.8
-        proto.subpacket_byte(0x16, 0),  # preferred compression (none)
+        protocol.subpacket_byte(0x16, 0),  # preferred compression (none)
         # https://tools.ietf.org/html/rfc4880#section-5.2.3.9
-        proto.subpacket_byte(0x17, 0x80)  # key server prefs (no-modify)
+        protocol.subpacket_byte(0x17, 0x80)  # key server prefs (no-modify)
         # https://tools.ietf.org/html/rfc4880#section-5.2.3.17
     ]
     unhashed_subpackets = [
-        proto.subpacket(16, pubkey.key_id()),  # issuer key id
-        proto.CUSTOM_SUBPACKET]
+        protocol.subpacket(16, pubkey.key_id()),  # issuer key id
+        protocol.CUSTOM_SUBPACKET]
 
     log.info('confirm signing with primary key')
-    signature = proto.make_signature(
+    signature = protocol.make_signature(
         signer_func=signer_func,
         public_algo=pubkey.algo_id,
         data_to_sign=data_to_sign,
@@ -115,13 +115,13 @@ def create_primary(user_id, pubkey, signer_func):
         hashed_subpackets=hashed_subpackets,
         unhashed_subpackets=unhashed_subpackets)
 
-    sign_packet = proto.packet(tag=2, blob=signature)
+    sign_packet = protocol.packet(tag=2, blob=signature)
     return pubkey_packet + user_id_packet + sign_packet
 
 
 def create_subkey(primary_bytes, pubkey, signer_func):
     """Export new subkey to GPG primary key."""
-    subkey_packet = proto.packet(tag=14, blob=pubkey.data())
+    subkey_packet = protocol.packet(tag=14, blob=pubkey.data())
     primary = decode.load_public_key(primary_bytes)
     log.info('adding subkey to primary GPG key "%s"', primary['user_id'])
     data_to_sign = primary['_to_hash'] + pubkey.data_to_hash()
@@ -131,11 +131,11 @@ def create_subkey(primary_bytes, pubkey, signer_func):
     else:
         # Primary Key Binding Signature
         hashed_subpackets = [
-            proto.subpacket_time(pubkey.created)]  # signature time
+            protocol.subpacket_time(pubkey.created)]  # signature time
         unhashed_subpackets = [
-            proto.subpacket(16, pubkey.key_id())]  # issuer key id
+            protocol.subpacket(16, pubkey.key_id())]  # issuer key id
         log.info('confirm signing with new subkey')
-        embedded_sig = proto.make_signature(
+        embedded_sig = protocol.make_signature(
             signer_func=signer_func,
             data_to_sign=data_to_sign,
             public_algo=pubkey.algo_id,
@@ -150,27 +150,27 @@ def create_subkey(primary_bytes, pubkey, signer_func):
     flags = (2) if (not pubkey.ecdh) else (4 | 8)
 
     hashed_subpackets = [
-        proto.subpacket_time(pubkey.created),  # signature time
-        proto.subpacket_byte(0x1B, flags)]
+        protocol.subpacket_time(pubkey.created),  # signature time
+        protocol.subpacket_byte(0x1B, flags)]
 
     unhashed_subpackets = []
-    unhashed_subpackets.append(proto.subpacket(16, primary['key_id']))
+    unhashed_subpackets.append(protocol.subpacket(16, primary['key_id']))
     if embedded_sig is not None:
-        unhashed_subpackets.append(proto.subpacket(32, embedded_sig))
-    unhashed_subpackets.append(proto.CUSTOM_SUBPACKET)
+        unhashed_subpackets.append(protocol.subpacket(32, embedded_sig))
+    unhashed_subpackets.append(protocol.CUSTOM_SUBPACKET)
 
     log.info('confirm signing with primary key')
     if not primary['_is_custom']:
         signer_func = AgentSigner(primary['user_id']).sign
 
-    signature = proto.make_signature(
+    signature = protocol.make_signature(
         signer_func=signer_func,
         data_to_sign=data_to_sign,
         public_algo=primary['algo'],
         sig_type=0x18,
         hashed_subpackets=hashed_subpackets,
         unhashed_subpackets=unhashed_subpackets)
-    sign_packet = proto.packet(tag=2, blob=signature)
+    sign_packet = protocol.packet(tag=2, blob=signature)
     return primary_bytes + subkey_packet + sign_packet
 
 
@@ -178,12 +178,12 @@ def load_from_public_key(pubkey_dict):
     """Load correct public key from the device."""
     user_id = pubkey_dict['user_id']
     created = pubkey_dict['created']
-    curve_name = proto.find_curve_by_algo_id(pubkey_dict['algo'])
+    curve_name = protocol.find_curve_by_algo_id(pubkey_dict['algo'])
     assert curve_name in formats.SUPPORTED_CURVES
-    ecdh = (pubkey_dict['algo'] == proto.ECDH_ALGO_ID)
+    ecdh = (pubkey_dict['algo'] == protocol.ECDH_ALGO_ID)
 
     conn = HardwareSigner(user_id, curve_name=curve_name)
-    pubkey = proto.PublicKey(
+    pubkey = protocol.PublicKey(
         curve_name=curve_name, created=created,
         verifying_key=conn.pubkey(ecdh=ecdh), ecdh=ecdh)
     assert pubkey.key_id() == pubkey_dict['key_id']

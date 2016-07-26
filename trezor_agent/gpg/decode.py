@@ -10,7 +10,7 @@ import struct
 import ecdsa
 import ed25519
 
-from . import proto
+from . import protocol
 from .. import util
 
 log = logging.getLogger(__name__)
@@ -131,7 +131,7 @@ def _parse_signature(stream):
         log.debug('embedded sigs: %s', embedded)
         p['embedded'] = embedded
 
-    p['_is_custom'] = (proto.CUSTOM_SUBPACKET in p['unhashed_subpackets'])
+    p['_is_custom'] = (protocol.CUSTOM_SUBPACKET in p['unhashed_subpackets'])
 
     p['hash_prefix'] = stream.readfmt('2s')
     if p['pubkey_alg'] in ECDSA_ALGO_IDS:
@@ -330,7 +330,7 @@ def load_public_key(pubkey_bytes, use_custom=False, ecdh=False):
     packet = pubkey
     while use_custom:
         if packet['type'] in ('pubkey', 'subkey') and signature['_is_custom']:
-            if ecdh == (packet['algo'] == proto.ECDH_ALGO_ID):
+            if ecdh == (packet['algo'] == protocol.ECDH_ALGO_ID):
                 log.debug('found custom %s', packet['type'])
                 break
 

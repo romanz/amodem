@@ -7,7 +7,7 @@ import os
 import sys
 import time
 
-from . import agent, encode, keyring, proto
+from . import agent, encode, keyring, protocol
 from .. import server
 
 log = logging.getLogger(__name__)
@@ -24,11 +24,11 @@ def run_create(args):
     if args.subkey:
         primary_bytes = keyring.export_public_key(user_id=user_id)
         # subkey for signing
-        signing_key = proto.PublicKey(
+        signing_key = protocol.PublicKey(
             curve_name=args.ecdsa_curve, created=args.time,
             verifying_key=verifying_key, ecdh=False)
         # subkey for encryption
-        encryption_key = proto.PublicKey(
+        encryption_key = protocol.PublicKey(
             curve_name=args.ecdsa_curve, created=args.time,
             verifying_key=decryption_key, ecdh=True)
         result = encode.create_subkey(primary_bytes=primary_bytes,
@@ -39,11 +39,11 @@ def run_create(args):
                                       signer_func=conn.sign)
     else:
         # primary key for signing
-        primary = proto.PublicKey(
+        primary = protocol.PublicKey(
             curve_name=args.ecdsa_curve, created=args.time,
             verifying_key=verifying_key, ecdh=False)
         # subkey for encryption
-        subkey = proto.PublicKey(
+        subkey = protocol.PublicKey(
             curve_name=args.ecdsa_curve, created=args.time,
             verifying_key=decryption_key, ecdh=True)
 
@@ -54,7 +54,7 @@ def run_create(args):
                                       pubkey=subkey,
                                       signer_func=conn.sign)
 
-    sys.stdout.write(proto.armor(result, 'PUBLIC KEY BLOCK'))
+    sys.stdout.write(protocol.armor(result, 'PUBLIC KEY BLOCK'))
 
 
 def run_agent(args):
