@@ -1,3 +1,7 @@
+Note: the GPG-related code is still under development,
+so please try the current implementation and feel free
+to report any issue you have encountered. Thanks!
+
 # Installation
 
 First, verify that you have GPG 2.1+ [installed](https://gist.github.com/vt0r/a2f8c0bcb1400131ff51):
