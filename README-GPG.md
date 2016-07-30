@@ -15,7 +15,7 @@ Update you TREZOR firmware to the latest version (at least [c720614](https://git
 
 Install latest `trezor-agent` package from [gpg-agent](https://github.com/romanz/trezor-agent/commits/gpg-agent) branch:
 ```
-$ pip install git+https://github.com/romanz/trezor-agent.git@gpg-agent
+$ pip install --user git+https://github.com/romanz/trezor-agent.git@gpg-agent
 ```
 
 Define your GPG user ID as an environment variable:
