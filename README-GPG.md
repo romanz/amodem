@@ -1,6 +1,6 @@
-Note: the GPG-related code is still under development,
-so please try the current implementation and feel free
-to report any issue you have encountered. Thanks!
+Note: the GPG-related code is still under development, so please try the current implementation
+and feel free to [report any issue](https://github.com/romanz/trezor-agent/issues) you have encountered.
+Thanks!
 
 # Installation
 
