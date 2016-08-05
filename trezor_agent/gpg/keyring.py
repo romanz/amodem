@@ -179,7 +179,7 @@ def gpg_version(sp=subprocess):
 
 def export_public_key(user_id, sp=subprocess):
     """Export GPG public key for specified `user_id`."""
-    args = ['gpg2', '--export'] + ([user_id] if user_id else [])
+    args = ['gpg2', '--export', user_id]
     result = sp.check_output(args=args)
     if not result:
         log.error('could not find public key %r in local GPG keyring', user_id)
