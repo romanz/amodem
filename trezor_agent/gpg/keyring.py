@@ -162,16 +162,27 @@ def sign_digest(sock, keygrip, digest, sp=subprocess, environ=None):
     return parse_sig(sig)
 
 
+def gpg_command(args, env=None):
+    """Prepare common GPG command line arguments."""
+    if env is None:
+        env = os.environ
+    cmd = ['gpg2']
+    homedir = env.get('GNUPGHOME')
+    if homedir:
+        cmd.extend(['--homedir', homedir])
+    return cmd + args
+
+
 def get_keygrip(user_id, sp=subprocess):
     """Get a keygrip of the primary GPG key of the specified user."""
-    args = ['gpg2', '--list-keys', '--with-keygrip', user_id]
+    args = gpg_command(['--list-keys', '--with-keygrip', user_id])
     output = sp.check_output(args).decode('ascii')
     return re.findall(r'Keygrip = (\w+)', output)[0]
 
 
 def gpg_version(sp=subprocess):
     """Get a keygrip of the primary GPG key of the specified user."""
-    args = ['gpg2', '--version']
+    args = gpg_command(['--version'])
     output = sp.check_output(args).decode('ascii')
     line = output.split(b'\n')[0]  # b'gpg (GnuPG) 2.1.11'
     return line.split(b' ')[-1]  # b'2.1.11'
@@ -179,7 +190,7 @@ def gpg_version(sp=subprocess):
 
 def export_public_key(user_id, sp=subprocess):
     """Export GPG public key for specified `user_id`."""
-    args = ['gpg2', '--export', user_id]
+    args = gpg_command(['--export', user_id])
     result = sp.check_output(args=args)
     if not result:
         log.error('could not find public key %r in local GPG keyring', user_id)
