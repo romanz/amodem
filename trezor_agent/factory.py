@@ -5,6 +5,8 @@ import logging
 
 import semver
 
+from . import util
+
 log = logging.getLogger(__name__)
 
 ClientWrapper = collections.namedtuple(
@@ -76,8 +78,10 @@ def _load_keepkey():
     except ImportError:
         log.exception('Missing module: install via "pip install keepkey"')
 
+
 def _load_ledger():
     import struct
+
     class LedgerClientConnection(object):
         def __init__(self, dongle):
             self.dongle = dongle
@@ -93,7 +97,7 @@ def _load_ledger():
         def convert_public_key(ecdsa_curve_name, result):
             from trezorlib.messages_pb2 import PublicKey
             if ecdsa_curve_name == "nist256p1":
-                if (result[64] & 1) <> 0:
+                if (result[64] & 1) != 0:
                     result = bytearray([0x03]) + result[1:33]
                 else:
                     result = bytearray([0x02]) + result[1:33]
@@ -101,13 +105,12 @@ def _load_ledger():
                 result = result[1:]
                 keyX = bytearray(result[0:32])
                 keyY = bytearray(result[32:][::-1])
-                if (keyX[31] & 1) <> 0:
+                if (keyX[31] & 1) != 0:
                     keyY[31] |= 0x80
                 result = chr(0) + str(keyY)
             publicKey = PublicKey()
             publicKey.node.public_key = str(result)
             return publicKey
-
 
         # pylint: disable=unused-argument
         def get_public_node(self, n, ecdsa_curve_name="secp256k1", show_display=False):
@@ -126,9 +129,8 @@ def _load_ledger():
         # pylint: disable=too-many-locals
         def sign_identity(self, identity, challenge_hidden, challenge_visual,
                           ecdsa_curve_name="secp256k1"):
-            from trezor_agent import client
             from trezorlib.messages_pb2 import SignedIdentity
-            n = client.get_address(identity)
+            n = util.get_bip32_address(identity)
             donglePath = LedgerClientConnection.expand_path(n)
             if identity.proto == 'ssh':
                 ins = "04"
@@ -149,12 +151,12 @@ def _load_ledger():
             if ecdsa_curve_name == "nist256p1":
                 offset = 3
                 length = result[offset]
-                r = result[offset + 1 : offset + 1 + length]
+                r = result[offset+1:offset+1+length]
                 if r[0] == 0:
                     r = r[1:]
                 offset = offset + 1 + length + 1
                 length = result[offset]
-                s = result[offset + 1 : offset + 1 + length]
+                s = result[offset+1:offset+1+length]
                 if s[0] == 0:
                     s = s[1:]
                 offset = offset + 1 + length
@@ -175,9 +177,8 @@ def _load_ledger():
                 return signature
 
         def get_ecdh_session_key(self, identity, peer_public_key, ecdsa_curve_name="secp256k1"):
-            from trezor_agent import client
             from trezorlib.messages_pb2 import ECDHSessionKey
-            n = client.get_address(identity, True)
+            n = util.get_bip32_address(identity, True)
             donglePath = LedgerClientConnection.expand_path(n)
             if ecdsa_curve_name == "nist256p1":
                 p2 = "01"
