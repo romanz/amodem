@@ -95,7 +95,7 @@ def _load_ledger():
 
         @staticmethod
         def convert_public_key(ecdsa_curve_name, result):
-            from trezorlib.messages_pb2 import PublicKey
+            from trezorlib.messages_pb2 import PublicKey  # pylint: disable=import-error
             if ecdsa_curve_name == "nist256p1":
                 if (result[64] & 1) != 0:
                     result = bytearray([0x03]) + result[1:33]
@@ -129,7 +129,7 @@ def _load_ledger():
         # pylint: disable=too-many-locals
         def sign_identity(self, identity, challenge_hidden, challenge_visual,
                           ecdsa_curve_name="secp256k1"):
-            from trezorlib.messages_pb2 import SignedIdentity
+            from trezorlib.messages_pb2 import SignedIdentity  # pylint: disable=import-error
             n = util.get_bip32_address(identity)
             donglePath = LedgerClientConnection.expand_path(n)
             if identity.proto == 'ssh':
@@ -177,7 +177,7 @@ def _load_ledger():
                 return signature
 
         def get_ecdh_session_key(self, identity, peer_public_key, ecdsa_curve_name="secp256k1"):
-            from trezorlib.messages_pb2 import ECDHSessionKey
+            from trezorlib.messages_pb2 import ECDHSessionKey  # pylint: disable=import-error
             n = util.get_bip32_address(identity, True)
             donglePath = LedgerClientConnection.expand_path(n)
             if ecdsa_curve_name == "nist256p1":
@@ -216,7 +216,7 @@ def _load_ledger():
         log.exception('Missing module: install via "pip install ledgerblue"')
     # pylint: disable=bare-except
     try:
-        from trezorlib.types_pb2 import IdentityType
+        from trezorlib.types_pb2 import IdentityType  # pylint: disable=import-error
         dongle = getDongle(True)
     except:
         return
