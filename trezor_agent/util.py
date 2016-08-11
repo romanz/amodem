@@ -1,8 +1,13 @@
 """Various I/O and serialization utilities."""
 import binascii
 import contextlib
+import hashlib
 import io
+import logging
+import re
 import struct
+
+log = logging.getLogger(__name__)
 
 
 def send(conn, data):
@@ -173,3 +178,52 @@ class Reader(object):
             yield
         finally:
             self._captured = None
+
+
+_identity_regexp = re.compile(''.join([
+    '^'
+    r'(?:(?P<proto>.*)://)?',
+    r'(?:(?P<user>.*)@)?',
+    r'(?P<host>.*?)',
+    r'(?::(?P<port>\w*))?',
+    r'(?P<path>/.*)?',
+    '$'
+]))
+
+
+def string_to_identity(s, identity_type):
+    """Parse string into Identity protobuf."""
+    m = _identity_regexp.match(s)
+    result = m.groupdict()
+    log.debug('parsed identity: %s', result)
+    kwargs = {k: v for k, v in result.items() if v}
+    return identity_type(**kwargs)
+
+
+def identity_to_string(identity):
+    """Dump Identity protobuf into its string representation."""
+    result = []
+    if identity.proto:
+        result.append(identity.proto + '://')
+    if identity.user:
+        result.append(identity.user + '@')
+    result.append(identity.host)
+    if identity.port:
+        result.append(':' + identity.port)
+    if identity.path:
+        result.append(identity.path)
+    return ''.join(result)
+
+
+def get_bip32_address(identity, ecdh=False):
+    """Compute BIP32 derivation address according to SLIP-0013/0017."""
+    index = struct.pack('<L', identity.index)
+    addr = index + identity_to_string(identity).encode('ascii')
+    log.debug('address string: %r', addr)
+    digest = hashlib.sha256(addr).digest()
+    s = io.BytesIO(bytearray(digest))
+
+    hardened = 0x80000000
+    addr_0 = [13, 17][bool(ecdh)]
+    address_n = [addr_0] + list(recv(s, '<LLLL'))
+    return [(hardened | value) for value in address_n]

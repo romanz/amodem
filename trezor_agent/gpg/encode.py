@@ -3,7 +3,7 @@ import logging
 import time
 
 from . import decode, keyring, protocol
-from .. import client, factory, formats, util
+from .. import factory, formats, util
 
 log = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ class HardwareSigner(object):
 
     def pubkey(self, ecdh=False):
         """Return public key as VerifyingKey object."""
-        addr = client.get_address(identity=self.identity, ecdh=ecdh)
+        addr = util.get_bip32_address(identity=self.identity, ecdh=ecdh)
         public_node = self.client_wrapper.connection.get_public_node(
             n=addr, ecdsa_curve_name=self.curve_name)
 
