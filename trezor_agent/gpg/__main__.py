@@ -16,6 +16,9 @@ log = logging.getLogger(__name__)
 def run_create(args):
     """Generate a new pubkey for a new/existing GPG identity."""
     user_id = os.environ['TREZOR_GPG_USER_ID']
+    log.warning('NOTE: in order to re-generate the exact same GPG key later, '
+                'run this command with "--time=%d" commandline flag (to set '
+                'the timestamp of the GPG key manually).', args.time)
     conn = encode.HardwareSigner(user_id=user_id,
                                  curve_name=args.ecdsa_curve)
     verifying_key = conn.pubkey(ecdh=False)
