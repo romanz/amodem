@@ -60,9 +60,9 @@ def run_create(args):
     sys.stdout.write(protocol.armor(result, 'PUBLIC KEY BLOCK'))
 
 
-def run_agent(args):
+def run_agent(args):  # pylint: disable=unused-argument
     """Run a simple GPG-agent server."""
-    sock_path = os.path.expanduser(args.sock_path)
+    sock_path = keyring.get_agent_sock_path()
     with server.unix_domain_socket_server(sock_path) as sock:
         for conn in agent.yield_connections(sock):
             with contextlib.closing(conn):
@@ -84,7 +84,6 @@ def main():
     create_cmd.set_defaults(run=run_create)
 
     agent_cmd = subparsers.add_parser('agent')
-    agent_cmd.add_argument('-s', '--sock-path', default='~/.gnupg/S.gpg-agent')
     agent_cmd.set_defaults(run=run_agent)
 
     args = p.parse_args()
