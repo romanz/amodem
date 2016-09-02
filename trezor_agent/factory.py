@@ -54,7 +54,7 @@ def _load_trezor():
                             hid_transport=HidTransport,
                             passphrase_ack=PassphraseAck,
                             identity_type=IdentityType,
-                            required_version='>=1.3.4',
+                            required_version='>=1.4.0',
                             call_exception=CallException)
     except ImportError:
         log.exception('Missing module: install via "pip install trezor"')
