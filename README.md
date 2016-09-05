@@ -5,7 +5,6 @@
 [![Package Version](https://img.shields.io/pypi/v/trezor_agent.svg)](https://pypi.python.org/pypi/trezor_agent/)
 [![Development Status](https://img.shields.io/pypi/status/trezor_agent.svg)](https://pypi.python.org/pypi/trezor_agent/)
 [![Downloads](https://img.shields.io/pypi/dm/trezor_agent.svg)](https://pypi.python.org/pypi/trezor_agent/)
-[![Chat](https://badges.gitter.im/romanz/trezor-agent.svg)](https://gitter.im/romanz/trezor-agent)
 
 See SatoshiLabs' blog posts about this feature:
 
@@ -15,3 +14,5 @@ See SatoshiLabs' blog posts about this feature:
 For usage with SSH, see the [following instructions](README-SSH.md).
 
 For usage with GPG, see the [following instructions](README-GPG.md).
+
+Questions, suggestions and discussions are welcome: [![Chat](https://badges.gitter.im/romanz/trezor-agent.svg)](https://gitter.im/romanz/trezor-agent)

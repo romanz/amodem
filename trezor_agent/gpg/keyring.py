@@ -13,9 +13,16 @@ from .. import util
 log = logging.getLogger(__name__)
 
 
-def connect_to_agent(sock_path='~/.gnupg/S.gpg-agent', sp=subprocess):
+def get_agent_sock_path(sp=subprocess):
+    """Parse gpgconf output to find out GPG agent UNIX socket path."""
+    lines = sp.check_output(['gpgconf', '--list-dirs']).strip().split('\n')
+    dirs = dict(line.split(':', 1) for line in lines)
+    return dirs['agent-socket']
+
+
+def connect_to_agent(sp=subprocess):
     """Connect to GPG agent's UNIX socket."""
-    sock_path = os.path.expanduser(sock_path)
+    sock_path = get_agent_sock_path(sp=sp)
     sp.check_call(['gpg-connect-agent', '/bye'])
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     sock.connect(sock_path)
