@@ -25,9 +25,16 @@ def parse_subpackets(s):
 
     while True:
         try:
-            subpacket_len = s.readfmt('B')
+            first = s.readfmt('B')
         except EOFError:
             break
+
+        if first < 192:
+            subpacket_len = first
+        elif first < 255:
+            subpacket_len = ((first - 192) << 8) + s.readfmt('B') + 192
+        else:  # first == 255
+            subpacket_len = s.readfmt('>L')
 
         subpackets.append(s.read(subpacket_len))
 
