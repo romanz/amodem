@@ -47,9 +47,22 @@ def subpacket_byte(subpacket_type, value):
     return subpacket(subpacket_type, '>B', value)
 
 
+def subpacket_prefix_len(blob):
+    """Prefix GPG subpacket with the encoding of it's length."""
+    if len(blob) < 2**8:
+        length_type = 0
+    elif len(blob) < 2**16:
+        length_type = 1
+    else:
+        length_type = 2
+    fmt = ['>B', '>H', '>L'][length_type]
+    prefix = [b'', b'', struct.pack('>B', 255)][length_type]
+    return prefix + struct.pack(fmt, len(blob)) + blob
+
+
 def subpackets(*items):
     """Serialize several GPG subpackets."""
-    prefixed = [util.prefix_len('>B', item) for item in items]
+    prefixed = [subpacket_prefix_len(item) for item in items]
     return util.prefix_len('>H', b''.join(prefixed))
 
 
