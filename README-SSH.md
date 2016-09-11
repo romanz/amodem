@@ -9,27 +9,6 @@
 ## Using for GitHub SSH authentication (via `trezor-git` utility)
 [![GitHub](https://asciinema.org/a/38337.png)](https://asciinema.org/a/38337)
 
-# Installation
-
-First, make sure that the latest [trezorlib](https://pypi.python.org/pypi/trezor) Python package
-is installed correctly (at least v0.6.6):
-
-	$ apt-get install python-dev libusb-1.0-0-dev libudev-dev
-	$ pip install Cython trezor
-
-Then, install the latest [trezor_agent](https://pypi.python.org/pypi/trezor_agent) package:
-
-	$ pip install trezor_agent
-
-Finally, verify that you are running the latest [TREZOR firmware](https://mytrezor.com/data/firmware/releases.json) version (at least v1.4.0):
-
-	$ trezorctl get_features
-	vendor: "bitcointrezor.com"
-	major_version: 1
-	minor_version: 4
-	patch_version: 0
-	...
-
 # Public key generation
 
 Run:
