@@ -25,7 +25,7 @@ Then, install the latest [trezor_agent](https://pypi.python.org/pypi/trezor_agen
 
 Finally, verify that you are running the latest [TREZOR firmware](https://mytrezor.com/data/firmware/releases.json) version (at least v1.4.0):
 
-	$ trezorctl get_features
+	$ trezorctl get_features | head
 	vendor: "bitcointrezor.com"
 	major_version: 1
 	minor_version: 4
