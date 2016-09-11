@@ -34,9 +34,9 @@ Finally, verify that you are running the latest [TREZOR firmware](https://mytrez
 
 ## Usage
 
-For usage with SSH, see the [following instructions](README-SSH.md).
+For SSH, see the [following instructions](README-SSH.md).
 
-For usage with GPG, see the [following instructions](README-GPG.md).
+For GPG, see the [following instructions](README-GPG.md).
 
 Questions, suggestions and discussions are welcome: [![Chat](https://badges.gitter.im/romanz/trezor-agent.svg)](https://gitter.im/romanz/trezor-agent)
 
