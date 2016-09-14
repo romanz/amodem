@@ -217,7 +217,7 @@ def _load_ledger():
     # pylint: disable=bare-except
     try:
         from trezorlib.types_pb2 import IdentityType  # pylint: disable=import-error
-        dongle = getDongle(True)
+        dongle = getDongle()
     except:
         return
     yield ClientWrapper(connection=LedgerClientConnection(dongle),
