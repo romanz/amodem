@@ -33,9 +33,8 @@ class Client(object):
         return self
 
     def __exit__(self, *args):
-        """Forget PIN, shutdown screen and disconnect."""
+        """Keep the session open (doesn't forget PIN)."""
         log.info('disconnected from %s', self.device_name)
-        self.client.clear_session()
         self.client.close()
 
     def get_identity(self, label, index=0):
