@@ -47,17 +47,17 @@ def subpacket_byte(subpacket_type, value):
     return subpacket(subpacket_type, '>B', value)
 
 
-def subpacket_prefix_len(blob):
-    """Prefix GPG subpacket with the encoding of it's length."""
-    if len(blob) < 2**8:
-        length_type = 0
-    elif len(blob) < 2**16:
-        length_type = 1
+def subpacket_prefix_len(item):
+    """Prefix subpacket length according to RFC 4880 section-5.2.3.1."""
+    n = len(item)
+    if n >= 8384:
+        prefix = b'\xFF' + struct.pack('>L', n)
+    elif n >= 192:
+        n = n - 192
+        prefix = struct.pack('BB', (n // 256) + 192, n % 256)
     else:
-        length_type = 2
-    fmt = ['>B', '>H', '>L'][length_type]
-    prefix = [b'', b'', struct.pack('>B', 255)][length_type]
-    return prefix + struct.pack(fmt, len(blob)) + blob
+        prefix = struct.pack('B', n)
+    return prefix + item
 
 
 def subpackets(*items):
