@@ -5,13 +5,22 @@ import os
 
 import pytest
 
-from .. import decode
+from .. import decode, protocol
 from ... import util
 
 
 def test_subpackets():
     s = io.BytesIO(b'\x00\x05\x02\xAB\xCD\x01\xEF')
     assert decode.parse_subpackets(util.Reader(s)) == [b'\xAB\xCD', b'\xEF']
+
+
+def test_subpackets_prefix():
+    for n in [0, 1, 2, 4, 5, 10, 191, 192, 193,
+              255, 256, 257, 8383, 8384, 65530]:
+        item = b'?' * n  # create dummy subpacket
+        prefixed = protocol.subpackets(item)
+        result = decode.parse_subpackets(util.Reader(io.BytesIO(prefixed)))
+        assert [item] == result
 
 
 def test_mpi():
