@@ -92,8 +92,9 @@ def load(loaders=None):
         device = loader()
         if device:
             device_list.extend(device)
+            break   # stop polling if we found the device...
 
-    if len(device_list) == 1:
+    if len(device_list) == 1:   # ...especialy when we need exactly one
         return device_list[0]
 
     msg = '{:d} devices found'.format(len(device_list))

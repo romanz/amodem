@@ -9,8 +9,7 @@ setup(
     author_email='roman.zeyde@gmail.com',
     url='http://github.com/romanz/trezor-agent',
     packages=['trezor_agent', 'trezor_agent.gpg'],
-    install_requires=['ecdsa>=0.13', 'ed25519>=1.4', 'Cython>=0.23.4', 'protobuf>=3.0.0', 'trezor>=0.7.4', 'semver>=2.2',
-                      'keepkey>=0.7.3'],
+    install_requires=['ecdsa>=0.13', 'ed25519>=1.4', 'Cython>=0.23.4', 'protobuf>=3.0.0', 'trezor>=0.7.4', 'semver>=2.2'],
     platforms=['POSIX'],
     classifiers=[
         'Environment :: Console',
@@ -28,6 +27,10 @@ setup(
         'Topic :: Security',
         'Topic :: Utilities',
     ],
+    extras_require={
+        'trezorlib': ['python-trezor>=0.7.4'],
+        'keepkeylib': ['keepkey>=0.7.3'],
+    },
     entry_points={'console_scripts': [
         'trezor-agent = trezor_agent.__main__:run_agent',
         'trezor-git = trezor_agent.__main__:run_git',
