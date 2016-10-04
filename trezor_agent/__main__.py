@@ -7,14 +7,14 @@ import re
 import subprocess
 import sys
 
-from . import client, formats, protocol, server
+from . import client, formats, protocol, server, util
 
 log = logging.getLogger(__name__)
 
 
 def ssh_args(label):
     """Create SSH command for connecting specified server."""
-    identity = client.string_to_identity(label, identity_type=dict)
+    identity = util.string_to_identity(label, identity_type=dict)
 
     args = []
     if 'port' in identity:

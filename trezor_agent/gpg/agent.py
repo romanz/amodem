@@ -39,7 +39,7 @@ def sig_encode(r, s):
 
 def pksign(keygrip, digest, algo):
     """Sign a message digest using a private EC key."""
-    assert algo == '8'
+    assert algo == '8', 'Unsupported hash algorithm ID {}'.format(algo)
     user_id = os.environ['TREZOR_GPG_USER_ID']
     pubkey_dict = decode.load_public_key(
         pubkey_bytes=keyring.export_public_key(user_id=user_id),

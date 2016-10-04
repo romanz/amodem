@@ -87,8 +87,8 @@ def test_ssh_agent():
 
         def ssh_sign_identity(identity, challenge_hidden,
                               challenge_visual, ecdsa_curve_name):
-            assert (client.identity_to_string(identity) ==
-                    client.identity_to_string(ident))
+            assert (util.identity_to_string(identity) ==
+                    util.identity_to_string(ident))
             assert challenge_hidden == BLOB
             assert challenge_visual == ''
             assert ecdsa_curve_name == 'nist256p1'
@@ -133,4 +133,4 @@ def test_utils():
     identity.path = '/path'
 
     url = 'https://user@host:443/path'
-    assert client.identity_to_string(identity) == url
+    assert util.identity_to_string(identity) == url
