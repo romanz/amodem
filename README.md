@@ -33,6 +33,8 @@ Finally, verify that you are running the latest [TREZOR firmware](https://wallet
 	patch_version: 0
 	...
 
+If you have an error regarding `protobuf` imports (after installing it), please see [this issue](https://github.com/romanz/trezor-agent/issues/28).
+
 ## Usage
 
 For SSH, see the [following instructions](README-SSH.md).
