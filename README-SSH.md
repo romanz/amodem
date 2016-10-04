@@ -43,3 +43,17 @@ Run:
 	~ $
 
 Make sure to confirm SSH signature on the Trezor device when requested.
+
+## Accessing remote Git repositories
+
+Use your SSH public key to access your remote repository (e.g. [GitHub](https://help.github.com/articles/adding-a-new-ssh-key-to-your-github-account/)):
+
+	$ trezor-agent -v -e ed25519 git@github.com | xclip
+
+Use the following Bash alias for convinient Git operations:
+
+	$ alias git_hub='trezor-agent -v -e ed25519 git@github.com -- git'
+
+Replace `git` with `git_hub` for remote operations:
+
+	$ git_hub push origin master
