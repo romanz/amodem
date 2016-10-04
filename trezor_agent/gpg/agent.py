@@ -127,6 +127,12 @@ def handle_connection(conn):
         elif command == 'PKDECRYPT':
             sec = pkdecrypt(keygrip, conn)
             keyring.sendline(conn, b'D ' + sec)
+        elif command == 'KEYINFO':
+            keygrip, = args
+            # Dummy reply (mainly for 'gpg --edit' to succeed).
+            # For details, see GnuPG agent KEYINFO command help.
+            fmt = b'S KEYINFO {0} X - - - - - - -'
+            keyring.sendline(conn, fmt.format(keygrip))
         elif command == 'BYE':
             return
         else:
