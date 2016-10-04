@@ -11,9 +11,9 @@ $ gpg2 --version | head -n1
 gpg (GnuPG) 2.1.11
 ```
 
-Update you TREZOR firmware to the latest version (at least [c720614](https://github.com/trezor/trezor-mcu/commit/c720614f6e9b9c07f446c95bda0257980d942871)).
+Update you TREZOR firmware to the latest version (at least v1.4.0).
 
-Install latest `trezor-agent` package from [gpg-agent](https://github.com/romanz/trezor-agent/commits/gpg-agent) branch:
+Install latest `trezor-agent` package from GitHub:
 ```
 $ pip install --user git+https://github.com/romanz/trezor-agent.git
 ```
