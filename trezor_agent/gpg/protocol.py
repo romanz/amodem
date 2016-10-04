@@ -47,9 +47,22 @@ def subpacket_byte(subpacket_type, value):
     return subpacket(subpacket_type, '>B', value)
 
 
+def subpacket_prefix_len(item):
+    """Prefix subpacket length according to RFC 4880 section-5.2.3.1."""
+    n = len(item)
+    if n >= 8384:
+        prefix = b'\xFF' + struct.pack('>L', n)
+    elif n >= 192:
+        n = n - 192
+        prefix = struct.pack('BB', (n // 256) + 192, n % 256)
+    else:
+        prefix = struct.pack('B', n)
+    return prefix + item
+
+
 def subpackets(*items):
     """Serialize several GPG subpackets."""
-    prefixed = [util.prefix_len('>B', item) for item in items]
+    prefixed = [subpacket_prefix_len(item) for item in items]
     return util.prefix_len('>H', b''.join(prefixed))
 
 

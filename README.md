@@ -11,8 +11,37 @@ See SatoshiLabs' blog posts about this feature:
 - [TREZOR Firmware 1.3.4 enables SSH login](https://medium.com/@satoshilabs/trezor-firmware-1-3-4-enables-ssh-login-86a622d7e609)
 - [TREZOR Firmware 1.3.6 — GPG Signing, SSH Login Updates and Advanced Transaction Features for Segwit](https://medium.com/@satoshilabs/trezor-firmware-1-3-6-20a7df6e692)
 
-For usage with SSH, see the [following instructions](README-SSH.md).
+## Installation
 
-For usage with GPG, see the [following instructions](README-GPG.md).
+First, make sure that the latest [trezorlib](https://pypi.python.org/pypi/trezor) Python package
+is installed correctly (at least v0.6.6):
+
+	$ apt-get install python-dev libusb-1.0-0-dev libudev-dev
+	$ pip install Cython trezor
+	$ pip install -U setuptools
+
+Then, install the latest [trezor_agent](https://pypi.python.org/pypi/trezor_agent) package:
+
+	$ pip install trezor_agent
+
+Finally, verify that you are running the latest [TREZOR firmware](https://wallet.mytrezor.com/data/firmware/releases.json) version (at least v1.4.0):
+
+	$ trezorctl get_features | head
+	vendor: "bitcointrezor.com"
+	major_version: 1
+	minor_version: 4
+	patch_version: 0
+	...
+
+## Usage
+
+For SSH, see the [following instructions](README-SSH.md).
+
+For GPG, see the [following instructions](README-GPG.md).
 
 Questions, suggestions and discussions are welcome: [![Chat](https://badges.gitter.im/romanz/trezor-agent.svg)](https://gitter.im/romanz/trezor-agent)
+
+## Troubleshooting
+
+If there is an import problem with the installed `protobuf` package,
+see [this issue](https://github.com/romanz/trezor-agent/issues/28) for fixing it.

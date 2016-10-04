@@ -1,4 +1,5 @@
 """Tools for doing signature using gpg-agent."""
+from __future__ import unicode_literals, absolute_import, print_function
 
 import binascii
 import io
@@ -15,8 +16,8 @@ log = logging.getLogger(__name__)
 
 def get_agent_sock_path(sp=subprocess):
     """Parse gpgconf output to find out GPG agent UNIX socket path."""
-    lines = sp.check_output(['gpgconf', '--list-dirs']).strip().split('\n')
-    dirs = dict(line.split(':', 1) for line in lines)
+    lines = sp.check_output(['gpgconf', '--list-dirs']).strip().split(b'\n')
+    dirs = dict(line.split(b':', 1) for line in lines)
     return dirs['agent-socket']
 
 
@@ -183,14 +184,14 @@ def gpg_command(args, env=None):
 def get_keygrip(user_id, sp=subprocess):
     """Get a keygrip of the primary GPG key of the specified user."""
     args = gpg_command(['--list-keys', '--with-keygrip', user_id])
-    output = sp.check_output(args).decode('ascii')
+    output = sp.check_output(args)
     return re.findall(r'Keygrip = (\w+)', output)[0]
 
 
 def gpg_version(sp=subprocess):
     """Get a keygrip of the primary GPG key of the specified user."""
     args = gpg_command(['--version'])
-    output = sp.check_output(args).decode('ascii')
+    output = sp.check_output(args)
     line = output.split(b'\n')[0]  # b'gpg (GnuPG) 2.1.11'
     return line.split(b' ')[-1]  # b'2.1.11'
 

@@ -89,6 +89,9 @@ def main():
     args = p.parse_args()
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
                         format='%(asctime)s %(levelname)-10s %(message)s')
+    log.warning('This GPG tool is still in EXPERIMENTAL mode, '
+                'so please note that the API and features may '
+                'change without backwards compatibility!')
     args.run(args)
 
 
