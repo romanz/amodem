@@ -122,7 +122,7 @@ class Handler(object):
         SSH v2 public key authentication is performed.
 
         If the required key is not supported, raise KeyError
-        If the signature is invalid, rause ValueError
+        If the signature is invalid, raise ValueError
         """
         key = formats.parse_pubkey(util.read_frame(buf))
         log.debug('looking for %s', key['fingerprint'])
