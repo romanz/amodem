@@ -52,7 +52,6 @@ class HardwareSigner(object):
 
     def close(self):
         """Close the connection to the device."""
-        self.client_wrapper.connection.clear_session()
         self.client_wrapper.connection.close()
 
 
