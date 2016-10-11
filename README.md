@@ -41,9 +41,31 @@ For SSH, see the [following instructions](README-SSH.md).
 
 For GPG, see the [following instructions](README-GPG.md).
 
-Questions, suggestions and discussions are welcome: [![Chat](https://badges.gitter.im/romanz/trezor-agent.svg)](https://gitter.im/romanz/trezor-agent)
+### Entering PIN
+
+Look at the digits shown on the TREZOR display and enter their positions using this regular numeric keyboard mapping:
+
+```
+|7|8|9|
+|4|5|6|
+|1|2|3|
+```
+
+For example, if your PIN is `1234` and your TREZOR is displaying the following:
+
+```
+|3|1|2|
+|7|5|8|
+|6|4|9|
+```
+
+You have to enter `8972`.
 
 ## Troubleshooting
 
 If there is an import problem with the installed `protobuf` package,
 see [this issue](https://github.com/romanz/trezor-agent/issues/28) for fixing it.
+
+### Gitter
+
+Questions, suggestions and discussions are welcome: [![Chat](https://badges.gitter.im/romanz/trezor-agent.svg)](https://gitter.im/romanz/trezor-agent)
