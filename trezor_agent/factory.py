@@ -59,8 +59,9 @@ def _load_trezor():
                             identity_type=IdentityType,
                             required_version='>=1.4.0',
                             call_exception=CallException)
-    except ImportError:
-        log.exception('Missing module: install via "pip install trezor"')
+    except ImportError as e:
+        log.warning('%s: install via "pip install trezor" '
+                    'if you need to support this device', e)
 
 
 def _load_keepkey():
@@ -76,8 +77,9 @@ def _load_keepkey():
                             identity_type=IdentityType,
                             required_version='>=1.0.4',
                             call_exception=CallException)
-    except ImportError:
-        log.exception('Missing module: install via "pip install keepkey"')
+    except ImportError as e:
+        log.warning('%s: install via "pip install keepkey" '
+                    'if you need to support this device', e)
 
 
 def _load_ledger():
@@ -213,8 +215,10 @@ def _load_ledger():
             self.args = [code, message]
     try:
         from ledgerblue.comm import getDongle
-    except ImportError:
-        log.exception('Missing module: install via "pip install ledgerblue"')
+    except ImportError as e:
+        log.warning('%s: install via "pip install ledgerblue" '
+                    'if you need to support this device', e)
+        return
     # pylint: disable=bare-except
     try:
         from trezorlib.types_pb2 import IdentityType  # pylint: disable=import-error
