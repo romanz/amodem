@@ -92,11 +92,7 @@ def pkdecrypt(keygrip, conn):
     pubkey, conn = encode.load_from_public_key(pubkey_dict=local_pubkey)
     with contextlib.closing(conn):
         assert pubkey.keygrip == binascii.unhexlify(keygrip)
-        shared_secret = conn.ecdh(remote_pubkey)
-
-    assert len(shared_secret) == 65
-    assert shared_secret[:1] == b'\x04'
-    return _serialize_point(shared_secret)
+        return _serialize_point(conn.ecdh(remote_pubkey))
 
 
 def handle_connection(conn):

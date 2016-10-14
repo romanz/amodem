@@ -45,7 +45,7 @@ class HardwareSigner(object):
             identity=self.identity,
             peer_public_key=pubkey,
             ecdsa_curve_name=formats.get_ecdh_curve_name(self.curve_name))
-        assert len(result.session_key) == 65
+        assert len(result.session_key) in {65, 33}  # NIST256 or Curve25519
         assert result.session_key[:1] == b'\x04'
         return result.session_key
 
