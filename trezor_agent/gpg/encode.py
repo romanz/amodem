@@ -55,24 +55,6 @@ class HardwareSigner(object):
         self.client_wrapper.connection.close()
 
 
-class AgentSigner(object):
-    """Sign messages and get public keys using gpg-agent tool."""
-
-    def __init__(self, user_id):
-        """Connect to the agent and retrieve required public key."""
-        self.sock = keyring.connect_to_agent()
-        self.keygrip = keyring.get_keygrip(user_id)
-
-    def sign(self, digest):
-        """Sign the digest and return an ECDSA/RSA/DSA signature."""
-        return keyring.sign_digest(sock=self.sock,
-                                   keygrip=self.keygrip, digest=digest)
-
-    def close(self):
-        """Close the connection to gpg-agent."""
-        self.sock.close()
-
-
 def _time_format(t):
     return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(t))
 
@@ -160,7 +142,7 @@ def create_subkey(primary_bytes, pubkey, signer_func):
 
     log.info('confirm signing with primary key')
     if not primary['_is_custom']:
-        signer_func = AgentSigner(primary['user_id']).sign
+        signer_func = keyring.create_agent_signer(primary['user_id'])
 
     signature = protocol.make_signature(
         signer_func=signer_func,

@@ -204,3 +204,15 @@ def export_public_key(user_id, sp=subprocess):
         log.error('could not find public key %r in local GPG keyring', user_id)
         raise KeyError(user_id)
     return result
+
+
+def create_agent_signer(user_id):
+    """Sign digest with existing GPG keys using gpg-agent tool."""
+    sock = connect_to_agent()
+    keygrip = get_keygrip(user_id)
+
+    def sign(digest):
+        """Sign the digest and return an ECDSA/RSA/DSA signature."""
+        return sign_digest(sock=sock, keygrip=keygrip, digest=digest)
+
+    return sign
