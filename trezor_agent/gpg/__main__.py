@@ -7,7 +7,7 @@ import os
 import sys
 import time
 
-from . import agent, encode, keyring, protocol
+from . import agent, device, encode, keyring, protocol
 from .. import server
 
 log = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ def run_create(args):
     log.warning('NOTE: in order to re-generate the exact same GPG key later, '
                 'run this command with "--time=%d" commandline flag (to set '
                 'the timestamp of the GPG key manually).', args.time)
-    conn = encode.HardwareSigner(user_id=user_id,
+    conn = device.HardwareSigner(user_id=user_id,
                                  curve_name=args.ecdsa_curve)
     verifying_key = conn.pubkey(ecdh=False)
     decryption_key = conn.pubkey(ecdh=True)
