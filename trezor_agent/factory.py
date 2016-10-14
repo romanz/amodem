@@ -44,6 +44,7 @@ def _load_client(name, client_type, hid_transport,
                             identity_type=identity_type,
                             device_name=name,
                             call_exception=call_exception)
+        return
 
 
 def _load_trezor():
