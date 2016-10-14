@@ -3,9 +3,10 @@ import logging
 import time
 
 from . import decode, device, keyring, protocol
-from .. import formats, util
+from .. import util
 
 log = logging.getLogger(__name__)
+
 
 def _time_format(t):
     return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(t))
@@ -109,10 +110,10 @@ def create_subkey(primary_bytes, pubkey, signer_func):
 
 def load_from_public_key(pubkey_dict):
     """Load correct public key from the device."""
+    log.debug('pubkey_dict: %s', pubkey_dict)
     user_id = pubkey_dict['user_id']
     created = pubkey_dict['created']
-    curve_name = protocol.find_curve_by_algo_id(pubkey_dict['algo'])
-    assert curve_name in formats.SUPPORTED_CURVES
+    curve_name = protocol.get_curve_name_by_oid(pubkey_dict['curve_oid'])
     ecdh = (pubkey_dict['algo'] == protocol.ECDH_ALGO_ID)
 
     conn = device.HardwareSigner(user_id, curve_name=curve_name)

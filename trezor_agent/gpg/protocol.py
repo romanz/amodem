@@ -155,14 +155,12 @@ ECDH_ALGO_ID = 18
 CUSTOM_SUBPACKET = subpacket(100, b'TREZOR-GPG')  # marks "our" pubkey
 
 
-def find_curve_by_algo_id(algo_id):
-    """Find curve name that matches a public key algorith ID."""
-    if algo_id == ECDH_ALGO_ID:
-        return formats.CURVE_NIST256
-
-    curve_name, = [name for name, info in SUPPORTED_CURVES.items()
-                   if info['algo_id'] == algo_id]
-    return curve_name
+def get_curve_name_by_oid(oid):
+    """Return curve name matching specified OID, or raise KeyError."""
+    for curve_name, info in SUPPORTED_CURVES.items():
+        if info['oid'] == oid:
+            return curve_name
+    raise KeyError('Unknown OID: {!r}'.format(oid))
 
 
 class PublicKey(object):
@@ -173,7 +171,7 @@ class PublicKey(object):
         self.curve_info = SUPPORTED_CURVES[curve_name]
         self.created = int(created)  # time since Epoch
         self.verifying_key = verifying_key
-        self.ecdh = ecdh
+        self.ecdh = bool(ecdh)
         if ecdh:
             self.algo_id = ECDH_ALGO_ID
             self.ecdh_packet = b'\x03\x01\x08\x07'

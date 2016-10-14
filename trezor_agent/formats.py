@@ -204,4 +204,5 @@ def get_ecdh_curve_name(signature_curve_name):
     return {
         CURVE_NIST256: ECDH_NIST256,
         CURVE_ED25519: ECDH_CURVE25519,
+        ECDH_CURVE25519: ECDH_CURVE25519,
     }[signature_curve_name]
