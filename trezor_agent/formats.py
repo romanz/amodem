@@ -11,10 +11,14 @@ from . import util
 
 log = logging.getLogger(__name__)
 
-# Supported ECDSA curves
+# Supported ECDSA curves (for SSH and GPG)
 CURVE_NIST256 = 'nist256p1'
 CURVE_ED25519 = 'ed25519'
 SUPPORTED_CURVES = {CURVE_NIST256, CURVE_ED25519}
+
+# Supported ECDH curves (for GPG)
+ECDH_NIST256 = 'nist256p1'
+ECDH_CURVE25519 = 'curve25519'
 
 # SSH key types
 SSH_NIST256_DER_OCTET = b'\x04'
@@ -134,7 +138,8 @@ def decompress_pubkey(pubkey, curve_name):
     if len(pubkey) == 33:
         decompress = {
             CURVE_NIST256: _decompress_nist256,
-            CURVE_ED25519: _decompress_ed25519
+            CURVE_ED25519: _decompress_ed25519,
+            ECDH_CURVE25519: _decompress_ed25519,
         }[curve_name]
         vk = decompress(pubkey)
 
@@ -192,3 +197,11 @@ def import_public_key(line):
     assert result['type'] == file_type.encode('ascii')
     log.debug('loaded %s public key: %s', file_type, result['fingerprint'])
     return result
+
+
+def get_ecdh_curve_name(signature_curve_name):
+    """Return appropriate curve for ECDH for specified signing curve."""
+    return {
+        CURVE_NIST256: ECDH_NIST256,
+        CURVE_ED25519: ECDH_CURVE25519,
+    }[signature_curve_name]

@@ -17,12 +17,16 @@ class HardwareSigner(object):
     def pubkey(self, ecdh=False):
         """Return public key as VerifyingKey object."""
         addr = util.get_bip32_address(identity=self.identity, ecdh=ecdh)
+        if ecdh:
+            curve_name = formats.get_ecdh_curve_name(self.curve_name)
+        else:
+            curve_name = self.curve_name
         public_node = self.client_wrapper.connection.get_public_node(
-            n=addr, ecdsa_curve_name=self.curve_name)
+            n=addr, ecdsa_curve_name=curve_name)
 
         return formats.decompress_pubkey(
             pubkey=public_node.node.public_key,
-            curve_name=self.curve_name)
+            curve_name=curve_name)
 
     def sign(self, digest):
         """Sign the digest and return a serialized signature."""
@@ -40,7 +44,7 @@ class HardwareSigner(object):
         result = self.client_wrapper.connection.get_ecdh_session_key(
             identity=self.identity,
             peer_public_key=pubkey,
-            ecdsa_curve_name=self.curve_name)
+            ecdsa_curve_name=formats.get_ecdh_curve_name(self.curve_name))
         assert len(result.session_key) == 65
         assert result.session_key[:1] == b'\x04'
         return result.session_key

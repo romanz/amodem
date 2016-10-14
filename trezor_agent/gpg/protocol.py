@@ -141,7 +141,13 @@ SUPPORTED_CURVES = {
         'algo_id': 22,
         'serialize': _serialize_ed25519,
         'keygrip': _keygrip_ed25519,
-    }
+    },
+    formats.ECDH_CURVE25519: {
+        'oid': b'\x2B\x06\x01\x04\x01\x97\x55\x01\x05\x01',
+        'algo_id': 18,
+        'serialize': _serialize_ed25519,
+        'keygrip': _keygrip_ed25519,
+    },
 }
 
 ECDH_ALGO_ID = 18
