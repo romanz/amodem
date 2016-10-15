@@ -83,9 +83,15 @@ def _parse_ed25519_verifier(mpi):
     return _ed25519_verify, vk
 
 
+def _parse_curve25519_verifier(_):
+    log.warning('Curve25519 ECDH is not verified')
+    return None, None
+
+
 SUPPORTED_CURVES = {
     b'\x2A\x86\x48\xCE\x3D\x03\x01\x07': _parse_nist256p1_verifier,
     b'\x2B\x06\x01\x04\x01\xDA\x47\x0F\x01': _parse_ed25519_verifier,
+    b'\x2B\x06\x01\x04\x01\x97\x55\x01\x05\x01': _parse_curve25519_verifier,
 }
 
 RSA_ALGO_IDS = {1, 2, 3}
@@ -168,6 +174,7 @@ def _parse_pubkey(stream, packet_type='pubkey'):
             oid_size = stream.readfmt('B')
             oid = stream.read(oid_size)
             assert oid in SUPPORTED_CURVES, util.hexlify(oid)
+            p['curve_oid'] = oid
             parser = SUPPORTED_CURVES[oid]
 
             mpi = parse_mpi(stream)

@@ -7,8 +7,8 @@ import os
 import sys
 import time
 
-from . import agent, encode, keyring, protocol
-from .. import server
+from . import agent, device, encode, keyring, protocol
+from .. import formats, server
 
 log = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ def run_create(args):
     log.warning('NOTE: in order to re-generate the exact same GPG key later, '
                 'run this command with "--time=%d" commandline flag (to set '
                 'the timestamp of the GPG key manually).', args.time)
-    conn = encode.HardwareSigner(user_id=user_id,
+    conn = device.HardwareSigner(user_id=user_id,
                                  curve_name=args.ecdsa_curve)
     verifying_key = conn.pubkey(ecdh=False)
     decryption_key = conn.pubkey(ecdh=True)
@@ -32,8 +32,8 @@ def run_create(args):
             verifying_key=verifying_key, ecdh=False)
         # subkey for encryption
         encryption_key = protocol.PublicKey(
-            curve_name=args.ecdsa_curve, created=args.time,
-            verifying_key=decryption_key, ecdh=True)
+            curve_name=formats.get_ecdh_curve_name(args.ecdsa_curve),
+            created=args.time, verifying_key=decryption_key, ecdh=True)
         result = encode.create_subkey(primary_bytes=primary_bytes,
                                       pubkey=signing_key,
                                       signer_func=conn.sign)
@@ -47,8 +47,8 @@ def run_create(args):
             verifying_key=verifying_key, ecdh=False)
         # subkey for encryption
         subkey = protocol.PublicKey(
-            curve_name=args.ecdsa_curve, created=args.time,
-            verifying_key=decryption_key, ecdh=True)
+            curve_name=formats.get_ecdh_curve_name(args.ecdsa_curve),
+            created=args.time, verifying_key=decryption_key, ecdh=True)
 
         result = encode.create_primary(user_id=user_id,
                                        pubkey=primary,

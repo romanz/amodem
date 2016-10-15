@@ -128,6 +128,18 @@ def _keygrip_ed25519(vk):
     ])
 
 
+def _keygrip_curve25519(vk):
+    # pylint: disable=line-too-long
+    return _compute_keygrip([
+        ['p', util.num2bytes(0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFED, size=32)],  # nopep8
+        ['a', b'\x01\xDB\x41'],
+        ['b', b'\x01'],
+        ['g', util.num2bytes(0x04000000000000000000000000000000000000000000000000000000000000000920ae19a1b8a086b4e01edd2c7748d14c923d4d7e6d7c61b229e9c5a27eced3d9, size=65)],  # nopep8
+        ['n', util.num2bytes(0x1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED, size=32)],  # nopep8
+        ['q', vk.to_bytes()],
+    ])
+
+
 SUPPORTED_CURVES = {
     formats.CURVE_NIST256: {
         # https://tools.ietf.org/html/rfc6637#section-11
@@ -141,7 +153,13 @@ SUPPORTED_CURVES = {
         'algo_id': 22,
         'serialize': _serialize_ed25519,
         'keygrip': _keygrip_ed25519,
-    }
+    },
+    formats.ECDH_CURVE25519: {
+        'oid': b'\x2B\x06\x01\x04\x01\x97\x55\x01\x05\x01',
+        'algo_id': 18,
+        'serialize': _serialize_ed25519,
+        'keygrip': _keygrip_curve25519,
+    },
 }
 
 ECDH_ALGO_ID = 18
@@ -149,14 +167,12 @@ ECDH_ALGO_ID = 18
 CUSTOM_SUBPACKET = subpacket(100, b'TREZOR-GPG')  # marks "our" pubkey
 
 
-def find_curve_by_algo_id(algo_id):
-    """Find curve name that matches a public key algorith ID."""
-    if algo_id == ECDH_ALGO_ID:
-        return formats.CURVE_NIST256
-
-    curve_name, = [name for name, info in SUPPORTED_CURVES.items()
-                   if info['algo_id'] == algo_id]
-    return curve_name
+def get_curve_name_by_oid(oid):
+    """Return curve name matching specified OID, or raise KeyError."""
+    for curve_name, info in SUPPORTED_CURVES.items():
+        if info['oid'] == oid:
+            return curve_name
+    raise KeyError('Unknown OID: {!r}'.format(oid))
 
 
 class PublicKey(object):
@@ -167,7 +183,7 @@ class PublicKey(object):
         self.curve_info = SUPPORTED_CURVES[curve_name]
         self.created = int(created)  # time since Epoch
         self.verifying_key = verifying_key
-        self.ecdh = ecdh
+        self.ecdh = bool(ecdh)
         if ecdh:
             self.algo_id = ECDH_ALGO_ID
             self.ecdh_packet = b'\x03\x01\x08\x07'

@@ -30,11 +30,6 @@ def test_mpi():
     assert protocol.mpi(0x123) == b'\x00\x09\x01\x23'
 
 
-def test_find():
-    assert protocol.find_curve_by_algo_id(19) == formats.CURVE_NIST256
-    assert protocol.find_curve_by_algo_id(22) == formats.CURVE_ED25519
-
-
 def test_armor():
     data = bytearray(range(256))
     assert protocol.armor(data, 'TEST') == '''-----BEGIN PGP TEST-----

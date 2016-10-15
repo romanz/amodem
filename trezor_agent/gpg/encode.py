@@ -2,75 +2,10 @@
 import logging
 import time
 
-from . import decode, keyring, protocol
-from .. import factory, formats, util
+from . import decode, device, keyring, protocol
+from .. import util
 
 log = logging.getLogger(__name__)
-
-
-class HardwareSigner(object):
-    """Sign messages and get public keys from a hardware device."""
-
-    def __init__(self, user_id, curve_name):
-        """Connect to the device and retrieve required public key."""
-        self.client_wrapper = factory.load()
-        self.identity = self.client_wrapper.identity_type()
-        self.identity.proto = 'gpg'
-        self.identity.host = user_id
-        self.curve_name = curve_name
-
-    def pubkey(self, ecdh=False):
-        """Return public key as VerifyingKey object."""
-        addr = util.get_bip32_address(identity=self.identity, ecdh=ecdh)
-        public_node = self.client_wrapper.connection.get_public_node(
-            n=addr, ecdsa_curve_name=self.curve_name)
-
-        return formats.decompress_pubkey(
-            pubkey=public_node.node.public_key,
-            curve_name=self.curve_name)
-
-    def sign(self, digest):
-        """Sign the digest and return a serialized signature."""
-        result = self.client_wrapper.connection.sign_identity(
-            identity=self.identity,
-            challenge_hidden=digest,
-            challenge_visual='',
-            ecdsa_curve_name=self.curve_name)
-        assert result.signature[:1] == b'\x00'
-        sig = result.signature[1:]
-        return (util.bytes2num(sig[:32]), util.bytes2num(sig[32:]))
-
-    def ecdh(self, pubkey):
-        """Derive shared secret using ECDH from remote public key."""
-        result = self.client_wrapper.connection.get_ecdh_session_key(
-            identity=self.identity,
-            peer_public_key=pubkey,
-            ecdsa_curve_name=self.curve_name)
-        assert len(result.session_key) == 65
-        assert result.session_key[:1] == b'\x04'
-        return result.session_key
-
-    def close(self):
-        """Close the connection to the device."""
-        self.client_wrapper.connection.close()
-
-
-class AgentSigner(object):
-    """Sign messages and get public keys using gpg-agent tool."""
-
-    def __init__(self, user_id):
-        """Connect to the agent and retrieve required public key."""
-        self.sock = keyring.connect_to_agent()
-        self.keygrip = keyring.get_keygrip(user_id)
-
-    def sign(self, digest):
-        """Sign the digest and return an ECDSA/RSA/DSA signature."""
-        return keyring.sign_digest(sock=self.sock,
-                                   keygrip=self.keygrip, digest=digest)
-
-    def close(self):
-        """Close the connection to gpg-agent."""
-        self.sock.close()
 
 
 def _time_format(t):
@@ -160,7 +95,7 @@ def create_subkey(primary_bytes, pubkey, signer_func):
 
     log.info('confirm signing with primary key')
     if not primary['_is_custom']:
-        signer_func = AgentSigner(primary['user_id']).sign
+        signer_func = keyring.create_agent_signer(primary['user_id'])
 
     signature = protocol.make_signature(
         signer_func=signer_func,
@@ -175,13 +110,13 @@ def create_subkey(primary_bytes, pubkey, signer_func):
 
 def load_from_public_key(pubkey_dict):
     """Load correct public key from the device."""
+    log.debug('pubkey_dict: %s', pubkey_dict)
     user_id = pubkey_dict['user_id']
     created = pubkey_dict['created']
-    curve_name = protocol.find_curve_by_algo_id(pubkey_dict['algo'])
-    assert curve_name in formats.SUPPORTED_CURVES
+    curve_name = protocol.get_curve_name_by_oid(pubkey_dict['curve_oid'])
     ecdh = (pubkey_dict['algo'] == protocol.ECDH_ALGO_ID)
 
-    conn = HardwareSigner(user_id, curve_name=curve_name)
+    conn = device.HardwareSigner(user_id, curve_name=curve_name)
     pubkey = protocol.PublicKey(
         curve_name=curve_name, created=created,
         verifying_key=conn.pubkey(ecdh=ecdh), ecdh=ecdh)
