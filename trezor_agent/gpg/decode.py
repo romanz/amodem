@@ -6,6 +6,9 @@ import io
 import logging
 import struct
 
+import ed25519
+import ecdsa
+
 from . import protocol
 from .. import util
 
@@ -49,10 +52,29 @@ def parse_mpis(s, n):
     return [parse_mpi(s) for _ in range(n)]
 
 
+def _parse_nist256p1_pubkey(mpi):
+    prefix, x, y = util.split_bits(mpi, 4, 256, 256)
+    assert prefix == 4
+    point = ecdsa.ellipticcurve.Point(curve=ecdsa.NIST256p.curve,
+                                      x=x, y=y)
+    return ecdsa.VerifyingKey.from_public_point(
+        point=point, curve=ecdsa.curves.NIST256p,
+        hashfunc=hashlib.sha256)
+
+
+def _parse_ed25519_pubkey(mpi):
+    prefix, value = util.split_bits(mpi, 8, 256)
+    assert prefix == 0x40
+    return ed25519.VerifyingKey(util.num2bytes(value, size=32))
+
+
 SUPPORTED_CURVES = {
-    b'\x2A\x86\x48\xCE\x3D\x03\x01\x07',
-    b'\x2B\x06\x01\x04\x01\xDA\x47\x0F\x01',
-    b'\x2B\x06\x01\x04\x01\x97\x55\x01\x05\x01',
+    b'\x2A\x86\x48\xCE\x3D\x03\x01\x07':
+        (_parse_nist256p1_pubkey, protocol.keygrip_nist256),
+    b'\x2B\x06\x01\x04\x01\xDA\x47\x0F\x01':
+        (_parse_ed25519_pubkey, protocol.keygrip_ed25519),
+    b'\x2B\x06\x01\x04\x01\x97\x55\x01\x05\x01':
+        (_parse_ed25519_pubkey, protocol.keygrip_curve25519),
 }
 
 RSA_ALGO_IDS = {1, 2, 3}
@@ -147,6 +169,12 @@ def _parse_pubkey(stream, packet_type='pubkey'):
                 size, = util.readfmt(leftover, 'B')
                 p['kdf'] = leftover.read(size)
                 assert not leftover.read()
+
+            parse_func, keygrip_func = SUPPORTED_CURVES[oid]
+            keygrip = keygrip_func(parse_func(mpi))
+            log.debug('keygrip: %s', util.hexlify(keygrip))
+            p['keygrip'] = keygrip
+
         elif p['algo'] == DSA_ALGO_ID:
             log.warning('DSA signatures are not verified')
             parse_mpis(stream, n=4)
