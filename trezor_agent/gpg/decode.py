@@ -6,9 +6,6 @@ import io
 import logging
 import struct
 
-import ecdsa
-import ed25519
-
 from . import protocol
 from .. import util
 
@@ -52,45 +49,10 @@ def parse_mpis(s, n):
     return [parse_mpi(s) for _ in range(n)]
 
 
-def _parse_nist256p1_verifier(mpi):
-    prefix, x, y = util.split_bits(mpi, 4, 256, 256)
-    assert prefix == 4
-    point = ecdsa.ellipticcurve.Point(curve=ecdsa.NIST256p.curve,
-                                      x=x, y=y)
-    vk = ecdsa.VerifyingKey.from_public_point(
-        point=point, curve=ecdsa.curves.NIST256p,
-        hashfunc=hashlib.sha256)
-
-    def _nist256p1_verify(signature, digest):
-        result = vk.verify_digest(signature=signature,
-                                  digest=digest,
-                                  sigdecode=lambda rs, order: rs)
-        log.debug('nist256p1 ECDSA signature is OK (%s)', result)
-    return _nist256p1_verify, vk
-
-
-def _parse_ed25519_verifier(mpi):
-    prefix, value = util.split_bits(mpi, 8, 256)
-    assert prefix == 0x40
-    vk = ed25519.VerifyingKey(util.num2bytes(value, size=32))
-
-    def _ed25519_verify(signature, digest):
-        sig = b''.join(util.num2bytes(val, size=32)
-                       for val in signature)
-        result = vk.verify(sig, digest)
-        log.debug('ed25519 ECDSA signature is OK (%s)', result)
-    return _ed25519_verify, vk
-
-
-def _parse_curve25519_verifier(_):
-    log.warning('Curve25519 ECDH is not verified')
-    return None, None
-
-
 SUPPORTED_CURVES = {
-    b'\x2A\x86\x48\xCE\x3D\x03\x01\x07': _parse_nist256p1_verifier,
-    b'\x2B\x06\x01\x04\x01\xDA\x47\x0F\x01': _parse_ed25519_verifier,
-    b'\x2B\x06\x01\x04\x01\x97\x55\x01\x05\x01': _parse_curve25519_verifier,
+    b'\x2A\x86\x48\xCE\x3D\x03\x01\x07',
+    b'\x2B\x06\x01\x04\x01\xDA\x47\x0F\x01',
+    b'\x2B\x06\x01\x04\x01\x97\x55\x01\x05\x01',
 }
 
 RSA_ALGO_IDS = {1, 2, 3}
@@ -174,11 +136,9 @@ def _parse_pubkey(stream, packet_type='pubkey'):
             oid = stream.read(oid_size)
             assert oid in SUPPORTED_CURVES, util.hexlify(oid)
             p['curve_oid'] = oid
-            parser = SUPPORTED_CURVES[oid]
 
             mpi = parse_mpi(stream)
             log.debug('mpi: %x (%d bits)', mpi, mpi.bit_length())
-            p['verifier'], p['verifying_key'] = parser(mpi)
             leftover = stream.read()
             if leftover:
                 leftover = io.BytesIO(leftover)
@@ -303,20 +263,7 @@ def load_public_key(pubkey_bytes, use_custom=False, ecdh=False):
     packets = list(parse_packets(stream))
     pubkey, userid, signature = packets[:3]
     packets = packets[3:]
-
-    hash_alg = HASH_ALGORITHMS.get(signature['hash_alg'])
-    if hash_alg is not None:
-        digest = digest_packets(packets=[pubkey, userid, signature],
-                                hasher=hashlib.new(hash_alg))
-        assert signature['hash_prefix'] == digest[:2]
-
     log.debug('loaded public key "%s"', userid['value'])
-    if hash_alg is not None and pubkey.get('verifier'):
-        verify_digest(pubkey=pubkey, digest=digest,
-                      signature=signature['sig'], label='GPG public key')
-    else:
-        log.warning('public key %s is not verified!',
-                    util.hexlify(pubkey['key_id']))
 
     packet = pubkey
     while use_custom:
@@ -347,17 +294,6 @@ def load_signature(stream, original_data):
     return signature, digest
 
 
-def verify_digest(pubkey, digest, signature, label):
-    """Verify a digest signature from a specified public key."""
-    verifier = pubkey['verifier']
-    try:
-        verifier(signature, digest)
-        log.debug('%s is OK', label)
-    except ecdsa.keys.BadSignatureError:
-        log.error('Bad %s!', label)
-        raise ValueError('Invalid ECDSA signature for {}'.format(label))
-
-
 def remove_armor(armored_data):
     """Decode armored data into its binary form."""
     stream = io.BytesIO(armored_data)
@@ -366,11 +302,3 @@ def remove_armor(armored_data):
     payload, checksum = data[:-3], data[-3:]
     assert util.crc24(payload) == checksum
     return payload
-
-
-def verify(pubkey, signature, original_data):
-    """Verify correctness of public key and signature."""
-    stream = io.BytesIO(remove_armor(signature))
-    signature, digest = load_signature(stream, original_data)
-    verify_digest(pubkey=pubkey, digest=digest,
-                  signature=signature['sig'], label='GPG signature')
