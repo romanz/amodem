@@ -25,8 +25,9 @@ def yield_connections(sock):
 
 def serialize(data):
     """Serialize data according to ASSUAN protocol."""
-    for c in ['%', '\n', '\r']:
-        data = data.replace(c, '%{:02X}'.format(ord(c)))
+    for c in [b'%', b'\n', b'\r']:
+        escaped = '%{:02X}'.format(c[0]).encode('ascii')
+        data = data.replace(c, escaped)
     return data
 
 
@@ -34,7 +35,7 @@ def sig_encode(r, s):
     """Serialize ECDSA signature data into GPG S-expression."""
     r = serialize(util.num2bytes(r, 32))
     s = serialize(util.num2bytes(s, 32))
-    return '(7:sig-val(5:ecdsa(1:r32:{})(1:s32:{})))'.format(r, s)
+    return b'(7:sig-val(5:ecdsa(1:r32:' + r + b')(1:s32:' + s + b')))'
 
 
 def _verify_keygrip(expected, actual):
@@ -44,7 +45,7 @@ def _verify_keygrip(expected, actual):
 
 def pksign(keygrip, digest, algo):
     """Sign a message digest using a private EC key."""
-    assert algo == '8', 'Unsupported hash algorithm ID {}'.format(algo)
+    assert algo == b'8', 'Unsupported hash algorithm ID {}'.format(algo)
     user_id = os.environ['TREZOR_GPG_USER_ID']
     pubkey_dict = decode.load_public_key(
         pubkey_bytes=keyring.export_public_key(user_id=user_id),
@@ -59,17 +60,15 @@ def pksign(keygrip, digest, algo):
 
 
 def _serialize_point(data):
-    data = '{}:'.format(len(data)) + data
+    prefix = '{}:'.format(len(data)).encode('ascii')
     # https://www.gnupg.org/documentation/manuals/assuan/Server-responses.html
-    for c in ['%', '\n', '\r']:
-        data = data.replace(c, '%{:02X}'.format(ord(c)))
-    return '(5:value' + data + ')'
+    return b'(5:value' + serialize(prefix + data) + b')'
 
 
 def parse_ecdh(line):
     """Parse ECDH request and return remote public key."""
-    prefix, line = line.split(' ', 1)
-    assert prefix == 'D'
+    prefix, line = line.split(b' ', 1)
+    assert prefix == b'D'
     exp, leftover = keyring.parse(keyring.unescape(line))
     log.debug('ECDH s-exp: %r', exp)
     assert not leftover
@@ -78,7 +77,7 @@ def parse_ecdh(line):
     assert exp[0] == b'ecdh'
     items = exp[1:]
     log.debug('ECDH parameters: %r', items)
-    return dict(items)['e']
+    return dict(items)[b'e']
 
 
 def pkdecrypt(keygrip, conn):
@@ -109,32 +108,32 @@ def handle_connection(conn):
 
     keyring.sendline(conn, b'OK')
     for line in keyring.iterlines(conn):
-        parts = line.split(' ')
+        parts = line.split(b' ')
         command = parts[0]
         args = parts[1:]
-        if command in {'RESET', 'OPTION', 'HAVEKEY', 'SETKEYDESC'}:
+        if command in {b'RESET', b'OPTION', b'HAVEKEY', b'SETKEYDESC'}:
             pass  # reply with OK
-        elif command == 'GETINFO':
+        elif command == b'GETINFO':
             keyring.sendline(conn, b'D ' + version)
-        elif command == 'AGENT_ID':
+        elif command == b'AGENT_ID':
             keyring.sendline(conn, b'D TREZOR')
-        elif command in {'SIGKEY', 'SETKEY'}:
+        elif command in {b'SIGKEY', b'SETKEY'}:
             keygrip, = args
-        elif command == 'SETHASH':
+        elif command == b'SETHASH':
             algo, digest = args
-        elif command == 'PKSIGN':
+        elif command == b'PKSIGN':
             sig = pksign(keygrip, digest, algo)
             keyring.sendline(conn, b'D ' + sig)
-        elif command == 'PKDECRYPT':
+        elif command == b'PKDECRYPT':
             sec = pkdecrypt(keygrip, conn)
             keyring.sendline(conn, b'D ' + sec)
-        elif command == 'KEYINFO':
+        elif command == b'KEYINFO':
             keygrip, = args
             # Dummy reply (mainly for 'gpg --edit' to succeed).
             # For details, see GnuPG agent KEYINFO command help.
-            fmt = b'S KEYINFO {0} X - - - - - - -'
-            keyring.sendline(conn, fmt.format(keygrip))
-        elif command == 'BYE':
+            fmt = 'S KEYINFO {0} X - - - - - - -'
+            keyring.sendline(conn, fmt.format(keygrip).encode('ascii'))
+        elif command == b'BYE':
             return
         else:
             log.error('unknown request: %r', line)
