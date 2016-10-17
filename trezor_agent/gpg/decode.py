@@ -1,6 +1,5 @@
 """Decoders for GPG v2 data structures."""
 import base64
-import copy
 import functools
 import hashlib
 import io
@@ -285,28 +284,6 @@ def digest_packets(packets, hasher):
         data_to_hash.write(p['_to_hash'])
     hasher.update(data_to_hash.getvalue())
     return hasher.digest()
-
-
-def collect_packets(packets, types_to_collect):
-    """Collect specified packet types into their leading packet."""
-    packet = None
-    result = []
-    for p in packets:
-        if p['type'] in types_to_collect:
-            packet.setdefault(p['type'], []).append(p)
-        else:
-            packet = copy.deepcopy(p)
-            result.append(packet)
-    return result
-
-
-def parse_public_keys(stream):
-    """Parse GPG public key into hierarchy of packets."""
-    packets = list(parse_packets(stream))
-    packets = collect_packets(packets, {'signature'})
-    packets = collect_packets(packets, {'user_id', 'user_attribute'})
-    packets = collect_packets(packets, {'subkey'})
-    return packets
 
 
 HASH_ALGORITHMS = {
