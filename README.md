@@ -41,25 +41,7 @@ For SSH, see the [following instructions](README-SSH.md).
 
 For GPG, see the [following instructions](README-GPG.md).
 
-### Entering PIN
-
-Look at the digits shown on the TREZOR display and enter their positions using this regular numeric keyboard mapping:
-
-```
-|7|8|9|
-|4|5|6|
-|1|2|3|
-```
-
-For example, if your PIN is `1234` and your TREZOR is displaying the following:
-
-```
-|3|1|2|
-|7|5|8|
-|6|4|9|
-```
-
-You have to enter `8972`.
+See [here](https://github.com/romanz/python-trezor#pin-entering) for PIN entering instructions.
 
 ## Troubleshooting
 
