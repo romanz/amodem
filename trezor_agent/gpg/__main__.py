@@ -88,7 +88,8 @@ def main():
 
     args = p.parse_args()
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
-                        format='%(asctime)s %(levelname)-10s %(message)s')
+                        format='%(asctime)s %(levelname)-10s %(message)-120s '
+                               '[%(filename)s:%(lineno)d]')
     log.warning('This GPG tool is still in EXPERIMENTAL mode, '
                 'so please note that the API and features may '
                 'change without backwards compatibility!')
