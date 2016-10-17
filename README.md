@@ -17,8 +17,8 @@ First, make sure that the latest [trezorlib](https://pypi.python.org/pypi/trezor
 is installed correctly (at least v0.6.6):
 
 	$ apt-get install python-dev libusb-1.0-0-dev libudev-dev
-	$ pip install Cython trezor
 	$ pip install -U setuptools
+	$ pip install Cython trezor
 
 Then, install the latest [trezor_agent](https://pypi.python.org/pypi/trezor_agent) package:
 
