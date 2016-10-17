@@ -99,7 +99,8 @@ def _compute_keygrip(params):
     return hashlib.sha1(b''.join(parts)).digest()
 
 
-def _keygrip_nist256(vk):
+def keygrip_nist256(vk):
+    """Compute keygrip for NIST256 curve public keys."""
     curve = vk.curve.curve
     gen = vk.curve.generator
     g = (4 << 512) | (gen.x() << 256) | gen.y()
@@ -116,7 +117,8 @@ def _keygrip_nist256(vk):
     ])
 
 
-def _keygrip_ed25519(vk):
+def keygrip_ed25519(vk):
+    """Compute keygrip for Ed25519 public keys."""
     # pylint: disable=line-too-long
     return _compute_keygrip([
         ['p', util.num2bytes(0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFED, size=32)],  # nopep8
@@ -128,7 +130,8 @@ def _keygrip_ed25519(vk):
     ])
 
 
-def _keygrip_curve25519(vk):
+def keygrip_curve25519(vk):
+    """Compute keygrip for Curve25519 public keys."""
     # pylint: disable=line-too-long
     return _compute_keygrip([
         ['p', util.num2bytes(0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFED, size=32)],  # nopep8
@@ -146,19 +149,19 @@ SUPPORTED_CURVES = {
         'oid': b'\x2A\x86\x48\xCE\x3D\x03\x01\x07',
         'algo_id': 19,
         'serialize': _serialize_nist256,
-        'keygrip': _keygrip_nist256,
+        'keygrip': keygrip_nist256,
     },
     formats.CURVE_ED25519: {
         'oid': b'\x2B\x06\x01\x04\x01\xDA\x47\x0F\x01',
         'algo_id': 22,
         'serialize': _serialize_ed25519,
-        'keygrip': _keygrip_ed25519,
+        'keygrip': keygrip_ed25519,
     },
     formats.ECDH_CURVE25519: {
         'oid': b'\x2B\x06\x01\x04\x01\x97\x55\x01\x05\x01',
         'algo_id': 18,
         'serialize': _serialize_ed25519,
-        'keygrip': _keygrip_curve25519,
+        'keygrip': keygrip_curve25519,
     },
 }
 
