@@ -37,6 +37,11 @@ def sig_encode(r, s):
     return '(7:sig-val(5:ecdsa(1:r32:{})(1:s32:{})))'.format(r, s)
 
 
+def _verify_keygrip(expected, actual):
+    if expected != actual:
+        raise KeyError('Keygrip mismatch: {!r} != {!r}', expected, actual)
+
+
 def pksign(keygrip, digest, algo):
     """Sign a message digest using a private EC key."""
     assert algo == '8', 'Unsupported hash algorithm ID {}'.format(algo)
@@ -46,7 +51,7 @@ def pksign(keygrip, digest, algo):
         use_custom=True, ecdh=False)
     pubkey, conn = encode.load_from_public_key(pubkey_dict=pubkey_dict)
     with contextlib.closing(conn):
-        assert pubkey.keygrip == binascii.unhexlify(keygrip)
+        _verify_keygrip(pubkey.keygrip, binascii.unhexlify(keygrip))
         r, s = conn.sign(binascii.unhexlify(digest))
         result = sig_encode(r, s)
         log.debug('result: %r', result)
@@ -91,7 +96,7 @@ def pkdecrypt(keygrip, conn):
         use_custom=True, ecdh=True)
     pubkey, conn = encode.load_from_public_key(pubkey_dict=local_pubkey)
     with contextlib.closing(conn):
-        assert pubkey.keygrip == binascii.unhexlify(keygrip)
+        _verify_keygrip(pubkey.keygrip, binascii.unhexlify(keygrip))
         return _serialize_point(conn.ecdh(remote_pubkey))
 
 
