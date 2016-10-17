@@ -343,6 +343,8 @@ def load_public_key(pubkey_bytes, use_custom=False, ecdh=False):
 
     packet = pubkey
     while use_custom:
+        log.debug('GPG packet type: %s (algo = %s, custom = %s)',
+                  packet['type'], packet['algo'], signature['_is_custom'])
         if packet['type'] in ('pubkey', 'subkey') and signature['_is_custom']:
             if ecdh == (packet['algo'] == protocol.ECDH_ALGO_ID):
                 log.debug('found custom %s', packet['type'])
