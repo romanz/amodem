@@ -66,7 +66,10 @@ def run_agent(args):  # pylint: disable=unused-argument
     with server.unix_domain_socket_server(sock_path) as sock:
         for conn in agent.yield_connections(sock):
             with contextlib.closing(conn):
-                agent.handle_connection(conn)
+                try:
+                    agent.handle_connection(conn)
+                except Exception as e:  # pylint: disable=broad-except
+                    log.exception('gpg-agent failed: %s', e)
 
 
 def main():
