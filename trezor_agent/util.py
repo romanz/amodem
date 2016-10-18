@@ -227,3 +227,12 @@ def get_bip32_address(identity, ecdh=False):
     addr_0 = [13, 17][bool(ecdh)]
     address_n = [addr_0] + list(recv(s, '<LLLL'))
     return [(hardened | value) for value in address_n]
+
+
+def setup_logging(verbosity):
+    """Configure logging for this tool."""
+    fmt = ('%(asctime)s %(levelname)-12s %(message)-100s '
+           '[%(filename)s:%(lineno)d]')
+    levels = [logging.WARNING, logging.INFO, logging.DEBUG]
+    level = levels[min(verbosity, len(levels) - 1)]
+    logging.basicConfig(format=fmt, level=level)

@@ -9,7 +9,7 @@ import time
 import semver
 
 from . import agent, device, encode, keyring, protocol
-from .. import formats, server
+from .. import formats, server, util
 
 log = logging.getLogger(__name__)
 
@@ -75,7 +75,7 @@ def run_agent(args):  # pylint: disable=unused-argument
 def main():
     """Main function."""
     p = argparse.ArgumentParser()
-    p.add_argument('-v', '--verbose', action='store_true', default=False)
+    p.add_argument('-v', '--verbose', default=0, action='count')
     subparsers = p.add_subparsers()
     subparsers.required = True
     subparsers.dest = 'command'
@@ -91,9 +91,7 @@ def main():
     agent_cmd.set_defaults(run=run_agent)
 
     args = p.parse_args()
-    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
-                        format='%(asctime)s %(levelname)-10s %(message)-120s '
-                               '[%(filename)s:%(lineno)d]')
+    util.setup_logging(verbosity=args.verbose)
     log.warning('This GPG tool is still in EXPERIMENTAL mode, '
                 'so please note that the API and features may '
                 'change without backwards compatibility!')

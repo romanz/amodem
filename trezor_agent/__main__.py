@@ -73,15 +73,6 @@ def create_git_parser():
     return p
 
 
-def setup_logging(verbosity):
-    """Configure logging for this tool."""
-    fmt = ('%(asctime)s %(levelname)-12s %(message)-100s '
-           '[%(filename)s:%(lineno)d]')
-    levels = [logging.WARNING, logging.INFO, logging.DEBUG]
-    level = levels[min(verbosity, len(levels) - 1)]
-    logging.basicConfig(format=fmt, level=level)
-
-
 def git_host(remote_name, attributes):
     """Extract git SSH host for specified remote name."""
     try:
@@ -132,7 +123,7 @@ def handle_connection_error(func):
 def run_agent(client_factory=client.Client):
     """Run ssh-agent using given hardware client factory."""
     args = create_agent_parser().parse_args()
-    setup_logging(verbosity=args.verbose)
+    util.setup_logging(verbosity=args.verbose)
 
     with client_factory(curve=args.ecdsa_curve_name) as conn:
         label = args.identity
@@ -161,7 +152,7 @@ def run_agent(client_factory=client.Client):
 def run_git(client_factory=client.Client):
     """Run git under ssh-agent using given hardware client factory."""
     args = create_git_parser().parse_args()
-    setup_logging(verbosity=args.verbose)
+    util.setup_logging(verbosity=args.verbose)
 
     with client_factory(curve=args.ecdsa_curve_name) as conn:
         label = git_host(args.remote, ['pushurl', 'url'])
