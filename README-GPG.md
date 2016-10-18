@@ -8,7 +8,7 @@ First, verify that you have GPG 2.1+ [installed](https://gist.github.com/vt0r/a2
 
 ```
 $ gpg2 --version | head -n1
-gpg (GnuPG) 2.1.11
+gpg (GnuPG) 2.1.15
 ```
 
 Update you TREZOR firmware to the latest version (at least v1.4.0).
@@ -20,7 +20,7 @@ $ pip install --user git+https://github.com/romanz/trezor-agent.git
 
 Define your GPG user ID as an environment variable:
 ```
-$ export TREZOR_GPG_USER_ID="John Doe <john@doe.bit>"
+$ TREZOR_GPG_USER_ID="John Doe <john@doe.bit>"
 ```
 
 There are two ways to generate TREZOR-based GPG public keys, as described below.
@@ -28,12 +28,12 @@ There are two ways to generate TREZOR-based GPG public keys, as described below.
 ## 1. generate a new GPG identity:
 
 ```
-$ trezor-gpg create | gpg2 --import              # use the TREZOR to confirm signing the primary key
+$ trezor-gpg create "${TREZOR_GPG_USER_ID}" | gpg2 --import           # use the TREZOR to confirm signing the primary key
 gpg: key 5E4D684D: public key "John Doe <john@doe.bit>" imported
 gpg: Total number processed: 1
 gpg:               imported: 1
 
-$ gpg2 --edit "${TREZOR_GPG_USER_ID}" trust      # set this key to ultimate trust (option #5)
+$ gpg2 --edit "${TREZOR_GPG_USER_ID}" trust                           # set this key to ultimate trust (option #5)
 
 $ gpg2 -k
 /home/roman/.gnupg/pubring.kbx
@@ -46,14 +46,14 @@ sub   nistp256/A31D9E25 2016-06-17 [E]
 ## 2. generate a new subkey for an existing GPG identity:
 
 ```
-$ gpg2 -k                                        # suppose there is already a GPG primary key
+$ gpg2 -k                                                             # suppose there is already a GPG primary key
 /home/roman/.gnupg/pubring.kbx
 ------------------------------
 pub   rsa2048/87BB07B4 2016-06-17 [SC]
 uid         [ultimate] John Doe <john@doe.bit>
 sub   rsa2048/7176D31F 2016-06-17 [E]
 
-$ trezor-gpg create --subkey | gpg2 --import     # use the TREZOR to confirm signing the subkey
+$ trezor-gpg create --subkey "${TREZOR_GPG_USER_ID}" | gpg2 --import  # use the TREZOR to confirm signing the subkey
 gpg: key 87BB07B4: "John Doe <john@doe.bit>" 2 new signatures
 gpg: key 87BB07B4: "John Doe <john@doe.bit>" 2 new subkeys
 gpg: Total number processed: 1
@@ -83,13 +83,13 @@ when you are done with the TREZOR-based GPG operations.
 ```
 $ echo "Hello World!" | gpg2 --sign | gpg2 --verify
 gpg: Signature made Fri 17 Jun 2016 08:55:13 PM IDT using ECDSA key ID 5E4D684D
-gpg: Good signature from "Roman Zeyde <roman.zeyde@gmail.com>" [ultimate]
+gpg: Good signature from "John Doe <john@doe.bit>" [ultimate]
 ```
 ## Encrypt and decrypt GPG messages:
 ```
 $ date | gpg2 --encrypt -r "${TREZOR_GPG_USER_ID}" | gpg2 --decrypt
 gpg: encrypted with 256-bit ECDH key, ID A31D9E25, created 2016-06-17
-      "Roman Zeyde <roman.zeyde@gmail.com>"
+      "John Doe <john@doe.bit>"
 Fri Jun 17 20:55:31 IDT 2016
 ```
 
