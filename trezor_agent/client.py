@@ -67,7 +67,7 @@ class Client(object):
         log.debug('hidden challenge size: %d bytes', len(blob))
 
         log.info('please confirm user "%s" login to "%s" using %s...',
-                 msg['user'], label, self.device_name)
+                 msg['user'].decode('ascii'), label, self.device_name)
 
         try:
             result = self.client.sign_identity(identity=identity,
