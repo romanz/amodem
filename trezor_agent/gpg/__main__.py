@@ -7,6 +7,8 @@ import os
 import sys
 import time
 
+import semver
+
 from . import agent, device, encode, keyring, protocol
 from .. import formats, server
 
@@ -93,7 +95,14 @@ def main():
     log.warning('This GPG tool is still in EXPERIMENTAL mode, '
                 'so please note that the API and features may '
                 'change without backwards compatibility!')
-    args.run(args)
+
+    existing_gpg = keyring.gpg_version().decode('ascii')
+    required_gpg = '>=2.1.15'
+    if semver.match(existing_gpg, required_gpg):
+        args.run(args)
+    else:
+        log.error('Existing gpg2 has version "%s" (%s required)',
+                  existing_gpg, required_gpg)
 
 
 if __name__ == '__main__':
