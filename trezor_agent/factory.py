@@ -1,5 +1,6 @@
 """Thin wrapper around trezor/keepkey libraries."""
 from __future__ import absolute_import
+
 import binascii
 import collections
 import logging

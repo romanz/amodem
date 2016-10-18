@@ -1,4 +1,5 @@
 import io
+
 import mock
 
 from .. import keyring

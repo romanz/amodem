@@ -6,8 +6,8 @@ import io
 import logging
 import struct
 
-import ed25519
 import ecdsa
+import ed25519
 
 from . import protocol
 from .. import util

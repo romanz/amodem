@@ -1,5 +1,5 @@
 """Tools for doing signature using gpg-agent."""
-from __future__ import unicode_literals, absolute_import, print_function
+from __future__ import absolute_import, print_function, unicode_literals
 
 import binascii
 import io
