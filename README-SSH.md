@@ -13,13 +13,13 @@
 
 Run:
 
-	/tmp $ trezor-agent ssh.hostname.com -v > hostname.pub
-	2015-09-02 15:03:18,929 INFO         getting "ssh://ssh.hostname.com" public key from Trezor...
+	/tmp $ trezor-agent user@ssh.hostname.com -v > hostname.pub
+	2015-09-02 15:03:18,929 INFO         getting "ssh://user@ssh.hostname.com" public key from Trezor...
 	2015-09-02 15:03:23,342 INFO         disconnected from Trezor
 	/tmp $ cat hostname.pub
-	ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBGSevcDwmT+QaZPUEWUUjTeZRBICChxMKuJ7dRpBSF8+qt+8S1GBK5Zj8Xicc8SHG/SE/EXKUL2UU3kcUzE7ADQ= ssh://ssh.hostname.com
+	ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBGSevcDwmT+QaZPUEWUUjTeZRBICChxMKuJ7dRpBSF8+qt+8S1GBK5Zj8Xicc8SHG/SE/EXKUL2UU3kcUzE7ADQ= ssh://user@ssh.hostname.com
 
-Append `hostname.pub` contents to `~/.ssh/authorized_keys`
+Append `hostname.pub` contents to `/home/user/.ssh/authorized_keys`
 configuration file at `ssh.hostname.com`, so the remote server
 would allow you to login using the corresponding private key signature.
 
@@ -27,9 +27,9 @@ would allow you to login using the corresponding private key signature.
 
 Run:
 
-	/tmp $ trezor-agent ssh.hostname.com -v -c
-	2015-09-02 15:09:39,782 INFO         getting "ssh://ssh.hostname.com" public key from Trezor...
-	2015-09-02 15:09:44,430 INFO         please confirm user "roman" login to "ssh://ssh.hostname.com" using Trezor...
+	/tmp $ trezor-agent user@ssh.hostname.com -v -c
+	2015-09-02 15:09:39,782 INFO         getting "ssh://user@ssh.hostname.com" public key from Trezor...
+	2015-09-02 15:09:44,430 INFO         please confirm user "roman" login to "ssh://user@ssh.hostname.com" using Trezor...
 	2015-09-02 15:09:46,152 INFO         signature status: OK
 	Linux lmde 3.16.0-4-amd64 #1 SMP Debian 3.16.7-ckt11-1+deb8u3 (2015-08-04) x86_64
 
