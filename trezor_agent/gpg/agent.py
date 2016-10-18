@@ -104,7 +104,7 @@ def handle_connection(conn):
     keygrip = None
     digest = None
     algo = None
-    version = keyring.gpg_version()
+    version = keyring.gpg_version()  # "Clone" existing GPG version
 
     keyring.sendline(conn, b'OK')
     for line in keyring.iterlines(conn):
@@ -116,7 +116,7 @@ def handle_connection(conn):
         elif command == b'GETINFO':
             keyring.sendline(conn, b'D ' + version)
         elif command == b'AGENT_ID':
-            keyring.sendline(conn, b'D TREZOR')
+            keyring.sendline(conn, b'D TREZOR')  # "Fake" agent ID
         elif command in {b'SIGKEY', b'SETKEY'}:
             keygrip, = args
         elif command == b'SETHASH':
