@@ -57,3 +57,24 @@ Use the following Bash alias for convinient Git operations:
 Replace `git` with `git_hub` for remote operations:
 
 	$ git_hub push origin master
+
+
+# Troubleshooting
+
+If SSH connection fails to work, please open an [issue](https://github.com/romanz/trezor-agent/issues)
+with a verbose log attached (by running `trezor-agent -vv`) .
+
+## Incompatible SSH options
+
+Note that your local SSH configuration may ignore `trezor-agent`, if it has `IdentitiesOnly` option set to `yes`.
+
+     IdentitiesOnly
+             Specifies that ssh(1) should only use the authentication identity files configured in 
+             the ssh_config files, even if ssh-agent(1) or a PKCS11Provider offers more identities.  
+             The argument to this keyword must be “yes” or “no”.
+             This option is intended for situations where ssh-agent offers many different identities.  
+             The default is “no”.
+
+If you are failing to connect, try running:
+
+    $ trezor-agent -vv user@host -- ssh -vv -oIdentitiesOnly=no user@host
