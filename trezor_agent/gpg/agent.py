@@ -25,7 +25,7 @@ def yield_connections(sock):
 def serialize(data):
     """Serialize data according to ASSUAN protocol."""
     for c in [b'%', b'\n', b'\r']:
-        escaped = '%{:02X}'.format(c[0]).encode('ascii')
+        escaped = '%{:02X}'.format(ord(c)).encode('ascii')
         data = data.replace(c, escaped)
     return data
 
