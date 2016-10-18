@@ -2,9 +2,8 @@
 import binascii
 import contextlib
 import logging
-import os
 
-from . import decode, encode, keyring
+from . import decode, device, keyring, protocol
 from .. import util
 
 log = logging.getLogger(__name__)
@@ -43,16 +42,37 @@ def _verify_keygrip(expected, actual):
         raise KeyError('Keygrip mismatch: {!r} != {!r}', expected, actual)
 
 
+@contextlib.contextmanager
+def open_connection(keygrip_bytes):
+    """
+    Connect to the device for the specified keygrip.
+
+    Parse GPG public key to find the first user ID, which is used to
+    specify the correct signature/decryption key on the device.
+    """
+    pubkey_dict, user_ids = decode.load_by_keygrip(
+        pubkey_bytes=keyring.export_public_keys(),
+        keygrip=keygrip_bytes)
+    # We assume the first user ID is used to generate TREZOR-based GPG keys.
+    user_id = user_ids[0]['value']
+    curve_name = protocol.get_curve_name_by_oid(pubkey_dict['curve_oid'])
+    ecdh = (pubkey_dict['algo'] == protocol.ECDH_ALGO_ID)
+
+    conn = device.HardwareSigner(user_id, curve_name=curve_name)
+    with contextlib.closing(conn):
+        pubkey = protocol.PublicKey(
+            curve_name=curve_name, created=pubkey_dict['created'],
+            verifying_key=conn.pubkey(ecdh=ecdh), ecdh=ecdh)
+        assert pubkey.key_id() == pubkey_dict['key_id']
+        assert pubkey.keygrip == keygrip_bytes
+        yield conn
+
+
 def pksign(keygrip, digest, algo):
     """Sign a message digest using a private EC key."""
     assert algo == b'8', 'Unsupported hash algorithm ID {}'.format(algo)
-    user_id = os.environ['TREZOR_GPG_USER_ID']
-    pubkey_dict = decode.load_public_key(
-        pubkey_bytes=keyring.export_public_key(user_id=user_id),
-        use_custom=True, ecdh=False)
-    pubkey, conn = encode.load_from_public_key(pubkey_dict=pubkey_dict)
-    with contextlib.closing(conn):
-        _verify_keygrip(pubkey.keygrip, binascii.unhexlify(keygrip))
+    keygrip_bytes = binascii.unhexlify(keygrip)
+    with open_connection(keygrip_bytes) as conn:
         r, s = conn.sign(binascii.unhexlify(digest))
         result = sig_encode(r, s)
         log.debug('result: %r', result)
@@ -89,13 +109,8 @@ def pkdecrypt(keygrip, conn):
     assert keyring.recvline(conn) == b'END'
     remote_pubkey = parse_ecdh(line)
 
-    user_id = os.environ['TREZOR_GPG_USER_ID']
-    local_pubkey = decode.load_public_key(
-        pubkey_bytes=keyring.export_public_key(user_id=user_id),
-        use_custom=True, ecdh=True)
-    pubkey, conn = encode.load_from_public_key(pubkey_dict=local_pubkey)
-    with contextlib.closing(conn):
-        _verify_keygrip(pubkey.keygrip, binascii.unhexlify(keygrip))
+    keygrip_bytes = binascii.unhexlify(keygrip)
+    with open_connection(keygrip_bytes) as conn:
         return _serialize_point(conn.ecdh(remote_pubkey))
 
 

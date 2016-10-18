@@ -176,14 +176,11 @@ def _parse_pubkey(stream, packet_type='pubkey'):
             p['keygrip'] = keygrip
 
         elif p['algo'] == DSA_ALGO_ID:
-            log.warning('DSA signatures are not verified')
-            parse_mpis(stream, n=4)
+            parse_mpis(stream, n=4)  # DSA keys are not supported
         elif p['algo'] == ELGAMAL_ALGO_ID:
-            log.warning('ElGamal signatures are not verified')
-            parse_mpis(stream, n=3)
+            parse_mpis(stream, n=3)  # ElGamal keys are not supported
         else:  # assume RSA
-            log.warning('RSA signatures are not verified')
-            parse_mpis(stream, n=2)
+            parse_mpis(stream, n=2)  # RSA keys are not supported
         assert not stream.read()
 
     # https://tools.ietf.org/html/rfc4880#section-12.2
@@ -285,31 +282,22 @@ HASH_ALGORITHMS = {
 }
 
 
-def load_public_key(pubkey_bytes, use_custom=False, ecdh=False):
-    """Parse and validate GPG public key from an input stream."""
+def load_by_keygrip(pubkey_bytes, keygrip):
+    """Return public key and first user ID for specified keygrip."""
     stream = io.BytesIO(pubkey_bytes)
     packets = list(parse_packets(stream))
-    pubkey, userid, signature = packets[:3]
-    packets = packets[3:]
-    log.debug('loaded public key "%s"', userid['value'])
+    packets_per_pubkey = []
+    for p in packets:
+        if p['type'] == 'pubkey':
+            # Add a new packet list for each pubkey.
+            packets_per_pubkey.append([])
+        packets_per_pubkey[-1].append(p)
 
-    packet = pubkey
-    while use_custom:
-        log.debug('GPG packet type: %s (algo = %s, custom = %s)',
-                  packet['type'], packet['algo'], signature['_is_custom'])
-        if packet['type'] in ('pubkey', 'subkey') and signature['_is_custom']:
-            if ecdh == (packet['algo'] == protocol.ECDH_ALGO_ID):
-                log.debug('found custom %s', packet['type'])
-                break
-
-        while packets[1]['type'] != 'signature':
-            packets = packets[1:]
-        packet, signature = packets[:2]
-        packets = packets[2:]
-
-    packet['user_id'] = userid['value']
-    packet['_is_custom'] = signature['_is_custom']
-    return packet
+    for packets in packets_per_pubkey:
+        user_ids = [p for p in packets if p['type'] == 'user_id']
+        for p in packets:
+            if p.get('keygrip') == keygrip:
+                return p, user_ids
 
 
 def load_signature(stream, original_data):

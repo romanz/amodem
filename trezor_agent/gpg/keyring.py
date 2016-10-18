@@ -184,7 +184,7 @@ def gpg_command(args, env=None):
 def get_keygrip(user_id, sp=subprocess):
     """Get a keygrip of the primary GPG key of the specified user."""
     args = gpg_command(['--list-keys', '--with-keygrip', user_id])
-    output = sp.check_output(args)
+    output = sp.check_output(args).decode('ascii')
     return re.findall(r'Keygrip = (\w+)', output)[0]
 
 
@@ -204,6 +204,12 @@ def export_public_key(user_id, sp=subprocess):
         log.error('could not find public key %r in local GPG keyring', user_id)
         raise KeyError(user_id)
     return result
+
+
+def export_public_keys(sp=subprocess):
+    """Export all GPG public keys."""
+    args = gpg_command(['--export'])
+    return sp.check_output(args=args)
 
 
 def create_agent_signer(user_id):
