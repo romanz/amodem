@@ -1,16 +1,11 @@
 """Create GPG ECDSA signatures and public keys using TREZOR device."""
 import io
 import logging
-import time
 
 from . import decode, keyring, protocol
 from .. import util
 
 log = logging.getLogger(__name__)
-
-
-def _time_format(t):
-    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(t))
 
 
 def create_primary(user_id, pubkey, signer_func):
