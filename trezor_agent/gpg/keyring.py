@@ -24,7 +24,7 @@ def get_agent_sock_path(sp=subprocess):
 def connect_to_agent(sp=subprocess):
     """Connect to GPG agent's UNIX socket."""
     sock_path = get_agent_sock_path(sp=sp)
-    sp.check_call(['gpg-connect-agent', '/bye'])  # Stop current gpg-agent
+    sp.check_call(['gpg-connect-agent', '/bye'])  # Make sure it's running
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     sock.connect(sock_path)
     return sock
