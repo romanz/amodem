@@ -37,11 +37,6 @@ def sig_encode(r, s):
     return b'(7:sig-val(5:ecdsa(1:r32:' + r + b')(1:s32:' + s + b')))'
 
 
-def _verify_keygrip(expected, actual):
-    if expected != actual:
-        raise KeyError('Keygrip mismatch: {!r} != {!r}', expected, actual)
-
-
 @contextlib.contextmanager
 def open_connection(keygrip_bytes):
     """
