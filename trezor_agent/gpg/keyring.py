@@ -158,7 +158,12 @@ def sign_digest(sock, keygrip, digest, sp=subprocess, environ=None):
     assert communicate(sock, 'SETKEYDESC '
                        'Sign+a+new+TREZOR-based+subkey') == b'OK'
     assert communicate(sock, 'PKSIGN') == b'OK'
-    line = recvline(sock).strip()
+    while True:
+        line = recvline(sock).strip()
+        if line.startswith(b'S PROGRESS'):
+            continue
+        else:
+            break
     line = unescape(line)
     log.debug('unescaped: %r', line)
     prefix, sig = line.split(b' ', 1)
