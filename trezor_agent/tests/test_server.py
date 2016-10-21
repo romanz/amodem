@@ -1,3 +1,4 @@
+import functools
 import io
 import os
 import socket
@@ -78,8 +79,10 @@ def test_server_thread():
         def getsockname(self):  # pylint: disable=no-self-use
             return 'fake_server'
 
+    handler = protocol.Handler(keys=[], signer=None),
+    handle_conn = functools.partial(server.handle_connection, handler=handler)
     server.server_thread(sock=FakeServer(),
-                         handler=protocol.Handler(keys=[], signer=None),
+                         handle_conn=handle_conn,
                          quit_event=quit_event)
 
 
