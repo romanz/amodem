@@ -1,0 +1,16 @@
+#!/bin/bash
+set -eux
+
+USER_ID="${1}"
+HOMEDIR=~/.gnupg/trezor
+CURVE="ed25519"  # or "nist256p1"
+
+rm -rf "${HOMEDIR}"
+mkdir -p "${HOMEDIR}"
+chmod 700 "${HOMEDIR}"
+
+trezor-gpg -v create "${USER_ID}" -e "${CURVE}" > "${HOMEDIR}/pubkey.asc"
+gpg2 --homedir "${HOMEDIR}" --import < "${HOMEDIR}/pubkey.asc"
+gpg2 --homedir "${HOMEDIR}" --edit-key "${USER_ID}" trust
+
+$(dirname $0)/gpg-shell

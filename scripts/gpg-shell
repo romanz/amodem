@@ -1,0 +1,16 @@
+#!/bin/bash
+set -eu
+
+export GNUPGHOME=~/.gnupg/trezor
+gpg2 -k --with-keygrip
+
+killall -q trezor-gpg || true
+trezor-gpg agent &
+AGENT_PID=$!
+sleep 1
+
+echo "Starting GPG-enabled shell..."
+${SHELL}
+echo "Stopping GPG-enabled shell..."
+
+kill ${AGENT_PID}
