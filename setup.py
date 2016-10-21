@@ -28,7 +28,7 @@ setup(
         'Topic :: Utilities',
     ],
     extras_require={
-        'trezorlib': ['python-trezor>=0.7.4'],
+        'trezorlib': ['python-trezor>=0.7.6'],
         'keepkeylib': ['keepkey>=0.7.3'],
     },
     entry_points={'console_scripts': [
