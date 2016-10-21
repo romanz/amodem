@@ -2,16 +2,25 @@
 """Create signatures and export public keys for GPG using TREZOR."""
 import argparse
 import contextlib
+import io
 import logging
 import sys
 import time
 
 import semver
 
-from . import agent, device, encode, keyring, protocol
+from . import agent, decode, device, encode, keyring, protocol
 from .. import formats, server, util
 
 log = logging.getLogger(__name__)
+
+
+def key_exists(user_id):
+    """Return True iff there is a GPG key with specified user ID."""
+    for p in decode.parse_packets(io.BytesIO(keyring.export_public_keys())):
+        if p['type'] == 'user_id' and p['value'] == user_id:
+            return True
+    return False
 
 
 def run_create(args):
@@ -24,8 +33,9 @@ def run_create(args):
     verifying_key = conn.pubkey(ecdh=False)
     decryption_key = conn.pubkey(ecdh=True)
 
-    if args.subkey:
-        primary_bytes = keyring.export_public_key(user_id=args.user_id)
+    if key_exists(args.user_id):  # add as subkey
+        log.info('adding %s GPG subkey for "%s" to existing key',
+                 args.ecdsa_curve, args.user_id)
         # subkey for signing
         signing_key = protocol.PublicKey(
             curve_name=args.ecdsa_curve, created=args.time,
@@ -34,13 +44,16 @@ def run_create(args):
         encryption_key = protocol.PublicKey(
             curve_name=formats.get_ecdh_curve_name(args.ecdsa_curve),
             created=args.time, verifying_key=decryption_key, ecdh=True)
+        primary_bytes = keyring.export_public_key(args.user_id)
         result = encode.create_subkey(primary_bytes=primary_bytes,
                                       subkey=signing_key,
                                       signer_func=conn.sign)
         result = encode.create_subkey(primary_bytes=result,
                                       subkey=encryption_key,
                                       signer_func=conn.sign)
-    else:
+    else:  # add as primary
+        log.info('creating new %s GPG primary key for "%s"',
+                 args.ecdsa_curve, args.user_id)
         # primary key for signing
         primary = protocol.PublicKey(
             curve_name=args.ecdsa_curve, created=args.time,
@@ -82,7 +95,6 @@ def main():
 
     create_cmd = subparsers.add_parser('create')
     create_cmd.add_argument('user_id')
-    create_cmd.add_argument('-s', '--subkey', action='store_true', default=False)
     create_cmd.add_argument('-e', '--ecdsa-curve', default='nist256p1')
     create_cmd.add_argument('-t', '--time', type=int, default=int(time.time()))
     create_cmd.set_defaults(run=run_create)

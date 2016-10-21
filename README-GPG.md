@@ -53,7 +53,7 @@ pub   rsa2048/87BB07B4 2016-06-17 [SC]
 uid         [ultimate] John Doe <john@doe.bit>
 sub   rsa2048/7176D31F 2016-06-17 [E]
 
-$ trezor-gpg create --subkey "${TREZOR_GPG_USER_ID}" | gpg2 --import  # use the TREZOR to confirm signing the subkey
+$ trezor-gpg create "${TREZOR_GPG_USER_ID}" | gpg2 --import           # use the TREZOR to confirm signing the subkey
 gpg: key 87BB07B4: "John Doe <john@doe.bit>" 2 new signatures
 gpg: key 87BB07B4: "John Doe <john@doe.bit>" 2 new subkeys
 gpg: Total number processed: 1
