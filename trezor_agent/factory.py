@@ -93,15 +93,12 @@ def _load_ledger():
 
         @staticmethod
         def expand_path(path):
-            result = ""
-            for pathElement in path:
-                result = result + struct.pack(">I", pathElement)
-            return result
+            return b''.join((struct.pack('>I', e) for e in path))
 
         @staticmethod
         def convert_public_key(ecdsa_curve_name, result):
             from trezorlib.messages_pb2 import PublicKey  # pylint: disable=import-error
-            if ecdsa_curve_name == "nist256p1":
+            if ecdsa_curve_name == 'nist256p1':
                 if (result[64] & 1) != 0:
                     result = bytearray([0x03]) + result[1:33]
                 else:
@@ -112,48 +109,48 @@ def _load_ledger():
                 keyY = bytearray(result[32:][::-1])
                 if (keyX[31] & 1) != 0:
                     keyY[31] |= 0x80
-                result = chr(0) + str(keyY)
+                result = b'\x00' + bytes(keyY)
             publicKey = PublicKey()
-            publicKey.node.public_key = str(result)
+            publicKey.node.public_key = bytes(result)
             return publicKey
 
         # pylint: disable=unused-argument
-        def get_public_node(self, n, ecdsa_curve_name="secp256k1", show_display=False):
+        def get_public_node(self, n, ecdsa_curve_name='secp256k1', show_display=False):
             donglePath = LedgerClientConnection.expand_path(n)
-            if ecdsa_curve_name == "nist256p1":
-                p2 = "01"
+            if ecdsa_curve_name == 'nist256p1':
+                p2 = '01'
             else:
-                p2 = "02"
-            apdu = "800200" + p2
-            apdu = apdu.decode('hex')
-            apdu += chr(len(donglePath) + 1) + chr(len(donglePath) / 4)
+                p2 = '02'
+            apdu = '800200' + p2
+            apdu = binascii.unhexlify(apdu)
+            apdu += bytearray([len(donglePath) + 1, len(donglePath) // 4])
             apdu += donglePath
             result = bytearray(self.dongle.exchange(bytes(apdu)))[1:]
             return LedgerClientConnection.convert_public_key(ecdsa_curve_name, result)
 
         # pylint: disable=too-many-locals
         def sign_identity(self, identity, challenge_hidden, challenge_visual,
-                          ecdsa_curve_name="secp256k1"):
+                          ecdsa_curve_name='secp256k1'):
             from trezorlib.messages_pb2 import SignedIdentity  # pylint: disable=import-error
             n = util.get_bip32_address(identity)
             donglePath = LedgerClientConnection.expand_path(n)
             if identity.proto == 'ssh':
-                ins = "04"
-                p1 = "00"
+                ins = '04'
+                p1 = '00'
             else:
-                ins = "08"
-                p1 = "00"
-            if ecdsa_curve_name == "nist256p1":
-                p2 = "81" if identity.proto == 'ssh' else "01"
+                ins = '08'
+                p1 = '00'
+            if ecdsa_curve_name == 'nist256p1':
+                p2 = '81' if identity.proto == 'ssh' else '01'
             else:
-                p2 = "82" if identity.proto == 'ssh' else "02"
-            apdu = "80" + ins + p1 + p2
-            apdu = apdu.decode('hex')
-            apdu += chr(len(challenge_hidden) + len(donglePath) + 1)
-            apdu += chr(len(donglePath) / 4) + donglePath
+                p2 = '82' if identity.proto == 'ssh' else '02'
+            apdu = '80' + ins + p1 + p2
+            apdu = binascii.unhexlify(apdu)
+            apdu += bytearray([len(challenge_hidden) + len(donglePath) + 1])
+            apdu += bytearray([len(donglePath) // 4]) + donglePath
             apdu += challenge_hidden
             result = bytearray(self.dongle.exchange(bytes(apdu)))
-            if ecdsa_curve_name == "nist256p1":
+            if ecdsa_curve_name == 'nist256p1':
                 offset = 3
                 length = result[offset]
                 r = result[offset+1:offset+1+length]
@@ -166,7 +163,7 @@ def _load_ledger():
                     s = s[1:]
                 offset = offset + 1 + length
                 signature = SignedIdentity()
-                signature.signature = chr(0) + str(r) + str(s)
+                signature.signature = b'\x00' + bytes(r) + bytes(s)
                 if identity.proto == 'ssh':
                     keyData = result[offset:]
                     pk = LedgerClientConnection.convert_public_key(ecdsa_curve_name, keyData)
@@ -174,29 +171,29 @@ def _load_ledger():
                 return signature
             else:
                 signature = SignedIdentity()
-                signature.signature = chr(0) + str(result[0:64])
+                signature.signature = b'\x00' + bytes(result[0:64])
                 if identity.proto == 'ssh':
                     keyData = result[64:]
                     pk = LedgerClientConnection.convert_public_key(ecdsa_curve_name, keyData)
                     signature.public_key = pk.node.public_key
                 return signature
 
-        def get_ecdh_session_key(self, identity, peer_public_key, ecdsa_curve_name="secp256k1"):
+        def get_ecdh_session_key(self, identity, peer_public_key, ecdsa_curve_name='secp256k1'):
             from trezorlib.messages_pb2 import ECDHSessionKey  # pylint: disable=import-error
             n = util.get_bip32_address(identity, True)
             donglePath = LedgerClientConnection.expand_path(n)
-            if ecdsa_curve_name == "nist256p1":
-                p2 = "01"
+            if ecdsa_curve_name == 'nist256p1':
+                p2 = '01'
             else:
-                p2 = "02"
-            apdu = "800a00" + p2
-            apdu = apdu.decode('hex')
-            apdu += chr(len(peer_public_key) + len(donglePath) + 1)
-            apdu += chr(len(donglePath) / 4) + donglePath
+                p2 = '02'
+            apdu = '800a00' + p2
+            apdu = binascii.unhexlify(apdu)
+            apdu += bytearray([len(peer_public_key) + len(donglePath) + 1])
+            apdu += bytearray([len(donglePath) // 4]) + donglePath
             apdu += peer_public_key
             result = bytearray(self.dongle.exchange(bytes(apdu)))
             sessionKey = ECDHSessionKey()
-            sessionKey.session_key = str(result)
+            sessionKey.session_key = bytes(result)
             return sessionKey
 
         def clear_session(self):
