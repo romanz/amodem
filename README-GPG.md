@@ -18,79 +18,62 @@ Install latest `trezor-agent` package from GitHub:
 $ pip install --user git+https://github.com/romanz/trezor-agent.git
 ```
 
-Define your GPG user ID as an environment variable:
-```
-$ TREZOR_GPG_USER_ID="John Doe <john@doe.bit>"
-```
+# Quickstart
 
-There are two ways to generate TREZOR-based GPG public keys, as described below.
+[![asciicast](https://asciinema.org/a/88teiuljlxp8w0avvn7oorr4s.png)](https://asciinema.org/a/88teiuljlxp8w0avvn7oorr4s)
 
-## 1. generate a new GPG identity:
-
+# Initialization
 ```
-$ trezor-gpg create "${TREZOR_GPG_USER_ID}" | gpg2 --import           # use the TREZOR to confirm signing the primary key
-gpg: key 5E4D684D: public key "John Doe <john@doe.bit>" imported
+$ ./scripts/gpg-init "John Doe <john@doe.bit>"
+2016-10-22 22:36:23,952 INFO         creating new ed25519 GPG primary key for "John Doe <john@doe.bit>"                                   [__main__.py:56]
+2016-10-22 22:36:23,952 INFO         please confirm GPG signature on Trezor for "John Doe <john@doe.bit>"...                              [device.py:39]
+2016-10-22 22:36:26,307 INFO         please confirm GPG signature on Trezor for "John Doe <john@doe.bit>"...                              [device.py:39]
+gpg: keybox '/home/roman/.gnupg/trezor/pubring.kbx' created
+gpg: /home/roman/.gnupg/trezor/trustdb.gpg: trustdb created
+gpg: key 7482BAFD9AFE0C94: public key "John Doe <john@doe.bit>" imported
 gpg: Total number processed: 1
 gpg:               imported: 1
-
-$ gpg2 --edit "${TREZOR_GPG_USER_ID}" trust                           # set this key to ultimate trust (option #5)
-
-$ gpg2 -k
-/home/roman/.gnupg/pubring.kbx
-------------------------------
-pub   nistp256/5E4D684D 2016-06-17 [SC]
-uid         [ultimate] John Doe <john@doe.bit>
-sub   nistp256/A31D9E25 2016-06-17 [E]
-```
-
-## 2. generate a new subkey for an existing GPG identity:
-
-```
-$ gpg2 -k                                                             # suppose there is already a GPG primary key
-/home/roman/.gnupg/pubring.kbx
-------------------------------
-pub   rsa2048/87BB07B4 2016-06-17 [SC]
-uid         [ultimate] John Doe <john@doe.bit>
-sub   rsa2048/7176D31F 2016-06-17 [E]
-
-$ trezor-gpg create "${TREZOR_GPG_USER_ID}" | gpg2 --import           # use the TREZOR to confirm signing the subkey
-gpg: key 87BB07B4: "John Doe <john@doe.bit>" 2 new signatures
-gpg: key 87BB07B4: "John Doe <john@doe.bit>" 2 new subkeys
-gpg: Total number processed: 1
-gpg:            new subkeys: 2
-gpg:         new signatures: 2
-
-$ gpg2 -k
-/home/roman/.gnupg/pubring.kbx
-------------------------------
-pub   rsa2048/87BB07B4 2016-06-17 [SC]
-uid         [ultimate] John Doe <john@doe.bit>
-sub   rsa2048/7176D31F 2016-06-17 [E]
-sub   nistp256/DDE80B36 2016-06-17 [S]
-sub   nistp256/E3D0BA19 2016-06-17 [E]
+Marking 0x7482BAFD9AFE0C94 as trusted...
 ```
 
 # Usage examples:
 
 ## Start the TREZOR-based gpg-agent:
 ```
-$ trezor-gpg agent &
+$ ./scripts/gpg-shell
+gpg: key 7482BAFD9AFE0C94 marked as ultimately trusted
+gpg: checking the trustdb
+gpg: marginals needed: 3  completes needed: 1  trust model: pgp
+gpg: depth: 0  valid:   1  signed:   0  trust: 0-, 0q, 0n, 0m, 0f, 1u
+/home/roman/.gnupg/trezor/pubring.kbx
+-------------------------------------
+pub   ed25519 2016-10-22 [SC]
+      74D5CDA3387022810BC97B257482BAFD9AFE0C94
+      Keygrip = 78DDB30A6A9A7573606BAEDDC0D4065610831B6B
+uid           [ultimate] John Doe <john@doe.bit>
+sub   cv25519 2016-10-22 [E]
+      Keygrip = 182A7F215C98CA29CF8A8A92B92D4A4F8BBEE1FD
+
+Starting GPG-enabled shell...
 ```
-Note: this agent intercepts all GPG requests, so make sure to close it (e.g. by using `killall trezor-gpg`),
-when you are done with the TREZOR-based GPG operations.
+
+Note: this agent intercepts all GPG requests in the current shell, and will be killed after this shell is closed.
 
 ## Sign and verify GPG messages:
 ```
 $ echo "Hello World!" | gpg2 --sign | gpg2 --verify
-gpg: Signature made Fri 17 Jun 2016 08:55:13 PM IDT using ECDSA key ID 5E4D684D
+2016-10-22 22:36:38,088 INFO         please confirm GPG signature on Trezor for "John Doe <john@doe.bit>"...                              [device.py:39]
+gpg: Signature made Sat 22 Oct 2016 10:36:37 PM IDT
+gpg:                using EDDSA key 7482BAFD9AFE0C94
 gpg: Good signature from "John Doe <john@doe.bit>" [ultimate]
 ```
 ## Encrypt and decrypt GPG messages:
 ```
-$ date | gpg2 --encrypt -r "${TREZOR_GPG_USER_ID}" | gpg2 --decrypt
-gpg: encrypted with 256-bit ECDH key, ID A31D9E25, created 2016-06-17
+$ date | gpg2 --encrypt -r John | gpg2 --decrypt
+2016-10-22 22:36:43,820 INFO         please confirm GPG decryption on Trezor for "John Doe <john@doe.bit>"...                             [device.py:52]
+gpg: encrypted with 256-bit ECDH key, ID 4BE3A7CA55CEB3DE, created 2016-10-22
       "John Doe <john@doe.bit>"
-Fri Jun 17 20:55:31 IDT 2016
+Sat Oct 22 22:36:43 IDT 2016
 ```
 
 ## Git commit & tag signatures:
