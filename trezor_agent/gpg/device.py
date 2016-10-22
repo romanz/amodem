@@ -1,6 +1,10 @@
 """Device abstraction layer for GPG operations."""
 
+import logging
+
 from .. import factory, formats, util
+
+log = logging.getLogger(__name__)
 
 
 class HardwareSigner(object):
@@ -13,6 +17,7 @@ class HardwareSigner(object):
         self.identity.proto = 'gpg'
         self.identity.host = user_id
         self.curve_name = curve_name
+        self.user_id = user_id
 
     def pubkey(self, ecdh=False):
         """Return public key as VerifyingKey object."""
@@ -30,6 +35,8 @@ class HardwareSigner(object):
 
     def sign(self, digest):
         """Sign the digest and return a serialized signature."""
+        log.info('please confirm GPG signature on %s for "%s"...',
+                 self.client_wrapper.device_name, self.user_id)
         result = self.client_wrapper.connection.sign_identity(
             identity=self.identity,
             challenge_hidden=digest,
@@ -41,6 +48,8 @@ class HardwareSigner(object):
 
     def ecdh(self, pubkey):
         """Derive shared secret using ECDH from remote public key."""
+        log.info('please confirm GPG decryption on %s for "%s"...',
+                 self.client_wrapper.device_name, self.user_id)
         result = self.client_wrapper.connection.get_ecdh_session_key(
             identity=self.identity,
             peer_public_key=pubkey,
