@@ -17,5 +17,3 @@ FINGERPRINT=$(gpg2 --homedir "${HOMEDIR}" --list-public-keys --with-colons | sed
 KEY_ID="0x${FINGERPRINT:(-16)}"  # take last 8 bytes of the fingerprint
 echo "Marking ${KEY_ID} as trusted..."
 echo "trusted-key ${KEY_ID}" > "${HOMEDIR}/gpg.conf"
-
-$(dirname $0)/gpg-shell
