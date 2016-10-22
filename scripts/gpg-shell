@@ -5,7 +5,7 @@ export GNUPGHOME=~/.gnupg/trezor
 gpg2 --list-public-keys --with-keygrip
 
 killall -q trezor-gpg || true
-trezor-gpg agent &
+trezor-gpg -v agent &
 AGENT_PID=$!
 sleep 1
 
