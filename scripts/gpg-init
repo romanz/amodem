@@ -1,5 +1,5 @@
 #!/bin/bash
-set -eux
+set -eu
 
 USER_ID="${1}"
 HOMEDIR=~/.gnupg/trezor
@@ -11,6 +11,11 @@ chmod 700 "${HOMEDIR}"
 
 trezor-gpg -v create "${USER_ID}" -e "${CURVE}" > "${HOMEDIR}/pubkey.asc"
 gpg2 --homedir "${HOMEDIR}" --import < "${HOMEDIR}/pubkey.asc"
-gpg2 --homedir "${HOMEDIR}" --edit-key "${USER_ID}" trust
+
+# Mark new key as trusted in gpg.conf
+FINGERPRINT=$(gpg2 --homedir "${HOMEDIR}" --list-public-keys --with-colons | sed --quiet --regexp-extended 's/^fpr:::::::::([0-9A-F]+):$/\1/p' | head -n1)
+KEY_ID="0x${FINGERPRINT:(-16)}"  # take last 8 bytes of the fingerprint
+echo "Marking ${KEY_ID} as trusted..."
+echo "trusted-key ${KEY_ID}" > "${HOMEDIR}/gpg.conf"
 
 $(dirname $0)/gpg-shell

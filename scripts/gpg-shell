@@ -2,7 +2,7 @@
 set -eu
 
 export GNUPGHOME=~/.gnupg/trezor
-gpg2 -k --with-keygrip
+gpg2 --list-public-keys --with-keygrip
 
 killall -q trezor-gpg || true
 trezor-gpg agent &
