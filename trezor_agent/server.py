@@ -116,6 +116,9 @@ def serve(handler, sock_path=None, timeout=UNIX_SOCKET_TIMEOUT):
     If no connection is made during the specified timeout,
     retry until the context is over.
     """
+    ssh_version = subprocess.check_output(['ssh', '-V'],
+                                          stderr=subprocess.STDOUT)
+    log.debug('local SSH version: %r', ssh_version)
     if sock_path is None:
         sock_path = tempfile.mktemp(prefix='ssh-agent-')
 
