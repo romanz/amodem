@@ -65,8 +65,7 @@ def open_connection(keygrip_bytes):
 
 def pksign(keygrip, digest, algo):
     """Sign a message digest using a private EC key."""
-    assert algo == b'8', 'Unsupported hash algorithm ID {}'.format(algo)
-    assert len(digest) == 64  # SHA-256 bits (in hex digits)
+    log.debug('signing %r digest (algo #%s)', digest, algo)
     keygrip_bytes = binascii.unhexlify(keygrip)
     with open_connection(keygrip_bytes) as conn:
         r, s = conn.sign(binascii.unhexlify(digest))

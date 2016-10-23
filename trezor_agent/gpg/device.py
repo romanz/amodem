@@ -37,6 +37,9 @@ class HardwareSigner(object):
         """Sign the digest and return a serialized signature."""
         log.info('please confirm GPG signature on %s for "%s"...',
                  self.client_wrapper.device_name, self.user_id)
+        if self.curve_name == formats.CURVE_NIST256:
+            digest = digest[:32]  # sign the first 256 bits
+        log.debug('signing digest: %s', util.hexlify(digest))
         result = self.client_wrapper.connection.sign_identity(
             identity=self.identity,
             challenge_hidden=digest,
