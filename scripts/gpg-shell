@@ -10,7 +10,7 @@ AGENT_PID=$!
 sleep 1
 
 echo "Starting GPG-enabled shell..."
-${SHELL}
+${SHELL} || true
 echo "Stopping GPG-enabled shell..."
 
 kill ${AGENT_PID}
