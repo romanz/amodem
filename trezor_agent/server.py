@@ -43,19 +43,24 @@ def unix_domain_socket_server(sock_path):
         remove_file(sock_path)
 
 
-def handle_connection(conn, handler):
+def handle_connection(conn, handler, mutex):
     """
     Handle a single connection using the specified protocol handler in a loop.
+
+    Since this function may be called concurrently from server_thread,
+    the specified mutex is used to synchronize the device handling.
 
     Exit when EOFError is raised.
     All other exceptions are logged as warnings.
     """
     try:
         log.debug('welcome agent')
-        while True:
-            msg = util.read_frame(conn)
-            reply = handler.handle(msg=msg)
-            util.send(conn, reply)
+        with contextlib.closing(conn):
+            while True:
+                msg = util.read_frame(conn)
+                with mutex:
+                    reply = handler.handle(msg=msg)
+                util.send(conn, reply)
     except EOFError:
         log.debug('goodbye agent')
     except Exception as e:  # pylint: disable=broad-except
@@ -94,8 +99,9 @@ def server_thread(sock, handle_conn, quit_event):
         except StopIteration:
             log.debug('server stopped')
             break
-        with contextlib.closing(conn):
-            handle_conn(conn)
+        # Handle connections from SSH concurrently.
+        threading.Thread(target=handle_conn,
+                         kwargs=dict(conn=conn)).start()
     log.debug('server thread stopped')
 
 
@@ -123,10 +129,13 @@ def serve(handler, sock_path=None, timeout=UNIX_SOCKET_TIMEOUT):
         sock_path = tempfile.mktemp(prefix='ssh-agent-')
 
     environ = {'SSH_AUTH_SOCK': sock_path, 'SSH_AGENT_PID': str(os.getpid())}
+    device_mutex = threading.Lock()
     with unix_domain_socket_server(sock_path) as sock:
         sock.settimeout(timeout)
         quit_event = threading.Event()
-        handle_conn = functools.partial(handle_connection, handler=handler)
+        handle_conn = functools.partial(handle_connection,
+                                        handler=handler,
+                                        mutex=device_mutex)
         kwargs = dict(sock=sock,
                       handle_conn=handle_conn,
                       quit_event=quit_event)
