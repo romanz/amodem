@@ -23,3 +23,8 @@ echo "${FINGERPRINT}:6" | gpg2 --homedir "${HOMEDIR}" --import-ownertrust
 echo "# TREZOR-based GPG configuration
 agent-program $(which trezor-gpg-agent)
 " | tee "${HOMEDIR}/gpg.conf"
+
+echo "# TREZOR-based GPG agent emulator
+log-file ${HOMEDIR}/gpg-agent.log
+verbosity 2
+" | tee "${HOMEDIR}/gpg-agent.conf"
