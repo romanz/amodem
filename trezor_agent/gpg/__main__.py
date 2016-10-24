@@ -4,6 +4,7 @@ import argparse
 import contextlib
 import io
 import logging
+import os
 import sys
 import time
 
@@ -73,34 +74,13 @@ def run_create(args):
     sys.stdout.write(protocol.armor(result, 'PUBLIC KEY BLOCK'))
 
 
-def run_agent(args):  # pylint: disable=unused-argument
-    """Run a simple GPG-agent server."""
-    sock_path = keyring.get_agent_sock_path()
-    with server.unix_domain_socket_server(sock_path) as sock:
-        for conn in agent.yield_connections(sock):
-            with contextlib.closing(conn):
-                try:
-                    agent.handle_connection(conn)
-                except Exception as e:  # pylint: disable=broad-except
-                    log.exception('gpg-agent failed: %s', e)
-
-
-def main():
-    """Main function."""
+def main_create():
+    """Main function for GPG identity creation."""
     p = argparse.ArgumentParser()
+    p.add_argument('user_id')
+    p.add_argument('-e', '--ecdsa-curve', default='nist256p1')
+    p.add_argument('-t', '--time', type=int, default=int(time.time()))
     p.add_argument('-v', '--verbose', default=0, action='count')
-    subparsers = p.add_subparsers()
-    subparsers.required = True
-    subparsers.dest = 'command'
-
-    create_cmd = subparsers.add_parser('create')
-    create_cmd.add_argument('user_id')
-    create_cmd.add_argument('-e', '--ecdsa-curve', default='nist256p1')
-    create_cmd.add_argument('-t', '--time', type=int, default=int(time.time()))
-    create_cmd.set_defaults(run=run_create)
-
-    agent_cmd = subparsers.add_parser('agent')
-    agent_cmd.set_defaults(run=run_agent)
 
     args = p.parse_args()
     util.setup_logging(verbosity=args.verbose)
@@ -111,11 +91,27 @@ def main():
     existing_gpg = keyring.gpg_version().decode('ascii')
     required_gpg = '>=2.1.15'
     if semver.match(existing_gpg, required_gpg):
-        args.run(args)
+        run_create(args)
     else:
         log.error('Existing gpg2 has version "%s" (%s required)',
                   existing_gpg, required_gpg)
 
 
-if __name__ == '__main__':
-    main()
+def main_agent():
+    """Run a simple GPG-agent server."""
+    home_dir = os.environ.get('GNUPGHOME', os.path.expanduser('~/.gnupg/trezor'))
+    config_file = os.path.join(home_dir, 'gpg-agent.conf')
+    lines = (line.strip() for line in open(config_file))
+    lines = (line for line in lines if line and not line.startswith('#'))
+    config = dict(line.split(' ', 1) for line in lines)
+
+    util.setup_logging(verbosity=int(config['verbosity']),
+                       filename=config['log-file'])
+    sock_path = keyring.get_agent_sock_path()
+    with server.unix_domain_socket_server(sock_path) as sock:
+        for conn in agent.yield_connections(sock):
+            with contextlib.closing(conn):
+                try:
+                    agent.handle_connection(conn)
+                except Exception as e:  # pylint: disable=broad-except
+                    log.exception('gpg-agent failed: %s', e)
