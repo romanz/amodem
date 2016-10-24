@@ -3,7 +3,7 @@ set -eu
 
 USER_ID="${1}"
 HOMEDIR=~/.gnupg/trezor
-CURVE="ed25519"  # or "nist256p1"
+CURVE=${CURVE:="nist256p1"}  # or "ed25519"
 
 rm -rf "${HOMEDIR}"
 mkdir -p "${HOMEDIR}"
