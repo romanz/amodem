@@ -22,6 +22,7 @@ echo "${FINGERPRINT}:6" | gpg2 --homedir "${HOMEDIR}" --import-ownertrust
 # Prepare GPG configuration file
 echo "# TREZOR-based GPG configuration
 agent-program $(which trezor-gpg-agent)
+personal-digest-preferences SHA512
 " | tee "${HOMEDIR}/gpg.conf"
 
 echo "# TREZOR-based GPG agent emulator
