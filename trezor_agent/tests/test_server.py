@@ -38,30 +38,32 @@ class FakeSocket(object):
 
 
 def test_handle():
+    mutex = threading.Lock()
+
     handler = protocol.Handler(keys=[], signer=None)
     conn = FakeSocket()
-    server.handle_connection(conn, handler)
+    server.handle_connection(conn, handler, mutex)
 
     msg = bytearray([protocol.msg_code('SSH_AGENTC_REQUEST_RSA_IDENTITIES')])
     conn = FakeSocket(util.frame(msg))
-    server.handle_connection(conn, handler)
+    server.handle_connection(conn, handler, mutex)
     assert conn.tx.getvalue() == b'\x00\x00\x00\x05\x02\x00\x00\x00\x00'
 
     msg = bytearray([protocol.msg_code('SSH2_AGENTC_REQUEST_IDENTITIES')])
     conn = FakeSocket(util.frame(msg))
-    server.handle_connection(conn, handler)
+    server.handle_connection(conn, handler, mutex)
     assert conn.tx.getvalue() == b'\x00\x00\x00\x05\x0C\x00\x00\x00\x00'
 
     msg = bytearray([protocol.msg_code('SSH2_AGENTC_ADD_IDENTITY')])
     conn = FakeSocket(util.frame(msg))
-    server.handle_connection(conn, handler)
+    server.handle_connection(conn, handler, mutex)
     conn.tx.seek(0)
     reply = util.read_frame(conn.tx)
     assert reply == util.pack('B', protocol.msg_code('SSH_AGENT_FAILURE'))
 
     conn_mock = mock.Mock(spec=FakeSocket)
     conn_mock.recv.side_effect = [Exception, EOFError]
-    server.handle_connection(conn=conn_mock, handler=None)
+    server.handle_connection(conn=conn_mock, handler=None, mutex=mutex)
 
 
 def test_server_thread():
