@@ -5,15 +5,21 @@ USER_ID="${1}"
 HOMEDIR=~/.gnupg/trezor
 CURVE=${CURVE:="nist256p1"}  # or "ed25519"
 
+# Prepare new GPG home directory for TREZOR-based identity
 rm -rf "${HOMEDIR}"
 mkdir -p "${HOMEDIR}"
 chmod 700 "${HOMEDIR}"
 
-trezor-gpg -v create "${USER_ID}" -e "${CURVE}" > "${HOMEDIR}/pubkey.asc"
+# Generate new GPG identity and import into GPG keyring
+trezor-gpg-create -v "${USER_ID}" -e "${CURVE}" > "${HOMEDIR}/pubkey.asc"
 gpg2 --homedir "${HOMEDIR}" --import < "${HOMEDIR}/pubkey.asc"
+rm -f "${HOMEDIR}/S.gpg-agent"  # (otherwise, our agent won't be started automatically)
 
-# Mark new key as trusted in gpg.conf
+# Make new GPG identity with "ultimate" trust (via its fingerprint)
 FINGERPRINT=$(gpg2 --homedir "${HOMEDIR}" --list-public-keys --with-colons | sed --quiet --regexp-extended 's/^fpr:::::::::([0-9A-F]+):$/\1/p' | head -n1)
-KEY_ID="0x${FINGERPRINT:(-16)}"  # take last 8 bytes of the fingerprint
-echo "Marking ${KEY_ID} as trusted..."
-echo "trusted-key ${KEY_ID}" > "${HOMEDIR}/gpg.conf"
+echo "${FINGERPRINT}:6" | gpg2 --homedir "${HOMEDIR}" --import-ownertrust
+
+# Prepare GPG configuration file
+echo "# TREZOR-based GPG configuration
+agent-program $(which trezor-gpg-agent)
+" | tee "${HOMEDIR}/gpg.conf"

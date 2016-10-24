@@ -2,15 +2,6 @@
 set -eu
 
 export GNUPGHOME=~/.gnupg/trezor
-gpg2 --list-public-keys --with-keygrip
+gpg2 --list-public-keys
 
-killall -q trezor-gpg || true
-trezor-gpg -v agent &
-AGENT_PID=$!
-sleep 1
-
-echo "Starting GPG-enabled shell..."
-${SHELL} || true
-echo "Stopping GPG-enabled shell..."
-
-kill ${AGENT_PID}
+${SHELL}
