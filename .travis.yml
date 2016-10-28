@@ -2,12 +2,22 @@ sudo: false
 language: python
 python:
   - "2.7"
-  - "3.4"
-  - "3.5"
+
+cache:
+  directories:
+    - $HOME/.cache/pip
+
+addons:
+    apt:
+        packages:
+            - libudev-dev
+            - libusb-1.0-0-dev
+
+before_install:
+  - pip install -U setuptools pylint coverage pep8 pydocstyle "pip>=7.0" wheel
 
 install:
-  - pip install ecdsa ed25519 semver  # test without trezorlib for now
-  - pip install -U pylint coverage pep8 pydocstyle  # use latest tools
+  - pip install -e .
 
 script:
   - pep8 trezor_agent
