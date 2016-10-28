@@ -7,7 +7,6 @@ for more details.
 The server's source code can be found here:
 https://github.com/openssh/openssh-portable/blob/master/authfd.c
 """
-import binascii
 import io
 import logging
 
@@ -138,13 +137,13 @@ class Handler(object):
         else:
             raise KeyError('key not found')
 
-        log.debug('signing %d-byte blob', len(blob))
         label = key['name'].decode('ascii')  # label should be a string
+        log.debug('signing %d-byte blob with "%s" key', len(blob), label)
         try:
-            signature = self.signer(label=label, blob=blob)
+            signature = self.signer(blob=blob)
         except IOError:
             return failure()
-        log.debug('signature: %s', binascii.hexlify(signature))
+        log.debug('signature: %r', signature)
 
         try:
             sig_bytes = key['verifier'](sig=signature, msg=blob)

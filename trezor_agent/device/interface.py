@@ -76,7 +76,6 @@ class Device(object):
     def __init__(self, identity_str, curve_name):
         """Configure for specific identity and elliptic curve usage."""
         self.identity_dict = string_to_identity(identity_str)
-        assert curve_name in formats.SUPPORTED_CURVES
         self.curve_name = curve_name
         self.conn = None
 

@@ -28,8 +28,7 @@ def test_unsupported():
     assert reply == b'\x00\x00\x00\x01\x05'
 
 
-def ecdsa_signer(label, blob):
-    assert label == 'ssh://localhost'
+def ecdsa_signer(blob):
     assert blob == NIST256_BLOB
     return NIST256_SIG
 
@@ -49,8 +48,7 @@ def test_sign_missing():
 
 
 def test_sign_wrong():
-    def wrong_signature(label, blob):
-        assert label == 'ssh://localhost'
+    def wrong_signature(blob):
         assert blob == NIST256_BLOB
         return b'\x00' * 64
 
@@ -62,7 +60,7 @@ def test_sign_wrong():
 
 
 def test_sign_cancel():
-    def cancel_signature(label, blob):  # pylint: disable=unused-argument
+    def cancel_signature(blob):  # pylint: disable=unused-argument
         raise IOError()
 
     key = formats.import_public_key(NIST256_KEY)
@@ -79,8 +77,7 @@ ED25519_BLOB = b'''\x00\x00\x00 i3\xae}yk\\\xa1L\xb9\xe1\xbf\xbc\x8e\x87\r\x0e\x
 ED25519_SIG = b'''\x8eb)\xa6\xe9P\x83VE\xfbq\xc6\xbf\x1dV3\xe3<O\x11\xc0\xfa\xe4\xed\xb8\x81.\x81\xc8\xa6\xba\x10RA'a\xbc\xa9\xd3\xdb\x98\x07\xf0\x1a\x9c4\x84<\xaf\x99\xb7\xe5G\xeb\xf7$\xc1\r\x86f\x16\x8e\x08\x05'''  # nopep8
 
 
-def ed25519_signer(label, blob):
-    assert label == 'ssh://localhost'
+def ed25519_signer(blob):
     assert blob == ED25519_BLOB
     return ED25519_SIG
 
