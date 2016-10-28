@@ -47,7 +47,7 @@ def open_connection(keygrip_bytes):
         pubkey_bytes=keyring.export_public_keys(),
         keygrip=keygrip_bytes)
     # We assume the first user ID is used to generate TREZOR-based GPG keys.
-    user_id = user_ids[0]['value']
+    user_id = user_ids[0]['value'].decode('ascii')
     curve_name = protocol.get_curve_name_by_oid(pubkey_dict['curve_oid'])
     ecdh = (pubkey_dict['algo'] == protocol.ECDH_ALGO_ID)
 

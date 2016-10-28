@@ -41,6 +41,7 @@ def identity_to_string(identity_dict):
         result.append(':' + identity_dict['port'])
     if identity_dict.get('path'):
         result.append(identity_dict['path'])
+    log.debug('identity parts: %s', result)
     return ''.join(result)
 
 
