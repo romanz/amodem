@@ -29,10 +29,10 @@ def run_create(args):
     log.warning('NOTE: in order to re-generate the exact same GPG key later, '
                 'run this command with "--time=%d" commandline flag (to set '
                 'the timestamp of the GPG key manually).', args.time)
-    conn = device.HardwareSigner(user_id=args.user_id,
-                                 curve_name=args.ecdsa_curve)
-    verifying_key = conn.pubkey(ecdh=False)
-    decryption_key = conn.pubkey(ecdh=True)
+    d = device.HardwareSigner(user_id=args.user_id,
+                              curve_name=args.ecdsa_curve)
+    verifying_key = d.pubkey(ecdh=False)
+    decryption_key = d.pubkey(ecdh=True)
 
     if key_exists(args.user_id):  # add as subkey
         log.info('adding %s GPG subkey for "%s" to existing key',
@@ -48,10 +48,10 @@ def run_create(args):
         primary_bytes = keyring.export_public_key(args.user_id)
         result = encode.create_subkey(primary_bytes=primary_bytes,
                                       subkey=signing_key,
-                                      signer_func=conn.sign)
+                                      signer_func=d.sign)
         result = encode.create_subkey(primary_bytes=result,
                                       subkey=encryption_key,
-                                      signer_func=conn.sign)
+                                      signer_func=d.sign)
     else:  # add as primary
         log.info('creating new %s GPG primary key for "%s"',
                  args.ecdsa_curve, args.user_id)
@@ -66,10 +66,10 @@ def run_create(args):
 
         result = encode.create_primary(user_id=args.user_id,
                                        pubkey=primary,
-                                       signer_func=conn.sign)
+                                       signer_func=d.sign)
         result = encode.create_subkey(primary_bytes=result,
                                       subkey=subkey,
-                                      signer_func=conn.sign)
+                                      signer_func=d.sign)
 
     sys.stdout.write(protocol.armor(result, 'PUBLIC KEY BLOCK'))
 
