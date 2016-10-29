@@ -4,6 +4,7 @@ set -eu
 USER_ID="${1}"
 HOMEDIR=~/.gnupg/trezor
 CURVE=${CURVE:="nist256p1"}  # or "ed25519"
+TIMESTAMP=${TIMESTAMP:=`date +%s`}  # key creation timestamp
 
 # Prepare new GPG home directory for TREZOR-based identity
 rm -rf "${HOMEDIR}"
@@ -11,7 +12,7 @@ mkdir -p "${HOMEDIR}"
 chmod 700 "${HOMEDIR}"
 
 # Generate new GPG identity and import into GPG keyring
-trezor-gpg-create -v "${USER_ID}" -e "${CURVE}" > "${HOMEDIR}/pubkey.asc"
+trezor-gpg-create -v "${USER_ID}" -t "${TIMESTAMP}" -e "${CURVE}" > "${HOMEDIR}/pubkey.asc"
 gpg2 --homedir "${HOMEDIR}" --import < "${HOMEDIR}/pubkey.asc"
 rm -f "${HOMEDIR}/S.gpg-agent"  # (otherwise, our agent won't be started automatically)
 
