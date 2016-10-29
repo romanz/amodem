@@ -127,7 +127,9 @@ def _parse_signature(stream):
         log.debug('embedded sigs: %s', embedded)
         p['embedded'] = embedded
 
-    p['_is_custom'] = (protocol.CUSTOM_SUBPACKET in p['unhashed_subpackets'])
+    # Detect our custom public keys by matching subpacket data
+    p['_is_custom'] = any(protocol.CUSTOM_KEY_LABEL == subpacket[1:]
+                          for subpacket in p['unhashed_subpackets'])
 
     p['hash_prefix'] = stream.readfmt('2s')
     if p['pubkey_alg'] in ECDSA_ALGO_IDS:
