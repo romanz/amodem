@@ -2,7 +2,7 @@
 import binascii
 import logging
 
-from . import decode, device, keyring, protocol
+from . import decode, client, keyring, protocol
 from .. import util
 
 log = logging.getLogger(__name__)
@@ -51,7 +51,7 @@ def open_connection(keygrip_bytes):
     curve_name = protocol.get_curve_name_by_oid(pubkey_dict['curve_oid'])
     ecdh = (pubkey_dict['algo'] == protocol.ECDH_ALGO_ID)
 
-    conn = device.HardwareSigner(user_id, curve_name=curve_name)
+    conn = client.Client(user_id, curve_name=curve_name)
     pubkey = protocol.PublicKey(
         curve_name=curve_name, created=pubkey_dict['created'],
         verifying_key=conn.pubkey(ecdh=ecdh), ecdh=ecdh)

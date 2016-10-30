@@ -10,7 +10,7 @@ import time
 
 import semver
 
-from . import agent, decode, device, encode, keyring, protocol
+from . import agent, decode, client, encode, keyring, protocol
 from .. import formats, server, util
 
 log = logging.getLogger(__name__)
@@ -29,8 +29,7 @@ def run_create(args):
     log.warning('NOTE: in order to re-generate the exact same GPG key later, '
                 'run this command with "--time=%d" commandline flag (to set '
                 'the timestamp of the GPG key manually).', args.time)
-    d = device.HardwareSigner(user_id=args.user_id,
-                              curve_name=args.ecdsa_curve)
+    d = client.Client(user_id=args.user_id, curve_name=args.ecdsa_curve)
     verifying_key = d.pubkey(ecdh=False)
     decryption_key = d.pubkey(ecdh=True)
 

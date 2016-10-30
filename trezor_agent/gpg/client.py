@@ -7,7 +7,7 @@ from .. import device, formats, util
 log = logging.getLogger(__name__)
 
 
-class HardwareSigner(object):
+class Client(object):
     """Sign messages and get public keys from a hardware device."""
 
     def __init__(self, user_id, curve_name):
