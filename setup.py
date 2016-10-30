@@ -33,5 +33,6 @@ setup(
         'trezor-git = trezor_agent.__main__:run_git',
         'trezor-gpg-create = trezor_agent.gpg.__main__:main_create',
         'trezor-gpg-agent = trezor_agent.gpg.__main__:main_agent',
+        'trezor-gpg-unlock = trezor_agent.gpg.__main__:auto_unlock',
     ]},
 )

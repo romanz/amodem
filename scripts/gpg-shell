@@ -4,4 +4,7 @@ set -eu
 export GNUPGHOME=~/.gnupg/trezor
 gpg2 --list-public-keys
 
+# Make sure that the device is unlocked before starting the shell
+trezor-gpg-unlock
+
 ${SHELL}

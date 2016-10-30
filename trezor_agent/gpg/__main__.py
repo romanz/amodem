@@ -11,7 +11,7 @@ import time
 import semver
 
 from . import agent, decode, client, encode, keyring, protocol
-from .. import formats, server, util
+from .. import device, formats, server, util
 
 log = logging.getLogger(__name__)
 
@@ -114,3 +114,14 @@ def main_agent():
                     agent.handle_connection(conn)
                 except Exception as e:  # pylint: disable=broad-except
                     log.exception('gpg-agent failed: %s', e)
+
+
+def auto_unlock():
+    """Automatically unlock first found device (used for `gpg-shell`)."""
+    p = argparse.ArgumentParser()
+    p.add_argument('-v', '--verbose', default=0, action='count')
+
+    args = p.parse_args()
+    util.setup_logging(verbosity=args.verbose)
+    d = device.detect(identity_str='', curve_name='')
+    log.info('unlocked %s device', d)
