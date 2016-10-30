@@ -7,14 +7,14 @@ import re
 import subprocess
 import sys
 
-from . import client, formats, protocol, server, util
+from . import client, device, formats, protocol, server, util
 
 log = logging.getLogger(__name__)
 
 
 def ssh_args(label):
     """Create SSH command for connecting specified server."""
-    identity = util.string_to_identity(label, identity_type=dict)
+    identity = device.interface.string_to_identity(label)
 
     args = []
     if 'port' in identity:
@@ -125,27 +125,28 @@ def run_agent(client_factory=client.Client):
     args = create_agent_parser().parse_args()
     util.setup_logging(verbosity=args.verbose)
 
-    with client_factory(curve=args.ecdsa_curve_name) as conn:
-        label = args.identity
-        command = args.command
+    d = device.detect(identity_str=args.identity,
+                      curve_name=args.ecdsa_curve_name)
+    conn = client_factory(device=d)
 
-        public_key = conn.get_public_key(label=label)
+    command = args.command
+    public_key = conn.get_public_key()
 
-        if args.connect:
-            command = ssh_args(label) + args.command
-            log.debug('SSH connect: %r', command)
+    if args.connect:
+        command = ssh_args(args.identity) + args.command
+        log.debug('SSH connect: %r', command)
 
-        use_shell = bool(args.shell)
-        if use_shell:
-            command = os.environ['SHELL']
-            log.debug('using shell: %r', command)
+    use_shell = bool(args.shell)
+    if use_shell:
+        command = os.environ['SHELL']
+        log.debug('using shell: %r', command)
 
-        if not command:
-            sys.stdout.write(public_key)
-            return
+    if not command:
+        sys.stdout.write(public_key)
+        return
 
-        return run_server(conn=conn, public_key=public_key, command=command,
-                          debug=args.debug, timeout=args.timeout)
+    return run_server(conn=conn, public_key=public_key, command=command,
+                      debug=args.debug, timeout=args.timeout)
 
 
 @handle_connection_error

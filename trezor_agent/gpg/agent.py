@@ -1,6 +1,5 @@
 """GPG-agent utilities."""
 import binascii
-import contextlib
 import logging
 
 from . import decode, device, keyring, protocol
@@ -37,7 +36,6 @@ def sig_encode(r, s):
     return b'(7:sig-val(5:ecdsa(1:r32:' + r + b')(1:s32:' + s + b')))'
 
 
-@contextlib.contextmanager
 def open_connection(keygrip_bytes):
     """
     Connect to the device for the specified keygrip.
@@ -49,29 +47,28 @@ def open_connection(keygrip_bytes):
         pubkey_bytes=keyring.export_public_keys(),
         keygrip=keygrip_bytes)
     # We assume the first user ID is used to generate TREZOR-based GPG keys.
-    user_id = user_ids[0]['value']
+    user_id = user_ids[0]['value'].decode('ascii')
     curve_name = protocol.get_curve_name_by_oid(pubkey_dict['curve_oid'])
     ecdh = (pubkey_dict['algo'] == protocol.ECDH_ALGO_ID)
 
     conn = device.HardwareSigner(user_id, curve_name=curve_name)
-    with contextlib.closing(conn):
-        pubkey = protocol.PublicKey(
-            curve_name=curve_name, created=pubkey_dict['created'],
-            verifying_key=conn.pubkey(ecdh=ecdh), ecdh=ecdh)
-        assert pubkey.key_id() == pubkey_dict['key_id']
-        assert pubkey.keygrip == keygrip_bytes
-        yield conn
+    pubkey = protocol.PublicKey(
+        curve_name=curve_name, created=pubkey_dict['created'],
+        verifying_key=conn.pubkey(ecdh=ecdh), ecdh=ecdh)
+    assert pubkey.key_id() == pubkey_dict['key_id']
+    assert pubkey.keygrip == keygrip_bytes
+    return conn
 
 
 def pksign(keygrip, digest, algo):
     """Sign a message digest using a private EC key."""
     log.debug('signing %r digest (algo #%s)', digest, algo)
     keygrip_bytes = binascii.unhexlify(keygrip)
-    with open_connection(keygrip_bytes) as conn:
-        r, s = conn.sign(binascii.unhexlify(digest))
-        result = sig_encode(r, s)
-        log.debug('result: %r', result)
-        return result
+    conn = open_connection(keygrip_bytes)
+    r, s = conn.sign(binascii.unhexlify(digest))
+    result = sig_encode(r, s)
+    log.debug('result: %r', result)
+    return result
 
 
 def _serialize_point(data):
@@ -105,8 +102,8 @@ def pkdecrypt(keygrip, conn):
     remote_pubkey = parse_ecdh(line)
 
     keygrip_bytes = binascii.unhexlify(keygrip)
-    with open_connection(keygrip_bytes) as conn:
-        return _serialize_point(conn.ecdh(remote_pubkey))
+    conn = open_connection(keygrip_bytes)
+    return _serialize_point(conn.ecdh(remote_pubkey))
 
 
 def handle_connection(conn):
