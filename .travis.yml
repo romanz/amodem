@@ -2,6 +2,8 @@ sudo: false
 language: python
 python:
   - "2.7"
+  - "3.4"
+  - "3.5"
 
 cache:
   directories:
@@ -15,6 +17,7 @@ addons:
 
 before_install:
   - pip install -U setuptools pylint coverage pep8 pydocstyle "pip>=7.0" wheel
+  - pip install -e git+https://github.com/keepkey/python-keepkey@6e8baa8b935e830d05f87b6dfd9bc7c927a96dc3#egg=keepkey
 
 install:
   - pip install -e .
