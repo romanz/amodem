@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='trezor_agent',
-    version='0.7.5',
+    version='0.7.6',
     description='Using Trezor as hardware SSH agent',
     author='Roman Zeyde',
     author_email='roman.zeyde@gmail.com',
