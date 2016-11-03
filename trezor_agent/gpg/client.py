@@ -15,8 +15,8 @@ class Client(object):
         self.device = device.detect()
         self.user_id = user_id
         self.identity = device.interface.Identity(
-            identity_str='gpg://{}'.format(user_id),
-            curve_name=curve_name)
+            identity_str='gpg://', curve_name=curve_name)
+        self.identity.identity_dict['host'] = user_id
 
     def pubkey(self, ecdh=False):
         """Return public key as VerifyingKey object."""
