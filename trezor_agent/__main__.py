@@ -120,7 +120,7 @@ def handle_connection_error(func):
 def parse_config(fname):
     """Parse config file into a list of Identity objects."""
     contents = open(fname).read()
-    for identity_str, curve_name in re.findall('\<(.*?)\|(.*?)\>', contents):
+    for identity_str, curve_name in re.findall(r'\<(.*?)\|(.*?)\>', contents):
         yield device.interface.Identity(identity_str=identity_str,
                                         curve_name=curve_name)
 

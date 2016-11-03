@@ -12,7 +12,7 @@ PUBKEY = (b'\x03\xd8(\xb5\xa6`\xbet0\x95\xac:[;]\xdc,\xbd\xdc?\xd7\xc0\xec'
           b'\xdd\xbc+\xfar~\x9dAis')
 PUBKEY_TEXT = ('ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzd'
                'HAyNTYAAABBBNgotaZgvnQwlaw6Wztd3Cy93D/XwOzdvCv6cn6dQWlzNMEQeW'
-               'VUfhvrGljR2Z/CMRONY6ejB+9PnpUOPuzYqi8= ssh://localhost:22\n')
+               'VUfhvrGljR2Z/CMRONY6ejB+9PnpUOPuzYqi8= <localhost:22|nist256p1>\n')
 
 
 class MockDevice(device.interface.Device):  # pylint: disable=abstract-method
@@ -23,11 +23,11 @@ class MockDevice(device.interface.Device):  # pylint: disable=abstract-method
     def close(self):
         self.conn = None
 
-    def pubkey(self, ecdh=False):  # pylint: disable=unused-argument
+    def pubkey(self, identity, ecdh=False):  # pylint: disable=unused-argument
         assert self.conn
         return PUBKEY
 
-    def sign(self, blob):
+    def sign(self, identity, blob):
         """Sign given blob and return the signature (as bytes)."""
         assert self.conn
         assert blob == BLOB
@@ -59,11 +59,11 @@ SIG = (b'R\x19T\xf2\x84$\xef#\x0e\xee\x04X\xc6\xc3\x99T`\xd1\xd8\xf7!'
 
 
 def test_ssh_agent():
-    identity_str = 'localhost:22'
-    c = client.Client(device=MockDevice(identity_str=identity_str,
-                                        curve_name=CURVE))
-    assert c.get_public_key() == PUBKEY_TEXT
-    signature = c.sign_ssh_challenge(blob=BLOB)
+    identity = device.interface.Identity(identity_str='localhost:22',
+                                         curve_name=CURVE)
+    c = client.Client(device=MockDevice())
+    assert c.get_public_key(identity) == PUBKEY_TEXT
+    signature = c.sign_ssh_challenge(blob=BLOB, identity=identity)
 
     key = formats.import_public_key(PUBKEY_TEXT)
     serialized_sig = key['verifier'](sig=signature, msg=BLOB)
@@ -77,9 +77,9 @@ def test_ssh_agent():
     assert r[1:] + s[1:] == SIG
 
     # pylint: disable=unused-argument
-    def cancel_sign(blob):
+    def cancel_sign(identity, blob):
         raise IOError(42, 'ERROR')
 
     c.device.sign = cancel_sign
     with pytest.raises(IOError):
-        c.sign_ssh_challenge(blob=BLOB)
+        c.sign_ssh_challenge(blob=BLOB, identity=identity)

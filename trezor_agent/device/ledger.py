@@ -44,11 +44,10 @@ class LedgerNanoS(interface.Device):
             raise interface.NotFoundError(
                 '{} not connected: "{}"'.format(self, e))
 
-    def pubkey(self, ecdh=False):
+    def pubkey(self, identity, ecdh=False):
         """Get PublicKey object for specified BIP32 address and elliptic curve."""
-        curve_name = self.get_curve_name(ecdh)
-        path = _expand_path(interface.get_bip32_address(self.identity_dict,
-                                                        ecdh=ecdh))
+        curve_name = identity.get_curve_name(ecdh)
+        path = _expand_path(identity.get_bip32_address(ecdh))
         if curve_name == 'nist256p1':
             p2 = '01'
         else:
@@ -60,27 +59,26 @@ class LedgerNanoS(interface.Device):
         result = bytearray(self.conn.exchange(bytes(apdu)))[1:]
         return _convert_public_key(curve_name, result)
 
-    def sign(self, blob):
+    def sign(self, identity, blob):
         """Sign given blob and return the signature (as bytes)."""
-        path = _expand_path(interface.get_bip32_address(self.identity_dict,
-                                                        ecdh=False))
-        if self.identity_dict['proto'] == 'ssh':
+        path = _expand_path(identity.get_bip32_address(ecdh=False))
+        if identity.identity_dict['proto'] == 'ssh':
             ins = '04'
             p1 = '00'
         else:
             ins = '08'
             p1 = '00'
-        if self.curve_name == 'nist256p1':
-            p2 = '81' if self.identity_dict['proto'] == 'ssh' else '01'
+        if identity.curve_name == 'nist256p1':
+            p2 = '81' if identity.identity_dict['proto'] == 'ssh' else '01'
         else:
-            p2 = '82' if self.identity_dict['proto'] == 'ssh' else '02'
+            p2 = '82' if identity.identity_dict['proto'] == 'ssh' else '02'
         apdu = '80' + ins + p1 + p2
         apdu = binascii.unhexlify(apdu)
         apdu += bytearray([len(blob) + len(path) + 1])
         apdu += bytearray([len(path) // 4]) + path
         apdu += blob
         result = bytearray(self.conn.exchange(bytes(apdu)))
-        if self.curve_name == 'nist256p1':
+        if identity.curve_name == 'nist256p1':
             offset = 3
             length = result[offset]
             r = result[offset+1:offset+1+length]
@@ -96,11 +94,10 @@ class LedgerNanoS(interface.Device):
         else:
             return bytes(result[:64])
 
-    def ecdh(self, pubkey):
+    def ecdh(self, identity, pubkey):
         """Get shared session key using Elliptic Curve Diffie-Hellman."""
-        path = _expand_path(interface.get_bip32_address(self.identity_dict,
-                                                        ecdh=True))
-        if self.curve_name == 'nist256p1':
+        path = _expand_path(identity.get_bip32_address(ecdh=True))
+        if identity.curve_name == 'nist256p1':
             p2 = '01'
         else:
             p2 = '02'

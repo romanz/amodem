@@ -1,7 +1,6 @@
 """KeepKey-related code (see https://www.keepkey.com/)."""
 
 from . import interface, trezor
-from .. import formats
 
 
 class KeepKey(trezor.Trezor):

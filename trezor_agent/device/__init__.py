@@ -24,5 +24,4 @@ def detect():
                 return d
         except interface.NotFoundError as e:
             log.debug('device not found: %s', e)
-    raise IOError('No device found: "{}" ({})'.format(identity_str,
-                                                      curve_name))
+    raise IOError('No device found!')
