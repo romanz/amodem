@@ -48,33 +48,31 @@ class Trezor(interface.Device):
         """Close connection."""
         self.conn.close()
 
-    def pubkey(self, ecdh=False):
+    def pubkey(self, identity, ecdh=False):
         """Return public key."""
-        curve_name = self.get_curve_name(ecdh=ecdh)
+        curve_name = identity.get_curve_name(ecdh=ecdh)
         log.debug('"%s" getting public key (%s) from %s',
-                  interface.identity_to_string(self.identity_dict),
-                  curve_name, self)
-        addr = interface.get_bip32_address(self.identity_dict, ecdh=ecdh)
+                  identity, curve_name, self)
+        addr = identity.get_bip32_address(ecdh=ecdh)
         result = self.conn.get_public_node(n=addr,
                                            ecdsa_curve_name=curve_name)
         log.debug('result: %s', result)
         return result.node.public_key
 
-    def _identity_proto(self):
+    def _identity_proto(self, identity):
         result = self.defs.IdentityType()
-        for name, value in self.identity_dict.items():
+        for name, value in identity.items():
             setattr(result, name, value)
         return result
 
-    def sign(self, blob):
+    def sign(self, identity, blob):
         """Sign given blob and return the signature (as bytes)."""
-        curve_name = self.get_curve_name(ecdh=False)
+        curve_name = identity.get_curve_name(ecdh=False)
         log.debug('"%s" signing %r (%s) on %s',
-                  interface.identity_to_string(self.identity_dict), blob,
-                  curve_name, self)
+                  identity, blob, curve_name, self)
         try:
             result = self.conn.sign_identity(
-                identity=self._identity_proto(),
+                identity=self._identity_proto(identity),
                 challenge_hidden=blob,
                 challenge_visual='',
                 ecdsa_curve_name=curve_name)
@@ -87,15 +85,14 @@ class Trezor(interface.Device):
             log.debug(msg, exc_info=True)
             raise interface.DeviceError(msg)
 
-    def ecdh(self, pubkey):
+    def ecdh(self, identity, pubkey):
         """Get shared session key using Elliptic Curve Diffie-Hellman."""
-        curve_name = self.get_curve_name(ecdh=True)
+        curve_name = identity.get_curve_name(ecdh=True)
         log.debug('"%s" shared session key (%s) for %r from %s',
-                  interface.identity_to_string(self.identity_dict),
-                  curve_name, pubkey, self)
+                  identity, curve_name, pubkey, self)
         try:
             result = self.conn.get_ecdh_session_key(
-                identity=self._identity_proto(),
+                identity=self._identity_proto(identity),
                 peer_public_key=pubkey,
                 ecdsa_curve_name=curve_name)
             log.debug('result: %s', result)
