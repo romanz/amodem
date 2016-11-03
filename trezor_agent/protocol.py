@@ -140,7 +140,7 @@ class Handler(object):
         label = key['name'].decode('ascii')  # label should be a string
         log.debug('signing %d-byte blob with "%s" key', len(blob), label)
         try:
-            signature = self.signer(blob=blob)
+            signature = self.signer(blob=blob, identity=key['identity'])
         except IOError:
             return failure()
         log.debug('signature: %r', signature)

@@ -93,13 +93,11 @@ def git_host(remote_name, attributes):
             return '{user}@{host}'.format(**match.groupdict())
 
 
-def run_server(conn, public_key, command, debug, timeout):
+def run_server(conn, public_keys, command, debug, timeout):
     """Common code for run_agent and run_git below."""
     try:
         signer = conn.sign_ssh_challenge
-        public_key = formats.import_public_key(public_key)
-        log.info('using SSH public key: %s', public_key['fingerprint'])
-        handler = protocol.Handler(keys=[public_key], signer=signer,
+        handler = protocol.Handler(keys=public_keys, signer=signer,
                                    debug=debug)
         with server.serve(handler=handler, timeout=timeout) as env:
             return server.run_process(command=command, environ=env)
@@ -125,12 +123,15 @@ def run_agent(client_factory=client.Client):
     args = create_agent_parser().parse_args()
     util.setup_logging(verbosity=args.verbose)
 
-    d = device.detect(identity_str=args.identity,
-                      curve_name=args.ecdsa_curve_name)
-    conn = client_factory(device=d)
+    conn = client_factory(device=device.detect())
+    identities = [device.interface.Identity(identity_str=args.identity,
+                                            curve_name=args.ecdsa_curve_name)]
+    for identity in identities:
+        identity.identity_dict['proto'] = 'ssh'
 
     command = args.command
-    public_key = conn.get_public_key()
+
+    public_keys = [conn.get_public_key(i) for i in identities]
 
     if args.connect:
         command = ssh_args(args.identity) + args.command
@@ -142,10 +143,14 @@ def run_agent(client_factory=client.Client):
         log.debug('using shell: %r', command)
 
     if not command:
-        sys.stdout.write(public_key)
+        for pk in public_keys:
+            sys.stdout.write(pk)
         return
 
-    return run_server(conn=conn, public_key=public_key, command=command,
+    public_keys = [formats.import_public_key(pk) for pk in public_keys]
+    for pk, identity in zip(public_keys, identities):
+        pk['identity'] = identity
+    return run_server(conn=conn, public_keys=public_keys, command=command,
                       debug=args.debug, timeout=args.timeout)
 
 
