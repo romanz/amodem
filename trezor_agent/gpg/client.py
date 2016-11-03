@@ -12,28 +12,28 @@ class Client(object):
 
     def __init__(self, user_id, curve_name):
         """Connect to the device and retrieve required public key."""
-        self.device = device.detect(identity_str='',
-                                    curve_name=curve_name)
-        self.device.identity_dict['proto'] = 'gpg'
-        self.device.identity_dict['host'] = user_id
+        self.device = device.detect()
         self.user_id = user_id
+        self.identity = device.interface.Identity(
+            identity_str='gpg://{}'.format(user_id),
+            curve_name=curve_name)
 
     def pubkey(self, ecdh=False):
         """Return public key as VerifyingKey object."""
         with self.device:
-            pubkey = self.device.pubkey(ecdh=ecdh)
+            pubkey = self.device.pubkey(ecdh=ecdh, identity=self.identity)
         return formats.decompress_pubkey(
-            pubkey=pubkey, curve_name=self.device.curve_name)
+            pubkey=pubkey, curve_name=self.identity.curve_name)
 
     def sign(self, digest):
         """Sign the digest and return a serialized signature."""
         log.info('please confirm GPG signature on %s for "%s"...',
                  self.device, self.user_id)
-        if self.device.curve_name == formats.CURVE_NIST256:
+        if self.identity.curve_name == formats.CURVE_NIST256:
             digest = digest[:32]  # sign the first 256 bits
         log.debug('signing digest: %s', util.hexlify(digest))
         with self.device:
-            sig = self.device.sign(blob=digest)
+            sig = self.device.sign(blob=digest, identity=self.identity)
         return (util.bytes2num(sig[:32]), util.bytes2num(sig[32:]))
 
     def ecdh(self, pubkey):
@@ -41,4 +41,4 @@ class Client(object):
         log.info('please confirm GPG decryption on %s for "%s"...',
                  self.device, self.user_id)
         with self.device:
-            return self.device.ecdh(pubkey=pubkey)
+            return self.device.ecdh(pubkey=pubkey, identity=self.identity)

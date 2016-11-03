@@ -123,5 +123,5 @@ def auto_unlock():
 
     args = p.parse_args()
     util.setup_logging(verbosity=args.verbose)
-    d = device.detect(identity_str='', curve_name='')
+    d = device.detect()
     log.info('unlocked %s device', d)
