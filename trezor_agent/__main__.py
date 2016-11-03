@@ -164,31 +164,3 @@ def run_agent(client_factory=client.Client):
         pk['identity'] = identity
     return run_server(conn=conn, public_keys=public_keys, command=command,
                       debug=args.debug, timeout=args.timeout)
-
-
-@handle_connection_error
-def run_git(client_factory=client.Client):
-    """Run git under ssh-agent using given hardware client factory."""
-    args = create_git_parser().parse_args()
-    util.setup_logging(verbosity=args.verbose)
-
-    with client_factory(curve=args.ecdsa_curve_name) as conn:
-        label = git_host(args.remote, ['pushurl', 'url'])
-        if not label:
-            log.error('Could not find "%s" SSH remote in .git/config',
-                      args.remote)
-            return
-
-        public_key = conn.get_public_key(label=label)
-
-        if not args.test:
-            if args.command:
-                command = ['git'] + args.command
-            else:
-                sys.stdout.write(public_key)
-                return
-        else:
-            command = ['ssh', '-T', label]
-
-        return run_server(conn=conn, public_key=public_key, command=command,
-                          debug=args.debug, timeout=args.timeout)
