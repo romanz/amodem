@@ -117,6 +117,14 @@ def handle_connection_error(func):
     return wrapper
 
 
+def parse_config(fname):
+    """Parse config file into a list of Identity objects."""
+    contents = open(fname).read()
+    for identity_str, curve_name in re.findall('\<(.*?)\|(.*?)\>', contents):
+        yield device.interface.Identity(identity_str=identity_str,
+                                        curve_name=curve_name)
+
+
 @handle_connection_error
 def run_agent(client_factory=client.Client):
     """Run ssh-agent using given hardware client factory."""
@@ -124,10 +132,14 @@ def run_agent(client_factory=client.Client):
     util.setup_logging(verbosity=args.verbose)
 
     conn = client_factory(device=device.detect())
-    identities = [device.interface.Identity(identity_str=args.identity,
-                                            curve_name=args.ecdsa_curve_name)]
-    for identity in identities:
+    if args.identity.startswith('/'):
+        identities = list(parse_config(fname=args.identity))
+    else:
+        identities = [device.interface.Identity(
+            identity_str=args.identity, curve_name=args.ecdsa_curve_name)]
+    for index, identity in enumerate(identities):
         identity.identity_dict['proto'] = 'ssh'
+        log.info('identity #%d: %s', index, identity)
 
     command = args.command
 
