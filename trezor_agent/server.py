@@ -126,7 +126,7 @@ def serve(handler, sock_path=None, timeout=UNIX_SOCKET_TIMEOUT):
                                           stderr=subprocess.STDOUT)
     log.debug('local SSH version: %r', ssh_version)
     if sock_path is None:
-        sock_path = tempfile.mktemp(prefix='ssh-agent-')
+        sock_path = tempfile.mktemp(prefix='trezor-ssh-agent-')
 
     environ = {'SSH_AUTH_SOCK': sock_path, 'SSH_AGENT_PID': str(os.getpid())}
     device_mutex = threading.Lock()
