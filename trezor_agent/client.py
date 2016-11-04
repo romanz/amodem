@@ -16,34 +16,34 @@ class Client(object):
 
     def __init__(self, device):
         """Connect to hardware device."""
-        device.identity_dict['proto'] = 'ssh'
         self.device = device
 
-    def get_public_key(self):
+    def get_public_key(self, identity):
         """Get SSH public key from the device."""
         with self.device:
-            pubkey = self.device.pubkey()
+            pubkey = self.device.pubkey(identity)
 
         vk = formats.decompress_pubkey(pubkey=pubkey,
-                                       curve_name=self.device.curve_name)
+                                       curve_name=identity.curve_name)
         return formats.export_public_key(vk=vk,
-                                         label=self.device.identity_str())
+                                         label=str(identity))
 
-    def sign_ssh_challenge(self, blob):
+    def sign_ssh_challenge(self, blob, identity):
         """Sign given blob using a private key on the device."""
         msg = _parse_ssh_blob(blob)
         log.debug('%s: user %r via %r (%r)',
                   msg['conn'], msg['user'], msg['auth'], msg['key_type'])
         log.debug('nonce: %r', msg['nonce'])
-        log.debug('fingerprint: %s', msg['public_key']['fingerprint'])
+        fp = msg['public_key']['fingerprint']
+        log.debug('fingerprint: %s', fp)
         log.debug('hidden challenge size: %d bytes', len(blob))
 
         log.info('please confirm user "%s" login to "%s" using %s...',
-                 msg['user'].decode('ascii'), self.device.identity_str(),
+                 msg['user'].decode('ascii'), identity,
                  self.device)
 
         with self.device:
-            return self.device.sign(blob=blob)
+            return self.device.sign(blob=blob, identity=identity)
 
 
 def _parse_ssh_blob(data):

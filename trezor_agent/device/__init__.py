@@ -16,13 +16,12 @@ DEVICE_TYPES = [
 ]
 
 
-def detect(identity_str, curve_name):
+def detect():
     """Detect the first available device and return it to the user."""
     for device_type in DEVICE_TYPES:
         try:
-            with device_type(identity_str, curve_name) as d:
+            with device_type() as d:
                 return d
         except interface.NotFoundError as e:
             log.debug('device not found: %s', e)
-    raise IOError('No device found: "{}" ({})'.format(identity_str,
-                                                      curve_name))
+    raise IOError('No device found!')
