@@ -31,7 +31,7 @@ def unix_domain_socket_server(sock_path):
 
     Listen on it, and delete it after the generated context is over.
     """
-    log.debug('serving on SSH_AUTH_SOCK=%s', sock_path)
+    log.debug('serving on %s', sock_path)
     remove_file(sock_path)
 
     server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
