@@ -69,10 +69,10 @@ with a verbose log attached (by running `trezor-agent -vv`) .
 Note that your local SSH configuration may ignore `trezor-agent`, if it has `IdentitiesOnly` option set to `yes`.
 
      IdentitiesOnly
-             Specifies that ssh(1) should only use the authentication identity files configured in 
-             the ssh_config files, even if ssh-agent(1) or a PKCS11Provider offers more identities.  
+             Specifies that ssh(1) should only use the authentication identity files configured in
+             the ssh_config files, even if ssh-agent(1) or a PKCS11Provider offers more identities.
              The argument to this keyword must be “yes” or “no”.
-             This option is intended for situations where ssh-agent offers many different identities.  
+             This option is intended for situations where ssh-agent offers many different identities.
              The default is “no”.
 
 If you are failing to connect, try running:
