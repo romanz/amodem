@@ -6,6 +6,9 @@ export GNUPGHOME=~/.gnupg/trezor
 # Make sure that the device is unlocked before starting the shell
 trezor-gpg-unlock
 
+# Make sure TREZOR-based gpg-agent is running
+gpg-connect-agent --agent-program "$(which trezor-gpg-agent)" </dev/null
+
 COMMAND=$*
 if [ -z "${COMMAND}" ]
 then
