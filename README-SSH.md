@@ -47,7 +47,7 @@ Run:
 
 Make sure to confirm SSH signature on the Trezor device when requested.
 
-## Accessing remote Git repositories
+## Accessing remote Git/Mercurial repositories
 
 Use your SSH public key to access your remote repository (e.g. [GitHub](https://help.github.com/articles/adding-a-new-ssh-key-to-your-github-account/)):
 
@@ -60,6 +60,10 @@ Use the following Bash alias for convinient Git operations:
 Replace `git` with `git_hub` for remote operations:
 
 	$ git_hub push origin master
+
+The same works for Mercurial (e.g. on [BitBucket](https://confluence.atlassian.com/bitbucket/set-up-ssh-for-mercurial-728138122.html)):
+
+	$ trezor-agent -v -e ed25519 git@bitbucket.org -- hg push
 
 
 # Troubleshooting
