@@ -38,7 +38,8 @@ If you have an error regarding `protobuf` imports (after installing it), please 
 
 ## Usage
 
-For SSH, see the [following instructions](README-SSH.md).
+For SSH, see the [following instructions](README-SSH.md) (for Windows support,
+see [trezor-ssh-agent](https://github.com/martin-lizner/trezor-ssh-agent) project (by Martin Lízner)).
 
 For GPG, see the [following instructions](README-GPG.md).
 
