@@ -97,3 +97,7 @@ def test_reader():
 
     with pytest.raises(EOFError):
         r.read(1)
+
+
+def test_setup_logging():
+    util.setup_logging(verbosity=10)
