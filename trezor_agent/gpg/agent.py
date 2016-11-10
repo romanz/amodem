@@ -142,6 +142,9 @@ def handle_connection(conn):
             keyring.sendline(conn, fmt.format(keygrip).encode('ascii'))
         elif command == b'BYE':
             return
+        elif command == b'KILLAGENT':
+            keyring.sendline(conn, b'OK')
+            raise StopIteration
         else:
             log.error('unknown request: %r', line)
             return

@@ -112,6 +112,9 @@ def main_agent():
             with contextlib.closing(conn):
                 try:
                     agent.handle_connection(conn)
+                except StopIteration:
+                    log.info('stopping gpg-agent')
+                    return
                 except Exception as e:  # pylint: disable=broad-except
                     log.exception('gpg-agent failed: %s', e)
 
