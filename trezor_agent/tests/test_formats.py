@@ -93,3 +93,11 @@ def test_curve_mismatch():
 def test_serialize_error():
     with pytest.raises(TypeError):
         formats.serialize_verifying_key(None)
+
+
+def test_get_ecdh_curve_name():
+    for c in [formats.CURVE_NIST256, formats.ECDH_CURVE25519]:
+        assert c == formats.get_ecdh_curve_name(c)
+
+    assert (formats.ECDH_CURVE25519 ==
+            formats.get_ecdh_curve_name(formats.CURVE_ED25519))
