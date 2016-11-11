@@ -92,6 +92,12 @@ def _parse_embedded_signatures(subpackets):
             yield _parse_signature(util.Reader(stream))
 
 
+def has_custom_subpacket(signature_packet):
+    """Detect our custom public keys by matching subpacket data."""
+    return any(protocol.CUSTOM_KEY_LABEL == subpacket[1:]
+               for subpacket in signature_packet['unhashed_subpackets'])
+
+
 def _parse_signature(stream):
     """See https://tools.ietf.org/html/rfc4880#section-5.2 for details."""
     p = {'type': 'signature'}
@@ -114,10 +120,6 @@ def _parse_signature(stream):
     if embedded:
         log.debug('embedded sigs: %s', embedded)
         p['embedded'] = embedded
-
-    # Detect our custom public keys by matching subpacket data
-    p['_is_custom'] = any(protocol.CUSTOM_KEY_LABEL == subpacket[1:]
-                          for subpacket in p['unhashed_subpackets'])
 
     p['hash_prefix'] = stream.readfmt('2s')
     if p['pubkey_alg'] in ECDSA_ALGO_IDS:

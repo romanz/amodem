@@ -87,7 +87,7 @@ def create_subkey(primary_bytes, subkey, signer_func, user_id=None):
         unhashed_subpackets.append(protocol.subpacket(32, embedded_sig))
     unhashed_subpackets.append(protocol.CUSTOM_SUBPACKET)
 
-    if not signature['_is_custom']:
+    if not decode.has_custom_subpacket(signature):
         signer_func = keyring.create_agent_signer(user_id['value'])
 
     signature = protocol.make_signature(
