@@ -20,9 +20,6 @@ class MockDevice(device.interface.Device):  # pylint: disable=abstract-method
     def connect(self):  # pylint: disable=no-self-use
         return mock.Mock()
 
-    def close(self):
-        self.conn = None
-
     def pubkey(self, identity, ecdh=False):  # pylint: disable=unused-argument
         assert self.conn
         return PUBKEY
@@ -32,16 +29,6 @@ class MockDevice(device.interface.Device):  # pylint: disable=abstract-method
         assert self.conn
         assert blob == BLOB
         return SIG
-
-
-def identity_type(**kwargs):
-    result = mock.Mock(spec=[])
-    result.index = 0
-    result.proto = result.user = result.host = result.port = None
-    result.path = None
-    for k, v in kwargs.items():
-        setattr(result, k, v)
-    return result
 
 
 BLOB = (b'\x00\x00\x00 \xce\xe0\xc9\xd5\xceu/\xe8\xc5\xf2\xbfR+x\xa1\xcf\xb0'
