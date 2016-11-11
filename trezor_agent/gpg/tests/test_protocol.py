@@ -1,5 +1,6 @@
 import ecdsa
 import ed25519
+import pytest
 
 from .. import protocol
 from ... import formats
@@ -88,3 +89,19 @@ def test_ed25519():
                             created=42, verifying_key=vk)
     assert repr(pk) == 'GPG public key ed25519/36B40FE6'
     assert pk.keygrip == b'\xbf\x01\x90l\x17\xb64\xa3-\xf4\xc0gr\x99\x18<\xddBQ?'
+
+
+def test_curve25519():
+    sk = ed25519.SigningKey(b'\x00' * 32)
+    vk = sk.get_verifying_key()
+    pk = protocol.PublicKey(curve_name=formats.ECDH_CURVE25519,
+                            created=42, verifying_key=vk)
+    assert repr(pk) == 'GPG public key curve25519/69460384'
+    assert pk.keygrip == b'x\xd6\x86\xe4\xa6\xfc;\x0fY\xe1}Lw\xc4\x9ed\xf1Q\x8a\x00'
+
+
+def test_get_curve_name_by_oid():
+    for name, info in protocol.SUPPORTED_CURVES.items():
+        assert protocol.get_curve_name_by_oid(info['oid']) == name
+    with pytest.raises(KeyError):
+        protocol.get_curve_name_by_oid('BAD_OID')
