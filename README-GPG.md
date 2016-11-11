@@ -26,6 +26,15 @@ $ pip install --user git+https://github.com/romanz/trezor-agent.git
 ## Sample usage (signature and decryption)
 [![asciicast](https://asciinema.org/a/7x0h9tyoyu5ar6jc8y9oih0ba.png)](https://asciinema.org/a/7x0h9tyoyu5ar6jc8y9oih0ba)
 
+You can use GNU Privacy Assistant (GPA) in order to inspect the created keys
+and perform signature and decryption operations using:
+
+```
+$ sudo apt install gpa
+$ ./scripts/gpg-shell gpa
+```
+[![GPA](https://cloud.githubusercontent.com/assets/9900/20224804/053d7474-a849-11e6-87f3-ab07dc536158.png)](https://www.gnupg.org/related_software/swlist.html#gpa)
+
 ## Git commit & tag signatures:
 Git can use GPG to sign and verify commits and tags (see [here](https://git-scm.com/book/en/v2/Git-Tools-Signing-Your-Work)):
 ```
