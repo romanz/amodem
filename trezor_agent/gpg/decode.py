@@ -83,18 +83,6 @@ DSA_ALGO_ID = 17
 ECDSA_ALGO_IDS = {18, 19, 22}  # {ecdsa, nist256, ed25519}
 
 
-def _parse_literal(stream):
-    """See https://tools.ietf.org/html/rfc4880#section-5.9 for details."""
-    p = {'type': 'literal'}
-    p['format'] = stream.readfmt('c')
-    filename_len = stream.readfmt('B')
-    p['filename'] = stream.read(filename_len)
-    p['date'] = stream.readfmt('>L')
-    p['content'] = stream.read()
-    p['_to_hash'] = p['content']
-    return p
-
-
 def _parse_embedded_signatures(subpackets):
     for packet in subpackets:
         data = bytearray(packet)
@@ -210,7 +198,6 @@ _parse_attribute = functools.partial(_parse_user_id,
 PACKET_TYPES = {
     2: _parse_signature,
     6: _parse_pubkey,
-    11: _parse_literal,
     13: _parse_user_id,
     14: _parse_subkey,
     17: _parse_attribute,
