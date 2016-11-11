@@ -22,7 +22,7 @@ def ssh_args(label):
     if 'user' in identity:
         args += ['-l', identity['user']]
 
-    return ['ssh'] + args + [identity['host']]
+    return args + [identity['host']]
 
 
 def create_parser():
@@ -52,6 +52,8 @@ def create_agent_parser():
                    help='run ${SHELL} as subprocess under SSH agent')
     g.add_argument('-c', '--connect', default=False, action='store_true',
                    help='connect to specified host via SSH')
+    g.add_argument('--mosh', default=False, action='store_true',
+                   help='connect to specified host via using Mosh')
 
     p.add_argument('identity', type=str, default=None,
                    help='proto://[user@]host[:port][/path]')
@@ -141,18 +143,18 @@ def run_agent(client_factory=client.Client):
         identity.identity_dict['proto'] = 'ssh'
         log.info('identity #%d: %s', index, identity)
 
-    command = args.command
-
     public_keys = [conn.get_public_key(i) for i in identities]
 
     if args.connect:
-        command = ssh_args(args.identity) + args.command
-        log.debug('SSH connect: %r', command)
+        command = ['ssh'] + ssh_args(args.identity) + args.command
+    elif args.mosh:
+        command = ['mosh'] + ssh_args(args.identity) + args.command
+    else:
+        command = args.command
 
     use_shell = bool(args.shell)
     if use_shell:
         command = os.environ['SHELL']
-        log.debug('using shell: %r', command)
 
     if not command:
         for pk in public_keys:
