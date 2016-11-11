@@ -185,6 +185,7 @@ class PublicKey(object):
 
     def __init__(self, curve_name, created, verifying_key, ecdh=False):
         """Contruct using a ECDSA VerifyingKey object."""
+        self.curve_name = curve_name
         self.curve_info = SUPPORTED_CURVES[curve_name]
         self.created = int(created)  # time since Epoch
         self.verifying_key = verifying_key
@@ -196,12 +197,8 @@ class PublicKey(object):
             self.algo_id = self.curve_info['algo_id']
             self.ecdh_packet = b''
 
-        hex_key_id = util.hexlify(self.key_id())[-8:]
-        self.desc = 'GPG public key {}/{}'.format(curve_name, hex_key_id)
-
-    @property
     def keygrip(self):
-        """Compute GPG2 keygrip."""
+        """Compute GPG keygrip of the verifying key."""
         return self.curve_info['keygrip'](self.verifying_key)
 
     def data(self):
@@ -227,7 +224,8 @@ class PublicKey(object):
 
     def __repr__(self):
         """Short (8 hexadecimal digits) GPG key ID."""
-        return self.desc
+        hex_key_id = util.hexlify(self.key_id())[-8:]
+        return 'GPG public key {}/{}'.format(self.curve_name, hex_key_id)
 
     __str__ = __repr__
 

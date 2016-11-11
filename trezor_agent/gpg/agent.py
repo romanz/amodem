@@ -56,7 +56,7 @@ def open_connection(keygrip_bytes):
         curve_name=curve_name, created=pubkey_dict['created'],
         verifying_key=conn.pubkey(ecdh=ecdh), ecdh=ecdh)
     assert pubkey.key_id() == pubkey_dict['key_id']
-    assert pubkey.keygrip == keygrip_bytes
+    assert pubkey.keygrip() == keygrip_bytes
     return conn
 
 
