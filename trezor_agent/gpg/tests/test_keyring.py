@@ -82,3 +82,20 @@ def test_iterlines():
     sock.rx.write(b'foo\nbar\nxyz')
     sock.rx.seek(0)
     assert list(keyring.iterlines(sock)) == [b'foo', b'bar']
+
+
+def test_get_agent_sock_path():
+    sp = mock.Mock(spec=['check_output'])
+    sp.check_output.return_value = b'''sysconfdir:/usr/local/etc/gnupg
+bindir:/usr/local/bin
+libexecdir:/usr/local/libexec
+libdir:/usr/local/lib/gnupg
+datadir:/usr/local/share/gnupg
+localedir:/usr/local/share/locale
+dirmngr-socket:/run/user/1000/gnupg/S.dirmngr
+agent-ssh-socket:/run/user/1000/gnupg/S.gpg-agent.ssh
+agent-socket:/run/user/1000/gnupg/S.gpg-agent
+homedir:/home/roman/.gnupg
+'''
+    expected = b'/run/user/1000/gnupg/S.gpg-agent'
+    assert keyring.get_agent_sock_path(sp=sp) == expected
