@@ -80,4 +80,5 @@ PKSIGN
 def test_iterlines():
     sock = FakeSocket()
     sock.rx.write(b'foo\nbar\nxyz')
-    assert list(keyring.iterlines(sock)) == []
+    sock.rx.seek(0)
+    assert list(keyring.iterlines(sock)) == [b'foo', b'bar']
