@@ -41,6 +41,6 @@ Git can use GPG to sign and verify commits and tags (see [here](https://git-scm.
 $ git config --local gpg.program $(which gpg2)
 $ git commit --gpg-sign                      # create GPG-signed commit
 $ git log --show-signature -1                # verify commit signature
-$ git tag --sign "v1.2.3"                    # create GPG-signed tag
-$ git verify-tag "v1.2.3"                    # verify tag signature
+$ git tag v1.2.3 --sign                      # create GPG-signed tag
+$ git tag v1.2.3 --verify                    # verify tag signature
 ```
