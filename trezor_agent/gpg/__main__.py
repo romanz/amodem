@@ -2,7 +2,6 @@
 """Create signatures and export public keys for GPG using TREZOR."""
 import argparse
 import contextlib
-import io
 import logging
 import os
 import sys
@@ -10,18 +9,10 @@ import time
 
 import semver
 
-from . import agent, decode, client, encode, keyring, protocol
+from . import agent, client, encode, keyring, protocol
 from .. import device, formats, server, util
 
 log = logging.getLogger(__name__)
-
-
-def key_exists(user_id):
-    """Return True iff there is a GPG key with specified user ID."""
-    for p in decode.parse_packets(io.BytesIO(keyring.export_public_keys())):
-        if p['type'] == 'user_id' and p['value'] == user_id:
-            return True
-    return False
 
 
 def run_create(args):
@@ -33,7 +24,7 @@ def run_create(args):
     verifying_key = d.pubkey(ecdh=False)
     decryption_key = d.pubkey(ecdh=True)
 
-    if key_exists(args.user_id):  # add as subkey
+    if args.subkey:  # add as subkey
         log.info('adding %s GPG subkey for "%s" to existing key',
                  args.ecdsa_curve, args.user_id)
         # subkey for signing
@@ -80,6 +71,7 @@ def main_create():
     p.add_argument('-e', '--ecdsa-curve', default='nist256p1')
     p.add_argument('-t', '--time', type=int, default=int(time.time()))
     p.add_argument('-v', '--verbose', default=0, action='count')
+    p.add_argument('-s', '--subkey', default=False, action='store_true')
 
     args = p.parse_args()
     util.setup_logging(verbosity=args.verbose)
