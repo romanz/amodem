@@ -25,6 +25,11 @@ Then, install the latest [trezor_agent](https://pypi.python.org/pypi/trezor_agen
 
 	$ pip install trezor_agent
 
+Or, directly from the latest source code (if `pip` doesn't work for you):
+
+	$ git clone https://github.com/romanz/trezor-agent && cd trezor-agent
+	$ python setup.py build && python setup.py install
+
 Finally, verify that you are running the latest [TREZOR firmware](https://wallet.mytrezor.com/data/firmware/releases.json) version (at least v1.4.0):
 
 	$ trezorctl get_features | head
