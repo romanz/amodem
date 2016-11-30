@@ -4,7 +4,9 @@ Thanks!
 
 # Installation
 
-First, verify that you have GPG 2.1+ [installed](https://gist.github.com/vt0r/a2f8c0bcb1400131ff51):
+First, verify that you have GPG 2.1+ installed
+([Debian](https://gist.github.com/vt0r/a2f8c0bcb1400131ff51),
+[macOS](https://sourceforge.net/p/gpgosx/docu/Download/)):
 
 ```
 $ gpg2 --version | head -n1
