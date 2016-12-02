@@ -1,6 +1,8 @@
 #!/bin/bash
 set -eu
 
+gpg2 --version >/dev/null  # verify that GnuPG 2 is installed
+
 USER_ID="${1}"
 HOMEDIR=~/.gnupg/trezor
 CURVE=${CURVE:="nist256p1"}  # or "ed25519"
