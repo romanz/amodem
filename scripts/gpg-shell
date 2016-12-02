@@ -5,6 +5,13 @@ gpg2 --version >/dev/null  # verify that GnuPG 2 is installed
 
 export GNUPGHOME=~/.gnupg/trezor
 
+CONFIG_PATH="${GNUPGHOME}/gpg-agent.conf"
+if [ ! -f ${CONFIG_PATH} ]
+then
+	echo "No configuration found: ${CONFIG_PATH}"
+	exit 1
+fi
+
 # Make sure that the device is unlocked before starting the shell
 trezor-gpg-unlock
 

@@ -92,6 +92,10 @@ def main_agent():
     """Run a simple GPG-agent server."""
     home_dir = os.environ.get('GNUPGHOME', os.path.expanduser('~/.gnupg/trezor'))
     config_file = os.path.join(home_dir, 'gpg-agent.conf')
+    if not os.path.exists(config_file):
+        msg = 'No configuration file found: {}'.format(config_file)
+        raise IOError(msg)
+
     lines = (line.strip() for line in open(config_file))
     lines = (line for line in lines if line and not line.startswith('#'))
     config = dict(line.split(' ', 1) for line in lines)
