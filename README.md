@@ -21,6 +21,7 @@ is installed correctly (at least v0.6.6):
 	$ pip install -U setuptools
 	$ pip install Cython trezor
 
+Make sure that your `udev` rules are configured [correctly](https://doc.satoshilabs.com/trezor-user/settingupchromeonlinux.html#manual-configuration-of-udev-rules).
 Then, install the latest [trezor_agent](https://pypi.python.org/pypi/trezor_agent) package:
 
 	$ pip install trezor_agent
