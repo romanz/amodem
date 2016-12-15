@@ -25,6 +25,21 @@ def ssh_args(label):
     return args + [identity['host']]
 
 
+def mosh_args(label):
+    """Create SSH command for connecting specified server."""
+    identity = device.interface.string_to_identity(label)
+
+    args = []
+    if 'port' in identity:
+        args += ['-p', identity['port']]
+    if 'user' in identity:
+        args += [identity['user']+'@'+identity['host']]
+    else:
+        args += [identity['host']]
+
+    return args
+
+
 def create_parser():
     """Create argparse.ArgumentParser for this tool."""
     p = argparse.ArgumentParser()
@@ -148,7 +163,7 @@ def run_agent(client_factory=client.Client):
     if args.connect:
         command = ['ssh'] + ssh_args(args.identity) + args.command
     elif args.mosh:
-        command = ['mosh'] + ssh_args(args.identity) + args.command
+        command = ['mosh'] + mosh_args(args.identity) + args.command
     else:
         command = args.command
 
