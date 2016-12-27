@@ -12,19 +12,22 @@ log = logging.getLogger(__name__)
 class Trezor(interface.Device):
     """Connection to TREZOR device."""
 
-    from . import trezor_defs as defs
+    @property
+    def _defs(self):
+        from . import trezor_defs
+        return trezor_defs
 
     required_version = '>=1.4.0'
 
     def connect(self):
         """Enumerate and connect to the first USB HID interface."""
         def empty_passphrase_handler(_):
-            return self.defs.PassphraseAck(passphrase='')
+            return self._defs.PassphraseAck(passphrase='')
 
-        for d in self.defs.HidTransport.enumerate():
+        for d in self._defs.HidTransport.enumerate():
             log.debug('endpoint: %s', d)
-            transport = self.defs.HidTransport(d)
-            connection = self.defs.Client(transport)
+            transport = self._defs.HidTransport(d)
+            connection = self._defs.Client(transport)
             connection.callback_PassphraseRequest = empty_passphrase_handler
             f = connection.features
             log.debug('connected to %s %s', self, f.device_id)
@@ -60,7 +63,7 @@ class Trezor(interface.Device):
         return result.node.public_key
 
     def _identity_proto(self, identity):
-        result = self.defs.IdentityType()
+        result = self._defs.IdentityType()
         for name, value in identity.items():
             setattr(result, name, value)
         return result
@@ -80,7 +83,7 @@ class Trezor(interface.Device):
             assert len(result.signature) == 65
             assert result.signature[:1] == b'\x00'
             return result.signature[1:]
-        except self.defs.CallException as e:
+        except self._defs.CallException as e:
             msg = '{} error: {}'.format(self, e)
             log.debug(msg, exc_info=True)
             raise interface.DeviceError(msg)
@@ -99,7 +102,7 @@ class Trezor(interface.Device):
             assert len(result.session_key) in {65, 33}  # NIST256 or Curve25519
             assert result.session_key[:1] == b'\x04'
             return result.session_key
-        except self.defs.CallException as e:
+        except self._defs.CallException as e:
             msg = '{} error: {}'.format(self, e)
             log.debug(msg, exc_info=True)
             raise interface.DeviceError(msg)

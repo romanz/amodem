@@ -20,7 +20,10 @@ def _verify_support(identity, ecdh):
 class KeepKey(trezor.Trezor):
     """Connection to KeepKey device."""
 
-    from . import keepkey_defs as defs
+    @property
+    def _defs(self):
+        from . import keepkey_defs
+        return keepkey_defs
 
     required_version = '>=1.0.4'
 
