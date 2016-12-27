@@ -80,7 +80,7 @@ def main_create():
                 'change without backwards compatibility!')
 
     existing_gpg = keyring.gpg_version().decode('ascii')
-    required_gpg = '>=2.1.15'
+    required_gpg = '>=2.1.11'
     if semver.match(existing_gpg, required_gpg):
         run_create(args)
     else:

@@ -4,7 +4,7 @@ Thanks!
 
 # Installation
 
-First, verify that you have GPG 2.1+ installed
+First, verify that you have GPG 2.1.11+ installed
 ([Debian](https://gist.github.com/vt0r/a2f8c0bcb1400131ff51),
 [macOS](https://sourceforge.net/p/gpgosx/docu/Download/)):
 
@@ -12,6 +12,9 @@ First, verify that you have GPG 2.1+ installed
 $ gpg2 --version | head -n1
 gpg (GnuPG) 2.1.15
 ```
+
+This GPG version is included in [Ubuntu 16.04](https://launchpad.net/ubuntu/+source/gnupg2)
+and [Linux Mint 18](https://community.linuxmint.com/software/view/gnupg2).
 
 Update you TREZOR firmware to the latest version (at least v1.4.0).
 
