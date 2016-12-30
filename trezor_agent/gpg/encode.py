@@ -8,9 +8,10 @@ from .. import util
 log = logging.getLogger(__name__)
 
 
-def create_primary(user_id, pubkey, signer_func):
+def create_primary(user_id, pubkey, signer_func, secret_bytes=b''):
     """Export new primary GPG public key, ready for "gpg2 --import"."""
-    pubkey_packet = protocol.packet(tag=6, blob=pubkey.data())
+    pubkey_packet = protocol.packet(tag=(5 if secret_bytes else 6),
+                                    blob=(pubkey.data() + secret_bytes))
     user_id_packet = protocol.packet(tag=13,
                                      blob=user_id.encode('ascii'))
 
