@@ -48,9 +48,10 @@ def create_primary(user_id, pubkey, signer_func, secret_bytes=b''):
     return pubkey_packet + user_id_packet + sign_packet
 
 
-def create_subkey(primary_bytes, subkey, signer_func, user_id=None):
+def create_subkey(primary_bytes, subkey, signer_func, secret_bytes=b''):
     """Export new subkey to GPG primary key."""
-    subkey_packet = protocol.packet(tag=14, blob=subkey.data())
+    subkey_packet = protocol.packet(tag=(7 if secret_bytes else 14),
+                                    blob=(subkey.data() + secret_bytes))
     packets = list(decode.parse_packets(io.BytesIO(primary_bytes)))
     primary, user_id, signature = packets[:3]
 
