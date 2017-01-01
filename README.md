@@ -18,7 +18,7 @@ First, make sure that the latest [trezorlib](https://pypi.python.org/pypi/trezor
 is installed correctly (at least v0.6.6):
 
 	$ apt-get install python-dev libusb-1.0-0-dev libudev-dev
-	$ pip install -U setuptools
+	$ pip install -U setuptools pip
 	$ pip install Cython trezor
 
 Make sure that your `udev` rules are configured [correctly](https://doc.satoshilabs.com/trezor-user/settingupchromeonlinux.html#manual-configuration-of-udev-rules).
