@@ -160,7 +160,7 @@ def _parse_pubkey(stream, packet_type='pubkey'):
                 # should be b'\x03\x01\x08\x07': SHA256 + AES128
                 size, = util.readfmt(leftover, 'B')
                 p['kdf'] = leftover.read(size)
-                assert not leftover.read()
+                p['secret'] = leftover.read()
 
             parse_func, keygrip_func = SUPPORTED_CURVES[oid]
             keygrip = keygrip_func(parse_func(mpi))
@@ -199,7 +199,9 @@ _parse_attribute = functools.partial(_parse_user_id,
 
 PACKET_TYPES = {
     2: _parse_signature,
+    5: _parse_pubkey,
     6: _parse_pubkey,
+    7: _parse_subkey,
     13: _parse_user_id,
     14: _parse_subkey,
     17: _parse_attribute,
