@@ -2,7 +2,7 @@
 import binascii
 import logging
 
-from . import decode, client, keyring, protocol
+from . import client, decode, keyring, protocol
 from .. import util
 
 log = logging.getLogger(__name__)

@@ -2,6 +2,7 @@
 
 import binascii
 import logging
+
 import semver
 
 from . import interface
@@ -84,7 +85,7 @@ class Trezor(interface.Device):
             assert len(result.signature) == 65
             assert result.signature[:1] == b'\x00'
             return result.signature[1:]
-        except self._defs.CallException as e:
+        except self._defs.Error as e:
             msg = '{} error: {}'.format(self, e)
             log.debug(msg, exc_info=True)
             raise interface.DeviceError(msg)
@@ -103,7 +104,7 @@ class Trezor(interface.Device):
             assert len(result.session_key) in {65, 33}  # NIST256 or Curve25519
             assert result.session_key[:1] == b'\x04'
             return result.session_key
-        except self._defs.CallException as e:
+        except self._defs.Error as e:
             msg = '{} error: {}'.format(self, e)
             log.debug(msg, exc_info=True)
             raise interface.DeviceError(msg)
