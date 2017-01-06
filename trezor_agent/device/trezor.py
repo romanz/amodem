@@ -18,17 +18,18 @@ class Trezor(interface.Device):
         return trezor_defs
 
     required_version = '>=1.4.0'
+    passphrase = ''
 
     def connect(self):
         """Enumerate and connect to the first USB HID interface."""
-        def empty_passphrase_handler(_):
-            return self._defs.PassphraseAck(passphrase='')
+        def passphrase_handler(_):
+            return self._defs.PassphraseAck(passphrase=self.passphrase)
 
         for d in self._defs.HidTransport.enumerate():
             log.debug('endpoint: %s', d)
             transport = self._defs.HidTransport(d)
             connection = self._defs.Client(transport)
-            connection.callback_PassphraseRequest = empty_passphrase_handler
+            connection.callback_PassphraseRequest = passphrase_handler
             f = connection.features
             log.debug('connected to %s %s', self, f.device_id)
             log.debug('label    : %s', f.label)
