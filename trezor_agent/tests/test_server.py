@@ -37,10 +37,16 @@ class FakeSocket(object):
         pass
 
 
+def empty_device():
+    c = mock.Mock(spec=['parse_public_keys'])
+    c.parse_public_keys.return_value = []
+    return c
+
+
 def test_handle():
     mutex = threading.Lock()
 
-    handler = protocol.Handler(keys=[], signer=None)
+    handler = protocol.Handler(conn=empty_device())
     conn = FakeSocket()
     server.handle_connection(conn, handler, mutex)
 
@@ -67,7 +73,6 @@ def test_handle():
 
 
 def test_server_thread():
-
     connections = [FakeSocket()]
     quit_event = threading.Event()
 
@@ -81,8 +86,10 @@ def test_server_thread():
         def getsockname(self):  # pylint: disable=no-self-use
             return 'fake_server'
 
-    handler = protocol.Handler(keys=[], signer=None),
-    handle_conn = functools.partial(server.handle_connection, handler=handler)
+    handler = protocol.Handler(conn=empty_device()),
+    handle_conn = functools.partial(server.handle_connection,
+                                    handler=handler,
+                                    mutex=None)
     server.server_thread(sock=FakeServer(),
                          handle_conn=handle_conn,
                          quit_event=quit_event)
@@ -111,7 +118,7 @@ def test_run():
 
 
 def test_serve_main():
-    handler = protocol.Handler(keys=[], signer=None)
+    handler = protocol.Handler(conn=empty_device())
     with server.serve(handler=handler, sock_path=None):
         pass
 

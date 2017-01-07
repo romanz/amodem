@@ -71,14 +71,13 @@ def _legacy_pubs(buf):
 class Handler(object):
     """ssh-agent protocol handler."""
 
-    def __init__(self, keys, signer, debug=False):
+    def __init__(self, conn, debug=False):
         """
         Create a protocol handler with specified public keys.
 
         Use specified signer function to sign SSH authentication requests.
         """
-        self.public_keys = keys
-        self.signer = signer
+        self.conn = conn
         self.debug = debug
 
         self.methods = {
@@ -107,7 +106,7 @@ class Handler(object):
     def list_pubs(self, buf):
         """SSH v2 public keys are serialized and returned."""
         assert not buf.read()
-        keys = self.public_keys
+        keys = self.conn.parse_public_keys()
         code = util.pack('B', msg_code('SSH2_AGENT_IDENTITIES_ANSWER'))
         num = util.pack('L', len(keys))
         log.debug('available keys: %s', [k['name'] for k in keys])
@@ -129,7 +128,7 @@ class Handler(object):
         assert util.read_frame(buf) == b''
         assert not buf.read()
 
-        for k in self.public_keys:
+        for k in self.conn.parse_public_keys():
             if (k['fingerprint']) == (key['fingerprint']):
                 log.debug('using key %r (%s)', k['name'], k['fingerprint'])
                 key = k
@@ -140,7 +139,7 @@ class Handler(object):
         label = key['name'].decode('ascii')  # label should be a string
         log.debug('signing %d-byte blob with "%s" key', len(blob), label)
         try:
-            signature = self.signer(blob=blob, identity=key['identity'])
+            signature = self.conn.sign(blob=blob, identity=key['identity'])
         except IOError:
             return failure()
         log.debug('signature: %r', signature)
