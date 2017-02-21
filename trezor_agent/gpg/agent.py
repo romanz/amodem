@@ -106,6 +106,18 @@ def pkdecrypt(keygrip, conn):
     return _serialize_point(conn.ecdh(remote_pubkey))
 
 
+@util.memoize
+def have_key(keygrip):
+    """Check if current keygrip correspond to a TREZOR-based key."""
+    try:
+        open_connection(keygrip_bytes=binascii.unhexlify(keygrip))
+        return True
+    except KeyError as e:
+        log.warning('HAVEKEY(%s) failed: %s', keygrip, e)
+        return False
+
+
+# pylint: disable=too-many-branches
 def handle_connection(conn):
     """Handle connection from GPG binary using the ASSUAN protocol."""
     keygrip = None
@@ -118,7 +130,7 @@ def handle_connection(conn):
         parts = line.split(b' ')
         command = parts[0]
         args = parts[1:]
-        if command in {b'RESET', b'OPTION', b'HAVEKEY', b'SETKEYDESC'}:
+        if command in {b'RESET', b'OPTION', b'SETKEYDESC'}:
             pass  # reply with OK
         elif command == b'GETINFO':
             keyring.sendline(conn, b'D ' + version)
@@ -134,6 +146,11 @@ def handle_connection(conn):
         elif command == b'PKDECRYPT':
             sec = pkdecrypt(keygrip, conn)
             keyring.sendline(conn, b'D ' + sec)
+        elif command == b'HAVEKEY':
+            if not have_key(keygrip=args[0]):
+                keyring.sendline(conn,
+                                 b'ERR 67108881 No secret key <GPG Agent>')
+                return
         elif command == b'KEYINFO':
             keygrip, = args
             # Dummy reply (mainly for 'gpg --edit' to succeed).
