@@ -1,5 +1,6 @@
 import io
 
+import mock
 import pytest
 
 from .. import util
@@ -101,3 +102,16 @@ def test_reader():
 
 def test_setup_logging():
     util.setup_logging(verbosity=10)
+
+
+def test_memoize():
+    f = mock.Mock(side_effect=lambda x: x)
+
+    def func(x):
+        # mock.Mock doesn't work with functools.wraps()
+        return f(x)
+
+    g = util.memoize(func)
+    assert g(1) == g(1)
+    assert g(1) != g(2)
+    assert f.mock_calls == [mock.call(1), mock.call(2)]

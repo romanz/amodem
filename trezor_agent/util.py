@@ -1,6 +1,7 @@
 """Various I/O and serialization utilities."""
 import binascii
 import contextlib
+import functools
 import io
 import logging
 import struct
@@ -185,3 +186,21 @@ def setup_logging(verbosity, **kwargs):
     levels = [logging.WARNING, logging.INFO, logging.DEBUG]
     level = levels[min(verbosity, len(levels) - 1)]
     logging.basicConfig(format=fmt, level=level, **kwargs)
+
+
+def memoize(func):
+    """Simple caching decorator."""
+    cache = {}
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        """Caching wrapper."""
+        key = (args, tuple(sorted(kwargs.items())))
+        if key in cache:
+            return cache[key]
+        else:
+            result = func(*args, **kwargs)
+            cache[key] = result
+            return result
+
+    return wrapper
