@@ -138,6 +138,7 @@ def handle_connection(conn):
             keygrip, = args
             # Dummy reply (mainly for 'gpg --edit' to succeed).
             # For details, see GnuPG agent KEYINFO command help.
+            # https://git.gnupg.org/cgi-bin/gitweb.cgi?p=gnupg.git;a=blob;f=agent/command.c;h=c8b34e9882076b1b724346787781f657cac75499;hb=refs/heads/master#l1082
             fmt = 'S KEYINFO {0} X - - - - - - -'
             keyring.sendline(conn, fmt.format(keygrip).encode('ascii'))
         elif command == b'BYE':
