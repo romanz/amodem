@@ -291,6 +291,7 @@ def load_by_keygrip(pubkey_bytes, keygrip):
         for p in packets:
             if p.get('keygrip') == keygrip:
                 return p, user_ids
+    raise KeyError('{} keygrip not found'.format(util.hexlify(keygrip)))
 
 
 def load_signature(stream, original_data):

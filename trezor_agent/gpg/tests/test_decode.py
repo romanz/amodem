@@ -56,3 +56,8 @@ def test_has_custom_subpacket():
     for marker in custom_markers:
         sig = {'unhashed_subpackets': [marker]}
         assert decode.has_custom_subpacket(sig)
+
+
+def test_load_by_keygrip_missing():
+    with pytest.raises(KeyError):
+        decode.load_by_keygrip(pubkey_bytes=b'', keygrip=b'')
