@@ -54,7 +54,8 @@ def parse_mpis(s, n):
 
 def _parse_nist256p1_pubkey(mpi):
     prefix, x, y = util.split_bits(mpi, 4, 256, 256)
-    assert prefix == 4
+    if prefix != 4:
+        raise ValueError('Invalid MPI prefix: {}'.format(prefix))
     point = ecdsa.ellipticcurve.Point(curve=ecdsa.NIST256p.curve,
                                       x=x, y=y)
     return ecdsa.VerifyingKey.from_public_point(
@@ -64,7 +65,8 @@ def _parse_nist256p1_pubkey(mpi):
 
 def _parse_ed25519_pubkey(mpi):
     prefix, value = util.split_bits(mpi, 8, 256)
-    assert prefix == 0x40
+    if prefix != 0x40:
+        raise ValueError('Invalid MPI prefix: {}'.format(prefix))
     return ed25519.VerifyingKey(util.num2bytes(value, size=32))
 
 
@@ -245,11 +247,13 @@ def parse_packets(stream):
         packet_data = reader.read(packet_size)
         packet_type = PACKET_TYPES.get(tag)
 
+        p = {'type': 'unknown', 'tag': tag, 'raw': packet_data}
         if packet_type is not None:
-            p = packet_type(util.Reader(io.BytesIO(packet_data)))
-            p['tag'] = tag
-        else:
-            p = {'type': 'unknown', 'tag': tag, 'raw': packet_data}
+            try:
+                p = packet_type(util.Reader(io.BytesIO(packet_data)))
+                p['tag'] = tag
+            except ValueError:
+                log.exception('Skipping packet: %s', util.hexlify(packet_data))
 
         log.debug('packet "%s": %s', p['type'], p)
         yield p
