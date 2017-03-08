@@ -62,7 +62,9 @@ def failure():
 
 def _legacy_pubs(buf):
     """SSH v1 public keys are not supported."""
-    assert not buf.read()
+    leftover = buf.read()
+    if leftover:
+        log.warning('skipping leftover: %r', leftover)
     code = util.pack('B', msg_code('SSH_AGENT_RSA_IDENTITIES_ANSWER'))
     num = util.pack('L', 0)  # no SSH v1 keys
     return util.frame(code, num)

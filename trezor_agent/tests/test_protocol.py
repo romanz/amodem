@@ -31,6 +31,13 @@ def test_list():
     assert reply == LIST_NIST256_REPLY
 
 
+def test_list_legacy_pubs_with_suffix():
+    h = protocol.Handler(fake_connection(keys=[], signer=None))
+    suffix = b'\x00\x00\x00\x06foobar'
+    reply = h.handle(b'\x01' + suffix)
+    assert reply == b'\x00\x00\x00\x05\x02\x00\x00\x00\x00'  # no legacy keys
+
+
 def test_unsupported():
     h = protocol.Handler(fake_connection(keys=[], signer=None))
     reply = h.handle(b'\x09')
