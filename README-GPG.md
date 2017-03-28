@@ -49,3 +49,33 @@ $ git log --show-signature -1                # verify commit signature
 $ git tag v1.2.3 --sign                      # create GPG-signed tag
 $ git tag v1.2.3 --verify                    # verify tag signature
 ```
+
+## Password manager
+
+First install `pass` from [passwordstore.org](https://www.passwordstore.org/) and initialize it to use your TREZOR-based GPG identity:
+```
+$ ./scripts/gpg-shell
+$ pass init "Roman Zeyde <roman.zeyde@gmail.com>"
+Password store initialized for Roman Zeyde <roman.zeyde@gmail.com>
+```
+Then, you can generate truly random passwords and save them encrypted using your public key (as separate `.gpg` files under `~/.password-store/`):
+```
+$ pass generate Dev/github 32
+$ pass generate Social/hackernews 32
+$ pass generate Social/twitter 32
+$ pass generate VPS/linode 32
+$ pass
+Password Store
+├── Dev
+│   └── github
+├── Social
+│   ├── hackernews
+│   └── twitter
+└── VPS
+    └── linode
+```
+In order to paste them into the browser, you'd need to decrypt the password using your hardware device:
+```
+$ pass --clip VPS/linode
+Copied VPS/linode to clipboard. Will clear in 45 seconds.
+```
