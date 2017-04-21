@@ -82,7 +82,7 @@ class Identity(object):
         s = io.BytesIO(bytearray(digest))
 
         hardened = 0x80000000
-        addr_0 = [13, 17][bool(ecdh)]
+        addr_0 = 17 if bool(ecdh) else 13
         address_n = [addr_0] + list(util.recv(s, '<LLLL'))
         return [(hardened | value) for value in address_n]
 

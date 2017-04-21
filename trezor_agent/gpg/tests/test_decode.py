@@ -41,8 +41,7 @@ def public_key_path(request):
 
 def test_gpg_files(public_key_path):  # pylint: disable=redefined-outer-name
     with open(public_key_path, 'rb') as f:
-        packets = list(decode.parse_packets(f))
-        assert len(packets) > 0
+        assert list(decode.parse_packets(f))
 
 
 def test_has_custom_subpacket():
