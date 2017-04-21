@@ -54,7 +54,7 @@ class NotFoundError(Error):
 
 
 class DeviceError(Error):
-    """"Error during device operation."""
+    """Error during device operation."""
 
 
 class Identity(object):
