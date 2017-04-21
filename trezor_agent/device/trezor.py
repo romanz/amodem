@@ -17,6 +17,10 @@ class Trezor(interface.Device):
     @property
     def _defs(self):
         from . import trezor_defs
+        # Allow using TREZOR bridge transport (instead of the HID default)
+        trezor_defs.Transport = {
+            'bridge': trezor_defs.BridgeTransport,
+        }.get(os.environ.get('TREZOR_TRANSPORT'), trezor_defs.HidTransport)
         return trezor_defs
 
     required_version = '>=1.4.0'
@@ -29,9 +33,9 @@ class Trezor(interface.Device):
                       'non-empty' if self.passphrase else 'empty', self)
             return self._defs.PassphraseAck(passphrase=self.passphrase)
 
-        for d in self._defs.HidTransport.enumerate():
+        for d in self._defs.Transport.enumerate():
             log.debug('endpoint: %s', d)
-            transport = self._defs.HidTransport(d)
+            transport = self._defs.Transport(d)
             connection = self._defs.Client(transport)
             connection.callback_PassphraseRequest = passphrase_handler
             f = connection.features
