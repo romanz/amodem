@@ -16,7 +16,7 @@ addons:
             - libusb-1.0-0-dev
 
 before_install:
-  - pip install -U setuptools pylint coverage pep8 pydocstyle "pip>=7.0" wheel
+  - pip install -U setuptools pylint coverage pep8 pydocstyle "pip>=7.0" wheel google
   - pip install -e git+https://github.com/keepkey/python-keepkey@6e8baa8b935e830d05f87b6dfd9bc7c927a96dc3#egg=keepkey
 
 install:
