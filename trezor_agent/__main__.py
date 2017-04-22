@@ -147,8 +147,9 @@ class JustInTimeConnection(object):
         """Create a JIT connection object."""
         self.conn_factory = conn_factory
         self.identities = identities
+        self.public_keys = util.memoize(self._public_keys)  # a simple cache
 
-    def public_keys(self):
+    def _public_keys(self):
         """Return a list of SSH public keys (in textual format)."""
         conn = self.conn_factory()
         return [conn.get_public_key(i) for i in self.identities]
