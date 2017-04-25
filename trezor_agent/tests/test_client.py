@@ -49,7 +49,7 @@ def test_ssh_agent():
     identity = device.interface.Identity(identity_str='localhost:22',
                                          curve_name=CURVE)
     c = client.Client(device=MockDevice())
-    assert c.get_public_key(identity) == PUBKEY_TEXT
+    assert c.export_public_keys([identity]) == [PUBKEY_TEXT]
     signature = c.sign_ssh_challenge(blob=BLOB, identity=identity)
 
     key = formats.import_public_key(PUBKEY_TEXT)

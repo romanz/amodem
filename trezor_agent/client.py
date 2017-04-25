@@ -18,15 +18,17 @@ class Client(object):
         """Connect to hardware device."""
         self.device = device
 
-    def get_public_key(self, identity):
-        """Get SSH public key from the device."""
+    def export_public_keys(self, identities):
+        """Export SSH public keys from the device."""
+        public_keys = []
         with self.device:
-            pubkey = self.device.pubkey(identity)
-
-        vk = formats.decompress_pubkey(pubkey=pubkey,
-                                       curve_name=identity.curve_name)
-        return formats.export_public_key(vk=vk,
-                                         label=str(identity))
+            for i in identities:
+                pubkey = self.device.pubkey(identity=i)
+                vk = formats.decompress_pubkey(pubkey=pubkey,
+                                               curve_name=i.curve_name)
+                public_keys.append(formats.export_public_key(vk=vk,
+                                                             label=str(i)))
+        return public_keys
 
     def sign_ssh_challenge(self, blob, identity):
         """Sign given blob using a private key on the device."""
