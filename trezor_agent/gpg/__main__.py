@@ -15,7 +15,7 @@ from .. import device, formats, server, util
 log = logging.getLogger(__name__)
 
 
-def run_create(args):
+def export_public_key(args):
     """Generate a new pubkey for a new/existing GPG identity."""
     log.warning('NOTE: in order to re-generate the exact same GPG key later, '
                 'run this command with "--time=%d" commandline flag (to set '
@@ -64,16 +64,8 @@ def run_create(args):
     sys.stdout.write(protocol.armor(result, 'PUBLIC KEY BLOCK'))
 
 
-def main_create():
-    """Main function for GPG identity creation."""
-    p = argparse.ArgumentParser()
-    p.add_argument('user_id')
-    p.add_argument('-e', '--ecdsa-curve', default='nist256p1')
-    p.add_argument('-t', '--time', type=int, default=int(time.time()))
-    p.add_argument('-v', '--verbose', default=0, action='count')
-    p.add_argument('-s', '--subkey', default=False, action='store_true')
-
-    args = p.parse_args()
+def run_create(args):
+    """Export public GPG key."""
     util.setup_logging(verbosity=args.verbose)
     log.warning('This GPG tool is still in EXPERIMENTAL mode, '
                 'so please note that the API and features may '
@@ -82,13 +74,20 @@ def main_create():
     existing_gpg = keyring.gpg_version().decode('ascii')
     required_gpg = '>=2.1.11'
     if semver.match(existing_gpg, required_gpg):
-        run_create(args)
+        export_public_key(args)
     else:
         log.error('Existing gpg2 has version "%s" (%s required)',
                   existing_gpg, required_gpg)
 
 
-def main_agent():
+def run_unlock(args):
+    """Unlock hardware device (for future interaction)."""
+    util.setup_logging(verbosity=args.verbose)
+    d = device.detect()
+    log.info('unlocked %s device', d)
+
+
+def run_agent(_):
     """Run a simple GPG-agent server."""
     home_dir = os.environ.get('GNUPGHOME', os.path.expanduser('~/.gnupg/trezor'))
     config_file = os.path.join(home_dir, 'gpg-agent.conf')
@@ -115,12 +114,29 @@ def main_agent():
                     log.exception('gpg-agent failed: %s', e)
 
 
-def auto_unlock():
-    """Automatically unlock first found device (used for `gpg-shell`)."""
-    p = argparse.ArgumentParser()
-    p.add_argument('-v', '--verbose', default=0, action='count')
+def main():
+    """Parse command-line arguments."""
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers()
 
-    args = p.parse_args()
-    util.setup_logging(verbosity=args.verbose)
-    d = device.detect()
-    log.info('unlocked %s device', d)
+    p = subparsers.add_parser('agent', help='Run GPG agent using a hardware device')
+    p.set_defaults(func=run_agent)
+
+    p = subparsers.add_parser('create', help='Export public GPG key')
+    p.add_argument('user_id')
+    p.add_argument('-e', '--ecdsa-curve', default='nist256p1')
+    p.add_argument('-t', '--time', type=int, default=int(time.time()))
+    p.add_argument('-v', '--verbose', default=0, action='count')
+    p.add_argument('-s', '--subkey', default=False, action='store_true')
+    p.set_defaults(func=run_create)
+
+    p = subparsers.add_parser('unlock', help='Unlock the hardware device')
+    p.add_argument('-v', '--verbose', default=0, action='count')
+    p.set_defaults(func=run_unlock)
+
+    args = parser.parse_args()
+    return args.func(args)
+
+
+if __name__ == '__main__':
+    main()

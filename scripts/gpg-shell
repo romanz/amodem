@@ -13,10 +13,10 @@ then
 fi
 
 # Make sure that the device is unlocked before starting the shell
-trezor-gpg-unlock
+trezor-gpg unlock
 
 # Make sure TREZOR-based gpg-agent is running
-gpg-connect-agent --agent-program "$(which trezor-gpg-agent)" </dev/null
+gpg-connect-agent --agent-program "$(dirname $0)/gpg-agent" </dev/null
 
 COMMAND=$*
 if [ -z "${COMMAND}" ]

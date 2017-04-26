@@ -14,7 +14,7 @@ mkdir -p "${HOMEDIR}"
 chmod 700 "${HOMEDIR}"
 
 # Generate new GPG identity and import into GPG keyring
-trezor-gpg-create -v "${USER_ID}" -t "${TIMESTAMP}" -e "${CURVE}" > "${HOMEDIR}/pubkey.asc"
+trezor-gpg create -v "${USER_ID}" -t "${TIMESTAMP}" -e "${CURVE}" > "${HOMEDIR}/pubkey.asc"
 gpg2 --homedir "${HOMEDIR}" --import < "${HOMEDIR}/pubkey.asc"
 rm -f "${HOMEDIR}/S.gpg-agent"  # (otherwise, our agent won't be started automatically)
 
@@ -24,7 +24,7 @@ echo "${FINGERPRINT}:6" | gpg2 --homedir "${HOMEDIR}" --import-ownertrust
 
 # Prepare GPG configuration file
 echo "# TREZOR-based GPG configuration
-agent-program $(which trezor-gpg-agent)
+agent-program $(dirname ${0})/gpg-agent
 personal-digest-preferences SHA512
 " | tee "${HOMEDIR}/gpg.conf"
 

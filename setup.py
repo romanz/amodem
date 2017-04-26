@@ -34,8 +34,6 @@ setup(
     ],
     entry_points={'console_scripts': [
         'trezor-agent = trezor_agent.__main__:run_agent',
-        'trezor-gpg-create = trezor_agent.gpg.__main__:main_create',
-        'trezor-gpg-agent = trezor_agent.gpg.__main__:main_agent',
-        'trezor-gpg-unlock = trezor_agent.gpg.__main__:auto_unlock',
+        'trezor-gpg = trezor_agent.gpg.__main__:main',
     ]},
 )
