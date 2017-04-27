@@ -2,14 +2,14 @@
 from setuptools import setup
 
 setup(
-    name='libagent',
+    name='ledger_agent',
     version='0.9.0',
-    description='Using hardware wallets as SSH/GPG agent',
+    description='Using Ledger as hardware SSH agent',
     author='Roman Zeyde',
     author_email='roman.zeyde@gmail.com',
     url='http://github.com/romanz/trezor-agent',
-    packages=['libagent', 'libagent.device', 'libagent.gpg', 'libagent.ssh'],
-    install_requires=['ecdsa>=0.13', 'ed25519>=1.4', 'semver>=2.2'],
+    scripts=['ledger_agent.py'],
+    install_requires=['libagent>=0.9.0', 'ledgerblue>=0.1.8'],
     platforms=['POSIX'],
     classifiers=[
         'Environment :: Console',
@@ -28,4 +28,9 @@ setup(
         'Topic :: Security',
         'Topic :: Utilities',
     ],
+    entry_points={'console_scripts': [
+        'ledger-agent = ledger_agent:ssh_agent',
+        'ledger-gpg = ledger_agent:gpg_tool',
+        'ledger-gpg-agent = ledger_agent:gpg_agent',
+    ]},
 )

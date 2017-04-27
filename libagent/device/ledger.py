@@ -4,7 +4,7 @@ import binascii
 import logging
 import struct
 
-from ledgerblue import comm
+from ledgerblue import comm  # pylint: disable=import-error
 
 from . import interface
 

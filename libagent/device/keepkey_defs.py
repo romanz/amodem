@@ -1,6 +1,6 @@
 """KeepKey-related definitions."""
 
-# pylint: disable=unused-import
+# pylint: disable=unused-import,import-error
 
 from keepkeylib.client import CallException as Error
 from keepkeylib.client import KeepKeyClient as Client

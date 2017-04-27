@@ -4,31 +4,52 @@ set -eu
 gpg2 --version >/dev/null  # verify that GnuPG 2 is installed
 
 USER_ID="${1}"
-HOMEDIR=~/.gnupg/trezor
+DEVICE=${DEVICE:="trezor"}  # or "ledger"
 CURVE=${CURVE:="nist256p1"}  # or "ed25519"
 TIMESTAMP=${TIMESTAMP:=`date +%s`}  # key creation timestamp
+HOMEDIR=~/.gnupg/${DEVICE}
 
-# Prepare new GPG home directory for TREZOR-based identity
+# Prepare new GPG home directory for hardware-based identity
 rm -rf "${HOMEDIR}"
 mkdir -p "${HOMEDIR}"
 chmod 700 "${HOMEDIR}"
 
 # Generate new GPG identity and import into GPG keyring
-trezor-gpg create -v "${USER_ID}" -t "${TIMESTAMP}" -e "${CURVE}" > "${HOMEDIR}/pubkey.asc"
-gpg2 --homedir "${HOMEDIR}" --import < "${HOMEDIR}/pubkey.asc"
+$DEVICE-gpg create -v "${USER_ID}" -t "${TIMESTAMP}" -e "${CURVE}" > "${HOMEDIR}/pubkey.asc"
+gpg2 --homedir "${HOMEDIR}" --import < "${HOMEDIR}/pubkey.asc" 2> /dev/null
 rm -f "${HOMEDIR}/S.gpg-agent"  # (otherwise, our agent won't be started automatically)
 
 # Make new GPG identity with "ultimate" trust (via its fingerprint)
 FINGERPRINT=$(gpg2 --homedir "${HOMEDIR}" --list-public-keys --with-fingerprint --with-colons | sed -n -E 's/^fpr:::::::::([0-9A-F]+):$/\1/p' | head -n1)
-echo "${FINGERPRINT}:6" | gpg2 --homedir "${HOMEDIR}" --import-ownertrust
+echo "${FINGERPRINT}:6" | gpg2 --homedir "${HOMEDIR}" --import-ownertrust 2> /dev/null
+
+AGENT_PATH="$(which ${DEVICE}-gpg-agent)"
 
 # Prepare GPG configuration file
-echo "# TREZOR-based GPG configuration
-agent-program $(dirname ${0})/gpg-agent
+echo "# Hardware-based GPG configuration
+agent-program ${AGENT_PATH}
 personal-digest-preferences SHA512
-" | tee "${HOMEDIR}/gpg.conf"
+" > "${HOMEDIR}/gpg.conf"
 
-echo "# TREZOR-based GPG agent emulator
+# Prepare GPG agent configuration file
+echo "# Hardware-based GPG agent emulator
 log-file ${HOMEDIR}/gpg-agent.log
 verbosity 2
-" | tee "${HOMEDIR}/gpg-agent.conf"
+" > "${HOMEDIR}/gpg-agent.conf"
+
+# Prepare a helper script for setting up the new identity
+echo "#!/bin/bash
+set -eu
+export GNUPGHOME=${HOMEDIR}
+COMMAND=\$*
+if [ -z \"\${COMMAND}\" ]
+then
+    \${SHELL}
+else
+    \${COMMAND}
+fi
+" > "${HOMEDIR}/env"
+chmod u+x "${HOMEDIR}/env"
+
+# Load agent and make sure it responds with the new identity
+GNUPGHOME="$HOMEDIR" gpg2 -K 2> /dev/null

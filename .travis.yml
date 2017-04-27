@@ -10,24 +10,17 @@ cache:
   directories:
     - $HOME/.cache/pip
 
-addons:
-    apt:
-        packages:
-            - libudev-dev
-            - libusb-1.0-0-dev
-
 before_install:
-  - pip install -U setuptools pylint coverage pep8 pydocstyle "pip>=7.0" wheel google
-  - pip install -e git+https://github.com/keepkey/python-keepkey@6e8baa8b935e830d05f87b6dfd9bc7c927a96dc3#egg=keepkey
+  - pip install -U setuptools pylint coverage pep8 pydocstyle "pip>=7.0" wheel
 
 install:
   - pip install -e .
 
 script:
-  - pep8 trezor_agent
-  - pylint --reports=no --rcfile .pylintrc trezor_agent
-  - pydocstyle trezor_agent
-  - coverage run --source trezor_agent/ -m py.test -v
+  - pep8 libagent
+  - pylint --reports=no --rcfile .pylintrc libagent
+  - pydocstyle libagent
+  - coverage run --source libagent/ -m py.test -v
 
 after_success:
   - coverage report

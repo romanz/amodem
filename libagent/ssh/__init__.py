@@ -7,7 +7,7 @@ import re
 import subprocess
 import sys
 
-from . import client, device, formats, protocol, server, util
+from .. import client, device, formats, protocol, server, util
 
 log = logging.getLogger(__name__)
 
@@ -169,7 +169,7 @@ class JustInTimeConnection(object):
 
 
 @handle_connection_error
-def run_agent(client_factory=client.Client):
+def main(device_type):
     """Run ssh-agent using given hardware client factory."""
     args = create_agent_parser().parse_args()
     util.setup_logging(verbosity=args.verbose)
@@ -195,7 +195,7 @@ def run_agent(client_factory=client.Client):
         command = os.environ['SHELL']
 
     conn = JustInTimeConnection(
-        conn_factory=lambda: client_factory(device.detect()),
+        conn_factory=lambda: client.Client(device_type()),
         identities=identities)
     if command:
         return run_server(conn=conn, command=command, debug=args.debug,

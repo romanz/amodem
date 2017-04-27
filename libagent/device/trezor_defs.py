@@ -1,6 +1,6 @@
 """TREZOR-related definitions."""
 
-# pylint: disable=unused-import
+# pylint: disable=unused-import,import-error
 
 from trezorlib.client import CallException as Error
 from trezorlib.client import TrezorClient as Client

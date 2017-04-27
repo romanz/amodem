@@ -10,9 +10,9 @@ log = logging.getLogger(__name__)
 class Client(object):
     """Sign messages and get public keys from a hardware device."""
 
-    def __init__(self, user_id, curve_name):
+    def __init__(self, user_id, curve_name, device_type):
         """Connect to the device and retrieve required public key."""
-        self.device = device.detect()
+        self.device = device_type()
         self.user_id = user_id
         self.identity = device.interface.Identity(
             identity_str='gpg://', curve_name=curve_name)

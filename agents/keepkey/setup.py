@@ -2,14 +2,14 @@
 from setuptools import setup
 
 setup(
-    name='libagent',
+    name='keepkey_agent',
     version='0.9.0',
-    description='Using hardware wallets as SSH/GPG agent',
+    description='Using KeepKey as hardware SSH agent',
     author='Roman Zeyde',
     author_email='roman.zeyde@gmail.com',
     url='http://github.com/romanz/trezor-agent',
-    packages=['libagent', 'libagent.device', 'libagent.gpg', 'libagent.ssh'],
-    install_requires=['ecdsa>=0.13', 'ed25519>=1.4', 'semver>=2.2'],
+    scripts=['keepkey_agent.py'],
+    install_requires=['libagent>=0.9.0', 'keepkey>=0.7.3'],
     platforms=['POSIX'],
     classifiers=[
         'Environment :: Console',
@@ -28,4 +28,7 @@ setup(
         'Topic :: Security',
         'Topic :: Utilities',
     ],
+    entry_points={'console_scripts': [
+        'keepkey-agent = keepkey_agent:ssh_agent',
+    ]},
 )

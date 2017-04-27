@@ -36,7 +36,7 @@ def sig_encode(r, s):
     return b'(7:sig-val(5:ecdsa(1:r32:' + r + b')(1:s32:' + s + b')))'
 
 
-def open_connection(keygrip_bytes):
+def open_connection(keygrip_bytes, device_type):
     """
     Connect to the device for the specified keygrip.
 
@@ -51,7 +51,7 @@ def open_connection(keygrip_bytes):
     curve_name = protocol.get_curve_name_by_oid(pubkey_dict['curve_oid'])
     ecdh = (pubkey_dict['algo'] == protocol.ECDH_ALGO_ID)
 
-    conn = client.Client(user_id, curve_name=curve_name)
+    conn = client.Client(user_id, curve_name=curve_name, device_type=device_type)
     pubkey = protocol.PublicKey(
         curve_name=curve_name, created=pubkey_dict['created'],
         verifying_key=conn.pubkey(ecdh=ecdh), ecdh=ecdh)
@@ -60,11 +60,11 @@ def open_connection(keygrip_bytes):
     return conn
 
 
-def pksign(keygrip, digest, algo):
+def pksign(keygrip, digest, algo, device_type):
     """Sign a message digest using a private EC key."""
     log.debug('signing %r digest (algo #%s)', digest, algo)
     keygrip_bytes = binascii.unhexlify(keygrip)
-    conn = open_connection(keygrip_bytes)
+    conn = open_connection(keygrip_bytes, device_type=device_type)
     r, s = conn.sign(binascii.unhexlify(digest))
     result = sig_encode(r, s)
     log.debug('result: %r', result)
@@ -92,7 +92,7 @@ def parse_ecdh(line):
     return dict(items)[b'e']
 
 
-def pkdecrypt(keygrip, conn):
+def pkdecrypt(keygrip, conn, device_type):
     """Handle decryption using ECDH."""
     for msg in [b'S INQUIRE_MAXLEN 4096', b'INQUIRE CIPHERTEXT']:
         keyring.sendline(conn, msg)
@@ -102,15 +102,16 @@ def pkdecrypt(keygrip, conn):
     remote_pubkey = parse_ecdh(line)
 
     keygrip_bytes = binascii.unhexlify(keygrip)
-    conn = open_connection(keygrip_bytes)
+    conn = open_connection(keygrip_bytes, device_type=device_type)
     return _serialize_point(conn.ecdh(remote_pubkey))
 
 
 @util.memoize
-def have_key(keygrip):
+def have_key(keygrip, device_type):
     """Check if current keygrip correspond to a TREZOR-based key."""
     try:
-        open_connection(keygrip_bytes=binascii.unhexlify(keygrip))
+        open_connection(keygrip_bytes=binascii.unhexlify(keygrip),
+                        device_type=device_type)
         return True
     except KeyError as e:
         log.warning('HAVEKEY(%s) failed: %s', keygrip, e)
@@ -118,7 +119,7 @@ def have_key(keygrip):
 
 
 # pylint: disable=too-many-branches
-def handle_connection(conn):
+def handle_connection(conn, device_type):
     """Handle connection from GPG binary using the ASSUAN protocol."""
     keygrip = None
     digest = None
@@ -141,13 +142,13 @@ def handle_connection(conn):
         elif command == b'SETHASH':
             algo, digest = args
         elif command == b'PKSIGN':
-            sig = pksign(keygrip, digest, algo)
+            sig = pksign(keygrip, digest, algo, device_type=device_type)
             keyring.sendline(conn, b'D ' + sig)
         elif command == b'PKDECRYPT':
-            sec = pkdecrypt(keygrip, conn)
+            sec = pkdecrypt(keygrip, conn, device_type=device_type)
             keyring.sendline(conn, b'D ' + sec)
         elif command == b'HAVEKEY':
-            if not have_key(keygrip=args[0]):
+            if not have_key(keygrip=args[0], device_type=device_type):
                 keyring.sendline(conn,
                                  b'ERR 67108881 No secret key <GPG Agent>')
                 return
