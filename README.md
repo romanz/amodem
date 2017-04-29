@@ -14,33 +14,55 @@ See SatoshiLabs' blog posts about this feature:
 
 ## Installation
 
-First, make sure that the latest [trezorlib](https://pypi.python.org/pypi/trezor) Python package
-is installed correctly (at least v0.6.6):
+Install the following packages:
 
 	$ apt-get install python-dev libusb-1.0-0-dev libudev-dev
 	$ pip install -U setuptools pip
-	$ pip install Cython trezor
+
+Make sure you are running the latest firmware version on your hardware device.
+Currently the following firmware versions are supported:
+
+ * [TREZOR](https://wallet.trezor.io/data/firmware/releases.json): `1.4.2+`
+ * [KeepKey](https://github.com/keepkey/keepkey-firmware/releases): `3.0.17+`
+ * [Ledger Nano S](https://github.com/LedgerHQ/blue-app-ssh-agent): `0.0.3+`
+
+### TREZOR
 
 Make sure that your `udev` rules are configured [correctly](https://doc.satoshilabs.com/trezor-user/settingupchromeonlinux.html#manual-configuration-of-udev-rules).
 Then, install the latest [trezor_agent](https://pypi.python.org/pypi/trezor_agent) package:
 
 	$ pip install trezor_agent
 
-Or, directly from the latest source code (if `pip` doesn't work for you):
+Or, directly from the latest source code:
 
-	$ git clone https://github.com/romanz/trezor-agent && cd trezor-agent
-	$ python setup.py build && python setup.py install
-
-Finally, verify that you are running the latest [TREZOR firmware](https://wallet.mytrezor.com/data/firmware/releases.json) version (at least v1.4.0):
-
-	$ trezorctl get_features | head
-	vendor: "bitcointrezor.com"
-	major_version: 1
-	minor_version: 4
-	patch_version: 0
-	...
+	$ git clone https://github.com/romanz/trezor-agent
+	$ pip install --user -e trezor-agent/agents/trezor
 
 If you have an error regarding `protobuf` imports (after installing it), please see [this issue](https://github.com/romanz/trezor-agent/issues/28).
+
+### KeepKey
+
+Make sure that your `udev` rules are configured [correctly](https://support.keepkey.com/support/solutions/articles/6000037796-keepkey-wallet-is-not-being-recognized-by-linux).
+Then, install the latest [keepkey_agent](https://pypi.python.org/pypi/keepkey_agent) package:
+
+	$ pip install keepkey_agent
+
+Or, directly from the latest source code:
+
+	$ git clone https://github.com/romanz/trezor-agent
+	$ pip install --user -e trezor-agent/agents/keepkey
+
+### Ledger Nano S
+
+Make sure that your `udev` rules are configured [correctly](http://support.ledgerwallet.com/knowledge_base/topics/ledger-wallet-is-not-recognized-on-linux).
+Then, install the latest [ledger_agent](https://pypi.python.org/pypi/ledger_agent) package:
+
+	$ pip install ledger_agent
+
+Or, directly from the latest source code:
+
+	$ git clone https://github.com/romanz/trezor-agent
+	$ pip install --user -e trezor-agent/agents/ledger
 
 ## Usage
 

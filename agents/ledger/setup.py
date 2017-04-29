@@ -4,7 +4,7 @@ from setuptools import setup
 setup(
     name='ledger_agent',
     version='0.9.0',
-    description='Using Ledger as hardware SSH agent',
+    description='Using Ledger as hardware SSH/GPG agent',
     author='Roman Zeyde',
     author_email='roman.zeyde@gmail.com',
     url='http://github.com/romanz/trezor-agent',

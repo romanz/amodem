@@ -4,7 +4,7 @@ from setuptools import setup
 setup(
     name='keepkey_agent',
     version='0.9.0',
-    description='Using KeepKey as hardware SSH agent',
+    description='Using KeepKey as hardware SSH/GPG agent',
     author='Roman Zeyde',
     author_email='roman.zeyde@gmail.com',
     url='http://github.com/romanz/trezor-agent',
