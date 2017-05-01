@@ -9,7 +9,10 @@ setup(
     author_email='roman.zeyde@gmail.com',
     url='http://github.com/romanz/trezor-agent',
     scripts=['keepkey_agent.py'],
-    install_requires=['libagent>=0.9.0', 'keepkey>=0.7.3'],
+    install_requires=[
+        'libagent>=0.9.0',
+        'keepkey>=0.7.3'
+    ],
     platforms=['POSIX'],
     classifiers=[
         'Environment :: Console',

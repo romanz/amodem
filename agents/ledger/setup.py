@@ -9,7 +9,10 @@ setup(
     author_email='roman.zeyde@gmail.com',
     url='http://github.com/romanz/trezor-agent',
     scripts=['ledger_agent.py'],
-    install_requires=['libagent>=0.9.0', 'ledgerblue>=0.1.8'],
+    install_requires=[
+        'libagent>=0.9.0',
+        'ledgerblue>=0.1.8'
+    ],
     platforms=['POSIX'],
     classifiers=[
         'Environment :: Console',

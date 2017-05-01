@@ -8,8 +8,17 @@ setup(
     author='Roman Zeyde',
     author_email='roman.zeyde@gmail.com',
     url='http://github.com/romanz/trezor-agent',
-    packages=['libagent', 'libagent.device', 'libagent.gpg', 'libagent.ssh'],
-    install_requires=['ecdsa>=0.13', 'ed25519>=1.4', 'semver>=2.2'],
+    packages=[
+        'libagent',
+        'libagent.device',
+        'libagent.gpg',
+        'libagent.ssh'
+    ],
+    install_requires=[
+        'ecdsa>=0.13',
+        'ed25519>=1.4',
+        'semver>=2.2'
+    ],
     platforms=['POSIX'],
     classifiers=[
         'Environment :: Console',
