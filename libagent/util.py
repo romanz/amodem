@@ -179,13 +179,22 @@ class Reader(object):
             self._captured = None
 
 
-def setup_logging(verbosity, **kwargs):
+def setup_logging(verbosity, filename=None):
     """Configure logging for this tool."""
-    fmt = ('%(asctime)s %(levelname)-12s %(message)-100s '
-           '[%(filename)s:%(lineno)d]')
     levels = [logging.WARNING, logging.INFO, logging.DEBUG]
     level = levels[min(verbosity, len(levels) - 1)]
-    logging.basicConfig(format=fmt, level=level, **kwargs)
+    logging.root.setLevel(level)
+
+    fmt = logging.Formatter('%(asctime)s %(levelname)-12s %(message)-100s '
+                            '[%(filename)s:%(lineno)d]')
+    hdlr = logging.StreamHandler()  # stderr
+    hdlr.setFormatter(fmt)
+    logging.root.addHandler(hdlr)
+
+    if filename:
+        hdlr = logging.FileHandler(filename, 'a')
+        hdlr.setFormatter(fmt)
+        logging.root.addHandler(hdlr)
 
 
 def memoize(func):
