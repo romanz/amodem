@@ -1,18 +1,14 @@
 """UNIX-domain socket server for ssh-agent implementation."""
 import contextlib
-import functools
 import logging
 import os
 import socket
 import subprocess
-import tempfile
 import threading
 
 from . import util
 
 log = logging.getLogger(__name__)
-
-UNIX_SOCKET_TIMEOUT = 0.1
 
 
 def remove_file(path, remove=os.remove, exists=os.path.exists):
@@ -112,39 +108,6 @@ def spawn(func, kwargs):
     t.start()
     yield
     t.join()
-
-
-@contextlib.contextmanager
-def serve(handler, sock_path=None, timeout=UNIX_SOCKET_TIMEOUT):
-    """
-    Start the ssh-agent server on a UNIX-domain socket.
-
-    If no connection is made during the specified timeout,
-    retry until the context is over.
-    """
-    ssh_version = subprocess.check_output(['ssh', '-V'],
-                                          stderr=subprocess.STDOUT)
-    log.debug('local SSH version: %r', ssh_version)
-    if sock_path is None:
-        sock_path = tempfile.mktemp(prefix='trezor-ssh-agent-')
-
-    environ = {'SSH_AUTH_SOCK': sock_path, 'SSH_AGENT_PID': str(os.getpid())}
-    device_mutex = threading.Lock()
-    with unix_domain_socket_server(sock_path) as sock:
-        sock.settimeout(timeout)
-        quit_event = threading.Event()
-        handle_conn = functools.partial(handle_connection,
-                                        handler=handler,
-                                        mutex=device_mutex)
-        kwargs = dict(sock=sock,
-                      handle_conn=handle_conn,
-                      quit_event=quit_event)
-        with spawn(server_thread, kwargs):
-            try:
-                yield environ
-            finally:
-                log.debug('closing server')
-                quit_event.set()
 
 
 def run_process(command, environ):

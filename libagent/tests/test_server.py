@@ -8,7 +8,8 @@ import threading
 import mock
 import pytest
 
-from .. import protocol, server, util
+from .. import server, util
+from ..ssh import protocol
 
 
 def test_socket():
@@ -115,12 +116,6 @@ def test_run():
 
     with pytest.raises(OSError):
         server.run_process([''], environ={})
-
-
-def test_serve_main():
-    handler = protocol.Handler(conn=empty_device())
-    with server.serve(handler=handler, sock_path=None):
-        pass
 
 
 def test_remove():
