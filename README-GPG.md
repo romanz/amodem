@@ -16,11 +16,10 @@ gpg (GnuPG) 2.1.15
 This GPG version is included in [Ubuntu 16.04](https://launchpad.net/ubuntu/+source/gnupg2)
 and [Linux Mint 18](https://community.linuxmint.com/software/view/gnupg2).
 
-Update you TREZOR firmware to the latest version (at least v1.4.0).
+Update you device firmware to the latest version and install your specific `agent` package:
 
-Install latest `trezor-agent` package from GitHub:
 ```
-$ pip install --user git+https://github.com/romanz/trezor-agent.git
+$ pip install --user (trezor|keepkey|ledger)_agent
 ```
 
 # Quickstart
