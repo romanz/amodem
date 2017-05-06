@@ -47,8 +47,8 @@ def mosh_args(label):
     return args
 
 
-def create_parser():
-    """Create argparse.ArgumentParser for this tool."""
+def create_agent_parser():
+    """Create an ArgumentParser for this tool."""
     p = argparse.ArgumentParser()
     p.add_argument('-v', '--verbose', default=0, action='count')
 
@@ -62,12 +62,6 @@ def create_parser():
                    help='Timeout for accepting SSH client connections')
     p.add_argument('--debug', default=False, action='store_true',
                    help='Log SSH protocol messages for debugging.')
-    return p
-
-
-def create_agent_parser():
-    """Specific parser for SSH connection."""
-    p = create_parser()
 
     g = p.add_mutually_exclusive_group()
     g.add_argument('-s', '--shell', default=False, action='store_true',
