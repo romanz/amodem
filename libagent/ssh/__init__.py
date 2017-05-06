@@ -84,26 +84,6 @@ def create_agent_parser():
     return p
 
 
-def git_host(remote_name, attributes):
-    """Extract git SSH host for specified remote name."""
-    try:
-        output = subprocess.check_output('git config --local --list'.split())
-    except subprocess.CalledProcessError:
-        return
-
-    for attribute in attributes:
-        name = r'remote.{0}.{1}'.format(remote_name, attribute)
-        matches = re.findall(re.escape(name) + '=(.*)', output)
-        log.debug('%r: %r', name, matches)
-        if not matches:
-            continue
-
-        url = matches[0].strip()
-        match = re.match('(?P<user>.*?)@(?P<host>.*?):(?P<path>.*)', url)
-        if match:
-            return '{user}@{host}'.format(**match.groupdict())
-
-
 @contextlib.contextmanager
 def serve(handler, sock_path=None, timeout=UNIX_SOCKET_TIMEOUT):
     """
