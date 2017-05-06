@@ -84,19 +84,6 @@ def create_agent_parser():
     return p
 
 
-def create_git_parser():
-    """Specific parser for git commands."""
-    p = create_parser()
-
-    p.add_argument('-r', '--remote', default='origin',
-                   help='use this git remote URL to generate SSH identity')
-    p.add_argument('-t', '--test', action='store_true',
-                   help='test connection using `ssh -T user@host` command')
-    p.add_argument('command', type=str, nargs='*', metavar='ARGUMENT',
-                   help='Git command to run under the SSH agent')
-    return p
-
-
 def git_host(remote_name, attributes):
     """Extract git SSH host for specified remote name."""
     try:
