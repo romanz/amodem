@@ -1,10 +1,7 @@
 # Using TREZOR as a hardware SSH/GPG agent
 
 [![Build Status](https://travis-ci.org/romanz/trezor-agent.svg?branch=master)](https://travis-ci.org/romanz/trezor-agent)
-[![Python Versions](https://img.shields.io/pypi/pyversions/trezor_agent.svg)](https://pypi.python.org/pypi/trezor_agent/)
-[![Package Version](https://img.shields.io/pypi/v/trezor_agent.svg)](https://pypi.python.org/pypi/trezor_agent/)
-[![Development Status](https://img.shields.io/pypi/status/trezor_agent.svg)](https://pypi.python.org/pypi/trezor_agent/)
-[![Downloads](https://img.shields.io/pypi/dm/trezor_agent.svg)](https://pypi.python.org/pypi/trezor_agent/)
+[![Chat](https://badges.gitter.im/romanz/trezor-agent.svg)](https://gitter.im/romanz/trezor-agent)
 
 See SatoshiLabs' blog posts about this feature:
 
@@ -24,7 +21,3 @@ see [trezor-ssh-agent](https://github.com/martin-lizner/trezor-ssh-agent) projec
 For GPG, see the [following instructions](README-GPG.md).
 
 See [here](https://github.com/romanz/python-trezor#pin-entering) for PIN entering instructions.
-
-### Gitter
-
-Questions, suggestions and discussions are welcome: [![Chat](https://badges.gitter.im/romanz/trezor-agent.svg)](https://gitter.im/romanz/trezor-agent)
