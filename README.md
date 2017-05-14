@@ -11,7 +11,9 @@ See SatoshiLabs' blog posts about this feature:
 
 ## Installation
 
-See the [following instructions](INSTALL.md) for TREZOR, Keepkey and Ledger Nano S devices.
+See the [following instructions](INSTALL.md) for the
+[TREZOR](https://trezor.io/), [Keepkey](https://www.keepkey.com/) and
+[Ledger Nano S](https://www.ledgerwallet.com/products/ledger-nano-s) devices.
 
 ## Usage
 
