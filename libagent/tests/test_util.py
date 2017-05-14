@@ -101,7 +101,7 @@ def test_reader():
 
 
 def test_setup_logging():
-    util.setup_logging(verbosity=10)
+    util.setup_logging(verbosity=10, filename='/dev/null')
 
 
 def test_memoize():
