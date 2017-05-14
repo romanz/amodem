@@ -25,17 +25,17 @@ $ pip install --user (trezor|keepkey|ledger)_agent
 # Quickstart
 
 ## Identity creation
-[![asciicast](https://asciinema.org/a/c2yodst21h9obttkn9wgf3783.png)](https://asciinema.org/a/c2yodst21h9obttkn9wgf3783)
+[![asciicast](https://asciinema.org/a/90416.png)](https://asciinema.org/a/90416)
 
 ## Sample usage (signature and decryption)
-[![asciicast](https://asciinema.org/a/7x0h9tyoyu5ar6jc8y9oih0ba.png)](https://asciinema.org/a/7x0h9tyoyu5ar6jc8y9oih0ba)
+[![asciicast](https://asciinema.org/a/120441.png)](https://asciinema.org/a/120441)
 
 You can use GNU Privacy Assistant (GPA) in order to inspect the created keys
 and perform signature and decryption operations using:
 
 ```
 $ sudo apt install gpa
-$ ./scripts/gpg-shell gpa
+$ GNUPGHOME=~/.gnupg/trezor gpa
 ```
 [![GPA](https://cloud.githubusercontent.com/assets/9900/20224804/053d7474-a849-11e6-87f3-ab07dc536158.png)](https://www.gnupg.org/related_software/swlist.html#gpa)
 
@@ -53,7 +53,7 @@ $ git tag v1.2.3 --verify                    # verify tag signature
 
 First install `pass` from [passwordstore.org](https://www.passwordstore.org/) and initialize it to use your TREZOR-based GPG identity:
 ```
-$ ./scripts/gpg-shell
+$ export GNUPGHOME=~/.gnupg/trezor
 $ pass init "Roman Zeyde <roman.zeyde@gmail.com>"
 Password store initialized for Roman Zeyde <roman.zeyde@gmail.com>
 ```
