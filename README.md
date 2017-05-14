@@ -16,7 +16,7 @@ See the [following instructions](INSTALL.md) for TREZOR, Keepkey and Ledger Nano
 ## Usage
 
 For SSH, see the [following instructions](README-SSH.md) (for Windows support,
-see [trezor-ssh-agent](https://github.com/martin-lizner/trezor-ssh-agent) project (by Martin Lízner)).
+see [trezor-ssh-agent](https://github.com/martin-lizner/trezor-ssh-agent) project by Martin Lízner).
 
 For GPG, see the [following instructions](README-GPG.md).
 
