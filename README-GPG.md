@@ -78,3 +78,9 @@ In order to paste them into the browser, you'd need to decrypt the password usin
 $ pass --clip VPS/linode
 Copied VPS/linode to clipboard. Will clear in 45 seconds.
 ```
+
+You can also use the following [Qt-based UI](https://qtpass.org/) for `pass`:
+```
+$ sudo apt install qtpass
+$ GNUPGHOME=~/.gnupg/trezor qtpass
+```
