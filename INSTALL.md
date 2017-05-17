@@ -24,8 +24,6 @@ Or, directly from the latest source code:
     $ git clone https://github.com/romanz/trezor-agent
     $ pip install --user -e trezor-agent/agents/trezor
 
-If you have an error regarding `protobuf` imports (after installing it), please see [this issue](https://github.com/romanz/trezor-agent/issues/28).
-
 ## KeepKey
 
 Make sure that your `udev` rules are configured [correctly](https://support.keepkey.com/support/solutions/articles/6000037796-keepkey-wallet-is-not-being-recognized-by-linux).
