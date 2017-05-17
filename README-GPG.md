@@ -27,8 +27,18 @@ $ pip install --user (trezor|keepkey|ledger)_agent
 ## Identity creation
 [![asciicast](https://asciinema.org/a/90416.png)](https://asciinema.org/a/90416)
 
+In order to use specific device type for GPG indentity creation, use either command:
+```
+$ DEVICE=(trezor,ledger) ./scripts/gpg-init "John Doe <john@doe.bit>"
+```
+
 ## Sample usage (signature and decryption)
 [![asciicast](https://asciinema.org/a/120441.png)](https://asciinema.org/a/120441)
+
+In order to use specific device type for GPG operations, set the following environment variable to either:
+```
+$ export GNUPGHOME=~/.gnupg/{trezor,ledger}
+```
 
 You can use GNU Privacy Assistant (GPA) in order to inspect the created keys
 and perform signature and decryption operations using:
