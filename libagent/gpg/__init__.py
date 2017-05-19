@@ -10,6 +10,7 @@ See these links for more details:
 
 import argparse
 import contextlib
+import functools
 import logging
 import os
 import sys
@@ -28,10 +29,12 @@ def export_public_key(device_type, args):
     log.warning('NOTE: in order to re-generate the exact same GPG key later, '
                 'run this command with "--time=%d" commandline flag (to set '
                 'the timestamp of the GPG key manually).', args.time)
-    c = client.Client(user_id=args.user_id, curve_name=args.ecdsa_curve,
-                      device_type=device_type)
-    verifying_key = c.pubkey(ecdh=False)
-    decryption_key = c.pubkey(ecdh=True)
+    c = client.Client(device=device_type())
+    identity = client.create_identity(user_id=args.user_id,
+                                      curve_name=args.ecdsa_curve)
+    verifying_key = c.pubkey(identity=identity, ecdh=False)
+    decryption_key = c.pubkey(identity=identity, ecdh=True)
+    signer_func = functools.partial(c.sign, identity=identity)
 
     if args.subkey:  # add as subkey
         log.info('adding %s GPG subkey for "%s" to existing key',
@@ -47,10 +50,10 @@ def export_public_key(device_type, args):
         primary_bytes = keyring.export_public_key(args.user_id)
         result = encode.create_subkey(primary_bytes=primary_bytes,
                                       subkey=signing_key,
-                                      signer_func=c.sign)
+                                      signer_func=signer_func)
         result = encode.create_subkey(primary_bytes=result,
                                       subkey=encryption_key,
-                                      signer_func=c.sign)
+                                      signer_func=signer_func)
     else:  # add as primary
         log.info('creating new %s GPG primary key for "%s"',
                  args.ecdsa_curve, args.user_id)
@@ -65,10 +68,10 @@ def export_public_key(device_type, args):
 
         result = encode.create_primary(user_id=args.user_id,
                                        pubkey=primary,
-                                       signer_func=c.sign)
+                                       signer_func=signer_func)
         result = encode.create_subkey(primary_bytes=result,
                                       subkey=subkey,
-                                      signer_func=c.sign)
+                                      signer_func=signer_func)
 
     sys.stdout.write(protocol.armor(result, 'PUBLIC KEY BLOCK'))
 
@@ -112,12 +115,13 @@ def run_agent(device_type):
     util.setup_logging(verbosity=int(config['verbosity']),
                        filename=config['log-file'])
     sock_path = keyring.get_agent_sock_path()
+    handler = agent.Handler(device=device_type())
     with server.unix_domain_socket_server(sock_path) as sock:
         for conn in agent.yield_connections(sock):
             with contextlib.closing(conn):
                 try:
-                    agent.handle_connection(conn=conn, device_type=device_type)
-                except StopIteration:
+                    handler.handle(conn)
+                except agent.AgentStop:
                     log.info('stopping gpg-agent')
                     return
                 except Exception as e:  # pylint: disable=broad-except
