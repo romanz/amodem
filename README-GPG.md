@@ -52,6 +52,7 @@ $ GNUPGHOME=~/.gnupg/trezor gpa
 ## Git commit & tag signatures:
 Git can use GPG to sign and verify commits and tags (see [here](https://git-scm.com/book/en/v2/Git-Tools-Signing-Your-Work)):
 ```
+$ git config --local commit.gpgsign 1
 $ git config --local gpg.program $(which gpg2)
 $ git commit --gpg-sign                      # create GPG-signed commit
 $ git log --show-signature -1                # verify commit signature
