@@ -51,5 +51,6 @@ fi
 " > "${HOMEDIR}/env"
 chmod u+x "${HOMEDIR}/env"
 
+echo "Starting ${DEVICE}-gpg-agent at ${HOMEDIR}..."
 # Load agent and make sure it responds with the new identity
-GNUPGHOME="$HOMEDIR" gpg2 -K 2> /dev/null
+GNUPGHOME="${HOMEDIR}" gpg2 -K 2> /dev/null
