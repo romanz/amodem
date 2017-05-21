@@ -33,11 +33,35 @@ class Trezor(interface.Device):
                       'non-empty' if self.passphrase else 'empty', self)
             return self._defs.PassphraseAck(passphrase=self.passphrase)
 
+        def create_pin_handler(conn):
+            try:
+                from PyQt5.QtWidgets import QApplication, QInputDialog, QLineEdit
+            except ImportError:
+                return conn.callback_PinMatrixRequest  # CLI-based PIN handler
+
+            def qt_handler(_):
+                label = ('Use the numeric keypad to describe number positions.\n'
+                         'The layout is:\n'
+                         '    7 8 9\n'
+                         '    4 5 6\n'
+                         '    1 2 3\n'
+                         'Please enter PIN:')
+                app = QApplication([])
+                qd = QInputDialog()
+                qd.setTextEchoMode(QLineEdit.Password)
+                qd.setLabelText(label)
+                qd.show()
+                app.exec_()
+                return self._defs.PinMatrixAck(pin=qd.textValue())
+
+            return qt_handler
+
         for d in self._defs.Transport.enumerate():
             log.debug('endpoint: %s', d)
             transport = self._defs.Transport(d)
             connection = self._defs.Client(transport)
             connection.callback_PassphraseRequest = passphrase_handler
+            connection.callback_PinMatrixRequest = create_pin_handler(connection)
             f = connection.features
             log.debug('connected to %s %s', self, f.device_id)
             log.debug('label    : %s', f.label)
