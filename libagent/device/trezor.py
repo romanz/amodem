@@ -3,6 +3,7 @@
 import binascii
 import logging
 import os
+import sys
 
 import semver
 
@@ -34,12 +35,12 @@ class Trezor(interface.Device):
             return self._defs.PassphraseAck(passphrase=self.passphrase)
 
         def create_pin_handler(conn):
-            try:
-                from PyQt5.QtWidgets import QApplication, QInputDialog, QLineEdit
-            except ImportError:
+            if os.isatty(sys.stdin.fileno()):
                 return conn.callback_PinMatrixRequest  # CLI-based PIN handler
 
             def qt_handler(_):
+                # pylint: disable=import-error
+                from PyQt5.QtWidgets import QApplication, QInputDialog, QLineEdit
                 label = ('Use the numeric keypad to describe number positions.\n'
                          'The layout is:\n'
                          '    7 8 9\n'
