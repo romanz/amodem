@@ -10,7 +10,7 @@ Currently the following firmware versions are supported:
 
  * [TREZOR](https://wallet.trezor.io/data/firmware/releases.json): `1.4.2+`
  * [KeepKey](https://github.com/keepkey/keepkey-firmware/releases): `3.0.17+`
- * [Ledger Nano S](https://github.com/LedgerHQ/blue-app-ssh-agent): `0.0.3+`
+ * [Ledger Nano S](https://github.com/LedgerHQ/blue-app-ssh-agent): `0.0.3+` (install [SSH/PGP Agent](https://www.ledgerwallet.com/images/apps/chrome-mngr-apps.png) app)
 
 ## TREZOR
 
