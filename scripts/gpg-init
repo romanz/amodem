@@ -29,6 +29,7 @@ AGENT_PATH="$(which ${DEVICE}-gpg-agent)"
 echo "# Hardware-based GPG configuration
 agent-program ${AGENT_PATH}
 personal-digest-preferences SHA512
+default-key \"${USER_ID}\"
 " > "${HOMEDIR}/gpg.conf"
 
 # Prepare GPG agent configuration file
