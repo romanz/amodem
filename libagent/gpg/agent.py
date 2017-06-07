@@ -92,8 +92,14 @@ class Handler(object):
             b'PKSIGN': lambda conn, _: self.pksign(conn),
             b'PKDECRYPT': lambda conn, _: self.pkdecrypt(conn),
             b'HAVEKEY': lambda _, args: self.have_key(*args),
-            b'KEYINFO': lambda conn, _: self.key_info(conn)
+            b'KEYINFO': lambda conn, _: self.key_info(conn),
+            b'SCD': lambda *_: self.fail_scd(),
         }
+
+    @staticmethod
+    def fail_scd():
+        """No support for smart-card device protocol."""
+        raise AgentError(b'ERR 100696144 No such device <SCD>')
 
     @util.memoize
     def get_identity(self, keygrip):
