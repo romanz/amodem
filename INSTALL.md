@@ -52,3 +52,7 @@ Or, directly from the latest source code:
 
 If there is an import problem with the installed `protobuf` package,
 see [this issue](https://github.com/romanz/trezor-agent/issues/28) for fixing it.
+
+If you can't find the command-line utilities (after running `pip install --user`),
+please make sure that `~/.local/bin` is on your `PATH` variable
+(see a [relevant](https://github.com/pypa/pip/issues/3813) issue).
