@@ -1,5 +1,10 @@
 Note: the GPG-related code is still under development, so please try the current implementation
-and feel free to [report any issue](https://github.com/romanz/trezor-agent/issues) you have encountered.
+and please let me [know](https://github.com/romanz/trezor-agent/issues/new) if something doesn't
+work well for you. If possible:
+
+ * record the session (e.g. using [asciinema](asciinema.org))
+ * attach the GPG agent log from `~/.gnupg/{trezor,ledger}/gpg-agent.log`
+
 Thanks!
 
 # Installation
