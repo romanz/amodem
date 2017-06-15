@@ -1,8 +1,20 @@
 # Installation
 
-Install the following packages:
+Install the following packages (depending on your distribution):
 
-    $ apt-get install python-dev libusb-1.0-0-dev libudev-dev
+### Debian
+
+    $ apt update && apt upgrade
+    $ apt install python-pip python-dev libusb-1.0-0-dev libudev-dev
+
+### Fedora/RedHat
+
+    $ yum update
+    $ yum install python-pip python-devel libusb-devel libudev-devel \
+                  gcc redhat-rpm-config
+
+Also, update Python packages before starting the installation:
+
     $ pip install -U setuptools pip
 
 Make sure you are running the latest firmware version on your hardware device.
