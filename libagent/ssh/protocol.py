@@ -138,7 +138,7 @@ class Handler(object):
         else:
             raise KeyError('key not found')
 
-        label = key['name'].decode('ascii')  # label should be a string
+        label = key['name'].decode('utf-8')
         log.debug('signing %d-byte blob with "%s" key', len(blob), label)
         try:
             signature = self.conn.sign(blob=blob, identity=key['identity'])

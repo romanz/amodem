@@ -112,7 +112,7 @@ class Handler(object):
         pubkey_dict, user_ids = decode.load_by_keygrip(
             pubkey_bytes=self.pubkey_bytes, keygrip=keygrip_bytes)
         # We assume the first user ID is used to generate TREZOR-based GPG keys.
-        user_id = user_ids[0]['value'].decode('ascii')
+        user_id = user_ids[0]['value'].decode('utf-8')
         curve_name = protocol.get_curve_name_by_oid(pubkey_dict['curve_oid'])
         ecdh = (pubkey_dict['algo'] == protocol.ECDH_ALGO_ID)
 

@@ -188,7 +188,7 @@ def main(device_type):
     public_keys = None
     if args.identity.startswith('/'):
         filename = args.identity
-        contents = open(filename, 'rb').read().decode('ascii')
+        contents = open(filename, 'rb').read().decode('utf-8')
         # Allow loading previously exported SSH public keys
         if filename.endswith('.pub'):
             public_keys = list(import_public_keys(contents))

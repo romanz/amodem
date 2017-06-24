@@ -6,6 +6,8 @@ import logging
 import re
 import struct
 
+import unidecode
+
 from .. import formats, util
 
 log = logging.getLogger(__name__)
@@ -67,7 +69,13 @@ class Identity(object):
 
     def items(self):
         """Return a copy of identity_dict items."""
-        return self.identity_dict.items()
+        return [(k, unidecode.unidecode(v))
+                for k, v in self.identity_dict.items()]
+
+    def to_bytes(self):
+        """Transliterate Unicode into ASCII."""
+        s = identity_to_string(self.identity_dict)
+        return unidecode.unidecode(s).encode('ascii')
 
     def __str__(self):
         """Return identity serialized to string."""
@@ -76,7 +84,7 @@ class Identity(object):
     def get_bip32_address(self, ecdh=False):
         """Compute BIP32 derivation address according to SLIP-0013/0017."""
         index = struct.pack('<L', self.identity_dict.get('index', 0))
-        addr = index + identity_to_string(self.identity_dict).encode('ascii')
+        addr = index + self.to_bytes()
         log.debug('bip32 address string: %r', addr)
         digest = hashlib.sha256(addr).digest()
         s = io.BytesIO(bytearray(digest))

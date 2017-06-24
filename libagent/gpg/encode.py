@@ -12,12 +12,10 @@ def create_primary(user_id, pubkey, signer_func, secret_bytes=b''):
     """Export new primary GPG public key, ready for "gpg2 --import"."""
     pubkey_packet = protocol.packet(tag=(5 if secret_bytes else 6),
                                     blob=(pubkey.data() + secret_bytes))
-    user_id_packet = protocol.packet(tag=13,
-                                     blob=user_id.encode('ascii'))
-
-    data_to_sign = (pubkey.data_to_hash() +
-                    user_id_packet[:1] +
-                    util.prefix_len('>L', user_id.encode('ascii')))
+    user_id_bytes = user_id.encode('utf-8')
+    user_id_packet = protocol.packet(tag=13, blob=user_id_bytes)
+    data_to_sign = (pubkey.data_to_hash() + user_id_packet[:1] +
+                    util.prefix_len('>L', user_id_bytes))
     hashed_subpackets = [
         protocol.subpacket_time(pubkey.created),  # signature time
         # https://tools.ietf.org/html/rfc4880#section-5.2.3.7

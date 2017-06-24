@@ -193,7 +193,7 @@ def import_public_key(line):
     file_type, base64blob, name = line.split()
     blob = base64.b64decode(base64blob)
     result = parse_pubkey(blob)
-    result['name'] = name.encode('ascii')
+    result['name'] = name.encode('utf-8')
     assert result['type'] == file_type.encode('ascii')
     log.debug('loaded %s public key: %s', file_type, result['fingerprint'])
     return result
