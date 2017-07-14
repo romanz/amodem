@@ -78,13 +78,13 @@ class Handler(object):
         # Cache public keys from GnuPG
         self.pubkey_bytes = keyring.export_public_keys()
         # "Clone" existing GPG version
-        version = keyring.gpg_version()
+        self.version = keyring.gpg_version()
 
         self.handlers = {
             b'RESET': None,
             b'OPTION': None,
             b'SETKEYDESC': None,
-            b'GETINFO': lambda conn, _: keyring.sendline(conn, b'D ' + version),
+            b'GETINFO': lambda conn, _: keyring.sendline(conn, b'D ' + self.version),
             b'AGENT_ID': lambda conn, _: keyring.sendline(conn, b'D TREZOR'),  # "Fake" agent ID
             b'SIGKEY': lambda _, args: self.set_key(*args),
             b'SETKEY': lambda _, args: self.set_key(*args),
@@ -93,13 +93,17 @@ class Handler(object):
             b'PKDECRYPT': lambda conn, _: self.pkdecrypt(conn),
             b'HAVEKEY': lambda _, args: self.have_key(*args),
             b'KEYINFO': lambda conn, _: self.key_info(conn),
-            b'SCD': lambda *_: self.fail_scd(),
+            b'SCD': self.handle_scd,
         }
 
-    @staticmethod
-    def fail_scd():
+    def handle_scd(self, conn, args):
         """No support for smart-card device protocol."""
-        raise AgentError(b'ERR 100696144 No such device <SCD>')
+        reply = {
+            (b'GETINFO', b'version'): self.version,
+        }.get(args)
+        if reply is None:
+            raise AgentError(b'ERR 100696144 No such device <SCD>')
+        keyring.sendline(conn, b'D ' + reply)
 
     @util.memoize
     def get_identity(self, keygrip):
@@ -182,7 +186,7 @@ class Handler(object):
         for line in keyring.iterlines(conn):
             parts = line.split(b' ')
             command = parts[0]
-            args = parts[1:]
+            args = tuple(parts[1:])
 
             if command == b'BYE':
                 return
