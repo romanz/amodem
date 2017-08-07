@@ -100,3 +100,6 @@ You can also use the following [Qt-based UI](https://qtpass.org/) for `pass`:
 $ sudo apt install qtpass
 $ GNUPGHOME=~/.gnupg/trezor qtpass
 ```
+
+## Re-generation of an existing GPG identity
+[![asciicast](https://asciinema.org/a/M4lRjEmGJ2RreQiHBGWT9pzp4.png)](https://asciinema.org/a/M4lRjEmGJ2RreQiHBGWT9pzp4)
