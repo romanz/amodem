@@ -11,7 +11,9 @@ cache:
     - $HOME/.cache/pip
 
 before_install:
-  - pip install -U setuptools pylint coverage pep8 pydocstyle "pip>=7.0" wheel
+  - pip install -U pip wheel
+  - pip install -U setuptools
+  - pip install -U pylint coverage pep8 pydocstyle
 
 install:
   - pip install -e .
