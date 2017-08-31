@@ -35,7 +35,7 @@ class Trezor(interface.Device):
             return self._defs.PassphraseAck(passphrase=self.passphrase)
 
         def create_pin_handler(conn):
-            if os.isatty(sys.stdin.fileno()):
+            if not sys.stdin.closed and os.isatty(sys.stdin.fileno()):
                 return conn.callback_PinMatrixRequest  # CLI-based PIN handler
 
             def qt_handler(_):

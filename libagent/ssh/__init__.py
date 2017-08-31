@@ -210,6 +210,7 @@ def main(device_type):
     use_shell = bool(args.shell)
     if use_shell:
         command = os.environ['SHELL']
+        sys.stdin.close()
 
     conn = JustInTimeConnection(
         conn_factory=lambda: client.Client(device_type()),
