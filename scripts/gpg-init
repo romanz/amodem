@@ -1,13 +1,14 @@
 #!/bin/bash
 set -eu
 
-gpg2 --version >/dev/null  # verify that GnuPG 2 is installed
-
 USER_ID="${1}"
 DEVICE=${DEVICE:="trezor"}  # or "ledger"
 CURVE=${CURVE:="nist256p1"}  # or "ed25519"
 TIMESTAMP=${TIMESTAMP:=`date +%s`}  # key creation timestamp
+GPG_BINARY=${GPG_BINARY:="gpg2"}  # starting from GnuPG 2.2, gpg2 -> gpg
 HOMEDIR=~/.gnupg/${DEVICE}
+
+${GPG_BINARY} --version  # verify that GnuPG 2.1+ is installed
 
 # Prepare new GPG home directory for hardware-based identity
 rm -rf "${HOMEDIR}"
@@ -16,12 +17,12 @@ chmod 700 "${HOMEDIR}"
 
 # Generate new GPG identity and import into GPG keyring
 $DEVICE-gpg create -v "${USER_ID}" -t "${TIMESTAMP}" -e "${CURVE}" > "${HOMEDIR}/pubkey.asc"
-gpg2 --homedir "${HOMEDIR}" --import < "${HOMEDIR}/pubkey.asc" 2> /dev/null
+${GPG_BINARY} --homedir "${HOMEDIR}" --import < "${HOMEDIR}/pubkey.asc" 2> /dev/null
 rm -f "${HOMEDIR}/S.gpg-agent"  # (otherwise, our agent won't be started automatically)
 
 # Make new GPG identity with "ultimate" trust (via its fingerprint)
-FINGERPRINT=$(gpg2 --homedir "${HOMEDIR}" --list-public-keys --with-fingerprint --with-colons | sed -n -E 's/^fpr:::::::::([0-9A-F]+):$/\1/p' | head -n1)
-echo "${FINGERPRINT}:6" | gpg2 --homedir "${HOMEDIR}" --import-ownertrust 2> /dev/null
+FINGERPRINT=$(${GPG_BINARY} --homedir "${HOMEDIR}" --list-public-keys --with-fingerprint --with-colons | sed -n -E 's/^fpr:::::::::([0-9A-F]+):$/\1/p' | head -n1)
+echo "${FINGERPRINT}:6" | ${GPG_BINARY} --homedir "${HOMEDIR}" --import-ownertrust 2> /dev/null
 
 AGENT_PATH="$(which ${DEVICE}-gpg-agent)"
 
@@ -54,4 +55,4 @@ chmod u+x "${HOMEDIR}/env"
 
 echo "Starting ${DEVICE}-gpg-agent at ${HOMEDIR}..."
 # Load agent and make sure it responds with the new identity
-GNUPGHOME="${HOMEDIR}" gpg2 -K 2> /dev/null
+GNUPGHOME="${HOMEDIR}" ${GPG_BINARY} -K 2> /dev/null
