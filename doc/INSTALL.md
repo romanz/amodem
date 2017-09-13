@@ -13,6 +13,10 @@ Install the following packages (depending on your distribution):
     $ yum install python-pip python-devel libusb-devel libudev-devel \
                   gcc redhat-rpm-config
 
+### OpenSUSE
+
+    $ zypper install python-pip python-devel libusb-1_0-devel libudev-devel
+
 Also, update Python packages before starting the installation:
 
     $ pip install -U setuptools pip
