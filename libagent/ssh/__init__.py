@@ -48,6 +48,13 @@ def mosh_args(label):
     return args
 
 
+def _to_unicode(s):
+    try:
+        return unicode(s, 'utf-8')
+    except NameError:
+        return s
+
+
 def create_agent_parser():
     """Create an ArgumentParser for this tool."""
     p = argparse.ArgumentParser()
@@ -72,7 +79,7 @@ def create_agent_parser():
     g.add_argument('--mosh', default=False, action='store_true',
                    help='connect to specified host via using Mosh')
 
-    p.add_argument('identity', type=str, default=None,
+    p.add_argument('identity', type=_to_unicode, default=None,
                    help='proto://[user@]host[:port][/path]')
     p.add_argument('command', type=str, nargs='*', metavar='ARGUMENT',
                    help='command to run under the SSH agent')
@@ -197,7 +204,7 @@ def main(device_type):
         identities = [device.interface.Identity(
             identity_str=args.identity, curve_name=args.ecdsa_curve_name)]
     for index, identity in enumerate(identities):
-        identity.identity_dict['proto'] = 'ssh'
+        identity.identity_dict['proto'] = u'ssh'
         log.info('identity #%d: %s', index, identity)
 
     if args.connect:

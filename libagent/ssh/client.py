@@ -26,8 +26,9 @@ class Client(object):
                 pubkey = self.device.pubkey(identity=i)
                 vk = formats.decompress_pubkey(pubkey=pubkey,
                                                curve_name=i.curve_name)
-                public_keys.append(formats.export_public_key(vk=vk,
-                                                             label=str(i)))
+                public_key = formats.export_public_key(vk=vk,
+                                                       label=i.to_string())
+                public_keys.append(public_key)
         return public_keys
 
     def sign_ssh_challenge(self, blob, identity):

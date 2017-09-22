@@ -45,7 +45,7 @@ def test_unsupported():
 
 
 def ecdsa_signer(identity, blob):
-    assert str(identity) == '<ssh://localhost|nist256p1>'
+    assert identity.to_string() == '<ssh://localhost|nist256p1>'
     assert blob == NIST256_BLOB
     return NIST256_SIG
 
@@ -66,7 +66,7 @@ def test_sign_missing():
 
 def test_sign_wrong():
     def wrong_signature(identity, blob):
-        assert str(identity) == '<ssh://localhost|nist256p1>'
+        assert identity.to_string() == '<ssh://localhost|nist256p1>'
         assert blob == NIST256_BLOB
         return b'\x00' * 64
 
@@ -96,7 +96,7 @@ ED25519_SIG = b'''\x8eb)\xa6\xe9P\x83VE\xfbq\xc6\xbf\x1dV3\xe3<O\x11\xc0\xfa\xe4
 
 
 def ed25519_signer(identity, blob):
-    assert str(identity) == '<ssh://localhost|ed25519>'
+    assert identity.to_string() == '<ssh://localhost|ed25519>'
     assert blob == ED25519_BLOB
     return ED25519_SIG
 

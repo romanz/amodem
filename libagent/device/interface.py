@@ -77,9 +77,9 @@ class Identity(object):
         s = identity_to_string(self.identity_dict)
         return unidecode.unidecode(s).encode('ascii')
 
-    def __str__(self):
+    def to_string(self):
         """Return identity serialized to string."""
-        return '<{}|{}>'.format(identity_to_string(self.identity_dict), self.curve_name)
+        return u'<{}|{}>'.format(identity_to_string(self.identity_dict), self.curve_name)
 
     def get_bip32_address(self, ecdh=False):
         """Compute BIP32 derivation address according to SLIP-0013/0017."""
