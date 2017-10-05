@@ -10,9 +10,6 @@ Audio Modem Communication Library
 .. image:: https://landscape.io/github/romanz/amodem/master/landscape.svg?style=flat
     :target: https://landscape.io/github/romanz/amodem/master
     :alt: Code Health
-.. image:: https://readthedocs.org/projects/amodem/badge/?version=latest
-    :target: http://amodem.readthedocs.org/en/latest/
-    :alt: Documentation
 
 .. image:: https://img.shields.io/pypi/pyversions/amodem.svg
     :target: https://pypi.python.org/pypi/amodem/
@@ -26,9 +23,6 @@ Audio Modem Communication Library
 .. image:: https://img.shields.io/pypi/status/amodem.svg
     :target: https://pypi.python.org/pypi/amodem/
     :alt: Development Status
-.. image:: https://img.shields.io/pypi/dm/amodem.svg
-    :target: https://pypi.python.org/pypi/amodem/
-    :alt: Downloads
 
 .. image:: https://badge.waffle.io/romanz/amodem.svg?label=ready&title=ready
     :target: https://waffle.io/romanz/amodem
