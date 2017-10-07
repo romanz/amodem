@@ -175,11 +175,22 @@ def sign_digest(sock, keygrip, digest, sp=subprocess, environ=None):
     return parse_sig(sig)
 
 
-def gpg_command(args, env=None):
+def get_gnupg_binary(sp=subprocess):
+    """Starting GnuPG 2.2.x, the default installation uses `gpg`."""
+    for cmd in ['gpg2', 'gpg']:
+        try:
+            return sp.check_output(args=['which', cmd]).strip()
+        except subprocess.CalledProcessError:
+            log.debug('%r not found', cmd)
+            continue
+    raise OSError('GnuPG seems to be not installed')
+
+
+def gpg_command(args, env=None, sp=subprocess):
     """Prepare common GPG command line arguments."""
     if env is None:
         env = os.environ
-    cmd = ['gpg2']
+    cmd = [get_gnupg_binary(sp=sp)]
     homedir = env.get('GNUPGHOME')
     if homedir:
         cmd.extend(['--homedir', homedir])
@@ -188,14 +199,14 @@ def gpg_command(args, env=None):
 
 def get_keygrip(user_id, sp=subprocess):
     """Get a keygrip of the primary GPG key of the specified user."""
-    args = gpg_command(['--list-keys', '--with-keygrip', user_id])
+    args = gpg_command(['--list-keys', '--with-keygrip', user_id], sp=sp)
     output = sp.check_output(args).decode('ascii')
     return re.findall(r'Keygrip = (\w+)', output)[0]
 
 
 def gpg_version(sp=subprocess):
     """Get a keygrip of the primary GPG key of the specified user."""
-    args = gpg_command(['--version'])
+    args = gpg_command(['--version'], sp=sp)
     output = sp.check_output(args)
     line = output.split(b'\n')[0]  # b'gpg (GnuPG) 2.1.11'
     return line.split(b' ')[-1]  # b'2.1.11'
@@ -203,7 +214,7 @@ def gpg_version(sp=subprocess):
 
 def export_public_key(user_id, sp=subprocess):
     """Export GPG public key for specified `user_id`."""
-    args = gpg_command(['--export', user_id])
+    args = gpg_command(['--export', user_id], sp=sp)
     result = sp.check_output(args=args)
     if not result:
         log.error('could not find public key %r in local GPG keyring', user_id)
@@ -213,7 +224,7 @@ def export_public_key(user_id, sp=subprocess):
 
 def export_public_keys(sp=subprocess):
     """Export all GPG public keys."""
-    args = gpg_command(['--export'])
+    args = gpg_command(['--export'], sp=sp)
     return sp.check_output(args=args)
 
 
