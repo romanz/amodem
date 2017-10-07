@@ -32,7 +32,7 @@ class Client(object):
     def sign(self, identity, digest):
         """Sign the digest and return a serialized signature."""
         log.info('please confirm GPG signature on %s for "%s"...',
-                 self.device, identity)
+                 self.device, identity.to_string())
         if identity.curve_name == formats.CURVE_NIST256:
             digest = digest[:32]  # sign the first 256 bits
         log.debug('signing digest: %s', util.hexlify(digest))
@@ -43,6 +43,6 @@ class Client(object):
     def ecdh(self, identity, pubkey):
         """Derive shared secret using ECDH from remote public key."""
         log.info('please confirm GPG decryption on %s for "%s"...',
-                 self.device, identity)
+                 self.device, identity.to_string())
         with self.device:
             return self.device.ecdh(pubkey=pubkey, identity=identity)

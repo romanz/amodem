@@ -89,7 +89,7 @@ class Trezor(interface.Device):
         """Return public key."""
         curve_name = identity.get_curve_name(ecdh=ecdh)
         log.debug('"%s" getting public key (%s) from %s',
-                  identity, curve_name, self)
+                  identity.to_string(), curve_name, self)
         addr = identity.get_bip32_address(ecdh=ecdh)
         result = self.conn.get_public_node(n=addr,
                                            ecdsa_curve_name=curve_name)
@@ -106,7 +106,7 @@ class Trezor(interface.Device):
         """Sign given blob and return the signature (as bytes)."""
         curve_name = identity.get_curve_name(ecdh=False)
         log.debug('"%s" signing %r (%s) on %s',
-                  identity, blob, curve_name, self)
+                  identity.to_string(), blob, curve_name, self)
         try:
             result = self.conn.sign_identity(
                 identity=self._identity_proto(identity),
@@ -126,7 +126,7 @@ class Trezor(interface.Device):
         """Get shared session key using Elliptic Curve Diffie-Hellman."""
         curve_name = identity.get_curve_name(ecdh=True)
         log.debug('"%s" shared session key (%s) for %r from %s',
-                  identity, curve_name, pubkey, self)
+                  identity.to_string(), curve_name, pubkey, self)
         try:
             result = self.conn.get_ecdh_session_key(
                 identity=self._identity_proto(identity),
