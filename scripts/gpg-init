@@ -5,9 +5,10 @@ USER_ID="${1}"
 DEVICE=${DEVICE:="trezor"}  # or "ledger"
 CURVE=${CURVE:="nist256p1"}  # or "ed25519"
 TIMESTAMP=${TIMESTAMP:=`date +%s`}  # key creation timestamp
-GPG_BINARY=${GPG_BINARY:="gpg2"}  # starting from GnuPG 2.2, gpg2 -> gpg
 HOMEDIR=~/.gnupg/${DEVICE}
 
+ # NOTE: starting from GnuPG 2.2, gpg2 -> gpg
+GPG_BINARY=$(python -c "import libagent.gpg.keyring as k; print(k.get_gnupg_binary())")
 ${GPG_BINARY} --version  # verify that GnuPG 2.1+ is installed
 
 # Prepare new GPG home directory for hardware-based identity

@@ -179,7 +179,7 @@ def get_gnupg_binary(sp=subprocess):
     """Starting GnuPG 2.2.x, the default installation uses `gpg`."""
     for cmd in ['gpg2', 'gpg']:
         try:
-            return sp.check_output(args=['which', cmd]).strip()
+            return sp.check_output(args=['which', cmd]).strip().decode('ascii')
         except subprocess.CalledProcessError:
             log.debug('%r not found', cmd)
             continue
