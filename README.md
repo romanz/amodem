@@ -11,15 +11,15 @@ See SatoshiLabs' blog posts about this feature:
 
 ## Installation
 
-See the [following instructions](INSTALL.md) for the
+See the [following instructions](doc/INSTALL.md) for the
 [TREZOR](https://trezor.io/), [Keepkey](https://www.keepkey.com/) and
 [Ledger Nano S](https://www.ledgerwallet.com/products/ledger-nano-s) devices.
 
 ## Usage
 
-For SSH, see the [following instructions](README-SSH.md) (for Windows support,
+For SSH, see the [following instructions](doc/README-SSH.md) (for Windows support,
 see [trezor-ssh-agent](https://github.com/martin-lizner/trezor-ssh-agent) project by Martin Lízner).
 
-For GPG, see the [following instructions](README-GPG.md).
+For GPG, see the [following instructions](doc/README-GPG.md).
 
 See [here](https://github.com/romanz/python-trezor#pin-entering) for PIN entering instructions.
