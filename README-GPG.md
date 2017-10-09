@@ -108,5 +108,5 @@ If you've forgotten the timestamp value, but still have access to the public key
 retrieve the timestamp with the following command (substitute "john@doe.bit" for the key's address or id):
 
 ```
-$ gpg2 --export 'john@doe.bit'|gpg2 --list-packets|grep created|head -n1
+$ gpg2 --export 'john@doe.bit' | gpg2 --list-packets | grep created | head -n1
 ```
