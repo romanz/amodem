@@ -103,3 +103,10 @@ $ GNUPGHOME=~/.gnupg/trezor qtpass
 
 ## Re-generation of an existing GPG identity
 [![asciicast](https://asciinema.org/a/M4lRjEmGJ2RreQiHBGWT9pzp4.png)](https://asciinema.org/a/M4lRjEmGJ2RreQiHBGWT9pzp4)
+
+If you've forgotten the timestamp value, but still have access to the public key, then you can
+retrieve the timestamp with the following command (substitute "john@doe.bit" for the key's address or id):
+
+```
+$ gpg2 --export 'john@doe.bit'|gpg2 --list-packets|grep created|head -n1
+```
