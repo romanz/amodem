@@ -205,7 +205,7 @@ def main(device_type):
             identity_str=args.identity, curve_name=args.ecdsa_curve_name)]
     for index, identity in enumerate(identities):
         identity.identity_dict['proto'] = u'ssh'
-        log.info('identity #%d: %s', index, identity)
+        log.info('identity #%d: %s', index, identity.to_string())
 
     if args.connect:
         command = ['ssh'] + ssh_args(args.identity) + args.command
