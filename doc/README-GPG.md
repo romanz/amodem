@@ -123,3 +123,20 @@ $ ./scripts/gpg-init "foobar" --subkey
 ```
 
 [![asciicast](https://asciinema.org/a/JFazcJfORrz7k9DmVXknaXBfD.png)](https://asciinema.org/a/JFazcJfORrz7k9DmVXknaXBfD)
+
+In order to enter existing GPG passphrase, I recommend installing and using a graphical Pinentry:
+```
+$ sudo apt install pinentry-gnome3
+$ sudo update-alternatives --config pinentry
+There are 4 choices for the alternative pinentry (providing /usr/bin/pinentry).
+
+  Selection    Path                      Priority   Status
+------------------------------------------------------------
+* 0            /usr/bin/pinentry-gnome3   90        auto mode
+  1            /usr/bin/pinentry-curses   50        manual mode
+  2            /usr/bin/pinentry-gnome3   90        manual mode
+  3            /usr/bin/pinentry-qt       80        manual mode
+  4            /usr/bin/pinentry-tty      30        manual mode
+
+Press <enter> to keep the current choice[*], or type selection number: 0
+```
