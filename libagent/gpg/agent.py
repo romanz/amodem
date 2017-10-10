@@ -155,11 +155,14 @@ class Handler(object):
 
     @util.memoize
     def have_key(self, *keygrips):
-        """Check if current keygrip correspond to a TREZOR-based key."""
-        try:
-            self.get_identity(keygrip=keygrips[0])
-        except KeyError as e:
-            log.warning('HAVEKEY(%s) failed: %s', keygrips, e)
+        """Check if any keygrip corresponds to a TREZOR-based key."""
+        for keygrip in keygrips:
+            try:
+                self.get_identity(keygrip=keygrip)
+                break
+            except KeyError as e:
+                log.warning('HAVEKEY(%s) failed: %s', keygrip, e)
+        else:
             raise AgentError(b'ERR 67108881 No secret key <GPG Agent>')
 
     def key_info(self, conn):
