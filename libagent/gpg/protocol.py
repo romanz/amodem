@@ -47,6 +47,11 @@ def subpacket_byte(subpacket_type, value):
     return subpacket(subpacket_type, '>B', value)
 
 
+def subpacket_bytes(subpacket_type, values):
+    """Create GPG subpacket with 8-bit unsigned integers."""
+    return subpacket(subpacket_type, '>' + 'B'*len(values), *values)
+
+
 def subpacket_prefix_len(item):
     """Prefix subpacket length according to RFC 4880 section-5.2.3.1."""
     n = len(item)

@@ -23,9 +23,9 @@ def create_primary(user_id, pubkey, signer_func, secret_bytes=b''):
         # https://tools.ietf.org/html/rfc4880#section-5.2.3.4
         protocol.subpacket_byte(0x1B, 1 | 2),  # key flags (certify & sign)
         # https://tools.ietf.org/html/rfc4880#section-5.2.3.21
-        protocol.subpacket_byte(0x15, 8),  # preferred hash (SHA256)
+        protocol.subpacket_bytes(0x15, [8, 9, 10]),  # preferred hash
         # https://tools.ietf.org/html/rfc4880#section-5.2.3.8
-        protocol.subpacket_byte(0x16, 0),  # preferred compression (none)
+        protocol.subpacket_bytes(0x16, [2, 3, 1]),  # preferred compression
         # https://tools.ietf.org/html/rfc4880#section-5.2.3.9
         protocol.subpacket_byte(0x17, 0x80)  # key server prefs (no-modify)
         # https://tools.ietf.org/html/rfc4880#section-5.2.3.17
