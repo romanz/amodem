@@ -84,6 +84,7 @@ class Handler(object):
             b'RESET': None,
             b'OPTION': None,
             b'SETKEYDESC': None,
+            b'NOP': None,
             b'GETINFO': lambda conn, _: keyring.sendline(conn, b'D ' + self.version),
             b'AGENT_ID': lambda conn, _: keyring.sendline(conn, b'D TREZOR'),  # "Fake" agent ID
             b'SIGKEY': lambda _, args: self.set_key(*args),
