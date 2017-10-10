@@ -110,3 +110,16 @@ retrieve the timestamp with the following command (substitute "john@doe.bit" for
 ```
 $ gpg2 --export 'john@doe.bit' | gpg2 --list-packets | grep created | head -n1
 ```
+
+## GnuPG subkey generation
+In order to add TREZOR-based subkey to an existing GnuPG identity, use the `--subkey` flag:
+```
+$ gpg2 -k foobar
+pub   rsa2048/90C4064B 2017-10-10 [SC]
+uid         [ultimate] foobar
+sub   rsa2048/4DD05FF0 2017-10-10 [E]
+
+$ ./scripts/gpg-init "foobar" --subkey
+```
+
+[![asciicast](https://asciinema.org/a/JFazcJfORrz7k9DmVXknaXBfD.png)](https://asciinema.org/a/JFazcJfORrz7k9DmVXknaXBfD)
