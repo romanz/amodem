@@ -2,6 +2,9 @@
 set -eu
 
 USER_ID="${1}"
+shift
+ARGS="$*"
+
 DEVICE=${DEVICE:="trezor"}  # or "ledger"
 CURVE=${CURVE:="nist256p1"}  # or "ed25519"
 TIMESTAMP=${TIMESTAMP:=`date +%s`}  # key creation timestamp
@@ -17,7 +20,7 @@ mkdir -p "${HOMEDIR}"
 chmod 700 "${HOMEDIR}"
 
 # Generate new GPG identity and import into GPG keyring
-$DEVICE-gpg create -v "${USER_ID}" -t "${TIMESTAMP}" -e "${CURVE}" > "${HOMEDIR}/pubkey.asc"
+$DEVICE-gpg create -v "${USER_ID}" -t "${TIMESTAMP}" -e "${CURVE}" ${ARGS} > "${HOMEDIR}/pubkey.asc"
 ${GPG_BINARY} --homedir "${HOMEDIR}" --import < "${HOMEDIR}/pubkey.asc" 2> /dev/null
 rm -f "${HOMEDIR}/S.gpg-agent"  # (otherwise, our agent won't be started automatically)
 
