@@ -21,7 +21,7 @@ chmod 700 "${HOMEDIR}"
 
 # Generate new GPG identity and import into GPG keyring
 $DEVICE-gpg create -v "${USER_ID}" -t "${TIMESTAMP}" -e "${CURVE}" ${ARGS} > "${HOMEDIR}/pubkey.asc"
-${GPG_BINARY} --homedir "${HOMEDIR}" --import < "${HOMEDIR}/pubkey.asc" 2> /dev/null
+${GPG_BINARY} --homedir "${HOMEDIR}" -q --import < "${HOMEDIR}/pubkey.asc"
 rm -f "${HOMEDIR}/S.gpg-agent"  # (otherwise, our agent won't be started automatically)
 
 # Make new GPG identity with "ultimate" trust (via its fingerprint)
