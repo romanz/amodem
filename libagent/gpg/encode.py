@@ -27,8 +27,10 @@ def create_primary(user_id, pubkey, signer_func, secret_bytes=b''):
         # https://tools.ietf.org/html/rfc4880#section-5.2.3.8
         protocol.subpacket_bytes(0x16, [2, 3, 1]),  # preferred compression
         # https://tools.ietf.org/html/rfc4880#section-5.2.3.9
-        protocol.subpacket_byte(0x17, 0x80)  # key server prefs (no-modify)
+        protocol.subpacket_byte(0x17, 0x80),  # key server prefs (no-modify)
         # https://tools.ietf.org/html/rfc4880#section-5.2.3.17
+        protocol.subpacket_byte(0x1E, 0x01),  # advanced features (MDC)
+        # https://tools.ietf.org/html/rfc4880#section-5.2.3.24
     ]
     unhashed_subpackets = [
         protocol.subpacket(16, pubkey.key_id()),  # issuer key id
