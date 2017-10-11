@@ -56,8 +56,10 @@ class LedgerNanoS(interface.Device):
         apdu = binascii.unhexlify(apdu)
         apdu += bytearray([len(path) + 1, len(path) // 4])
         apdu += path
-        result = bytearray(self.conn.exchange(bytes(apdu)))[1:]
-        return _convert_public_key(curve_name, result)
+        log.debug('apdu: %r', apdu)
+        result = bytearray(self.conn.exchange(bytes(apdu)))
+        log.debug('result: %r', result)
+        return _convert_public_key(curve_name, result[1:])
 
     def sign(self, identity, blob):
         """Sign given blob and return the signature (as bytes)."""
@@ -77,7 +79,9 @@ class LedgerNanoS(interface.Device):
         apdu += bytearray([len(blob) + len(path) + 1])
         apdu += bytearray([len(path) // 4]) + path
         apdu += blob
+        log.debug('apdu: %r', apdu)
         result = bytearray(self.conn.exchange(bytes(apdu)))
+        log.debug('result: %r', result)
         if identity.curve_name == 'nist256p1':
             offset = 3
             length = result[offset]
@@ -106,6 +110,8 @@ class LedgerNanoS(interface.Device):
         apdu += bytearray([len(pubkey) + len(path) + 1])
         apdu += bytearray([len(path) // 4]) + path
         apdu += pubkey
+        log.debug('apdu: %r', apdu)
         result = bytearray(self.conn.exchange(bytes(apdu)))
+        log.debug('result: %r', result)
         assert result[0] == 0x04
         return bytes(result)
