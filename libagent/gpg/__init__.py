@@ -13,10 +13,13 @@ import contextlib
 import functools
 import logging
 import os
+import re
+import subprocess
 import sys
 import time
 
 import semver
+
 
 from . import agent, client, encode, keyring, protocol
 from .. import device, formats, server, util
@@ -73,23 +76,111 @@ def export_public_key(device_type, args):
                                       subkey=subkey,
                                       signer_func=signer_func)
 
-    sys.stdout.write(protocol.armor(result, 'PUBLIC KEY BLOCK'))
+    return protocol.armor(result, 'PUBLIC KEY BLOCK')
 
 
-def run_create(device_type, args):
-    """Export public GPG key."""
+def verify_gpg_version():
+    """Make sure that the installed GnuPG is not too old."""
+    existing_gpg = keyring.gpg_version().decode('ascii')
+    required_gpg = '>=2.1.11'
+    msg = 'Existing GnuPG has version "{}" ({} required)'.format(existing_gpg,
+                                                                 required_gpg)
+    assert semver.match(existing_gpg, required_gpg), msg
+
+
+def check_output(args):
+    """Runs command and returns the output as string."""
+    log.debug('run: %s', args)
+    out = subprocess.check_output(args=args).decode('utf-8')
+    log.debug('out: %r', out)
+    return out
+
+
+def check_call(args, stdin=None, env=None):
+    """Runs command and verifies its success."""
+    log.debug('run: %s', args)
+    subprocess.check_call(args=args, stdin=stdin, env=env)
+
+
+def write_file(path, data):
+    """Writes data to specified path."""
+    with open(path, 'w') as f:
+        log.debug('setting %s contents:\n%s', path, data)
+        f.write(data)
+    return f
+
+
+def run_init(device_type, args):
+    """Initialize hardware-based GnuPG identity."""
     util.setup_logging(verbosity=args.verbose)
     log.warning('This GPG tool is still in EXPERIMENTAL mode, '
                 'so please note that the API and features may '
                 'change without backwards compatibility!')
 
-    existing_gpg = keyring.gpg_version().decode('ascii')
-    required_gpg = '>=2.1.11'
-    if semver.match(existing_gpg, required_gpg):
-        export_public_key(device_type, args)
-    else:
-        log.error('Existing gpg2 has version "%s" (%s required)',
-                  existing_gpg, required_gpg)
+    verify_gpg_version()
+
+    # Prepare new GPG home directory for hardware-based identity
+    device_name = os.path.basename(sys.argv[0]).rsplit('-', 1)[0]
+    log.info('device name: %s', device_name)
+    homedir = os.path.expanduser('~/.gnupg/{}'.format(device_name))
+    log.info('GPG home directory: %s', homedir)
+
+    check_call(['rm', '-rf', homedir])
+    check_call(['mkdir', '-p', homedir])
+    check_call(['chmod', '700', homedir])
+
+    # Generate new GPG identity and import into GPG keyring
+    pubkey = write_file(os.path.join(homedir, 'pubkey.asc'),
+                        export_public_key(device_type, args))
+    gpg_binary = keyring.get_gnupg_binary()
+    check_call([gpg_binary, '--homedir', homedir, '--quiet',
+                '--import', pubkey.name])
+    check_call(['rm', '-f', os.path.join(homedir, 'S.gpg-agent')])
+    # (otherwise, our agent won't be started automatically)
+
+    # Make new GPG identity with "ultimate" trust (via its fingerprint)
+    out = check_output([gpg_binary, '--homedir', homedir, '--list-public-keys',
+                        '--with-fingerprint', '--with-colons'])
+    fpr = re.findall('fpr:::::::::([0-9A-F]+):', out)[0]
+    f = write_file(os.path.join(homedir, 'ownertrust.txt'), fpr + ':6\n')
+    check_call([gpg_binary, '--homedir', homedir,
+                '--import-ownertrust', f.name])
+
+    agent_path = check_output(['which', '{}-gpg-agent'.format(device_name)])
+    agent_path = agent_path.strip()
+
+    # Prepare GPG configuration file
+    with open(os.path.join(homedir, 'gpg.conf'), 'w') as f:
+        f.write("""# Hardware-based GPG configuration
+agent-program {0}
+personal-digest-preferences SHA512
+default-key \"{1}\"
+""".format(agent_path, args.user_id))
+
+    # Prepare GPG agent configuration file
+    with open(os.path.join(homedir, 'gpg-agent.conf'), 'w') as f:
+        f.write("""# Hardware-based GPG agent emulator
+log-file {0}/gpg-agent.log
+verbosity 2
+""".format(homedir))
+
+    # Prepare a helper script for setting up the new identity
+    with open(os.path.join(homedir, 'env'), 'w') as f:
+        f.write("""#!/bin/bash
+set -eu
+export GNUPGHOME={0}
+COMMAND=$*
+if [ -z "${{COMMAND}}" ]
+then
+    ${{SHELL}}
+else
+    ${{COMMAND}}
+fi
+""".format(homedir))
+    check_call(['chmod', 'u+x', f.name])
+
+    # Load agent and make sure it responds with the new identity
+    check_call([gpg_binary, '--list-secret-keys'], env={'GNUPGHOME': homedir})
 
 
 def run_unlock(device_type, args):
@@ -133,13 +224,14 @@ def main(device_type):
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers()
 
-    p = subparsers.add_parser('create', help='Export public GPG key')
+    p = subparsers.add_parser('init',
+                              help='Initialize hardware-based GnuPG identity')
     p.add_argument('user_id')
     p.add_argument('-e', '--ecdsa-curve', default='nist256p1')
     p.add_argument('-t', '--time', type=int, default=int(time.time()))
     p.add_argument('-v', '--verbose', default=0, action='count')
     p.add_argument('-s', '--subkey', default=False, action='store_true')
-    p.set_defaults(func=run_create)
+    p.set_defaults(func=run_init)
 
     p = subparsers.add_parser('unlock', help='Unlock the hardware device')
     p.add_argument('-v', '--verbose', default=0, action='count')

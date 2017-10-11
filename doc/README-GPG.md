@@ -30,11 +30,12 @@ $ pip install --user (trezor|keepkey|ledger)_agent
 # Quickstart
 
 ## Identity creation
-[![asciicast](https://asciinema.org/a/90416.png)](https://asciinema.org/a/90416)
+[![asciicast](https://asciinema.org/a/3iNw2L9QWB8R3EVdYdAxMOLK8.png)](https://asciinema.org/a/3iNw2L9QWB8R3EVdYdAxMOLK8)
 
 In order to use specific device type for GPG indentity creation, use either command:
 ```
-$ DEVICE=(trezor,ledger) ./scripts/gpg-init "John Doe <john@doe.bit>"
+$ trezor-gpg init "Roman Zeyde <roman.zeyde@gmail.com>"
+$ ledger-gpg init "Roman Zeyde <roman.zeyde@gmail.com>"
 ```
 
 ## Sample usage (signature and decryption)
@@ -102,7 +103,7 @@ $ GNUPGHOME=~/.gnupg/trezor qtpass
 ```
 
 ## Re-generation of an existing GPG identity
-[![asciicast](https://asciinema.org/a/M4lRjEmGJ2RreQiHBGWT9pzp4.png)](https://asciinema.org/a/M4lRjEmGJ2RreQiHBGWT9pzp4)
+[![asciicast](https://asciinema.org/a/5tIQa5qt5bV134oeOqFyKEU29.png)](https://asciinema.org/a/5tIQa5qt5bV134oeOqFyKEU29)
 
 If you've forgotten the timestamp value, but still have access to the public key, then you can
 retrieve the timestamp with the following command (substitute "john@doe.bit" for the key's address or id):
@@ -119,10 +120,10 @@ pub   rsa2048/90C4064B 2017-10-10 [SC]
 uid         [ultimate] foobar
 sub   rsa2048/4DD05FF0 2017-10-10 [E]
 
-$ ./scripts/gpg-init "foobar" --subkey
+$ trezor-gpg init "foobar" --subkey
 ```
 
-[![asciicast](https://asciinema.org/a/JFazcJfORrz7k9DmVXknaXBfD.png)](https://asciinema.org/a/JFazcJfORrz7k9DmVXknaXBfD)
+[![asciicast](https://asciinema.org/a/Ick5G724zrZRFsGY7ZUdFSnV1.png)](https://asciinema.org/a/Ick5G724zrZRFsGY7ZUdFSnV1)
 
 In order to enter existing GPG passphrase, I recommend installing and using a graphical Pinentry:
 ```

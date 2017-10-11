@@ -1,2 +1,5 @@
 [MESSAGES CONTROL]
 disable=invalid-name, missing-docstring, locally-disabled, unbalanced-tuple-unpacking,no-else-return
+
+[SIMILARITIES]
+min-similarity-lines=5
