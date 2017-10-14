@@ -77,7 +77,12 @@ class Trezor(interface.Device):
                        ' (current: {})')
                 raise ValueError(fmt.format(self, self.required_version,
                                             current_version))
-            connection.ping(msg='', pin_protection=True)  # unlock PIN
+            try:
+                connection.ping(msg='', pin_protection=True)  # unlock PIN
+            except Exception as e:
+                log.exception('ping failed: %s', e)
+                connection.close()  # so the next HID open() will succeed
+                raise
             return connection
         raise interface.NotFoundError('{} not connected'.format(self))
 
@@ -117,7 +122,7 @@ class Trezor(interface.Device):
             assert len(result.signature) == 65
             assert result.signature[:1] == b'\x00'
             return result.signature[1:]
-        except self._defs.Error as e:
+        except self._defs.CallException as e:
             msg = '{} error: {}'.format(self, e)
             log.debug(msg, exc_info=True)
             raise interface.DeviceError(msg)
@@ -136,7 +141,7 @@ class Trezor(interface.Device):
             assert len(result.session_key) in {65, 33}  # NIST256 or Curve25519
             assert result.session_key[:1] == b'\x04'
             return result.session_key
-        except self._defs.Error as e:
+        except self._defs.CallException as e:
             msg = '{} error: {}'.format(self, e)
             log.debug(msg, exc_info=True)
             raise interface.DeviceError(msg)
