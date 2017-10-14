@@ -3,6 +3,9 @@ import logging
 
 log = logging.getLogger(__name__)
 
+"""Code which adds Linux ALSA support for interfaces, 
+recording and playing.
+"""
 
 class Interface(object):
 

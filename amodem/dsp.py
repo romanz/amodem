@@ -2,6 +2,8 @@ import numpy as np
 
 from . import common
 
+"""Digital Signal Processing capabilities for amodem.
+"""
 
 class FIR(object):
     def __init__(self, h):

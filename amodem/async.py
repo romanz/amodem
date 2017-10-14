@@ -4,6 +4,8 @@ import logging
 
 log = logging.getLogger()
 
+"""Asynchronous Reading capabilities for amodem.
+"""
 
 class AsyncReader(object):
     def __init__(self, stream, bufsize):

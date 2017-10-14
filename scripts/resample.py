@@ -3,6 +3,11 @@ from amodem.sampling import resample
 import argparse
 import sys
 
+"""Script that exposes the amodem.resample() function 
+to the command line, taking parameters via standard 
+inputs and returning results via standard outputs.
+"""
+
 
 def main():
     p = argparse.ArgumentParser()

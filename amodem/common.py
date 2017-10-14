@@ -9,6 +9,8 @@ log = logging.getLogger(__name__)
 
 scaling = 32000.0  # out of 2**15
 
+"""Commom utilities and procedures for amodem.
+"""
 
 def load(fileobj):
     ''' Load signal from file object. '''

@@ -4,6 +4,8 @@ import time
 
 log = logging.getLogger(__name__)
 
+"""Audio capabilities for amodem.
+"""
 
 class Interface(object):
     def __init__(self, config, debug=False):
