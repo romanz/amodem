@@ -17,5 +17,6 @@ def main():
 
     resample(src=sys.stdin, dst=sys.stdout, df=args.df)
 
+
 if __name__ == '__main__':
     main()

@@ -6,6 +6,7 @@ import time
 
 log = logging.getLogger(__name__)
 
+
 class Interface(object):
     def __init__(self, config, debug=False):
         self.debug = bool(debug)

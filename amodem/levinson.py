@@ -2,9 +2,9 @@ import numpy as np
 
 
 def solver(t, y):
-    ''' Solve Mx = y for x, where M[i,j] = t[|i-j|], in O(N^2) steps.
+    """ Solve Mx = y for x, where M[i,j] = t[|i-j|], in O(N^2) steps.
         See http://en.wikipedia.org/wiki/Levinson_recursion for details.
-    '''
+    """
     N = len(t)
     assert len(y) == N
 
