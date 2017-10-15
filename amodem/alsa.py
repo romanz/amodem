@@ -1,4 +1,4 @@
-"""Code which adds Linux ALSA support for interfaces, 
+"""Code which adds Linux ALSA support for interfaces,
 recording and playing.
 
 """

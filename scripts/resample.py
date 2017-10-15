@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-"""Script that exposes the amodem.resample() function 
-to the command line, taking parameters via standard 
+"""Script that exposes the amodem.resample() function
+to the command line, taking parameters via standard
 inputs and returning results via standard outputs.
 """
 
