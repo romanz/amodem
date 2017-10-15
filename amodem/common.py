@@ -1,5 +1,7 @@
-''' Common package functionality.
-'''
+""" Common package functionality.
+Commom utilities and procedures for amodem.
+
+"""
 
 import itertools
 import numpy as np
@@ -9,7 +11,7 @@ log = logging.getLogger(__name__)
 
 scaling = 32000.0  # out of 2**15
 
-"""Commom utilities and procedures for amodem.
+"""
 """
 
 def load(fileobj):

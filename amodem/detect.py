@@ -1,3 +1,5 @@
+"""Signal detection capabilities for amodem."""
+
 from . import dsp
 from . import equalizer
 from . import common
@@ -9,8 +11,6 @@ import collections
 
 log = logging.getLogger(__name__)
 
-"""Signal detection capabilities for amodem.
-"""
 
 class Detector(object):
 

@@ -1,3 +1,5 @@
+"""Calibration capabilities for amodem."""
+
 from . import common
 from . import dsp
 from . import sampling
@@ -10,8 +12,6 @@ import subprocess
 
 log = logging.getLogger(__name__)
 
-"""Calibration capabilities for amodem.
-"""
 
 def volume_controller(cmd):
     def controller(level):

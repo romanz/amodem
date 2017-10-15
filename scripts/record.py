@@ -1,11 +1,13 @@
 #!/usr/bin/env python
+
+"""Script that records audio through an interface
+and stores it into an amodem.config Configuration.
+
+"""
 import argparse
 from amodem import audio
 from amodem.config import Configuration
 
-"""Script that records audio through an interface
-and stores it into an amodem.config Configuration.
-"""
 
 def run(args):
     config = Configuration()

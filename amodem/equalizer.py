@@ -1,3 +1,5 @@
+"""Audio equalizing capabilities for amodem."""
+
 from . import dsp
 from . import sampling
 from . import levinson
@@ -5,8 +7,6 @@ from . import levinson
 import numpy as np
 import itertools
 
-"""Audio equalizing capabilities for amodem.
-"""
 
 class Equalizer(object):
 

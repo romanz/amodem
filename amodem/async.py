@@ -1,11 +1,11 @@
+"""Asynchronous Reading capabilities for amodem."""
+
 import threading
 import six  # since `Queue` module was renamed to `queue` (in Python 3)
 import logging
 
 log = logging.getLogger()
 
-"""Asynchronous Reading capabilities for amodem.
-"""
 
 class AsyncReader(object):
     def __init__(self, stream, bufsize):
