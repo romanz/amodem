@@ -1,4 +1,11 @@
 #!/usr/bin/env python
+
+"""Script that exposes pylab's spectogram plotting
+capabilities to the command line. It implements this
+for amodem.config Configurations.
+
+"""
+
 import pylab
 import numpy as np
 from amodem import common
@@ -26,6 +33,7 @@ def main():
         spectrogram(t, x, config.Fs)
 
     pylab.show()
+
 
 if __name__ == '__main__':
     main()

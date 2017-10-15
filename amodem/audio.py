@@ -1,3 +1,5 @@
+"""Audio capabilities for amodem."""
+
 import ctypes
 import logging
 import time

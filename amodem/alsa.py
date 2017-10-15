@@ -1,3 +1,8 @@
+"""Code which adds Linux ALSA support for interfaces,
+recording and playing.
+
+"""
+
 import subprocess
 import logging
 

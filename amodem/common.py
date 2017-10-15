@@ -1,5 +1,7 @@
-''' Common package functionality.
-'''
+""" Common package functionality.
+Commom utilities and procedures for amodem.
+
+"""
 
 import itertools
 import numpy as np
@@ -11,25 +13,25 @@ scaling = 32000.0  # out of 2**15
 
 
 def load(fileobj):
-    ''' Load signal from file object. '''
+    """ Load signal from file object. """
     return loads(fileobj.read())
 
 
 def loads(data):
-    ''' Load signal from memory buffer. '''
+    """ Load signal from memory buffer. """
     x = np.frombuffer(data, dtype='int16')
     x = x / scaling
     return x
 
 
 def dumps(sym):
-    ''' Dump signal to memory buffer. '''
+    """ Dump signal to memory buffer. """
     sym = sym.real * scaling
     return sym.astype('int16').tostring()
 
 
 def iterate(data, size, func=None, truncate=True, index=False):
-    ''' Iterate over a signal, taking each time *size* elements. '''
+    """ Iterate over a signal, taking each time *size* elements. """
     offset = 0
     data = iter(data)
 
@@ -47,9 +49,9 @@ def iterate(data, size, func=None, truncate=True, index=False):
 
 
 def split(iterable, n):
-    ''' Split an iterable of n-tuples into n iterables of scalars.
+    """ Split an iterable of n-tuples into n iterables of scalars.
     The k-th iterable will be equivalent to (i[k] for i in iter).
-    '''
+    """
     def _gen(it, index):
         for item in it:
             yield item[index]
@@ -59,26 +61,26 @@ def split(iterable, n):
 
 
 def icapture(iterable, result):
-    ''' Appends each yielded item to result. '''
+    """ Appends each yielded item to result. """
     for i in iter(iterable):
         result.append(i)
         yield i
 
 
 def take(iterable, n):
-    ''' Take n elements from iterable, and return them as a numpy array. '''
+    """ Take n elements from iterable, and return them as a numpy array. """
     return np.array(list(itertools.islice(iterable, n)))
 
 
 def izip(iterables):
-    ''' "Python 3" zip re-implementation for Python 2. '''
+    """ "Python 3" zip re-implementation for Python 2. """
     iterables = [iter(iterable) for iterable in iterables]
     while True:
         yield tuple([next(iterable) for iterable in iterables])
 
 
 class Dummy(object):
-    ''' Dummy placeholder object for testing and mocking. '''
+    """ Dummy placeholder object for testing and mocking. """
 
     def __getattr__(self, name):
         return self

@@ -1,3 +1,5 @@
+"""Audio equalizing capabilities for amodem."""
+
 from . import dsp
 from . import sampling
 from . import levinson

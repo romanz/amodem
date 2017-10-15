@@ -1,3 +1,5 @@
+"""Calibration capabilities for amodem."""
+
 from . import common
 from . import dsp
 from . import sampling

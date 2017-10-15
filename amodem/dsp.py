@@ -1,3 +1,5 @@
+"""Digital Signal Processing capabilities for amodem."""
+
 import numpy as np
 
 from . import common
@@ -60,7 +62,7 @@ def coherence(x, omega):
 
 
 def linear_regression(x, y):
-    ''' Find (a,b) such that y = a*x + b. '''
+    """ Find (a,b) such that y = a*x + b. """
     x = np.array(x)
     y = np.array(y)
     mean_x = np.mean(x)
@@ -98,7 +100,7 @@ class MODEM(object):
             yield self.encode_map[bits_tuple]
 
     def decode(self, symbols, error_handler=None):
-        ''' Maximum-likelihood decoding, using naive nearest-neighbour. '''
+        """ Maximum-likelihood decoding, using naive nearest-neighbour. """
         symbols_vec = self.symbols
         _dec = self.decode_list
         for received in symbols:
@@ -111,7 +113,7 @@ class MODEM(object):
 
 
 def prbs(reg, poly, bits):
-    ''' Simple pseudo-random number generator. '''
+    """ Simple pseudo-random number generator. """
     mask = (1 << bits) - 1
 
     size = 0  # effective register size (in bits)
