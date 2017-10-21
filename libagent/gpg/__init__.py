@@ -98,7 +98,7 @@ def check_output(args):
 
 def check_call(args, stdin=None, env=None):
     """Runs command and verifies its success."""
-    log.debug('run: %s', args)
+    log.debug('run: %s%s', args, ' {}'.format(env) if env else '')
     subprocess.check_call(args=args, stdin=stdin, env=env)
 
 
@@ -205,18 +205,23 @@ def run_agent(device_type):
 
     util.setup_logging(verbosity=int(config['verbosity']),
                        filename=config['log-file'])
-    sock_path = keyring.get_agent_sock_path()
-    handler = agent.Handler(device=device_type())
-    with server.unix_domain_socket_server(sock_path) as sock:
-        for conn in agent.yield_connections(sock):
-            with contextlib.closing(conn):
-                try:
-                    handler.handle(conn)
-                except agent.AgentStop:
-                    log.info('stopping gpg-agent')
-                    return
-                except Exception as e:  # pylint: disable=broad-except
-                    log.exception('gpg-agent failed: %s', e)
+    log.debug('sys.argv: %s', sys.argv)
+    log.debug('os.environ: %s', os.environ)
+    try:
+        sock_path = keyring.get_agent_sock_path()
+        handler = agent.Handler(device=device_type())
+        with server.unix_domain_socket_server(sock_path) as sock:
+            for conn in agent.yield_connections(sock):
+                with contextlib.closing(conn):
+                    try:
+                        handler.handle(conn)
+                    except agent.AgentStop:
+                        log.info('stopping gpg-agent')
+                        return
+                    except Exception as e:  # pylint: disable=broad-except
+                        log.exception('handler failed: %s', e)
+    except Exception as e:  # pylint: disable=broad-except
+        log.exception('gpg-agent failed: %s', e)
 
 
 def main(device_type):

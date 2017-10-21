@@ -18,6 +18,7 @@ def get_agent_sock_path(sp=subprocess):
     """Parse gpgconf output to find out GPG agent UNIX socket path."""
     lines = sp.check_output(['gpgconf', '--list-dirs']).strip().split(b'\n')
     dirs = dict(line.split(b':', 1) for line in lines)
+    log.debug('gpgconf --list-dirs: %s', dirs)
     return dirs[b'agent-socket']
 
 
