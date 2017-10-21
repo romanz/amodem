@@ -129,23 +129,6 @@ def run_init(device_type, args):
     check_call(['mkdir', '-p', homedir])
     check_call(['chmod', '700', homedir])
 
-    # Generate new GPG identity and import into GPG keyring
-    pubkey = write_file(os.path.join(homedir, 'pubkey.asc'),
-                        export_public_key(device_type, args))
-    gpg_binary = keyring.get_gnupg_binary()
-    check_call([gpg_binary, '--homedir', homedir, '--quiet',
-                '--import', pubkey.name])
-    check_call(['rm', '-f', os.path.join(homedir, 'S.gpg-agent')])
-    # (otherwise, our agent won't be started automatically)
-
-    # Make new GPG identity with "ultimate" trust (via its fingerprint)
-    out = check_output([gpg_binary, '--homedir', homedir, '--list-public-keys',
-                        '--with-fingerprint', '--with-colons'])
-    fpr = re.findall('fpr:::::::::([0-9A-F]+):', out)[0]
-    f = write_file(os.path.join(homedir, 'ownertrust.txt'), fpr + ':6\n')
-    check_call([gpg_binary, '--homedir', homedir,
-                '--import-ownertrust', f.name])
-
     agent_path = check_output(['which', '{}-gpg-agent'.format(device_name)])
     agent_path = agent_path.strip()
 
@@ -178,6 +161,23 @@ else
 fi
 """.format(homedir))
     check_call(['chmod', 'u+x', f.name])
+
+    # Generate new GPG identity and import into GPG keyring
+    pubkey = write_file(os.path.join(homedir, 'pubkey.asc'),
+                        export_public_key(device_type, args))
+    gpg_binary = keyring.get_gnupg_binary()
+    check_call([gpg_binary, '--homedir', homedir, '--quiet',
+                '--import', pubkey.name])
+    check_call(['rm', '-f', os.path.join(homedir, 'S.gpg-agent')])
+    # (otherwise, our agent won't be started automatically)
+
+    # Make new GPG identity with "ultimate" trust (via its fingerprint)
+    out = check_output([gpg_binary, '--homedir', homedir, '--list-public-keys',
+                        '--with-fingerprint', '--with-colons'])
+    fpr = re.findall('fpr:::::::::([0-9A-F]+):', out)[0]
+    f = write_file(os.path.join(homedir, 'ownertrust.txt'), fpr + ':6\n')
+    check_call([gpg_binary, '--homedir', homedir,
+                '--import-ownertrust', f.name])
 
     # Load agent and make sure it responds with the new identity
     check_call([gpg_binary, '--list-secret-keys'], env={'GNUPGHOME': homedir})
