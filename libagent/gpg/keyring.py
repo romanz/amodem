@@ -14,17 +14,18 @@ from .. import util
 log = logging.getLogger(__name__)
 
 
-def get_agent_sock_path(sp=subprocess):
+def get_agent_sock_path(env=None, sp=subprocess):
     """Parse gpgconf output to find out GPG agent UNIX socket path."""
-    lines = sp.check_output(['gpgconf', '--list-dirs']).strip().split(b'\n')
+    output = sp.check_output(['gpgconf', '--list-dirs'], env=env)
+    lines = output.strip().split(b'\n')
     dirs = dict(line.split(b':', 1) for line in lines)
     log.debug('gpgconf --list-dirs: %s', dirs)
     return dirs[b'agent-socket']
 
 
-def connect_to_agent(sp=subprocess):
+def connect_to_agent(env=None, sp=subprocess):
     """Connect to GPG agent's UNIX socket."""
-    sock_path = get_agent_sock_path(sp=sp)
+    sock_path = get_agent_sock_path(sp=sp, env=env)
     sp.check_call(['gpg-connect-agent', '/bye'])  # Make sure it's running
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     sock.connect(sock_path)
@@ -231,7 +232,7 @@ def export_public_keys(sp=subprocess):
 
 def create_agent_signer(user_id):
     """Sign digest with existing GPG keys using gpg-agent tool."""
-    sock = connect_to_agent()
+    sock = connect_to_agent(env=os.environ)
     keygrip = get_keygrip(user_id)
 
     def sign(digest):

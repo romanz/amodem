@@ -208,7 +208,7 @@ def run_agent(device_type):
     log.debug('sys.argv: %s', sys.argv)
     log.debug('os.environ: %s', os.environ)
     try:
-        sock_path = keyring.get_agent_sock_path()
+        sock_path = keyring.get_agent_sock_path(env={'GNUPGHOME': args.homedir})
         handler = agent.Handler(device=device_type())
         with server.unix_domain_socket_server(sock_path) as sock:
             for conn in agent.yield_connections(sock):
