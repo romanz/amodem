@@ -214,20 +214,23 @@ def gpg_version(sp=subprocess):
     return line.split(b' ')[-1]  # b'2.1.11'
 
 
-def export_public_key(user_id, sp=subprocess):
+def export_public_key(user_id, env=None, sp=subprocess):
     """Export GPG public key for specified `user_id`."""
     args = gpg_command(['--export', user_id], sp=sp)
-    result = sp.check_output(args=args)
+    result = sp.check_output(args=args, env=env)
     if not result:
         log.error('could not find public key %r in local GPG keyring', user_id)
         raise KeyError(user_id)
     return result
 
 
-def export_public_keys(sp=subprocess):
+def export_public_keys(env=None, sp=subprocess):
     """Export all GPG public keys."""
     args = gpg_command(['--export'], sp=sp)
-    return sp.check_output(args=args)
+    result = sp.check_output(args=args, env=env)
+    if not result:
+        raise KeyError('No GPG public keys found at env: {!r}'.format(env))
+    return result
 
 
 def create_agent_signer(user_id):
