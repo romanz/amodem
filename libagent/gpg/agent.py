@@ -68,7 +68,7 @@ class AgentStop(Exception):
 class Handler(object):
     """GPG agent requests' handler."""
 
-    def __init__(self, device):
+    def __init__(self, device, pubkey_bytes):
         """C-tor."""
         self.client = client.Client(device=device)
         # Cache ASSUAN commands' arguments between commands
@@ -76,7 +76,7 @@ class Handler(object):
         self.digest = None
         self.algo = None
         # Cache public keys from GnuPG
-        self.pubkey_bytes = keyring.export_public_keys()
+        self.pubkey_bytes = pubkey_bytes
         # "Clone" existing GPG version
         self.version = keyring.gpg_version()
 
