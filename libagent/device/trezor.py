@@ -5,6 +5,7 @@ import logging
 import os
 import sys
 
+import pymsgbox  # pylint: disable=import-error
 import semver
 
 from . import interface
@@ -38,24 +39,17 @@ class Trezor(interface.Device):
             if not sys.stdin.closed and os.isatty(sys.stdin.fileno()):
                 return conn.callback_PinMatrixRequest  # CLI-based PIN handler
 
-            def qt_handler(_):
-                # pylint: disable=import-error
-                from PyQt5.QtWidgets import QApplication, QInputDialog, QLineEdit
+            def ui_handler(_):
                 label = ('Use the numeric keypad to describe number positions.\n'
                          'The layout is:\n'
                          '    7 8 9\n'
                          '    4 5 6\n'
                          '    1 2 3\n'
                          'Please enter PIN:')
-                app = QApplication([])
-                qd = QInputDialog()
-                qd.setTextEchoMode(QLineEdit.Password)
-                qd.setLabelText(label)
-                qd.show()
-                app.exec_()
-                return self._defs.PinMatrixAck(pin=qd.textValue())
+                scrambled_pin = pymsgbox.password(label)
+                return self._defs.PinMatrixAck(pin=scrambled_pin)
 
-            return qt_handler
+            return ui_handler
 
         for d in self._defs.Transport.enumerate():
             log.debug('endpoint: %s', d)

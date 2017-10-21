@@ -17,6 +17,7 @@ setup(
     install_requires=[
         'ecdsa>=0.13',
         'ed25519>=1.4',
+        'pymsgbox>=1.0.6',
         'semver>=2.2',
         'unidecode>=0.4.20',
     ],
