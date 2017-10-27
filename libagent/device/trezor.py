@@ -3,14 +3,35 @@
 import binascii
 import logging
 import os
+import subprocess
 import sys
 
-import pymsgbox  # pylint: disable=import-error
 import semver
 
 from . import interface
 
 log = logging.getLogger(__name__)
+
+
+def pin_entry_gui(sp=subprocess):
+    """Launch an external process for PIN entry GUI."""
+    label = ('Use the numeric keypad to describe number positions.\n'
+             'The layout is:\n'
+             '    7 8 9\n'
+             '    4 5 6\n'
+             '    1 2 3\n'
+             'Please enter PIN:').encode('ascii')
+    cmd = ('import sys, pymsgbox; '
+           'sys.stdout.write(pymsgbox.password(sys.stdin.read()))')
+    args = ['python', '-c', cmd]
+    p = sp.Popen(args=args, stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE)
+    out, err = p.communicate(label)
+    exitcode = p.wait()
+    if exitcode == 0:
+        return out.decode('ascii')
+    else:
+        log.error('PIN entry failed: %r', err)
+        raise sp.CalledProcessError(exitcode, args)
 
 
 class Trezor(interface.Device):
@@ -40,13 +61,7 @@ class Trezor(interface.Device):
                 return conn.callback_PinMatrixRequest  # CLI-based PIN handler
 
             def ui_handler(_):
-                label = ('Use the numeric keypad to describe number positions.\n'
-                         'The layout is:\n'
-                         '    7 8 9\n'
-                         '    4 5 6\n'
-                         '    1 2 3\n'
-                         'Please enter PIN:')
-                scrambled_pin = pymsgbox.password(label)
+                scrambled_pin = pin_entry_gui()
                 return self._defs.PinMatrixAck(pin=scrambled_pin)
 
             return ui_handler
