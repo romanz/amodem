@@ -23,7 +23,7 @@ def pin_entry_gui(sp=subprocess):
              'Please enter PIN:').encode('ascii')
     cmd = ('import sys, pymsgbox; '
            'sys.stdout.write(pymsgbox.password(sys.stdin.read()))')
-    args = ['python', '-c', cmd]
+    args = [sys.executable, '-c', cmd]
     p = sp.Popen(args=args, stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE)
     out, err = p.communicate(label)
     exitcode = p.wait()
