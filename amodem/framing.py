@@ -26,8 +26,10 @@ class Checksum(object):
         payload = data[self.size:]
         expected = _checksum_func(payload)
         if received != expected:
-            log.warning('Invalid checksum: %04x != %04x', received, expected)
+            log.warning('Invalid checksum: %08x != %08x', received, expected)
             raise ValueError('Invalid checksum')
+        else:
+            log.debug('Good checksum: %08x', received)
         return payload
 
 
