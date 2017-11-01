@@ -51,7 +51,7 @@ class Configuration(object):
         ])
 
         # QAM constellation
-        Nx = 2 ** int(np.ceil(bits_per_symbol / 2))
+        Nx = 2 ** int(np.ceil(bits_per_symbol // 2))
         Ny = self.Npoints // Nx
         symbols = [complex(x, y) for x in range(Nx) for y in range(Ny)]
         symbols = np.array(symbols)
