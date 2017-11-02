@@ -4,6 +4,7 @@ import contextlib
 import functools
 import io
 import logging
+import shutil
 import struct
 
 log = logging.getLogger(__name__)
@@ -213,3 +214,13 @@ def memoize(func):
             return result
 
     return wrapper
+
+
+@memoize
+def which(cmd):
+    """Return full path to specified command, or raise OSError if missing."""
+    full_path = shutil.which(cmd)
+    if full_path is None:
+        raise OSError('Cannot find {!r} in $PATH'.format(cmd))
+    log.debug('which %r => %r', cmd, full_path)
+    return full_path

@@ -129,8 +129,7 @@ def run_init(device_type, args):
     check_call(['mkdir', '-p', homedir])
     check_call(['chmod', '700', homedir])
 
-    agent_path = check_output(['which', '{}-gpg-agent'.format(device_name)])
-    agent_path = agent_path.strip()
+    agent_path = util.which('{}-gpg-agent'.format(device_name))
 
     # Prepare GPG configuration file
     with open(os.path.join(homedir, 'gpg.conf'), 'w') as f:
