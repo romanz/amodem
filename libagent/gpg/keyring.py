@@ -177,15 +177,17 @@ def sign_digest(sock, keygrip, digest, sp=subprocess, environ=None):
     return parse_sig(sig)
 
 
+def get_gnupg_components(sp=subprocess):
+    """Parse GnuPG components' paths."""
+    output = sp.check_output(['gpgconf', '--list-components'])
+    components = dict(re.findall('(.*):.*:(.*)', output.decode('ascii')))
+    log.debug('gpgconf --list-components: %s', components)
+    return components
+
+
 def get_gnupg_binary(sp=subprocess):
     """Starting GnuPG 2.2.x, the default installation uses `gpg`."""
-    for cmd in ['gpg2', 'gpg']:
-        try:
-            return sp.check_output(args=['which', cmd]).strip().decode('ascii')
-        except subprocess.CalledProcessError:
-            log.debug('%r not found', cmd)
-            continue
-    raise OSError('GnuPG seems to be not installed')
+    return get_gnupg_components(sp=sp)['gpg']
 
 
 def gpg_command(args, env=None, sp=subprocess):
