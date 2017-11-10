@@ -13,25 +13,23 @@ from . import interface
 log = logging.getLogger(__name__)
 
 
-def pin_entry_gui(sp=subprocess):
-    """Launch an external process for PIN entry GUI."""
-    label = ('Use the numeric keypad to describe number positions.\n'
-             'The layout is:\n'
-             '    7 8 9\n'
-             '    4 5 6\n'
-             '    1 2 3\n'
-             'Please enter PIN:').encode('ascii')
+def _message_box(label, sp=subprocess):
+    """Launch an external process for PIN/passphrase entry GUI."""
     cmd = ('import sys, pymsgbox; '
            'sys.stdout.write(pymsgbox.password(sys.stdin.read()))')
     args = [sys.executable, '-c', cmd]
     p = sp.Popen(args=args, stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE)
-    out, err = p.communicate(label)
+    out, err = p.communicate(label.encode('ascii'))
     exitcode = p.wait()
     if exitcode == 0:
         return out.decode('ascii')
     else:
-        log.error('PIN entry failed: %r', err)
+        log.error('UI failed: %r', err)
         raise sp.CalledProcessError(exitcode, args)
+
+
+def _is_open_tty(stream):
+    return not stream.closed and os.isatty(stream.fileno())
 
 
 class Trezor(interface.Device):
@@ -49,6 +47,24 @@ class Trezor(interface.Device):
     required_version = '>=1.4.0'
     passphrase = os.environ.get('TREZOR_PASSPHRASE', '')
 
+    def _override_pin_handler(self, conn):
+        cli_handler = conn.callback_PinMatrixRequest
+
+        def new_handler(msg):
+            if _is_open_tty(sys.stdin):
+                return cli_handler(msg)  # CLI-based PIN handler
+
+            scrambled_pin = _message_box(
+                'Use the numeric keypad to describe number positions.\n'
+                'The layout is:\n'
+                '    7 8 9\n'
+                '    4 5 6\n'
+                '    1 2 3\n'
+                'Please enter PIN:')
+            return self._defs.PinMatrixAck(pin=scrambled_pin)
+
+        conn.callback_PinMatrixRequest = new_handler
+
     def connect(self):
         """Enumerate and connect to the first USB HID interface."""
         def passphrase_handler(_):
@@ -56,22 +72,12 @@ class Trezor(interface.Device):
                       'non-empty' if self.passphrase else 'empty', self)
             return self._defs.PassphraseAck(passphrase=self.passphrase)
 
-        def create_pin_handler(conn):
-            if not sys.stdin.closed and os.isatty(sys.stdin.fileno()):
-                return conn.callback_PinMatrixRequest  # CLI-based PIN handler
-
-            def ui_handler(_):
-                scrambled_pin = pin_entry_gui()
-                return self._defs.PinMatrixAck(pin=scrambled_pin)
-
-            return ui_handler
-
         for d in self._defs.Transport.enumerate():
             log.debug('endpoint: %s', d)
             transport = self._defs.Transport(d)
             connection = self._defs.Client(transport)
             connection.callback_PassphraseRequest = passphrase_handler
-            connection.callback_PinMatrixRequest = create_pin_handler(connection)
+            self._override_pin_handler(connection)
             f = connection.features
             log.debug('connected to %s %s', self, f.device_id)
             log.debug('label    : %s', f.label)
