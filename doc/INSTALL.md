@@ -2,6 +2,8 @@
 
 Install the following packages (depending on your distribution):
 
+## Install dependencies
+
 ### Debian
 
     $ apt update && apt upgrade
@@ -17,9 +19,19 @@ Install the following packages (depending on your distribution):
 
     $ zypper install python-pip python-devel libusb-1_0-devel libudev-devel
 
+If you are using python3 or your system `pip` command points to `pip3.x`
+(`/etc/alternatives/pip -> /usr/bin/pip3.6`) you will need to install these
+dependencies instead:
+
+    $ zypper install python3-pip python3-devel libusb-1_0-devel libudev-devel
+
+## Update setuptools and pip
+
 Also, update Python packages before starting the installation:
 
     $ pip install -U setuptools pip
+
+## Check device's firmware version
 
 Make sure you are running the latest firmware version on your hardware device.
 Currently the following firmware versions are supported:
