@@ -2,12 +2,11 @@
 
 Most cryptographic tools (such as gpg, ssh and openssl) allow the offloading of some key cryptographic steps to *engines* or *agents*. This is to allow sensitive operations, such as asking for a password or doing the actual encryption step, to be kept separate from the larger body of code. This makes it easier to secure those steps, move them onto hardware or easier to audit.
 
+SSH and GPG do this by means of a simple chatty ASCII interprocess communication protocol (usually a unix domain socket) and an agent (`ssh-agent`) or GPG key deamon (`gpg-agent`).  The `trezor-agent` mimics these two protocols.
+
 These two agents make the connection between the front end (e.g. a `gpg --sign` command, or an `ssh user@fqdn`). And then they wait for a request from the `front end', and then do the actual asking for a password and subsequent using the private key to sign or decrypt something.
 
 The various hardware wallets (Trezor, KeepKey and Ledger) each have the ability (as of Firmware 1.3.4) to use the NIST P-256 elliptic curve to sign, encrypt or decrypt. This curve can be used with S/MIME, GPG and SSH.
-
-SSH and GPG do this by means of a simple chatty ASCII interprocess communication protocol (usually a unix domain socket) and an agent (`ssh-agent`) or GPG key deamon (`gpg-agent`).
-The `trezor-agent` mimics these two protocols.
 
 So when you `ssh` to a machine - rather than consult the normal ssh-agent (which in turn will use your private SSH key in files such as `~/.ssh/id_rsa`) -- the trezor-agent will aks your hardware wallet to use its private key to sign the challenge.
 
