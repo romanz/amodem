@@ -129,8 +129,16 @@ def run_init(device_type, args):
     check_call(['mkdir', '-p', homedir])
     check_call(['chmod', '700', homedir])
 
-    agent_path = check_output(['which', '{}-gpg-agent'.format(device_name)])
-    agent_path = agent_path.strip()
+    agent_path = util.which('{}-gpg-agent'.format(device_name))
+
+    # Prepare GPG agent invocation script (to pass the PATH from environment).
+    with open(os.path.join(homedir, 'run-agent.sh'), 'w') as f:
+        f.write("""#!/bin/sh
+export PATH={0}
+{1} $*
+""".format(os.environ['PATH'], agent_path))
+    check_call(['chmod', 'u+x', f.name])
+    run_agent_script = f.name
 
     # Prepare GPG configuration file
     with open(os.path.join(homedir, 'gpg.conf'), 'w') as f:
@@ -138,7 +146,7 @@ def run_init(device_type, args):
 agent-program {0}
 personal-digest-preferences SHA512
 default-key \"{1}\"
-""".format(agent_path, args.user_id))
+""".format(run_agent_script, args.user_id))
 
     # Prepare GPG agent configuration file
     with open(os.path.join(homedir, 'gpg-agent.conf'), 'w') as f:
