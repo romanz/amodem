@@ -176,8 +176,6 @@ fi
     gpg_binary = keyring.get_gnupg_binary()
     check_call([gpg_binary, '--homedir', homedir, '--quiet',
                 '--import', pubkey.name])
-    check_call(['rm', '-f', os.path.join(homedir, 'S.gpg-agent')])
-    # (otherwise, our agent won't be started automatically)
 
     # Make new GPG identity with "ultimate" trust (via its fingerprint)
     out = check_output([gpg_binary, '--homedir', homedir, '--list-public-keys',
@@ -215,6 +213,7 @@ def run_agent(device_type):
                        filename=config['log-file'])
     log.debug('sys.argv: %s', sys.argv)
     log.debug('os.environ: %s', os.environ)
+    log.debug('pid: %d, parent pid: %d', os.getpid(), os.getppid())
     try:
         env = {'GNUPGHOME': args.homedir}
         sock_path = keyring.get_agent_sock_path(env=env)
