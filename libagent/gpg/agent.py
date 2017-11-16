@@ -57,6 +57,18 @@ def parse_ecdh(line):
     return dict(items)[b'e']
 
 
+def _key_info(conn, args):
+    """
+    Dummy reply (mainly for 'gpg --edit' to succeed).
+
+    For details, see GnuPG agent KEYINFO command help.
+    https://git.gnupg.org/cgi-bin/gitweb.cgi?p=gnupg.git;a=blob;f=agent/command.c;h=c8b34e9882076b1b724346787781f657cac75499;hb=refs/heads/master#l1082
+    """
+    fmt = 'S KEYINFO {0} X - - - - - - -'
+    keygrip, = args
+    keyring.sendline(conn, fmt.format(keygrip).encode('ascii'))
+
+
 class AgentError(Exception):
     """GnuPG agent-related error."""
 
@@ -93,7 +105,7 @@ class Handler(object):
             b'PKSIGN': lambda conn, _: self.pksign(conn),
             b'PKDECRYPT': lambda conn, _: self.pkdecrypt(conn),
             b'HAVEKEY': lambda _, args: self.have_key(*args),
-            b'KEYINFO': lambda conn, _: self.key_info(conn),
+            b'KEYINFO': _key_info,
             b'SCD': self.handle_scd,
         }
 
@@ -164,16 +176,6 @@ class Handler(object):
                 log.warning('HAVEKEY(%s) failed: %s', keygrip, e)
         else:
             raise AgentError(b'ERR 67108881 No secret key <GPG Agent>')
-
-    def key_info(self, conn):
-        """
-        Dummy reply (mainly for 'gpg --edit' to succeed).
-
-        For details, see GnuPG agent KEYINFO command help.
-        https://git.gnupg.org/cgi-bin/gitweb.cgi?p=gnupg.git;a=blob;f=agent/command.c;h=c8b34e9882076b1b724346787781f657cac75499;hb=refs/heads/master#l1082
-        """
-        fmt = 'S KEYINFO {0} X - - - - - - -'
-        keyring.sendline(conn, fmt.format(self.keygrip).encode('ascii'))
 
     def set_key(self, keygrip):
         """Set hexadecimal keygrip for next operation."""
