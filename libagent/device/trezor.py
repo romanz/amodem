@@ -45,7 +45,6 @@ class Trezor(interface.Device):
         return trezor_defs
 
     required_version = '>=1.4.0'
-    passphrase = os.environ.get('TREZOR_PASSPHRASE', '')
 
     def _override_pin_handler(self, conn):
         cli_handler = conn.callback_PinMatrixRequest
@@ -65,19 +64,26 @@ class Trezor(interface.Device):
 
         conn.callback_PinMatrixRequest = new_handler
 
+    def _override_passphrase_handler(self, conn):
+        cli_handler = conn.callback_PassphraseRequest
+
+        def new_handler(msg):
+            if _is_open_tty(sys.stdin):
+                return cli_handler(msg)  # CLI-based PIN handler
+
+            passphrase = _message_box('Please enter passphrase:')
+            return self._defs.PassphraseAck(passphrase=passphrase)
+
+        conn.callback_PassphraseRequest = new_handler
+
     def connect(self):
         """Enumerate and connect to the first USB HID interface."""
-        def passphrase_handler(_):
-            log.debug('using %s passphrase for %s',
-                      'non-empty' if self.passphrase else 'empty', self)
-            return self._defs.PassphraseAck(passphrase=self.passphrase)
-
         for d in self._defs.Transport.enumerate():
             log.debug('endpoint: %s', d)
             transport = self._defs.Transport(d)
             connection = self._defs.Client(transport)
-            connection.callback_PassphraseRequest = passphrase_handler
             self._override_pin_handler(connection)
+            self._override_passphrase_handler(connection)
             f = connection.features
             log.debug('connected to %s %s', self, f.device_id)
             log.debug('label    : %s', f.label)
