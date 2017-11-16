@@ -12,8 +12,13 @@ So when you `ssh` to a machine - rather than consult the normal ssh-agent (which
 
 ## Key Naming
 
-`trezor-agent` goes to some length to avoid using the valuable parent key. It uses derived child keys pairs instead (according to the [BIP-0032: Hierarchical Deterministic Wallets][1] system). Part of the rationale behind this is that `trezor-agent` is to some extend condemmed to *blindly* signing any NONCE given to it (e.g. as part of a challenge respone, or as the hash/hmac of someting to sign). And doing so with the master private key is risky - as rogue (ssh) server could possibly provide a doctored NONCE that happens to be tied to a transaction or something else. 
+`trezor-agent` goes to great length to avoid using the valuable parent key. 
 
+The rationale behind this is that `trezor-agent` is to some extent condemned to *blindly* signing any NONCE given to it (e.g. as part of a challenge respone, or as the hash/hmac of someting to sign). 
+
+And doing so with the master private key is risky - as rogue (ssh) server could possibly provide a doctored NONCE that happens to be tied to a transaction or something else. 
+
+It therefore uses only derived child keys pairs instead (according to the [BIP-0032: Hierarchical Deterministic Wallets][1] system) - and ones on different leafs. So the parent key is only used within the device for creating the child keys - and not exposed in any way to `trezor-agent`.
 
 ### SSH
 
@@ -31,7 +36,9 @@ The `trezor-agent` then instructs SSH to connect to the server. It will then eng
 
 ### GPG
 
-GPG uses much the same approach as SSH, expect in this it relies on [SLIP-0017 : ECDH using deterministic hierarchy][3] for the mapping to an ECDH decryption key and it maps these to the normal GPG child key infrastructure.
+GPG uses much the same approach as SSH, expect in this it relies on [SLIP-0017 : ECDH using deterministic hierarchy][3] for the mapping to an ECDH key and it maps these to the normal GPG child key infrastructure.
+
+Note: Keepkey does not support en-/de-cryption at this time.
 
 ### Index
 
