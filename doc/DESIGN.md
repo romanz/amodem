@@ -4,7 +4,7 @@ Most cryptographic tools (such as gpg, ssh and openssl) allow the offloading of 
 
 SSH and GPG do this by means of a simple interprocess communication protocol (usually a unix domain socket) and an agent (`ssh-agent`) or GPG key daemon (`gpg-agent`).  The `trezor-agent` mimics these two protocols.
 
-These two agents make the connection between the front end (e.g. a `gpg --sign` command, or an `ssh user@fqdn`). And then they wait for a request from the `front end', and then do the actual asking for a password and subsequent using the private key to sign or decrypt something.
+These two agents make the connection between the front end (e.g. a `gpg --sign` command, or an `ssh user@fqdn`). And then they wait for a request from the 'front end', and then do the actual asking for a password and subsequent using the private key to sign or decrypt something.
 
 The various hardware wallets (Trezor, KeepKey and Ledger) each have the ability (as of Firmware 1.3.4) to use the NIST P-256 elliptic curve to sign, encrypt or decrypt. This curve can be used with S/MIME, GPG and SSH.
 
@@ -23,7 +23,7 @@ So taking a commmand such as:
 
 	$ trezor-agent -c user@fqdn.com 
 
-The `trezor-agent` will take the `user`@`fqdn.com`; canonicalise it (e.g. to add the ssh default port number if none was specified) and then apply some simple hashing (See [SLIP-0013 : Authentication using deterministic hierarchy][2]). The resulting 128bit hash is then used to construct a lead `HD node' that contains an extened public private *child* key.
+The `trezor-agent` will take the `user`@`fqdn.com`; canonicalise it (e.g. to add the ssh default port number if none was specified) and then apply some simple hashing (See [SLIP-0013 : Authentication using deterministic hierarchy][2]). The resulting 128bit hash is then used to construct a lead 'HD node' that contains an extened public private *child* key.
 
 This way they keypair is specific to the server/hostname/port and protocol combination used. And it is this private key that is used to sign the nonce passed by the SSH server (as opposed to the master key).
 
@@ -35,9 +35,9 @@ GPG uses much the same approach as SSH, expect in this it relies on [SLIP-0017 :
 
 ### Index
 
-The canonicalisation process ([SLIP-0013][2] and [SLIP-0017][3]) of an email address or ssh address allows for the mixing in of an extra `index' - a unsigned 32 bit number. This allows one to have multiple, different keys, for the same address. 
+The canonicalisation process ([SLIP-0013][2] and [SLIP-0017][3]) of an email address or ssh address allows for the mixing in of an extra 'index' - a unsigned 32 bit number. This allows one to have multiple, different keys, for the same address. 
 
-This feature is currently not used -- it is set to `0'. This may change in the future.
+This feature is currently not used -- it is set to '0'. This may change in the future.
 
 [1]: https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki 
 [2]: https://github.com/satoshilabs/slips/blob/master/slip-0013.md
