@@ -2,7 +2,7 @@
 
 Most cryptographic tools (such as gpg, ssh and openssl) allow the offloading of some key cryptographic steps to *engines* or *agents*. This is to allow sensitive operations, such as asking for a password or doing the actual encryption step, to be kept separate from the larger body of code. This makes it easier to secure those steps, move them onto hardware or easier to audit.
 
-SSH and GPG do this by means of a simple chatty ASCII interprocess communication protocol (usually a unix domain socket) and an agent (`ssh-agent`) or GPG key deamon (`gpg-agent`).  The `trezor-agent` mimics these two protocols.
+SSH and GPG do this by means of a simple interprocess communication protocol (usually a unix domain socket) and an agent (`ssh-agent`) or GPG key daemon (`gpg-agent`).  The `trezor-agent` mimics these two protocols.
 
 These two agents make the connection between the front end (e.g. a `gpg --sign` command, or an `ssh user@fqdn`). And then they wait for a request from the `front end', and then do the actual asking for a password and subsequent using the private key to sign or decrypt something.
 
@@ -31,11 +31,11 @@ The `trezor-agent` then instructs SSH to connect to the server. It will then eng
 
 ### GPG
 
-GPG uses much the same approach as SSH, expect in this it relies on [SLIP-0017 : ECDH using deterministic hierarchy][3] for the mapping to an ECDH signing key and it maps these to the normal GPG child key infrastructure.
+GPG uses much the same approach as SSH, expect in this it relies on [SLIP-0017 : ECDH using deterministic hierarchy][3] for the mapping to an ECDH decryption key and it maps these to the normal GPG child key infrastructure.
 
 ### Index
 
-The canonicalisation process ([SLIP-0013][2] and [SLIP-0071][3]) of an email address or ssh address allows for the mixing in of an extra `index' - a unsigned 32 bit number. This allows one to have multiple, different keys, for the same address. 
+The canonicalisation process ([SLIP-0013][2] and [SLIP-0017][3]) of an email address or ssh address allows for the mixing in of an extra `index' - a unsigned 32 bit number. This allows one to have multiple, different keys, for the same address. 
 
 This feature is currently not used -- it is set to `0'. This may change in the future.
 
