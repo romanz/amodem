@@ -51,16 +51,19 @@ class Trezor(interface.Device):
 
         def new_handler(msg):
             if _is_open_tty(sys.stdin):
-                return cli_handler(msg)  # CLI-based PIN handler
-
-            scrambled_pin = _message_box(
-                'Use the numeric keypad to describe number positions.\n'
-                'The layout is:\n'
-                '    7 8 9\n'
-                '    4 5 6\n'
-                '    1 2 3\n'
-                'Please enter PIN:')
-            return self._defs.PinMatrixAck(pin=scrambled_pin)
+                result = cli_handler(msg)  # CLI-based PIN handler
+            else:
+                scrambled_pin = _message_box(
+                    'Use the numeric keypad to describe number positions.\n'
+                    'The layout is:\n'
+                    '    7 8 9\n'
+                    '    4 5 6\n'
+                    '    1 2 3\n'
+                    'Please enter PIN:')
+                result = self._defs.PinMatrixAck(pin=scrambled_pin)
+            if not set(result.pin).issubset('123456789'):
+                raise ValueError('Invalid scrambled PIN: {}'.format(result))
+            return result
 
         conn.callback_PinMatrixRequest = new_handler
 
