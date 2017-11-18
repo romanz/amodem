@@ -135,7 +135,7 @@ def handle_connection_error(func):
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except IOError as e:
+        except device.interface.NotFoundError as e:
             log.error('Connection error (try unplugging and replugging your device): %s', e)
             return 1
     return wrapper
