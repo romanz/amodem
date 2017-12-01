@@ -16,6 +16,7 @@ setup(
     ],
     install_requires=[
         'backports.shutil_which>=3.5.1',
+        'ConfigArgParse>=0.12.0',
         'ecdsa>=0.13',
         'ed25519>=1.4',
         'pymsgbox>=1.0.6',
