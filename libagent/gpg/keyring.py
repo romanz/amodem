@@ -113,6 +113,7 @@ def _parse_ecdsa_sig(args):
     return (util.bytes2num(sig_r),
             util.bytes2num(sig_s))
 
+
 # DSA and EDDSA happen to have the same structure as ECDSA signatures
 _parse_dsa_sig = _parse_ecdsa_sig
 _parse_eddsa_sig = _parse_ecdsa_sig

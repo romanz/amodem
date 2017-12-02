@@ -186,6 +186,7 @@ def _parse_pubkey(stream, packet_type='pubkey'):
     log.debug('key ID: %s', util.hexlify(p['key_id']))
     return p
 
+
 _parse_subkey = functools.partial(_parse_pubkey, packet_type='subkey')
 
 
@@ -194,6 +195,7 @@ def _parse_user_id(stream, packet_type='user_id'):
     value = stream.read()
     to_hash = b'\xb4' + util.prefix_len('>L', value)
     return {'type': packet_type, 'value': value, '_to_hash': to_hash}
+
 
 # User attribute is handled as an opaque user ID
 _parse_attribute = functools.partial(_parse_user_id,
