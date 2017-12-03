@@ -13,13 +13,13 @@ cache:
 before_install:
   - pip install -U pip wheel
   - pip install -U setuptools
-  - pip install -U pylint coverage pep8 pydocstyle
+  - pip install -U pylint coverage pycodestyle pydocstyle
 
 install:
-  - pip install -e .
+  - pip install -U -e .
 
 script:
-  - pep8 libagent
+  - pycodestyle libagent
   - pylint --reports=no --rcfile .pylintrc libagent
   - pydocstyle libagent
   - coverage run --source libagent/ -m py.test -v
