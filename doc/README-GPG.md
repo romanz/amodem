@@ -112,6 +112,38 @@ retrieve the timestamp with the following command (substitute "john@doe.bit" for
 $ gpg2 --export 'john@doe.bit' | gpg2 --list-packets | grep created | head -n1
 ```
 
+## Adding new user IDs
+
+After your main identity is created, you can add new user IDs using the regular GnuPG commands:
+```
+$ trezor-gpg init "Foobar" -vv
+$ export GNUPGHOME=${HOME}/.gnupg/trezor
+$ gpg2 -K
+------------------------------------------
+sec   nistp256/6275E7DA 2017-12-05 [SC]
+uid         [ultimate] Foobar
+ssb   nistp256/35F58F26 2017-12-05 [E]
+
+$ gpg2 --edit Foobar
+gpg> adduid
+Real name: Xyzzy
+Email address:
+Comment:
+You selected this USER-ID:
+    "Xyzzy"
+
+Change (N)ame, (C)omment, (E)mail or (O)kay/(Q)uit? o
+
+gpg> save
+
+$ gpg2 -K
+------------------------------------------
+sec   nistp256/6275E7DA 2017-12-05 [SC]
+uid         [ultimate] Xyzzy
+uid         [ultimate] Foobar
+ssb   nistp256/35F58F26 2017-12-05 [E]
+```
+
 ## GnuPG subkey generation
 In order to add TREZOR-based subkey to an existing GnuPG identity, use the `--subkey` flag:
 ```
