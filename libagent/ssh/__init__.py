@@ -1,5 +1,4 @@
 """SSH-agent implementation using hardware authentication devices."""
-import argparse
 import contextlib
 import functools
 import io
@@ -11,6 +10,7 @@ import sys
 import tempfile
 import threading
 
+import configargparse
 
 from .. import device, formats, server, util
 from . import client, protocol
@@ -57,7 +57,7 @@ def _to_unicode(s):
 
 def create_agent_parser():
     """Create an ArgumentParser for this tool."""
-    p = argparse.ArgumentParser()
+    p = configargparse.ArgParser(default_config_files=['~/.ssh/agent.config'])
     p.add_argument('-v', '--verbose', default=0, action='count')
 
     curve_names = [name for name in formats.SUPPORTED_CURVES]
