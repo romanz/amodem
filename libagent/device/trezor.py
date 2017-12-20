@@ -97,9 +97,8 @@ class Trezor(interface.Device):
 
     def connect(self):
         """Enumerate and connect to the first USB HID interface."""
-        for d in self._defs.Transport.enumerate():
-            log.debug('endpoint: %s', d)
-            transport = self._defs.Transport(d)
+        for transport in self._defs.Transport.enumerate():
+            log.debug('transport: %s', transport)
             for _ in range(5):
                 connection = self._defs.Client(transport)
                 self._override_pin_handler(connection)
@@ -132,7 +131,7 @@ class Trezor(interface.Device):
         result = self.conn.get_public_node(
             n=addr, ecdsa_curve_name=curve_name)
         log.debug('result: %s', result)
-        return result.node.public_key
+        return bytes(result.node.public_key)
 
     def _identity_proto(self, identity):
         result = self._defs.IdentityType()
@@ -154,7 +153,7 @@ class Trezor(interface.Device):
             log.debug('result: %s', result)
             assert len(result.signature) == 65
             assert result.signature[:1] == b'\x00'
-            return result.signature[1:]
+            return bytes(result.signature[1:])
         except self._defs.CallException as e:
             msg = '{} error: {}'.format(self, e)
             log.debug(msg, exc_info=True)
@@ -173,7 +172,7 @@ class Trezor(interface.Device):
             log.debug('result: %s', result)
             assert len(result.session_key) in {65, 33}  # NIST256 or Curve25519
             assert result.session_key[:1] == b'\x04'
-            return result.session_key
+            return bytes(result.session_key)
         except self._defs.CallException as e:
             msg = '{} error: {}'.format(self, e)
             log.debug(msg, exc_info=True)
