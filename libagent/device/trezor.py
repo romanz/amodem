@@ -40,7 +40,9 @@ class Trezor(interface.Device):
         # Allow using TREZOR bridge transport (instead of the HID default)
         trezor_defs.Transport = {
             'bridge': trezor_defs.BridgeTransport,
-        }.get(os.environ.get('TREZOR_TRANSPORT'), trezor_defs.HidTransport)
+            'udp': trezor_defs.UdpTransport,
+            'hid': trezor_defs.HidTransport,
+        }[os.environ.get('TREZOR_TRANSPORT', 'hid')]
         return trezor_defs
 
     required_version = '>=1.4.0'
