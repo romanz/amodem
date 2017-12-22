@@ -102,6 +102,8 @@ def _decompress_ed25519(pubkey):
     if pubkey[:1] == b'\x00':
         # set by Trezor fsm_msgSignIdentity() and fsm_msgGetPublicKey()
         return ed25519.VerifyingKey(pubkey[1:])
+    else:
+        return None
 
 
 def _decompress_nist256(pubkey):
@@ -126,6 +128,8 @@ def _decompress_nist256(pubkey):
         point = ecdsa.ellipticcurve.Point(curve.curve, x, y)
         return ecdsa.VerifyingKey.from_public_point(point, curve=curve,
                                                     hashfunc=hashfunc)
+    else:
+        return None
 
 
 def decompress_pubkey(pubkey, curve_name):

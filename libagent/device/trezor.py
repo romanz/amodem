@@ -21,11 +21,10 @@ def _message_box(label, sp=subprocess):
     p = sp.Popen(args=args, stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE)
     out, err = p.communicate(label.encode('ascii'))
     exitcode = p.wait()
-    if exitcode == 0:
-        return out.decode('ascii')
-    else:
+    if exitcode != 0:
         log.error('UI failed: %r', err)
         raise sp.CalledProcessError(exitcode, args)
+    return out.decode('ascii')
 
 
 def _is_open_tty(stream):

@@ -228,3 +228,4 @@ def main(device_type):
     else:
         for pk in conn.public_keys():
             sys.stdout.write(pk)
+        return 0  # success exit code

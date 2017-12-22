@@ -79,9 +79,9 @@ def test_server_thread():
 
     class FakeServer(object):
         def accept(self):  # pylint: disable=no-self-use
-            if connections:
-                return connections.pop(), 'address'
-            raise socket.timeout()
+            if not connections:
+                raise socket.timeout()
+            return connections.pop(), 'address'
 
         def getsockname(self):  # pylint: disable=no-self-use
             return 'fake_server'
