@@ -236,7 +236,8 @@ def run_agent(device_type):
 def main(device_type):
     """Parse command-line arguments."""
     parser = argparse.ArgumentParser()
-    subparsers = parser.add_subparsers()
+    subparsers = parser.add_subparsers(title='Action', dest='action')
+    subparsers.required = True
 
     p = subparsers.add_parser('init',
                               help='Initialize hardware-based GnuPG identity')
