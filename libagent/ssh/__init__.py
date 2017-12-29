@@ -4,6 +4,7 @@ import functools
 import io
 import logging
 import os
+import pkg_resources
 import re
 import subprocess
 import sys
@@ -59,6 +60,10 @@ def create_agent_parser():
     """Create an ArgumentParser for this tool."""
     p = configargparse.ArgParser(default_config_files=['~/.ssh/agent.config'])
     p.add_argument('-v', '--verbose', default=0, action='count')
+
+    version = pkg_resources.require("trezor-agent")[0].version
+    p.add_argument('--version', help='Print the version info',
+                   action='version', version='%(prog)s ' + version)
 
     curve_names = [name for name in formats.SUPPORTED_CURVES]
     curve_names = ', '.join(sorted(curve_names))

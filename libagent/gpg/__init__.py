@@ -11,6 +11,7 @@ See these links for more details:
 import argparse
 import contextlib
 import functools
+import pkg_resources
 import logging
 import os
 import re
@@ -251,6 +252,10 @@ def main(device_type):
     p = subparsers.add_parser('unlock', help='Unlock the hardware device')
     p.add_argument('-v', '--verbose', default=0, action='count')
     p.set_defaults(func=run_unlock)
+
+    version = pkg_resources.require("trezor-agent")[0].version
+    parser.add_argument('--version', help='Print the version info',
+                        action='version', version='%(prog)s ' + version)
 
     args = parser.parse_args()
     return args.func(device_type=device_type, args=args)
