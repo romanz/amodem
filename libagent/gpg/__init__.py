@@ -253,9 +253,11 @@ def main(device_type):
     p.add_argument('-v', '--verbose', default=0, action='count')
     p.set_defaults(func=run_unlock)
 
-    version = pkg_resources.require("trezor-agent")[0].version
+    trezoragent_ver = pkg_resources.require('trezor-agent')[0].version
+    libagent_ver = pkg_resources.require('libagent')[0].version
+    ver_str = '%(prog)s ' + trezoragent_ver + ', libagent ' + libagent_ver
     parser.add_argument('--version', help='Print the version info',
-                        action='version', version='%(prog)s ' + version)
+                        action='version', version=ver_str)
 
     args = parser.parse_args()
     return args.func(device_type=device_type, args=args)

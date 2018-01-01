@@ -61,9 +61,11 @@ def create_agent_parser():
     p = configargparse.ArgParser(default_config_files=['~/.ssh/agent.config'])
     p.add_argument('-v', '--verbose', default=0, action='count')
 
-    version = pkg_resources.require("trezor-agent")[0].version
-    p.add_argument('--version', help='Print the version info',
-                   action='version', version='%(prog)s ' + version)
+    trezoragent_ver = pkg_resources.require('trezor-agent')[0].version
+    libagent_ver = pkg_resources.require('libagent')[0].version
+    ver_str = '%(prog)s ' + trezoragent_ver + ', libagent ' + libagent_ver
+    parser.add_argument('--version', help='Print the version info',
+                        action='version', version=ver_str)
 
     curve_names = [name for name in formats.SUPPORTED_CURVES]
     curve_names = ', '.join(sorted(curve_names))
