@@ -20,6 +20,11 @@ def _verify_support(identity, ecdh):
 class KeepKey(trezor.Trezor):
     """Connection to KeepKey device."""
 
+    @classmethod
+    def package_name(cls):
+        """Python package name (at PyPI)."""
+        return 'keepkey-agent'
+
     @property
     def _defs(self):
         from . import keepkey_defs

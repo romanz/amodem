@@ -34,6 +34,11 @@ def _is_open_tty(stream):
 class Trezor(interface.Device):
     """Connection to TREZOR device."""
 
+    @classmethod
+    def package_name(cls):
+        """Python package name (at PyPI)."""
+        return 'trezor-agent'
+
     @property
     def _defs(self):
         from . import trezor_defs

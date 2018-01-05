@@ -11,7 +11,6 @@ See these links for more details:
 import argparse
 import contextlib
 import functools
-import pkg_resources
 import logging
 import os
 import re
@@ -19,6 +18,7 @@ import subprocess
 import sys
 import time
 
+import pkg_resources
 import semver
 
 
@@ -237,11 +237,19 @@ def run_agent(device_type):
 def main(device_type):
     """Parse command-line arguments."""
     parser = argparse.ArgumentParser()
+
+    agent_package = device_type.package_name()
+    resources_map = {r.key: r for r in pkg_resources.require(agent_package)}
+    resources = [resources_map[agent_package], resources_map['libagent']]
+    versions = '\n'.join('{}={}'.format(r.key, r.version) for r in resources)
+    parser.add_argument('--version', help='print the version info',
+                        action='version', version=versions)
+
     subparsers = parser.add_subparsers(title='Action', dest='action')
     subparsers.required = True
 
     p = subparsers.add_parser('init',
-                              help='Initialize hardware-based GnuPG identity')
+                              help='initialize hardware-based GnuPG identity')
     p.add_argument('user_id')
     p.add_argument('-e', '--ecdsa-curve', default='nist256p1')
     p.add_argument('-t', '--time', type=int, default=int(time.time()))
@@ -249,15 +257,9 @@ def main(device_type):
     p.add_argument('-s', '--subkey', default=False, action='store_true')
     p.set_defaults(func=run_init)
 
-    p = subparsers.add_parser('unlock', help='Unlock the hardware device')
+    p = subparsers.add_parser('unlock', help='unlock the hardware device')
     p.add_argument('-v', '--verbose', default=0, action='count')
     p.set_defaults(func=run_unlock)
-
-    trezoragent_ver = pkg_resources.require('trezor-agent')[0].version
-    libagent_ver = pkg_resources.require('libagent')[0].version
-    ver_str = '%(prog)s ' + trezoragent_ver + ', libagent ' + libagent_ver
-    parser.add_argument('--version', help='Print the version info',
-                        action='version', version=ver_str)
 
     args = parser.parse_args()
     return args.func(device_type=device_type, args=args)

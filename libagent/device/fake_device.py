@@ -21,6 +21,11 @@ def _verify_support(identity):
 class FakeDevice(interface.Device):
     """Connection to TREZOR device."""
 
+    @classmethod
+    def package_name(cls):
+        """Python package name."""
+        return 'fake-device-agent'
+
     def connect(self):
         """Return "dummy" connection."""
         log.critical('NEVER USE THIS CODE FOR REAL-LIFE USE-CASES!!!')

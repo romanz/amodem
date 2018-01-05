@@ -4,7 +4,6 @@ import functools
 import io
 import logging
 import os
-import pkg_resources
 import re
 import subprocess
 import sys
@@ -12,6 +11,7 @@ import tempfile
 import threading
 
 import configargparse
+import pkg_resources
 
 from .. import device, formats, server, util
 from . import client, protocol
@@ -56,16 +56,17 @@ def _to_unicode(s):
         return s
 
 
-def create_agent_parser():
+def create_agent_parser(device_type):
     """Create an ArgumentParser for this tool."""
     p = configargparse.ArgParser(default_config_files=['~/.ssh/agent.config'])
     p.add_argument('-v', '--verbose', default=0, action='count')
 
-    trezoragent_ver = pkg_resources.require('trezor-agent')[0].version
-    libagent_ver = pkg_resources.require('libagent')[0].version
-    ver_str = '%(prog)s ' + trezoragent_ver + ', libagent ' + libagent_ver
-    parser.add_argument('--version', help='Print the version info',
-                        action='version', version=ver_str)
+    agent_package = device_type.package_name()
+    resources_map = {r.key: r for r in pkg_resources.require(agent_package)}
+    resources = [resources_map[agent_package], resources_map['libagent']]
+    versions = '\n'.join('{}={}'.format(r.key, r.version) for r in resources)
+    p.add_argument('--version', help='print the version info',
+                   action='version', version=versions)
 
     curve_names = [name for name in formats.SUPPORTED_CURVES]
     curve_names = ', '.join(sorted(curve_names))
@@ -74,9 +75,9 @@ def create_agent_parser():
                    help='specify ECDSA curve name: ' + curve_names)
     p.add_argument('--timeout',
                    default=UNIX_SOCKET_TIMEOUT, type=float,
-                   help='Timeout for accepting SSH client connections')
+                   help='timeout for accepting SSH client connections')
     p.add_argument('--debug', default=False, action='store_true',
-                   help='Log SSH protocol messages for debugging.')
+                   help='log SSH protocol messages for debugging.')
 
     g = p.add_mutually_exclusive_group()
     g.add_argument('-s', '--shell', default=False, action='store_true',
@@ -196,7 +197,7 @@ class JustInTimeConnection(object):
 @handle_connection_error
 def main(device_type):
     """Run ssh-agent using given hardware client factory."""
-    args = create_agent_parser().parse_args()
+    args = create_agent_parser(device_type=device_type).parse_args()
     util.setup_logging(verbosity=args.verbose)
 
     public_keys = None

@@ -36,6 +36,11 @@ def _convert_public_key(ecdsa_curve_name, result):
 class LedgerNanoS(interface.Device):
     """Connection to Ledger Nano S device."""
 
+    @classmethod
+    def package_name(cls):
+        """Python package name (at PyPI)."""
+        return 'ledger-agent'
+
     def connect(self):
         """Enumerate and connect to the first USB HID interface."""
         try:
