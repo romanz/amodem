@@ -66,7 +66,7 @@ Or, directly from the latest source code:
 
 ## Ledger Nano S
 
-Make sure that your `udev` rules are configured [correctly](http://support.ledgerwallet.com/knowledge_base/topics/ledger-wallet-is-not-recognized-on-linux).
+Make sure that your `udev` rules are configured [correctly](https://ledger.zendesk.com/hc/en-us/articles/115005165269-What-if-Ledger-Wallet-is-not-recognized-on-Linux-).
 Then, install the latest [ledger_agent](https://pypi.python.org/pypi/ledger_agent) package:
 
     $ pip install ledger_agent
