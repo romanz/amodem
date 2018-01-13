@@ -53,7 +53,7 @@ Use your SSH public key to access your remote repository (e.g. [GitHub](https://
 
 	$ trezor-agent -v -e ed25519 git@github.com | xclip
 
-Use the following Bash alias for convinient Git operations:
+Use the following Bash alias for convenient Git operations:
 
 	$ alias git_hub='trezor-agent -v -e ed25519 git@github.com -- git'
 
