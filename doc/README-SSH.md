@@ -6,9 +6,6 @@
 ## Advanced usage (multiple SSH sessions from a sub-shell)
 [![Subshell](https://asciinema.org/a/33240.png)](https://asciinema.org/a/33240)
 
-## Using for GitHub SSH authentication (via `trezor-git` utility)
-[![GitHub](https://asciinema.org/a/38337.png)](https://asciinema.org/a/38337)
-
 ## Loading multiple SSH identities from configuration file
 [![Config](https://asciinema.org/a/bdxxtgctk5syu56yfz8lcp7ny.png)](https://asciinema.org/a/bdxxtgctk5syu56yfz8lcp7ny)
 
