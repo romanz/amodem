@@ -10,8 +10,8 @@ import sys
 import tempfile
 import threading
 
-import configargparse
 import pkg_resources
+import configargparse
 
 from .. import device, formats, server, util
 from . import client, protocol

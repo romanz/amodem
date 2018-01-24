@@ -111,8 +111,8 @@ def parse(s):
             value, s = parse(s)
             values.append(value)
         return values, s[1:]
-    else:
-        return parse_term(s)
+
+    return parse_term(s)
 
 
 def _parse_ecdsa_sig(args):
