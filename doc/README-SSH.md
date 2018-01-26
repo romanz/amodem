@@ -4,6 +4,9 @@
 [![Demo](https://asciinema.org/a/22959.png)](https://asciinema.org/a/22959)
 
 ## Advanced usage (multiple SSH sessions from a sub-shell)
+This feature allows using regular SSH-related commands within a subprocess running user's shell.
+`SSH_AUTH_SOCK` environment variable is defined for the subprocess (pointing to the SSH agent, running as a parent process).
+This way the user can use SSH-related commands (e.g. `ssh`, `ssh-add`, `sshfs`, `git`, `hg`), while authenticating via the hardware device.
 [![Subshell](https://asciinema.org/a/33240.png)](https://asciinema.org/a/33240)
 
 ## Loading multiple SSH identities from configuration file

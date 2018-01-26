@@ -81,7 +81,8 @@ def create_agent_parser(device_type):
 
     g = p.add_mutually_exclusive_group()
     g.add_argument('-s', '--shell', default=False, action='store_true',
-                   help='run ${SHELL} as subprocess under SSH agent')
+                   help=('run ${SHELL} as subprocess under SSH agent, allowing '
+                         'regular SSH-based tools to be used in the shell'))
     g.add_argument('-c', '--connect', default=False, action='store_true',
                    help='connect to specified host via SSH')
     g.add_argument('--mosh', default=False, action='store_true',
