@@ -192,7 +192,7 @@ def get_gnupg_components(sp=subprocess):
     """Parse GnuPG components' paths."""
     args = [util.which('gpgconf'), '--list-components']
     output = check_output(args=args, sp=sp)
-    components = dict(re.findall('(.*):.*:(.*)', output.decode('ascii')))
+    components = dict(re.findall('(.*):.*:(.*)', output.decode('utf-8')))
     log.debug('gpgconf --list-components: %s', components)
     return components
 
@@ -217,7 +217,7 @@ def gpg_command(args, env=None):
 def get_keygrip(user_id, sp=subprocess):
     """Get a keygrip of the primary GPG key of the specified user."""
     args = gpg_command(['--list-keys', '--with-keygrip', user_id])
-    output = check_output(args=args, sp=sp).decode('ascii')
+    output = check_output(args=args, sp=sp).decode('utf-8')
     return re.findall(r'Keygrip = (\w+)', output)[0]
 
 
