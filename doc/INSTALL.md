@@ -7,23 +7,23 @@ Install the following packages (depending on your distribution):
 ### Debian
 
     $ apt update && apt upgrade
-    $ apt install python-pip python-dev libusb-1.0-0-dev libudev-dev
+    $ apt install python-pip python-dev python-tk libusb-1.0-0-dev libudev-dev 
 
 ### Fedora/RedHat
 
     $ yum update
-    $ yum install python-pip python-devel libusb-devel libudev-devel \
+    $ yum install python-pip python-devel python-tk libusb-devel libudev-devel \
                   gcc redhat-rpm-config
 
 ### OpenSUSE
 
-    $ zypper install python-pip python-devel libusb-1_0-devel libudev-devel
+    $ zypper install python-pip python-devel python-tk libusb-1_0-devel libudev-devel
 
 If you are using python3 or your system `pip` command points to `pip3.x`
 (`/etc/alternatives/pip -> /usr/bin/pip3.6`) you will need to install these
 dependencies instead:
 
-    $ zypper install python3-pip python3-devel libusb-1_0-devel libudev-devel
+    $ zypper install python3-pip python3-devel python3-tk libusb-1_0-devel libudev-devel
 
 ## Update setuptools and pip
 
