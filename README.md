@@ -1,4 +1,4 @@
-# Using TREZOR as a hardware SSH/GPG agent
+# Hardware-based SSH/GPG agent
 
 [![Build Status](https://travis-ci.org/romanz/trezor-agent.svg?branch=master)](https://travis-ci.org/romanz/trezor-agent)
 [![Chat](https://badges.gitter.im/romanz/trezor-agent.svg)](https://gitter.im/romanz/trezor-agent)
