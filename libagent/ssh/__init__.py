@@ -80,6 +80,8 @@ def create_agent_parser(device_type):
                    help='timeout for accepting SSH client connections')
     p.add_argument('--debug', default=False, action='store_true',
                    help='log SSH protocol messages for debugging.')
+    p.add_argument('--log-file', type=str,
+                   help='Path to the log file (to be written by the agent).')
 
     g = p.add_mutually_exclusive_group()
     g.add_argument('-d', '--daemonize', default=False, action='store_true',
@@ -210,7 +212,7 @@ def _dummy_context():
 def main(device_type):
     """Run ssh-agent using given hardware client factory."""
     args = create_agent_parser(device_type=device_type).parse_args()
-    util.setup_logging(verbosity=args.verbose)
+    util.setup_logging(verbosity=args.verbose, filename=args.log_file)
 
     public_keys = None
     if args.identity.startswith('/'):
