@@ -82,6 +82,8 @@ def create_agent_parser(device_type):
                    help='log SSH protocol messages for debugging.')
     p.add_argument('--log-file', type=str,
                    help='Path to the log file (to be written by the agent).')
+    p.add_argument('--sock-path', type=str,
+                   help='Path to the UNIX domain socket of the agent.')
 
     g = p.add_mutually_exclusive_group()
     g.add_argument('-d', '--daemonize', default=False, action='store_true',
@@ -133,17 +135,18 @@ def serve(handler, sock_path, timeout=UNIX_SOCKET_TIMEOUT):
 
 def run_server(conn, command, sock_path, debug, timeout):
     """Common code for run_agent and run_git below."""
+    ret = 0
     try:
         handler = protocol.Handler(conn=conn, debug=debug)
         with serve(handler=handler, sock_path=sock_path,
                    timeout=timeout) as env:
-            if command is None:
-                signal.pause()  # wait for signal
-                return 0
+            if command:
+                ret = server.run_process(command=command, environ=env)
             else:
-                return server.run_process(command=command, environ=env)
+                signal.pause()  # wait for signal (e.g. SIGINT)
     except KeyboardInterrupt:
         log.info('server stopped')
+    return ret
 
 
 def handle_connection_error(func):
@@ -229,23 +232,22 @@ def main(device_type):
         identity.identity_dict['proto'] = u'ssh'
         log.info('identity #%d: %s', index, identity.to_string())
 
-    sock_path = tempfile.mktemp(prefix='trezor-ssh-agent-')
+    sock_path = args.sock_path
+    if not sock_path:
+        sock_path = tempfile.mktemp(prefix='trezor-ssh-agent-')
 
-    command = None
+    command = args.command
     context = _dummy_context()
     if args.connect:
         command = ['ssh'] + ssh_args(args.identity) + args.command
     elif args.mosh:
         command = ['mosh'] + mosh_args(args.identity) + args.command
     elif args.daemonize:
-        msg = ('SSH_AUTH_SOCK={0}; export SSH_AUTH_SOCK;\n'
-               'SSH_AGENT_PID={1}; export SSH_AGENT_PID;\n'
-               'echo Agent pid {1};\n'.format(sock_path, os.getpid()))
-        sys.stdout.write(msg)
+        out = 'SSH_AUTH_SOCK={0}; export SSH_AUTH_SOCK;\n'.format(sock_path)
+        sys.stdout.write(out)
         sys.stdout.flush()
         context = daemon.DaemonContext()
-    else:
-        command = args.command
+        log.info('running the agent as a daemon on %s', sock_path)
 
     use_shell = bool(args.shell)
     if use_shell:
