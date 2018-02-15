@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='trezor_agent',
-    version='0.9.0',
+    version='0.9.1',
     description='Using Trezor as hardware SSH/GPG agent',
     author='Roman Zeyde',
     author_email='roman.zeyde@gmail.com',
@@ -11,7 +11,7 @@ setup(
     scripts=['trezor_agent.py'],
     install_requires=[
         'libagent>=0.9.0',
-        'trezor>=0.7.6'
+        'trezor>=0.9.0'
     ],
     platforms=['POSIX'],
     classifiers=[
