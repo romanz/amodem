@@ -2,17 +2,6 @@
 from setuptools import setup
 from setuptools.command.test import test as TestCommand
 
-import os
-import ast
-
-def parse_vesrion():
-    cwd = os.path.dirname(__name__)
-    version_file = os.path.join(cwd, 'amodem', 'version.py')
-
-    tree = ast.parse(open(version_file).read())
-    expr, = tree.body
-    return expr.value.s
-
 class PyTest(TestCommand):
 
     def finalize_options(self):
@@ -26,7 +15,7 @@ class PyTest(TestCommand):
 
 setup(
     name='amodem',
-    version=parse_vesrion(),
+    version='1.13.0',
     description='Audio Modem Communication Library',
     author='Roman Zeyde',
     author_email='roman.zeyde@gmail.com',

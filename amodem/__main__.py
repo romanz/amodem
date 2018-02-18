@@ -6,11 +6,12 @@ import os
 import sys
 import zlib
 
+import pkg_resources
+
 from . import async
 from . import audio
 from . import calib
 from . import main
-from . import version
 from .config import bitrates
 
 
@@ -193,11 +194,15 @@ class _Dummy(object):
         pass
 
 
+def _version():
+    return pkg_resources.require('amodem')[0].version
+
+
 def _main():
     fmt = ('Audio OFDM MODEM v{0:s}: '
            '{1:.1f} kb/s ({2:d}-QAM x {3:d} carriers) '
            'Fs={4:.1f} kHz')
-    description = fmt.format(version.__doc__,
+    description = fmt.format(_version(),
                              config.modem_bps / 1e3, len(config.symbols),
                              config.Nfreq, config.Fs / 1e3)
     interface = None
