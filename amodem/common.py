@@ -4,9 +4,10 @@ Commom utilities and procedures for amodem.
 """
 
 import itertools
+import logging
+
 import numpy as np
 
-import logging
 log = logging.getLogger(__name__)
 
 scaling = 32000.0  # out of 2**15
@@ -74,6 +75,7 @@ def take(iterable, n):
 
 def izip(iterables):
     """ "Python 3" zip re-implementation for Python 2. """
+    # pylint: disable=stop-iteration-return
     iterables = [iter(iterable) for iterable in iterables]
     while True:
         yield tuple([next(iterable) for iterable in iterables])

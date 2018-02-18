@@ -1,14 +1,15 @@
 """Calibration capabilities for amodem."""
 
+import itertools
+import logging
+import subprocess
+
+import numpy as np
+
 from . import common
 from . import dsp
 from . import sampling
 from . import stream
-
-import numpy as np
-import itertools
-import logging
-import subprocess
 
 log = logging.getLogger(__name__)
 
@@ -104,6 +105,7 @@ def volume_calibration(result_iterator, volume_ctl):
 
 
 def iter_window(iterable, size):
+    # pylint: disable=stop-iteration-return
     block = []
     while True:
         item = next(iterable)

@@ -1,8 +1,9 @@
 """Asynchronous Reading capabilities for amodem."""
 
-import threading
-import six  # since `Queue` module was renamed to `queue` (in Python 3)
 import logging
+import threading
+
+import six  # since `Queue` module was renamed to `queue` (in Python 3)
 
 log = logging.getLogger()
 

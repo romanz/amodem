@@ -1,10 +1,11 @@
+import itertools
+import logging
+
+import numpy as np
+
 from . import common
 from . import equalizer
 from . import dsp
-
-import numpy as np
-import logging
-import itertools
 
 log = logging.getLogger(__name__)
 

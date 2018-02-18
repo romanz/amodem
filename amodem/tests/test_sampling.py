@@ -20,6 +20,6 @@ def test_resample():
 
 
 def test_coeffs():
-    I = sampling.Interpolator(width=4, resolution=16)
-    err = I.filt[0] - [0, 0, 0, 1, 0, 0, 0, 0]
+    interp = sampling.Interpolator(width=4, resolution=16)
+    err = interp.filt[0] - [0, 0, 0, 1, 0, 0, 0, 0]
     assert np.max(np.abs(err)) < 1e-10

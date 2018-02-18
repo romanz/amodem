@@ -1,13 +1,14 @@
+import functools
+import itertools
+import logging
+import time
+
+import numpy as np
+
 from . import dsp
 from . import common
 from . import framing
 from . import equalizer
-
-import numpy as np
-import logging
-import itertools
-import functools
-import time
 
 log = logging.getLogger(__name__)
 
@@ -49,10 +50,10 @@ class Receiver(object):
         log.debug('Prefix OK')
 
     def _train(self, sampler, order, lookahead):
-        Nfreq = len(self.frequencies)
         equalizer_length = equalizer.equalizer_length
         train_symbols = self.equalizer.train_symbols(equalizer_length)
-        train_signal = self.equalizer.modulator(train_symbols) * Nfreq
+        train_signal = (self.equalizer.modulator(train_symbols) *
+                        len(self.frequencies))
 
         prefix = postfix = equalizer.silence_length * self.Nsym
         signal_length = equalizer_length * self.Nsym + prefix + postfix
@@ -138,7 +139,7 @@ class Receiver(object):
 
     def _update_sampler(self, errors, sampler):
         err = np.array([e for v in errors.values() for e in v])
-        err = np.mean(np.angle(err))/(2*np.pi) if len(err) else 0
+        err = np.mean(np.angle(err))/(2*np.pi) if err.size else 0
         errors.clear()
 
         sampler.freq -= self.freq_err_gain * err

@@ -8,6 +8,7 @@ import pytest
 def concat(iterable):
     return bytearray(itertools.chain.from_iterable(iterable))
 
+
 r = random.Random(0)
 blob = bytearray(r.randrange(0, 256) for i in range(64 * 1024))
 

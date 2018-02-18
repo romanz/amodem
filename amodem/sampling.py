@@ -1,8 +1,8 @@
-#!/usr/bin/env python
-import numpy as np
 import itertools
 
-from amodem import common
+import numpy as np
+
+from . import common
 
 
 class Interpolator(object):

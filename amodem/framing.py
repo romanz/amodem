@@ -1,10 +1,11 @@
-from . import common
-
+import binascii
 import functools
 import itertools
-import binascii
-import struct
 import logging
+import struct
+
+from . import common
+
 log = logging.getLogger(__name__)
 
 

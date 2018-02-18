@@ -1,6 +1,8 @@
-import numpy as np
-import logging
 import itertools
+import logging
+
+import numpy as np
+
 from . import send as _send
 from . import recv as _recv
 from . import framing, common, stream, detect, sampling

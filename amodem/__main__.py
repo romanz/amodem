@@ -1,14 +1,18 @@
 #!/usr/bin/env python
 # PYTHON_ARGCOMPLETE_OK
-from . import main, calib, audio, async
-from .config import bitrates
-from . import version
-
+import argparse
+import logging
 import os
 import sys
 import zlib
-import logging
-import argparse
+
+from . import async
+from . import audio
+from . import calib
+from . import main
+from . import version
+from .config import bitrates
+
 
 # Python 3 has `buffer` attribute for byte-based I/O
 _stdin = getattr(sys.stdin, 'buffer', sys.stdin)
@@ -97,6 +101,7 @@ def get_volume_cmd(args):
         for c in volume_controllers:
             if os.system(c['test']) == 0:
                 return c[args.command]
+    return None
 
 
 def wrap(cls, stream, enable):
