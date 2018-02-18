@@ -88,6 +88,8 @@ def create_agent_parser(device_type):
     g = p.add_mutually_exclusive_group()
     g.add_argument('-d', '--daemonize', default=False, action='store_true',
                    help='Daemonize the agent and print its UNIX socket path')
+    g.add_argument('-f', '--foreground', default=False, action='store_true',
+                   help='Run agent in foreground with specified UNIX socket path')
     g.add_argument('-s', '--shell', default=False, action='store_true',
                    help=('run ${SHELL} as subprocess under SSH agent, allowing '
                          'regular SSH-based tools to be used in the shell'))
@@ -234,7 +236,11 @@ def main(device_type):
 
     sock_path = args.sock_path
     if not sock_path:
-        sock_path = tempfile.mktemp(prefix='trezor-ssh-agent-')
+        if args.foreground:
+            log.error("if running in foreground you must specify the socket path")
+            return 1
+        else:
+            sock_path = tempfile.mktemp(prefix='trezor-ssh-agent-')
 
     command = args.command
     context = _dummy_context()
@@ -248,6 +254,8 @@ def main(device_type):
         sys.stdout.flush()
         context = daemon.DaemonContext()
         log.info('running the agent as a daemon on %s', sock_path)
+    elif args.foreground:
+        log.info('running the agent on %s', sock_path)
 
     use_shell = bool(args.shell)
     if use_shell:
@@ -258,7 +266,7 @@ def main(device_type):
         conn_factory=lambda: client.Client(device_type()),
         identities=identities, public_keys=public_keys)
 
-    if command or args.daemonize:
+    if command or args.daemonize or args.foreground:
         with context:
             return run_server(conn=conn, command=command, sock_path=sock_path,
                               debug=args.debug, timeout=args.timeout)
