@@ -6,6 +6,7 @@ import os
 import subprocess
 import sys
 
+import mnemonic
 import semver
 
 from . import interface
@@ -80,6 +81,13 @@ class Trezor(interface.Device):
         def new_handler(msg):
             if _is_open_tty(sys.stdin):
                 return cli_handler(msg)  # CLI-based PIN handler
+
+            # Reusing environment variable from trezorlib/client.py
+            passphrase = os.getenv("PASSPHRASE")
+            if passphrase is not None:
+                log.info("Using PASSPHRASE environment variable.")
+                return self._defs.PassphraseAck(
+                    passphrase=mnemonic.Mnemonic.normalize_string(passphrase))
 
             passphrase = _message_box('Please enter passphrase:')
             return self._defs.PassphraseAck(passphrase=passphrase)

@@ -20,6 +20,7 @@ setup(
         'python-daemon>=2.1.2',
         'ecdsa>=0.13',
         'ed25519>=1.4',
+        'mnemonic>=0.18',
         'pymsgbox>=1.0.6',
         'semver>=2.2',
         'unidecode>=0.4.20',
