@@ -138,7 +138,7 @@ def run_init(device_type, args):
 export PATH={0}
 {1} $*
 """.format(os.environ['PATH'], agent_path))
-    check_call(['chmod', 'u+x', f.name])
+    check_call(['chmod', '700', f.name])
     run_agent_script = f.name
 
     # Prepare GPG configuration file
@@ -169,7 +169,7 @@ else
     ${{COMMAND}}
 fi
 """.format(homedir))
-    check_call(['chmod', 'u+x', f.name])
+    check_call(['chmod', '700', f.name])
 
     # Generate new GPG identity and import into GPG keyring
     pubkey = write_file(os.path.join(homedir, 'pubkey.asc'),
