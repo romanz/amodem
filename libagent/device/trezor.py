@@ -75,22 +75,26 @@ class Trezor(interface.Device):
 
         conn.callback_PinMatrixRequest = new_handler
 
+    cached_passphrase_ack = 0
+
     def _override_passphrase_handler(self, conn):
         cli_handler = conn.callback_PassphraseRequest
 
         def new_handler(msg):
+            if self.__class__.cached_passphrase_ack:
+                log.debug('re-using cached %s passphrase', self)
+                return self.__class__.cached_passphrase_ack
+
             if _is_open_tty(sys.stdin):
-                return cli_handler(msg)  # CLI-based PIN handler
+                # use CLI-based PIN handler
+                ack = cli_handler(msg)
+            else:
+                passphrase = _message_box('Please enter passphrase:')
+                passphrase = mnemonic.Mnemonic.normalize_string(passphrase)
+                ack = self._defs.PassphraseAck(passphrase=passphrase)
 
-            # Reusing environment variable from trezorlib/client.py
-            passphrase = os.getenv("PASSPHRASE")
-            if passphrase is not None:
-                log.info("Using PASSPHRASE environment variable.")
-                return self._defs.PassphraseAck(
-                    passphrase=mnemonic.Mnemonic.normalize_string(passphrase))
-
-            passphrase = _message_box('Please enter passphrase:')
-            return self._defs.PassphraseAck(passphrase=passphrase)
+            self.__class__.cached_passphrase_ack = ack
+            return ack
 
         conn.callback_PassphraseRequest = new_handler
 
