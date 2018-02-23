@@ -1,21 +1,25 @@
 # Installation
 
+## 1. Prerequisites
+
 Install the following packages (depending on your distribution):
 
-## Install dependencies
+### OS dependencies
 
-### Debian
+This software needs Python, libusb, and libudev along with development files.
 
-    $ apt update && apt upgrade
-    $ apt install python-pip python-dev python-tk libusb-1.0-0-dev libudev-dev 
+You can install them on these distributions as follows:
 
-### Fedora/RedHat
+##### Debian
 
-    $ yum update
+    $ apt install python-pip python-dev python-tk libusb-1.0-0-dev libudev-dev
+
+##### Fedora/RedHat
+
     $ yum install python-pip python-devel python-tk libusb-devel libudev-devel \
                   gcc redhat-rpm-config
 
-### OpenSUSE
+##### OpenSUSE
 
     $ zypper install python-pip python-devel python-tk libusb-1_0-devel libudev-devel
 
@@ -25,58 +29,93 @@ dependencies instead:
 
     $ zypper install python3-pip python3-devel python3-tk libusb-1_0-devel libudev-devel
 
-## Update setuptools and pip
+### GPG
 
-Also, update Python packages before starting the installation:
+If you intend to use GPG make sure you have GPG installed and up to date.  This software requires a GPG version >= 2.1.11.
 
-    $ pip install -U setuptools pip
+You can verify your installed version by running:
+```
+$ gpg2 --version | head -n1
+gpg (GnuPG) 2.1.15
+```
 
-## Check device's firmware version
+ * Follow this installation guide for [Debian](https://gist.github.com/vt0r/a2f8c0bcb1400131ff51)
+ * Install GPG for [macOS](https://sourceforge.net/p/gpgosx/docu/Download/)
+ * Install packages for Ubuntu 16.04 [here](https://launchpad.net/ubuntu/+source/gnupg2)
+ * Install packages for Linux Mint 18 [here](https://community.linuxmint.com/software/view/gnupg2)
 
-Make sure you are running the latest firmware version on your hardware device.
-Currently the following firmware versions are supported:
+# 2. Install the TREZOR agent
 
- * [TREZOR](https://wallet.trezor.io/data/firmware/releases.json): `1.4.2+`
- * [KeepKey](https://github.com/keepkey/keepkey-firmware/releases): `3.0.17+`
- * [Ledger Nano S](https://github.com/LedgerHQ/blue-app-ssh-agent): `0.0.3+` (install [SSH/PGP Agent](https://www.ledgerwallet.com/images/apps/chrome-mngr-apps.png) app)
+1. Make sure you are running the latest firmware version on your Trezor:
 
-## TREZOR
+ * [TREZOR firmware releases](https://wallet.trezor.io/data/firmware/releases.json): `1.4.2+`
 
-Make sure that your `udev` rules are configured [correctly](https://doc.satoshilabs.com/trezor-user/settingupchromeonlinux.html#manual-configuration-of-udev-rules).
-Then, install the latest [trezor_agent](https://pypi.python.org/pypi/trezor_agent) package:
+2. Make sure that your `udev` rules are configured [correctly](https://doc.satoshilabs.com/trezor-user/settingupchromeonlinux.html#manual-configuration-of-udev-rules).
 
+3. Then, install the latest [trezor_agent](https://pypi.python.org/pypi/trezor_agent) package:
+
+    ```
     $ pip install trezor_agent
+    ```
 
-Or, directly from the latest source code:
+    Or, directly from the latest source code:
 
+    ```
     $ git clone https://github.com/romanz/trezor-agent
     $ pip install --user -e trezor-agent/agents/trezor
+    ```
 
-## KeepKey
+    Read [these instructions](https://github.com/romanz/python-trezor#pin-entering) on how to enter your PIN with the default PIN entry.
 
-Make sure that your `udev` rules are configured [correctly](https://support.keepkey.com/support/solutions/articles/6000037796-keepkey-wallet-is-not-being-recognized-by-linux).
+    If you'd like a keypad-like pin entry using [trezor-gpg-pinentry-tk](https://github.com/rendaw/trezor-gpg-pinentry-tk), run:
+
+    ```
+    $ pip install trezor-gpg-pinentry-tk
+    ```
+
+    And complete the GPG configuration instructions [here](README-GPG.md).
+
+# 3. Install the KeepKey agent
+
+1. Make sure you are running the latest firmware version on your KeepKey:
+
+ * [KeepKey firmware releases](https://github.com/keepkey/keepkey-firmware/releases): `3.0.17+`
+
+2. Make sure that your `udev` rules are configured [correctly](https://support.keepkey.com/support/solutions/articles/6000037796-keepkey-wallet-is-not-being-recognized-by-linux).
 Then, install the latest [keepkey_agent](https://pypi.python.org/pypi/keepkey_agent) package:
 
+    ```
     $ pip install keepkey_agent
+    ```
 
-Or, directly from the latest source code:
+    Or, directly from the latest source code:
 
+    ```
     $ git clone https://github.com/romanz/trezor-agent
     $ pip install --user -e trezor-agent/agents/keepkey
+    ```
 
-## Ledger Nano S
+# 4. Install the Ledger Nano S agent
 
-Make sure that your `udev` rules are configured [correctly](https://ledger.zendesk.com/hc/en-us/articles/115005165269-What-if-Ledger-Wallet-is-not-recognized-on-Linux-).
-Then, install the latest [ledger_agent](https://pypi.python.org/pypi/ledger_agent) package:
+1. Make sure you are running the latest firmware version on your Ledger Nano S:
 
+ * [Ledger Nano S firmware releases](https://github.com/LedgerHQ/blue-app-ssh-agent): `0.0.3+` (install [SSH/PGP Agent](https://www.ledgerwallet.com/images/apps/chrome-mngr-apps.png) app)
+
+2. Make sure that your `udev` rules are configured [correctly](https://ledger.zendesk.com/hc/en-us/articles/115005165269-What-if-Ledger-Wallet-is-not-recognized-on-Linux-).
+3. Then, install the latest [ledger_agent](https://pypi.python.org/pypi/ledger_agent) package:
+
+    ```
     $ pip install ledger_agent
+    ```
 
-Or, directly from the latest source code:
+    Or, directly from the latest source code:
 
+    ```
     $ git clone https://github.com/romanz/trezor-agent
     $ pip install --user -e trezor-agent/agents/ledger
+    ```
 
-## Troubleshooting
+# 5. Installation Troubleshooting
 
 If there is an import problem with the installed `protobuf` package,
 see [this issue](https://github.com/romanz/trezor-agent/issues/28) for fixing it.

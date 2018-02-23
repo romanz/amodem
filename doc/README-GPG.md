@@ -1,3 +1,5 @@
+# GPG Agent
+
 Note: the GPG-related code is still under development, so please try the current implementation
 and please let me [know](https://github.com/romanz/trezor-agent/issues/new) if something doesn't
 work well for you. If possible:
@@ -7,38 +9,46 @@ work well for you. If possible:
 
 Thanks!
 
-# Installation
+## 1. Configuration
 
-First, verify that you have GPG 2.1.11+ installed
-([Debian](https://gist.github.com/vt0r/a2f8c0bcb1400131ff51),
-[macOS](https://sourceforge.net/p/gpgosx/docu/Download/)):
+1. Initialize the agent GPG directory.
 
-```
-$ gpg2 --version | head -n1
-gpg (GnuPG) 2.1.15
-```
+    [![asciicast](https://asciinema.org/a/3iNw2L9QWB8R3EVdYdAxMOLK8.png)](https://asciinema.org/a/3iNw2L9QWB8R3EVdYdAxMOLK8)
 
-This GPG version is included in [Ubuntu 16.04](https://launchpad.net/ubuntu/+source/gnupg2)
-and [Linux Mint 18](https://community.linuxmint.com/software/view/gnupg2).
+    Run
 
-Update you device firmware to the latest version and install your specific `agent` package:
+    ```
+    $ (trezor|keepkey|ledger)-gpg init "Roman Zeyde <roman.zeyde@gmail.com>"
+    ```
 
-```
-$ pip install --user (trezor|keepkey|ledger)_agent
-```
+    To configure an alternate PIN entry (such as [trezor-gpg-pinentry-tk](https://github.com/rendaw/trezor-gpg-pinentry-tk)), run:
 
-# Quickstart
+    ```
+    $ trezor-gpg init --pinentry trezor-gpg-pinentry-tk "Roman Zeyde <roman.zeyde@gmail.com>"
+    ```
 
-## Identity creation
-[![asciicast](https://asciinema.org/a/3iNw2L9QWB8R3EVdYdAxMOLK8.png)](https://asciinema.org/a/3iNw2L9QWB8R3EVdYdAxMOLK8)
+    Follow the instructions provided to complete the setup.  Keep note of the timestamp value which you'll need if you want to regenerate the key later.
 
-In order to use specific device type for GPG indentity creation, use either command:
-```
-$ trezor-gpg init "Roman Zeyde <roman.zeyde@gmail.com>"
-$ ledger-gpg init "Roman Zeyde <roman.zeyde@gmail.com>"
-```
+2. Add `export GNUPGHOME=~/.gnupg/(trezor|keepkey|ledger)` to your `.bashrc` or other environment file.
 
-## Sample usage (signature and decryption)
+    This `GNUPGHOME` contains your hardware keyring and agent and pinentry settings.  This agent software assumes all keys are backed by hardware devices so you can't use standard GPG keys in `GNUPGHOME` (if you do mix keys you'll receive an error when you attempt to use them).
+
+    If you wish to switch back to your software keys, undo changes `GNUPGHOME` and log out/log in.
+
+3. Log out and back into your session to ensure your environment is updated everywhere.
+
+## 2. Usage
+
+You can use any GPG commands or software that uses GPG as usual and will be prompted to interact with your hardware device as necessary.  The agent is automatically started if it isn't running when you run `gpg.
+
+##### Restarting the agent
+
+If you change settings or need to restart the agent for some other reason, simply kill it.  It will restart the next time GPG is invoked.
+
+## 3. Common Use Cases
+
+### Sign and decrypt files
+
 [![asciicast](https://asciinema.org/a/120441.png)](https://asciinema.org/a/120441)
 
 In order to use specific device type for GPG operations, set the following environment variable to either:
@@ -53,10 +63,13 @@ and perform signature and decryption operations using:
 $ sudo apt install gpa
 $ GNUPGHOME=~/.gnupg/trezor gpa
 ```
+
 [![GPA](https://cloud.githubusercontent.com/assets/9900/20224804/053d7474-a849-11e6-87f3-ab07dc536158.png)](https://www.gnupg.org/related_software/swlist.html#gpa)
 
-## Git commit & tag signatures:
+### Sign Git commits and tags
+
 Git can use GPG to sign and verify commits and tags (see [here](https://git-scm.com/book/en/v2/Git-Tools-Signing-Your-Work)):
+
 ```
 $ git config --local commit.gpgsign 1
 $ git config --local gpg.program $(which gpg2)
@@ -66,11 +79,14 @@ $ git tag v1.2.3 --sign                      # create GPG-signed tag
 $ git tag v1.2.3 --verify                    # verify tag signature
 ```
 
-## Password manager
+### Manage passwords
 
-First install `pass` from [passwordstore.org](https://www.passwordstore.org/) and initialize it to use your TREZOR-based GPG identity:
+Password managers such as [pass](https://www.passwordstore.org/) and [gopass](https://www.justwatch.com/gopass/) rely on GPG for encryption so you can use your device too.
+
+##### With `pass`:
+
+First install `pass` from [passwordstore.org] and initialize it to use your TREZOR-based GPG identity:
 ```
-$ export GNUPGHOME=~/.gnupg/trezor
 $ pass init "Roman Zeyde <roman.zeyde@gmail.com>"
 Password store initialized for Roman Zeyde <roman.zeyde@gmail.com>
 ```
@@ -99,10 +115,9 @@ Copied VPS/linode to clipboard. Will clear in 45 seconds.
 You can also use the following [Qt-based UI](https://qtpass.org/) for `pass`:
 ```
 $ sudo apt install qtpass
-$ GNUPGHOME=~/.gnupg/trezor qtpass
 ```
 
-## Re-generation of an existing GPG identity
+### Re-generate a GPG identity
 [![asciicast](https://asciinema.org/a/5tIQa5qt5bV134oeOqFyKEU29.png)](https://asciinema.org/a/5tIQa5qt5bV134oeOqFyKEU29)
 
 If you've forgotten the timestamp value, but still have access to the public key, then you can
@@ -112,7 +127,7 @@ retrieve the timestamp with the following command (substitute "john@doe.bit" for
 $ gpg2 --export 'john@doe.bit' | gpg2 --list-packets | grep created | head -n1
 ```
 
-## Adding new user IDs
+### Add new UIDs to your identity
 
 After your main identity is created, you can add new user IDs using the regular GnuPG commands:
 ```
@@ -144,7 +159,7 @@ uid         [ultimate] Foobar
 ssb   nistp256/35F58F26 2017-12-05 [E]
 ```
 
-## GnuPG subkey generation
+### Generate GnuPG subkeys
 In order to add TREZOR-based subkey to an existing GnuPG identity, use the `--subkey` flag:
 ```
 $ gpg2 -k foobar
