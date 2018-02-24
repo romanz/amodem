@@ -213,6 +213,17 @@ def _dummy_context():
     yield
 
 
+def _get_sock_path(args):
+    sock_path = args.sock_path
+    if not sock_path:
+        if args.foreground:
+            log.error('running in foreground mode requires UNIX socket path')
+            return 1
+        else:
+            sock_path = tempfile.mktemp(prefix='trezor-ssh-agent-')
+    return sock_path
+
+
 @handle_connection_error
 def main(device_type):
     """Run ssh-agent using given hardware client factory."""
@@ -234,13 +245,7 @@ def main(device_type):
         identity.identity_dict['proto'] = u'ssh'
         log.info('identity #%d: %s', index, identity.to_string())
 
-    sock_path = args.sock_path
-    if not sock_path:
-        if args.foreground:
-            log.error("if running in foreground you must specify the socket path")
-            return 1
-        else:
-            sock_path = tempfile.mktemp(prefix='trezor-ssh-agent-')
+    sock_path = _get_sock_path(args)
 
     command = args.command
     context = _dummy_context()
