@@ -88,6 +88,8 @@ def create_agent_parser(device_type):
     g = p.add_mutually_exclusive_group()
     g.add_argument('-d', '--daemonize', default=False, action='store_true',
                    help='Daemonize the agent and print its UNIX socket path')
+    g.add_argument('-f', '--foreground', default=False, action='store_true',
+                   help='Run agent in foreground with specified UNIX socket path')
     g.add_argument('-s', '--shell', default=False, action='store_true',
                    help=('run ${SHELL} as subprocess under SSH agent, allowing '
                          'regular SSH-based tools to be used in the shell'))
@@ -211,6 +213,17 @@ def _dummy_context():
     yield
 
 
+def _get_sock_path(args):
+    sock_path = args.sock_path
+    if not sock_path:
+        if args.foreground:
+            log.error('running in foreground mode requires UNIX socket path')
+            return 1
+        else:
+            sock_path = tempfile.mktemp(prefix='trezor-ssh-agent-')
+    return sock_path
+
+
 @handle_connection_error
 def main(device_type):
     """Run ssh-agent using given hardware client factory."""
@@ -232,9 +245,7 @@ def main(device_type):
         identity.identity_dict['proto'] = u'ssh'
         log.info('identity #%d: %s', index, identity.to_string())
 
-    sock_path = args.sock_path
-    if not sock_path:
-        sock_path = tempfile.mktemp(prefix='trezor-ssh-agent-')
+    sock_path = _get_sock_path(args)
 
     command = args.command
     context = _dummy_context()
@@ -248,6 +259,8 @@ def main(device_type):
         sys.stdout.flush()
         context = daemon.DaemonContext()
         log.info('running the agent as a daemon on %s', sock_path)
+    elif args.foreground:
+        log.info('running the agent on %s', sock_path)
 
     use_shell = bool(args.shell)
     if use_shell:
@@ -258,7 +271,7 @@ def main(device_type):
         conn_factory=lambda: client.Client(device_type()),
         identities=identities, public_keys=public_keys)
 
-    if command or args.daemonize:
+    if command or args.daemonize or args.foreground:
         with context:
             return run_server(conn=conn, command=command, sock_path=sock_path,
                               debug=args.debug, timeout=args.timeout)

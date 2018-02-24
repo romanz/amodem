@@ -126,7 +126,11 @@ def run_init(device_type, args):
     homedir = os.path.expanduser('~/.gnupg/{}'.format(device_name))
     log.info('GPG home directory: %s', homedir)
 
-    check_call(['rm', '-rf', homedir])
+    if os.path.exists(homedir):
+        log.error('GPG home directory %s exists, '
+                  'remove it manually if required', homedir)
+        sys.exit(1)
+
     check_call(['mkdir', '-p', homedir])
     check_call(['chmod', '700', homedir])
 
