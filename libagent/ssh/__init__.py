@@ -217,8 +217,8 @@ def _get_sock_path(args):
     sock_path = args.sock_path
     if not sock_path:
         if args.foreground:
-            log.error('running in foreground mode requires UNIX socket path')
-            return 1
+            log.error('running in foreground mode requires specifying UNIX socket path')
+            sys.exit(1)
         else:
             sock_path = tempfile.mktemp(prefix='trezor-ssh-agent-')
     return sock_path
