@@ -85,3 +85,55 @@ Note that your local SSH configuration may ignore `trezor-agent`, if it has `Ide
 If you are failing to connect, try running:
 
     $ trezor-agent -vv user@host -- ssh -vv -oIdentitiesOnly=no user@host
+
+# Start the agent as a systemd unit
+
+##### 1. Create these files in `~/.config/systemd/user`
+
+Replace `trezor` with `keepkey` or `ledger` as required.
+
+###### `trezor-ssh-agent.service`
+
+````
+[Unit]
+Description=trezor-agent SSH agent
+Requires=trezor-ssh-agent.socket
+
+[Service]
+Type=Simple
+ExecStart=/usr/bin/trezor-agent --foreground --sock-path %t/trezor-agent/S.ssh IDENTITY
+````
+
+Replace `IDENTITY` with the identity you used when exporting the public key.
+
+###### `trezor-ssh-agent.socket`
+
+````
+[Unit]
+Description=trezor-agent SSH agent socket
+
+[Socket]
+ListenStream=%t/trezor-agent/S.ssh
+FileDescriptorName=ssh
+Service=trezor-ssh-agent.service
+SocketMode=0600
+DirectoryMode=0700
+
+[Install]
+WantedBy=sockets.target
+````
+
+##### 2. Run
+
+```
+systemctl --user start trezor-ssh-agent.service trezor-ssh-agent.socket
+systemctl --user enable trezor-ssh-agent.socket
+```
+
+##### 3. Add this line to your `.bashrc` or equivalent file:
+
+```bash
+export SSH_AUTH_SOCK=$(systemctl show --user --property=Listen trezor-ssh-agent.socket | grep -o "/run.*")
+```
+
+##### 4. SSH will now automatically use your device key in all terminals.
