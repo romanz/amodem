@@ -5,7 +5,7 @@ and please let me [know](https://github.com/romanz/trezor-agent/issues/new) if s
 work well for you. If possible:
 
  * record the session (e.g. using [asciinema](https://asciinema.org))
- * attach the GPG agent log from `~/.gnupg/{trezor,ledger}/gpg-agent.log`
+ * attach the GPG agent log from `~/.gnupg/{trezor,ledger}/gpg-agent.log` (can be [encrypted](https://keybase.io/romanz))
 
 Thanks!
 
