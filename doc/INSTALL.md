@@ -65,15 +65,7 @@ gpg (GnuPG) 2.1.15
     $ pip install --user -e trezor-agent/agents/trezor
     ```
 
-    Read [these instructions](https://github.com/romanz/python-trezor#pin-entering) on how to enter your PIN with the default PIN entry.
-
-    If you'd like a keypad-like pin entry using [trezor-gpg-pinentry-tk](https://github.com/rendaw/trezor-gpg-pinentry-tk), run:
-
-    ```
-    $ pip install trezor-gpg-pinentry-tk
-    ```
-
-    And complete the GPG configuration instructions [here](README-GPG.md).
+    Read [these instructions](https://github.com/romanz/python-trezor#pin-entering) on how to enter your PIN with the PIN entry.
 
 # 3. Install the KeepKey agent
 

@@ -4,9 +4,13 @@
 
 SSH requires no configuration, but you may put common command line options in `~/.ssh/agent.conf` to avoid repeating them in every invocation.
 
-See `(trezor|keepkey|ledger)-agent -h` for details on the configuration file format.
+See `(trezor|keepkey|ledger)-agent -h` for details on supported options and the configuration file format.
 
 ## 2. Usage
+
+Use the `(trezor|keepkey|ledger)-agent` program to work with SSH. It has three main modes of operation:
+
+##### 1. Export public keys
 
 To get your public key so you can add it to `authorized_hosts` or allow
 ssh access to a service that supports it, run:
@@ -15,20 +19,17 @@ ssh access to a service that supports it, run:
 (trezor|keepkey|ledger)-agent identity@myhost
 ```
 
-<br/>
-<br/>
+The identity (ex: `identity@myhost`) is used to derive the public key and is added as a comment to the exported key string.
 
-There are two main ways to use invoke SSH:
+##### 2. Run a command with the agent's environment
 
-##### 1. Run your command with the agent's environment
-
-If you run:
+Run
 
 ```
-$ (trezor|keepkey|ledger)-agent _ COMMAND --WITH --ARGUMENTS
+$ (trezor|keepkey|ledger)-agent identity@myhost COMMAND --WITH --ARGUMENTS
 ```
 
-the agent is started in the background and the command is executed with environment variables set up to use the SSH agent.  The `_` is an ignored parameter.  The agent will exit after the command completes.
+to start the agent in the background and execute the command with environment variables set up to use the SSH agent.  The specified identity will be used to derive the key for all SSH connections.  The agent will exit after the command completes.
 
 As a shortcut you can run
 
@@ -45,6 +46,8 @@ If you just want to connect to a server this is the simplest way to do it:
 ```
 $ (trezor|keepkey|ledger)-agent user@remotehost -c ARGS FOR SSH
 ```
+
+The identity `user@remotehost` is used as both the destination user and host as well as for key derivation, so you must generate a separate key for each host you connect to.
 
 ## 3. Common Use Cases
 
