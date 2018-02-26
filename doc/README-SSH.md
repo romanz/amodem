@@ -29,12 +29,12 @@ Run
 $ (trezor|keepkey|ledger)-agent identity@myhost COMMAND --WITH --ARGUMENTS
 ```
 
-to start the agent in the background and execute the command with environment variables set up to use the SSH agent.  The specified identity will be used to derive the key for all SSH connections.  The agent will exit after the command completes.
+to start the agent in the background and execute the command with environment variables set up to use the SSH agent.  The specified identity is used for all SSH connections.  The agent will exit after the command completes.
 
 As a shortcut you can run
 
 ```
-$ (trezor|keepkey|ledger)-agent _ -s
+$ (trezor|keepkey|ledger)-agent identity@myhost -s
 ```
 
 to start a shell with the proper environment.
