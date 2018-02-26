@@ -21,25 +21,19 @@ Thanks!
     $ (trezor|keepkey|ledger)-gpg init "Roman Zeyde <roman.zeyde@gmail.com>"
     ```
 
-    To configure an alternate PIN entry (such as [trezor-gpg-pinentry-tk](https://github.com/rendaw/trezor-gpg-pinentry-tk)), run:
-
-    ```
-    $ trezor-gpg init --pinentry trezor-gpg-pinentry-tk "Roman Zeyde <roman.zeyde@gmail.com>"
-    ```
-
     Follow the instructions provided to complete the setup.  Keep note of the timestamp value which you'll need if you want to regenerate the key later.
 
 2. Add `export GNUPGHOME=~/.gnupg/(trezor|keepkey|ledger)` to your `.bashrc` or other environment file.
 
-    This `GNUPGHOME` contains your hardware keyring and agent and pinentry settings.  This agent software assumes all keys are backed by hardware devices so you can't use standard GPG keys in `GNUPGHOME` (if you do mix keys you'll receive an error when you attempt to use them).
+    This `GNUPGHOME` contains your hardware keyring and agent settings.  This agent software assumes all keys are backed by hardware devices so you can't use standard GPG keys in `GNUPGHOME` (if you do mix keys you'll receive an error when you attempt to use them).
 
-    If you wish to switch back to your software keys, undo changes `GNUPGHOME` and log out/log in.
+    If you wish to switch back to your software keys unset `GNUPGHOME`.
 
 3. Log out and back into your session to ensure your environment is updated everywhere.
 
 ## 2. Usage
 
-You can use any GPG commands or software that uses GPG as usual and will be prompted to interact with your hardware device as necessary.  The agent is automatically started if it isn't running when you run `gpg.
+You can use any GPG commands or software that uses GPG as usual and will be prompted to interact with your hardware device as necessary.  The agent is automatically started if it isn't running when you run any `gpg` command.
 
 ##### Restarting the agent
 
@@ -51,17 +45,12 @@ If you change settings or need to restart the agent for some other reason, simpl
 
 [![asciicast](https://asciinema.org/a/120441.png)](https://asciinema.org/a/120441)
 
-In order to use specific device type for GPG operations, set the following environment variable to either:
-```
-$ export GNUPGHOME=~/.gnupg/{trezor,ledger}
-```
-
-You can use GNU Privacy Assistant (GPA) in order to inspect the created keys
-and perform signature and decryption operations using:
+### Inspect GPG keys
+You can use GNU Privacy Assistant (GPA) in order to inspect the created keys and perform signature and decryption operations as usual:
 
 ```
 $ sudo apt install gpa
-$ GNUPGHOME=~/.gnupg/trezor gpa
+$ gpa
 ```
 
 [![GPA](https://cloud.githubusercontent.com/assets/9900/20224804/053d7474-a849-11e6-87f3-ab07dc536158.png)](https://www.gnupg.org/related_software/swlist.html#gpa)
@@ -81,7 +70,7 @@ $ git tag v1.2.3 --verify                    # verify tag signature
 
 ### Manage passwords
 
-Password managers such as [pass](https://www.passwordstore.org/) and [gopass](https://www.justwatch.com/gopass/) rely on GPG for encryption so you can use your device too.
+Password managers such as [pass](https://www.passwordstore.org/) and [gopass](https://www.justwatch.com/gopass/) rely on GPG for encryption so you can use your device with them too.
 
 ##### With `pass`:
 
@@ -188,3 +177,7 @@ There are 4 choices for the alternative pinentry (providing /usr/bin/pinentry).
 
 Press <enter> to keep the current choice[*], or type selection number: 0
 ```
+
+### Sign and decrypt email
+
+Follow [these instructions](enigmail.md) to set up Enigmail in Thunderbird.

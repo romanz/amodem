@@ -55,12 +55,15 @@ The identity `user@remotehost` is used as both the destination user and host as 
 [![Demo](https://asciinema.org/a/22959.png)](https://asciinema.org/a/22959)
 
 ### Start multiple SSH sessions from a sub-shell
+
 This feature allows using regular SSH-related commands within a subprocess running user's shell.
 `SSH_AUTH_SOCK` environment variable is defined for the subprocess (pointing to the SSH agent, running as a parent process).
 This way the user can use SSH-related commands (e.g. `ssh`, `ssh-add`, `sshfs`, `git`, `hg`), while authenticating via the hardware device.
+
 [![Subshell](https://asciinema.org/a/33240.png)](https://asciinema.org/a/33240)
 
 ### Load different SSH identities from configuration file
+
 [![Config](https://asciinema.org/a/bdxxtgctk5syu56yfz8lcp7ny.png)](https://asciinema.org/a/bdxxtgctk5syu56yfz8lcp7ny)
 
 ### Implement passwordless login
@@ -95,28 +98,7 @@ The same works for Mercurial (e.g. on [BitBucket](https://confluence.atlassian.c
 
 	$ trezor-agent -v -e ed25519 git@bitbucket.org -- hg push
 
-
-## 4. Troubleshooting
-
-If SSH connection fails to work, please open an [issue](https://github.com/romanz/trezor-agent/issues)
-with a verbose log attached (by running `trezor-agent -vv`) .
-
-##### Incompatible SSH options
-
-Note that your local SSH configuration may ignore `trezor-agent`, if it has `IdentitiesOnly` option set to `yes`.
-
-     IdentitiesOnly
-             Specifies that ssh(1) should only use the authentication identity files configured in
-             the ssh_config files, even if ssh-agent(1) or a PKCS11Provider offers more identities.
-             The argument to this keyword must be “yes” or “no”.
-             This option is intended for situations where ssh-agent offers many different identities.
-             The default is “no”.
-
-If you are failing to connect, try running:
-
-    $ trezor-agent -vv user@host -- ssh -vv -oIdentitiesOnly=no user@host
-
-# Start the agent as a systemd unit
+### Start the agent as a systemd unit
 
 ##### 1. Create these files in `~/.config/systemd/user`
 
@@ -167,3 +149,23 @@ export SSH_AUTH_SOCK=$(systemctl show --user --property=Listen trezor-ssh-agent.
 ```
 
 ##### 4. SSH will now automatically use your device key in all terminals.
+
+## 4. Troubleshooting
+
+If SSH connection fails to work, please open an [issue](https://github.com/romanz/trezor-agent/issues)
+with a verbose log attached (by running `trezor-agent -vv`) .
+
+##### Incompatible SSH options
+
+Note that your local SSH configuration may ignore `trezor-agent`, if it has `IdentitiesOnly` option set to `yes`.
+
+     IdentitiesOnly
+             Specifies that ssh(1) should only use the authentication identity files configured in
+             the ssh_config files, even if ssh-agent(1) or a PKCS11Provider offers more identities.
+             The argument to this keyword must be “yes” or “no”.
+             This option is intended for situations where ssh-agent offers many different identities.
+             The default is “no”.
+
+If you are failing to connect, try running:
+
+    $ trezor-agent -vv user@host -- ssh -vv -oIdentitiesOnly=no user@host
