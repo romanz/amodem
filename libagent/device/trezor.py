@@ -79,7 +79,7 @@ class Trezor(interface.Device):
 
         conn.callback_PinMatrixRequest = new_handler
 
-    cached_passphrase_ack = 0
+    cached_passphrase_ack = None
 
     def _override_passphrase_handler(self, conn):
         cli_handler = conn.callback_PassphraseRequest
