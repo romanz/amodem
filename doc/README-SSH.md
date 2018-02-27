@@ -26,7 +26,7 @@ The identity (ex: `identity@myhost`) is used to derive the public key and is add
 Run
 
 ```
-$ (trezor|keepkey|ledger)-agent identity@myhost COMMAND --WITH --ARGUMENTS
+$ (trezor|keepkey|ledger)-agent identity@myhost -- COMMAND --WITH --ARGUMENTS
 ```
 
 to start the agent in the background and execute the command with environment variables set up to use the SSH agent.  The specified identity is used for all SSH connections.  The agent will exit after the command completes.
@@ -44,7 +44,7 @@ to start a shell with the proper environment.
 If you just want to connect to a server this is the simplest way to do it:
 
 ```
-$ (trezor|keepkey|ledger)-agent user@remotehost -c ARGS FOR SSH
+$ (trezor|keepkey|ledger)-agent user@remotehost -c
 ```
 
 The identity `user@remotehost` is used as both the destination user and host as well as for key derivation, so you must generate a separate key for each host you connect to.
