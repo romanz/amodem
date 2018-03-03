@@ -12,11 +12,11 @@ You can install them on these distributions as follows:
 
 ##### Debian
 
-    $ apt install python-pip python-dev python-tk libusb-1.0-0-dev libudev-dev
+    $ apt-get install python3-pip python3-dev python3-tk libusb-1.0-0-dev libudev-dev
 
 ##### Fedora/RedHat
 
-    $ yum install python-pip python-devel python-tk libusb-devel libudev-devel \
+    $ yum install python3-pip python3-devel python3-tk libusb-devel libudev-devel \
                   gcc redhat-rpm-config
 
 ##### OpenSUSE
@@ -55,14 +55,14 @@ gpg (GnuPG) 2.1.15
 3. Then, install the latest [trezor_agent](https://pypi.python.org/pypi/trezor_agent) package:
 
     ```
-    $ pip install trezor_agent
+    $ pip3 install trezor_agent
     ```
 
     Or, directly from the latest source code:
 
     ```
     $ git clone https://github.com/romanz/trezor-agent
-    $ pip install --user -e trezor-agent/agents/trezor
+    $ pip3 install --user -e trezor-agent/agents/trezor
     ```
 
     Read [these instructions](https://github.com/romanz/python-trezor#pin-entering) on how to enter your PIN with the PIN entry.
@@ -77,14 +77,14 @@ gpg (GnuPG) 2.1.15
 Then, install the latest [keepkey_agent](https://pypi.python.org/pypi/keepkey_agent) package:
 
     ```
-    $ pip install keepkey_agent
+    $ pip3 install keepkey_agent
     ```
 
     Or, directly from the latest source code:
 
     ```
     $ git clone https://github.com/romanz/trezor-agent
-    $ pip install --user -e trezor-agent/agents/keepkey
+    $ pip3 install --user -e trezor-agent/agents/keepkey
     ```
 
 # 4. Install the Ledger Nano S agent
@@ -97,14 +97,14 @@ Then, install the latest [keepkey_agent](https://pypi.python.org/pypi/keepkey_ag
 3. Then, install the latest [ledger_agent](https://pypi.python.org/pypi/ledger_agent) package:
 
     ```
-    $ pip install ledger_agent
+    $ pip3 install ledger_agent
     ```
 
     Or, directly from the latest source code:
 
     ```
     $ git clone https://github.com/romanz/trezor-agent
-    $ pip install --user -e trezor-agent/agents/ledger
+    $ pip3 install --user -e trezor-agent/agents/ledger
     ```
 
 # 5. Installation Troubleshooting
