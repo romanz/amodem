@@ -41,12 +41,6 @@ class Trezor(interface.Device):
     @property
     def _defs(self):
         from . import trezor_defs
-        # Allow using TREZOR bridge transport (instead of the HID default)
-        trezor_defs.Transport = {
-            'bridge': trezor_defs.BridgeTransport,
-            'udp': trezor_defs.UdpTransport,
-            'hid': trezor_defs.HidTransport,
-        }[os.environ.get('TREZOR_TRANSPORT', 'hid')]
         return trezor_defs
 
     required_version = '>=1.4.0'
@@ -122,26 +116,27 @@ class Trezor(interface.Device):
 
     def connect(self):
         """Enumerate and connect to the first USB HID interface."""
-        for transport in self._defs.Transport.enumerate():
-            log.debug('transport: %s', transport)
-            for _ in range(5):
-                connection = self._defs.Client(transport)
-                self._override_pin_handler(connection)
-                self._override_passphrase_handler(connection)
-                self._verify_version(connection)
+        transport = self._defs.TrezorDevice.enumerate()
+        if not transport:
+            raise interface.NotFoundError('{} not connected'.format(self))
 
-                try:
-                    connection.ping(msg='', pin_protection=True)  # unlock PIN
-                    return connection
-                except (self._defs.PinException, ValueError) as e:
-                    log.error('Invalid PIN: %s, retrying...', e)
-                    continue
-                except Exception as e:
-                    log.exception('ping failed: %s', e)
-                    connection.close()  # so the next HID open() will succeed
-                    raise
+        log.debug('transports: %s', transport)
+        for _ in range(5):
+            connection = self._defs.Client(transport[0])
+            self._override_pin_handler(connection)
+            self._override_passphrase_handler(connection)
+            self._verify_version(connection)
 
-        raise interface.NotFoundError('{} not connected'.format(self))
+            try:
+                connection.ping(msg='', pin_protection=True)  # unlock PIN
+                return connection
+            except (self._defs.PinException, ValueError) as e:
+                log.error('Invalid PIN: %s, retrying...', e)
+                continue
+            except Exception as e:
+                log.exception('ping failed: %s', e)
+                connection.close()  # so the next HID open() will succeed
+                raise
 
     def close(self):
         """Close connection."""
