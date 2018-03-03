@@ -115,14 +115,14 @@ class Trezor(interface.Device):
                                         current_version))
 
     def connect(self):
-        """Enumerate and connect to the first USB HID interface."""
-        transport = self._defs.TrezorDevice.enumerate()
-        if not transport:
+        """Enumerate and connect to the first available interface."""
+        transports = self._defs.enumerate_transports()
+        if not transports:
             raise interface.NotFoundError('{} not connected'.format(self))
 
-        log.debug('transports: %s', transport)
+        log.debug('transports: %s', transports)
         for _ in range(5):
-            connection = self._defs.Client(transport[0])
+            connection = self._defs.Client(transports[0])
             self._override_pin_handler(connection)
             self._override_passphrase_handler(connection)
             self._verify_version(connection)
