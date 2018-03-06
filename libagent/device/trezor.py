@@ -90,6 +90,11 @@ class Trezor(interface.Device):
                     passphrase = mnemonic.Mnemonic.normalize_string(passphrase)
                     ack = self._defs.PassphraseAck(passphrase=passphrase)
 
+                length = len(ack.passphrase)
+                if length > 50:
+                    msg = 'Too long passphrase ({} chars)'.format(length)
+                    raise ValueError(msg)
+
                 self.__class__.cached_passphrase_ack = ack
                 return ack
             except:  # noqa
