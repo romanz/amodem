@@ -80,21 +80,19 @@ class AgentStop(Exception):
 class Handler(object):
     """GPG agent requests' handler."""
 
+    # pylint: disable=too-many-instance-attributes
     def __init__(self, device, pubkey_bytes):
         """C-tor."""
         self.client = client.Client(device=device)
-        # Cache ASSUAN commands' arguments between commands
-        self.keygrip = None
-        self.digest = None
-        self.algo = None
         # Cache public keys from GnuPG
         self.pubkey_bytes = pubkey_bytes
         # "Clone" existing GPG version
         self.version = keyring.gpg_version()
 
+        self.reset()
         self.handlers = {
-            b'RESET': None,
-            b'OPTION': None,
+            b'RESET': lambda *_: self.reset(),
+            b'OPTION': lambda _, args: self.handle_option(*args),
             b'SETKEYDESC': None,
             b'NOP': None,
             b'GETINFO': lambda conn, _: keyring.sendline(conn, b'D ' + self.version),
@@ -108,6 +106,18 @@ class Handler(object):
             b'KEYINFO': _key_info,
             b'SCD': self.handle_scd,
         }
+
+    def reset(self):
+        """Reset agent's state variables."""
+        self.keygrip = None
+        self.digest = None
+        self.algo = None
+        self.options = []
+
+    def handle_option(self, opt):
+        """Store GPG agent-related options (e.g. for pinentry)."""
+        self.options.append(opt)
+        log.debug('options: %s', self.options)
 
     def handle_scd(self, conn, args):
         """No support for smart-card device protocol."""
