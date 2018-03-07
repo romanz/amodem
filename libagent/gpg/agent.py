@@ -77,19 +77,23 @@ class AgentStop(Exception):
     """Raised to close the agent."""
 
 
+# pylint: disable=too-many-instance-attributes
 class Handler(object):
     """GPG agent requests' handler."""
 
-    # pylint: disable=too-many-instance-attributes
+    def _get_options(self):
+        return self.options
+
     def __init__(self, device, pubkey_bytes):
         """C-tor."""
+        self.reset()
+        device.ui.options_getter = self._get_options
         self.client = client.Client(device=device)
         # Cache public keys from GnuPG
         self.pubkey_bytes = pubkey_bytes
         # "Clone" existing GPG version
         self.version = keyring.gpg_version()
 
-        self.reset()
         self.handlers = {
             b'RESET': lambda *_: self.reset(),
             b'OPTION': lambda _, args: self.handle_option(*args),

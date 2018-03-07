@@ -158,7 +158,9 @@ default-key \"{1}\"
         f.write("""# Hardware-based GPG agent emulator
 log-file {0}/gpg-agent.log
 verbosity 2
-""".format(homedir))
+pin_entry_binary {1}
+passphrase_entry_binary {2}
+""".format(homedir, args.pin_entry_binary, args.passphrase_entry_binary))
 
     # Prepare a helper script for setting up the new identity
     with open(os.path.join(homedir, 'env'), 'w') as f:
@@ -223,6 +225,7 @@ def run_agent(device_type):
         env = {'GNUPGHOME': args.homedir}
         sock_path = keyring.get_agent_sock_path(env=env)
         pubkey_bytes = keyring.export_public_keys(env=env)
+        device_type.ui = device.ui.UI.from_config_dict(config)
         handler = agent.Handler(device=device_type(), pubkey_bytes=pubkey_bytes)
         with server.unix_domain_socket_server(sock_path) as sock:
             for conn in agent.yield_connections(sock):
@@ -259,6 +262,12 @@ def main(device_type):
     p.add_argument('-t', '--time', type=int, default=int(time.time()))
     p.add_argument('-v', '--verbose', default=0, action='count')
     p.add_argument('-s', '--subkey', default=False, action='store_true')
+
+    p.add_argument('--pin-entry-binary', type=str, default='pinentry',
+                   help='Path to PIN entry UI helper.')
+    p.add_argument('--passphrase-entry-binary', type=str, default='pinentry',
+                   help='Path to passphrase entry UI helper.')
+
     p.set_defaults(func=run_init)
 
     p = subparsers.add_parser('unlock', help='unlock the hardware device')
@@ -266,4 +275,6 @@ def main(device_type):
     p.set_defaults(func=run_unlock)
 
     args = parser.parse_args()
+    device_type.ui = device.ui.UI.from_config_dict(vars(args))
+
     return args.func(device_type=device_type, args=args)
