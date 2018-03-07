@@ -2,22 +2,13 @@
 
 import binascii
 import logging
-import os
-import subprocess
-import sys
 
 import mnemonic
 import semver
 
 from . import interface
-from .ui import pinentry
 
 log = logging.getLogger(__name__)
-
-
-def _message_box(label):
-    """Launch an external process for PIN/passphrase entry GUI."""
-    return pinentry.interact(label.encode('ascii'))
 
 
 class Trezor(interface.Device):
@@ -35,18 +26,15 @@ class Trezor(interface.Device):
 
     required_version = '>=1.4.0'
 
-    def _override_pin_handler(self, conn):
-        cli_handler = conn.callback_PinMatrixRequest
+    ui = None  # can be overridden by device's users
 
-        def new_handler(msg):
+    def _override_pin_handler(self, conn):
+        if self.ui is None:
+            return
+
+        def new_handler(_):
             try:
-                scrambled_pin = _message_box(
-                    'Use the numeric keypad to describe number positions.\n'
-                    'The layout is:\n'
-                    '    7 8 9\n'
-                    '    4 5 6\n'
-                    '    1 2 3\n'
-                    'Please enter PIN:')
+                scrambled_pin = self.ui.get_pin()
                 result = self._defs.PinMatrixAck(pin=scrambled_pin)
                 if not set(scrambled_pin).issubset('123456789'):
                     raise self._defs.PinException(
@@ -61,15 +49,16 @@ class Trezor(interface.Device):
     cached_passphrase_ack = None
 
     def _override_passphrase_handler(self, conn):
-        cli_handler = conn.callback_PassphraseRequest
+        if self.ui is None:
+            return
 
-        def new_handler(msg):
+        def new_handler(_):
             try:
                 if self.__class__.cached_passphrase_ack:
                     log.debug('re-using cached %s passphrase', self)
                     return self.__class__.cached_passphrase_ack
 
-                passphrase = _message_box('Please enter passphrase:')
+                passphrase = self.ui.get_passphrase()
                 passphrase = mnemonic.Mnemonic.normalize_string(passphrase)
                 ack = self._defs.PassphraseAck(passphrase=passphrase)
 
