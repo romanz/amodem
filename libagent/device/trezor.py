@@ -10,24 +10,14 @@ import mnemonic
 import semver
 
 from . import interface
+from .ui import pinentry
 
 log = logging.getLogger(__name__)
 
 
-def _message_box(label, sp=subprocess):
+def _message_box(label):
     """Launch an external process for PIN/passphrase entry GUI."""
-    args = [sys.executable, '-m', 'libagent.device.ui.simple']
-    p = sp.Popen(args=args, stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE)
-    out, err = p.communicate(label.encode('ascii'))
-    exitcode = p.wait()
-    if exitcode != 0:
-        log.error('UI failed: %r', err)
-        raise sp.CalledProcessError(exitcode, args)
-    return out.decode('ascii')
-
-
-def _is_open_tty(stream):
-    return not stream.closed and os.isatty(stream.fileno())
+    return pinentry.interact(label.encode('ascii'))
 
 
 class Trezor(interface.Device):
@@ -50,18 +40,15 @@ class Trezor(interface.Device):
 
         def new_handler(msg):
             try:
-                if _is_open_tty(sys.stdin):
-                    result = cli_handler(msg)  # CLI-based PIN handler
-                else:
-                    scrambled_pin = _message_box(
-                        'Use the numeric keypad to describe number positions.\n'
-                        'The layout is:\n'
-                        '    7 8 9\n'
-                        '    4 5 6\n'
-                        '    1 2 3\n'
-                        'Please enter PIN:')
-                    result = self._defs.PinMatrixAck(pin=scrambled_pin)
-                if not set(result.pin).issubset('123456789'):
+                scrambled_pin = _message_box(
+                    'Use the numeric keypad to describe number positions.\n'
+                    'The layout is:\n'
+                    '    7 8 9\n'
+                    '    4 5 6\n'
+                    '    1 2 3\n'
+                    'Please enter PIN:')
+                result = self._defs.PinMatrixAck(pin=scrambled_pin)
+                if not set(scrambled_pin).issubset('123456789'):
                     raise self._defs.PinException(
                         None, 'Invalid scrambled PIN: {!r}'.format(result.pin))
                 return result
@@ -82,13 +69,9 @@ class Trezor(interface.Device):
                     log.debug('re-using cached %s passphrase', self)
                     return self.__class__.cached_passphrase_ack
 
-                if _is_open_tty(sys.stdin):
-                    # use CLI-based PIN handler
-                    ack = cli_handler(msg)
-                else:
-                    passphrase = _message_box('Please enter passphrase:')
-                    passphrase = mnemonic.Mnemonic.normalize_string(passphrase)
-                    ack = self._defs.PassphraseAck(passphrase=passphrase)
+                passphrase = _message_box('Please enter passphrase:')
+                passphrase = mnemonic.Mnemonic.normalize_string(passphrase)
+                ack = self._defs.PassphraseAck(passphrase=passphrase)
 
                 length = len(ack.passphrase)
                 if length > 50:
