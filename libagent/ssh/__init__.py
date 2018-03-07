@@ -85,6 +85,11 @@ def create_agent_parser(device_type):
     p.add_argument('--sock-path', type=str,
                    help='Path to the UNIX domain socket of the agent.')
 
+    p.add_argument('--pin-entry-binary', type=str, default='pinentry',
+                   help='Path to PIN entry UI helper.')
+    p.add_argument('--passphrase-entry-binary', type=str, default='pinentry',
+                   help='Path to passphrase entry UI helper.')
+
     g = p.add_mutually_exclusive_group()
     g.add_argument('-d', '--daemonize', default=False, action='store_true',
                    help='Daemonize the agent and print its UNIX socket path')
@@ -266,6 +271,9 @@ def main(device_type):
     if use_shell:
         command = os.environ['SHELL']
         sys.stdin.close()
+
+    # override default PIN/passphrase entry tools (relevant for TREZOR/Keepkey):
+    device_type.ui = device.ui.UI.from_config_dict(vars(args))
 
     conn = JustInTimeConnection(
         conn_factory=lambda: client.Client(device_type()),
