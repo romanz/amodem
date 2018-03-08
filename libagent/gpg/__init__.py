@@ -138,10 +138,14 @@ def run_init(device_type, args):
 
     # Prepare GPG agent invocation script (to pass the PATH from environment).
     with open(os.path.join(homedir, 'run-agent.sh'), 'w') as f:
-        f.write("""#!/bin/sh
+        f.write(r"""#!/bin/sh
 export PATH={0}
-{1} $*
-""".format(os.environ['PATH'], agent_path))
+{1} \
+-vv \
+--pin-entry-binary={pin_entry_binary} \
+--passphrase-entry-binary={passphrase_entry_binary} \
+$*
+""".format(os.environ['PATH'], agent_path, **vars(args)))
     check_call(['chmod', '700', f.name])
     run_agent_script = f.name
 
@@ -152,15 +156,6 @@ agent-program {0}
 personal-digest-preferences SHA512
 default-key \"{1}\"
 """.format(run_agent_script, args.user_id))
-
-    # Prepare GPG agent configuration file
-    with open(os.path.join(homedir, 'gpg-agent.conf'), 'w') as f:
-        f.write("""# Hardware-based GPG agent emulator
-log-file {0}/gpg-agent.log
-verbosity 2
-pin_entry_binary {1}
-passphrase_entry_binary {2}
-""".format(homedir, args.pin_entry_binary, args.passphrase_entry_binary))
 
     # Prepare a helper script for setting up the new identity
     with open(os.path.join(homedir, 'env'), 'w') as f:
@@ -205,19 +200,22 @@ def run_unlock(device_type, args):
 
 def run_agent(device_type):
     """Run a simple GPG-agent server."""
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--homedir', default=os.environ.get('GNUPGHOME'))
-    args, _ = parser.parse_known_args()
+    p = argparse.ArgumentParser()
+    p.add_argument('--homedir', default=os.environ.get('GNUPGHOME'))
+    p.add_argument('-v', '--verbose', default=0, action='count')
+
+    p.add_argument('--pin-entry-binary', type=str, default='pinentry',
+                   help='Path to PIN entry UI helper.')
+    p.add_argument('--passphrase-entry-binary', type=str, default='pinentry',
+                   help='Path to passphrase entry UI helper.')
+
+    args, _ = p.parse_known_args()
 
     assert args.homedir
-    config_file = os.path.join(args.homedir, 'gpg-agent.conf')
 
-    lines = (line.strip() for line in open(config_file))
-    lines = (line for line in lines if line and not line.startswith('#'))
-    config = dict(line.split(' ', 1) for line in lines)
+    log_file = os.path.join(args.homedir, 'gpg-agent.log')
+    util.setup_logging(verbosity=args.verbose, filename=log_file)
 
-    util.setup_logging(verbosity=int(config['verbosity']),
-                       filename=config['log-file'])
     log.debug('sys.argv: %s', sys.argv)
     log.debug('os.environ: %s', os.environ)
     log.debug('pid: %d, parent pid: %d', os.getpid(), os.getppid())
@@ -225,7 +223,7 @@ def run_agent(device_type):
         env = {'GNUPGHOME': args.homedir}
         sock_path = keyring.get_agent_sock_path(env=env)
         pubkey_bytes = keyring.export_public_keys(env=env)
-        device_type.ui = device.ui.UI.from_config_dict(config)
+        device_type.ui = device.ui.UI.from_config_dict(vars(args))
         handler = agent.Handler(device=device_type(), pubkey_bytes=pubkey_bytes)
         with server.unix_domain_socket_server(sock_path) as sock:
             for conn in agent.yield_connections(sock):
