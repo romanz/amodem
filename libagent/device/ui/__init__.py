@@ -30,37 +30,36 @@ def _create_default_options_getter():
 class UI(object):
     """UI for PIN/passphrase entry (for TREZOR devices)."""
 
-    def __init__(self):
+    def __init__(self, device_type, config):
         """C-tor."""
+        default_pinentry = 'pinentry'  # by default, use GnuPG pinentry tool
+        self.pin_entry_binary = config.get('pin_entry_binary',
+                                           default_pinentry)
+        self.passphrase_entry_binary = config.get('passphrase_entry_binary',
+                                                  default_pinentry)
         self.options_getter = _create_default_options_getter()
-        self.pin_entry_binary = 'pinentry'
-        self.passphrase_entry_binary = 'pinentry'
-
-    @classmethod
-    def from_config_dict(cls, d):
-        """Simple c-tor from configuration dictionary."""
-        obj = cls()
-        obj.pin_entry_binary = d.get('pin_entry_binary',
-                                     obj.pin_entry_binary)
-        obj.passphrase_entry_binary = d.get('passphrase_entry_binary',
-                                            obj.passphrase_entry_binary)
-        return obj
+        self.device_name = device_type.__name__
 
     def get_pin(self):
         """Ask the user for (scrambled) PIN."""
-        return pinentry.interact(
+        description = (
             'Use the numeric keypad to describe number positions.\n'
             'The layout is:\n'
             '    7 8 9\n'
             '    4 5 6\n'
-            '    1 2 3\n'
-            'Please enter PIN:',
+            '    1 2 3')
+        return pinentry.interact(
+            title='{} PIN'.format(self.device_name),
+            prompt='PIN:',
+            description=description,
             binary=self.pin_entry_binary,
             options=self.options_getter())
 
     def get_passphrase(self):
         """Ask the user for passphrase."""
         return pinentry.interact(
-            'Please enter passphrase:',
+            title='{} passphrase'.format(self.device_name),
+            prompt='Passphrase:',
+            description=None,
             binary=self.passphrase_entry_binary,
             options=self.options_getter())

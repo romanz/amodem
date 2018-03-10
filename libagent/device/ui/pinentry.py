@@ -26,7 +26,7 @@ def expect(p, prefixes):
     raise ValueError('Unexpected response: {}'.format(resp))
 
 
-def interact(description, binary, options):
+def interact(title, description, prompt, binary, options):
     """Use GPG pinentry program to interact with the user."""
     p = subprocess.Popen(args=[binary],
                          stdin=subprocess.PIPE,
@@ -34,9 +34,19 @@ def interact(description, binary, options):
                          env=os.environ)
     expect(p, [b'OK'])
 
-    description = libagent.gpg.agent.serialize(description.encode('ascii'))
-    write(p, b'SETDESC ' + description + b'\n')
+    title = libagent.gpg.agent.serialize(title.encode('ascii'))
+    write(p, b'SETTITLE ' + title + b'\n')
     expect(p, [b'OK'])
+
+    if description:
+        description = libagent.gpg.agent.serialize(description.encode('ascii'))
+        write(p, b'SETDESC ' + description + b'\n')
+        expect(p, [b'OK'])
+
+    if prompt:
+        prompt = libagent.gpg.agent.serialize(prompt.encode('ascii'))
+        write(p, b'SETPROMPT ' + prompt + b'\n')
+        expect(p, [b'OK'])
 
     log.debug('setting %d options', len(options))
     for opt in options:

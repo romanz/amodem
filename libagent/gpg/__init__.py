@@ -226,7 +226,8 @@ def run_agent(device_type):
         env = {'GNUPGHOME': args.homedir}
         sock_path = keyring.get_agent_sock_path(env=env)
         pubkey_bytes = keyring.export_public_keys(env=env)
-        device_type.ui = device.ui.UI.from_config_dict(vars(args))
+        device_type.ui = device.ui.UI(device_type=device_type,
+                                      config=vars(args))
         handler = agent.Handler(device=device_type(), pubkey_bytes=pubkey_bytes)
         with server.unix_domain_socket_server(sock_path) as sock:
             for conn in agent.yield_connections(sock):
@@ -279,6 +280,6 @@ def main(device_type):
     p.set_defaults(func=run_unlock)
 
     args = parser.parse_args()
-    device_type.ui = device.ui.UI.from_config_dict(vars(args))
+    device_type.ui = device.ui.UI(device_type=device_type, config=vars(args))
 
     return args.func(device_type=device_type, args=args)
