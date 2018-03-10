@@ -123,7 +123,10 @@ def run_init(device_type, args):
     # Prepare new GPG home directory for hardware-based identity
     device_name = os.path.basename(sys.argv[0]).rsplit('-', 1)[0]
     log.info('device name: %s', device_name)
-    homedir = os.path.expanduser('~/.gnupg/{}'.format(device_name))
+    homedir = args.homedir
+    if not homedir:
+        homedir = os.path.expanduser('~/.gnupg/{}'.format(device_name))
+
     log.info('GPG home directory: %s', homedir)
 
     if os.path.exists(homedir):
@@ -260,6 +263,9 @@ def main(device_type):
     p.add_argument('-t', '--time', type=int, default=int(time.time()))
     p.add_argument('-v', '--verbose', default=0, action='count')
     p.add_argument('-s', '--subkey', default=False, action='store_true')
+
+    p.add_argument('--homedir', type=str,
+                   help='Customize GnuPG home directory for the new identity.')
 
     p.add_argument('--pin-entry-binary', type=str, default='pinentry',
                    help='Path to PIN entry UI helper.')
