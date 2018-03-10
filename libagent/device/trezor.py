@@ -52,8 +52,10 @@ class Trezor(interface.Device):
         if self.ui is None:
             return
 
-        def new_handler(_):
+        def new_handler(msg):
             try:
+                if msg.on_device is True:
+                    return self._defs.PassphraseAck()
                 if self.__class__.cached_passphrase_ack:
                     log.debug('re-using cached %s passphrase', self)
                     return self.__class__.cached_passphrase_ack
