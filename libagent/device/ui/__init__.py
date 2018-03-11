@@ -30,9 +30,11 @@ def _create_default_options_getter():
 class UI(object):
     """UI for PIN/passphrase entry (for TREZOR devices)."""
 
-    def __init__(self, device_type, config):
+    def __init__(self, device_type, config=None):
         """C-tor."""
         default_pinentry = 'pinentry'  # by default, use GnuPG pinentry tool
+        if config is None:
+            config = {}
         self.pin_entry_binary = config.get('pin_entry_binary',
                                            default_pinentry)
         self.passphrase_entry_binary = config.get('passphrase_entry_binary',
