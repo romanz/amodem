@@ -115,3 +115,9 @@ def test_memoize():
     assert g(1) == g(1)
     assert g(1) != g(2)
     assert f.mock_calls == [mock.call(1), mock.call(2)]
+
+
+def test_assuan_serialize():
+    assert util.assuan_serialize(b'') == b''
+    assert util.assuan_serialize(b'123\n456') == b'123%0A456'
+    assert util.assuan_serialize(b'\r\n') == b'%0D%0A'

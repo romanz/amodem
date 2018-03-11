@@ -229,3 +229,11 @@ def which(cmd):
         raise OSError('Cannot find {!r} in $PATH'.format(cmd))
     log.debug('which %r => %r', cmd, full_path)
     return full_path
+
+
+def assuan_serialize(data):
+    """Serialize data according to ASSUAN protocol (for GPG daemon communication)."""
+    for c in [b'%', b'\n', b'\r']:
+        escaped = '%{:02X}'.format(ord(c)).encode('ascii')
+        data = data.replace(c, escaped)
+    return data

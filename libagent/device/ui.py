@@ -4,7 +4,7 @@ import logging
 import os
 import subprocess
 
-from ..gpg import agent
+from .. import util
 
 log = logging.getLogger(__name__)
 
@@ -93,17 +93,17 @@ def interact(title, description, prompt, binary, options):
                          env=os.environ)
     expect(p, [b'OK'])
 
-    title = agent.serialize(title.encode('ascii'))
+    title = util.assuan_serialize(title.encode('ascii'))
     write(p, b'SETTITLE ' + title + b'\n')
     expect(p, [b'OK'])
 
     if description:
-        description = agent.serialize(description.encode('ascii'))
+        description = util.assuan_serialize(description.encode('ascii'))
         write(p, b'SETDESC ' + description + b'\n')
         expect(p, [b'OK'])
 
     if prompt:
-        prompt = agent.serialize(prompt.encode('ascii'))
+        prompt = util.assuan_serialize(prompt.encode('ascii'))
         write(p, b'SETPROMPT ' + prompt + b'\n')
         expect(p, [b'OK'])
 

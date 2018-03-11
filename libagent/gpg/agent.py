@@ -21,25 +21,17 @@ def yield_connections(sock):
         yield conn
 
 
-def serialize(data):
-    """Serialize data according to ASSUAN protocol."""
-    for c in [b'%', b'\n', b'\r']:
-        escaped = '%{:02X}'.format(ord(c)).encode('ascii')
-        data = data.replace(c, escaped)
-    return data
-
-
 def sig_encode(r, s):
     """Serialize ECDSA signature data into GPG S-expression."""
-    r = serialize(util.num2bytes(r, 32))
-    s = serialize(util.num2bytes(s, 32))
+    r = util.assuan_serialize(util.num2bytes(r, 32))
+    s = util.assuan_serialize(util.num2bytes(s, 32))
     return b'(7:sig-val(5:ecdsa(1:r32:' + r + b')(1:s32:' + s + b')))'
 
 
 def _serialize_point(data):
     prefix = '{}:'.format(len(data)).encode('ascii')
     # https://www.gnupg.org/documentation/manuals/assuan/Server-responses.html
-    return b'(5:value' + serialize(prefix + data) + b')'
+    return b'(5:value' + util.assuan_serialize(prefix + data) + b')'
 
 
 def parse_ecdh(line):
