@@ -18,7 +18,7 @@ setup(
     version='1.13.1',
     description='Audio Modem Communication Library',
     author='Roman Zeyde',
-    author_email='roman.zeyde@gmail.com',
+    author_email='dev@romanzey.de',
     license='MIT',
     url='http://github.com/romanz/amodem',
     packages=['amodem'],
@@ -27,7 +27,7 @@ setup(
     install_requires=['numpy', 'six'],
     platforms=['POSIX'],
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'Intended Audience :: Information Technology',
         'License :: OSI Approved :: MIT License',
