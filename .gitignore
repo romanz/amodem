@@ -24,4 +24,5 @@ htmlcov
 *_ext.so
 /.tox
 /dist
+/deb_dist
 *.html
