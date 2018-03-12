@@ -6,6 +6,8 @@ SSH requires no configuration, but you may put common command line options in `~
 
 See `(trezor|keepkey|ledger)-agent -h` for details on supported options and the configuration file format.
 
+If you'd like a Trezor-style PIN entry program, follow [these instructions](README-PINENTRY.md).
+
 ## 2. Usage
 
 Use the `(trezor|keepkey|ledger)-agent` program to work with SSH. It has three main modes of operation:
@@ -113,6 +115,7 @@ Requires=trezor-ssh-agent.socket
 
 [Service]
 Type=Simple
+Environment="PATH=/bin:/usr/bin:/usr/local/bin:%h/.local/bin"
 ExecStart=/usr/bin/trezor-agent --foreground --sock-path %t/trezor-agent/S.ssh IDENTITY
 ````
 
