@@ -65,10 +65,6 @@ gpg (GnuPG) 2.1.15
     $ pip3 install --user -e trezor-agent/agents/trezor
     ```
 
-    Read [these instructions](https://github.com/romanz/python-trezor#pin-entering) on how to enter your PIN with the default PIN entry.
-
-    If you'd like a Trezor-style PIN entry program, follow [these instructions](README-PINENTRY.md).
-
 # 3. Install the KeepKey agent
 
 1. Make sure you are running the latest firmware version on your KeepKey:
@@ -88,8 +84,6 @@ Then, install the latest [keepkey_agent](https://pypi.python.org/pypi/keepkey_ag
     $ git clone https://github.com/romanz/trezor-agent
     $ pip3 install --user -e trezor-agent/agents/keepkey
     ```
-
-    Read [these instructions](https://github.com/romanz/python-trezor#pin-entering) on how to enter your PIN with the default PIN entry.
 
 # 4. Install the Ledger Nano S agent
 
