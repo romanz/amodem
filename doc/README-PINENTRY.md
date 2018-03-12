@@ -2,7 +2,7 @@
 
 By default a standard GPG PIN entry program is used when entering your Trezor PIN, but it's difficult to use if you don't have a numeric keypad or want to use your mouse.
 
-You can specify a custom PIN entry program (and separately, a passphrase entry program) such as [trezor-gpg-pinentry-tk](https://github.com/rendaw/trezor-gpg-pinentry-tk) to match your workflow.
+You can specify a custom PIN entry program such as [trezor-gpg-pinentry-tk](https://github.com/rendaw/trezor-gpg-pinentry-tk) (and separately, a passphrase entry program) to match your workflow.
 
 The below examples use `trezor-gpg-pinentry-tk` but any GPG compatible PIN entry can be used.
 
