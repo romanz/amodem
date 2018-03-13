@@ -65,8 +65,6 @@ gpg (GnuPG) 2.1.15
     $ pip3 install --user -e trezor-agent/agents/trezor
     ```
 
-    Read [these instructions](https://github.com/romanz/python-trezor#pin-entering) on how to enter your PIN with the PIN entry.
-
 # 3. Install the KeepKey agent
 
 1. Make sure you are running the latest firmware version on your KeepKey:
