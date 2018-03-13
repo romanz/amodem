@@ -113,8 +113,12 @@ Requires=trezor-ssh-agent.socket
 
 [Service]
 Type=Simple
+Environment="GNUPGHOME=%h/.gnupg/trezor"
+Environment="PATH=/bin:/usr/bin:/usr/local/bin:%h/.local/bin"
 ExecStart=/usr/bin/trezor-agent --foreground --sock-path %t/trezor-agent/S.ssh IDENTITY
 ````
+
+If you've installed `trezor-agent` locally you may have to change the path in `ExecStart=`.
 
 Replace `IDENTITY` with the identity you used when exporting the public key.
 

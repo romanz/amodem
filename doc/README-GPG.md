@@ -181,3 +181,54 @@ Press <enter> to keep the current choice[*], or type selection number: 0
 ### Sign and decrypt email
 
 Follow [these instructions](enigmail.md) to set up Enigmail in Thunderbird.
+
+### Start the agent as a systemd unit
+
+##### 1. Create these files in `~/.config/systemd/user`
+
+Replace `trezor` with `keepkey` or `ledger` as required.
+
+###### `trezor-gpg-agent.service`
+
+````
+[Unit]
+Description=trezor-gpg-agent
+Requires=trezor-gpg-agent.socket
+
+[Service]
+Type=Simple
+Environment="GNUPGHOME=%h/.gnupg/trezor"
+Environment="PATH=/bin:/usr/bin:/usr/local/bin:%h/.local/bin"
+ExecStart=/usr/bin/trezor-gpg-agent -vv
+````
+
+If you've installed `trezor-agent` locally you may have to change the path in `ExecStart=`.
+
+###### `trezor-gpg-agent.socket`
+
+````
+[Unit]
+Description=trezor-gpg-agent socket
+
+[Socket]
+ListenStream=%t/gnupg/S.gpg-agent
+FileDescriptorName=std
+SocketMode=0600
+DirectoryMode=0700
+
+[Install]
+WantedBy=sockets.target
+````
+
+##### 2. Stop trezor-gpg-agent if it's already running
+
+```
+killall trezor-gpg-agent
+```
+
+##### 3. Run
+
+```
+systemctl --user start trezor-gpg-agent.service trezor-gpg-agent.socket
+systemctl --user enable trezor-gpg-agent.socket
+```
