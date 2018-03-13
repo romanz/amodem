@@ -75,6 +75,10 @@ def write(p, line):
     p.stdin.flush()
 
 
+class UnexpectedError(Exception):
+    """Unexpected response."""
+
+
 def expect(p, prefixes):
     """Read a line and return it without required prefix."""
     resp = p.stdout.readline()
@@ -82,7 +86,7 @@ def expect(p, prefixes):
     for prefix in prefixes:
         if resp.startswith(prefix):
             return resp[len(prefix):]
-    raise ValueError('Unexpected response: {}'.format(resp))
+    raise UnexpectedError(resp)
 
 
 def interact(title, description, prompt, binary, options):
