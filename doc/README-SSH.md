@@ -113,6 +113,7 @@ Requires=trezor-ssh-agent.socket
 
 [Service]
 Type=Simple
+Environment="DISPLAY=:0"
 Environment="GNUPGHOME=%h/.gnupg/trezor"
 Environment="PATH=/bin:/usr/bin:/usr/local/bin:%h/.local/bin"
 ExecStart=/usr/bin/trezor-agent --foreground --sock-path %t/trezor-agent/S.ssh IDENTITY
