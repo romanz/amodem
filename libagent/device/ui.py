@@ -91,10 +91,12 @@ def expect(p, prefixes, confidential=False):
 
 def interact(title, description, prompt, binary, options):
     """Use GPG pinentry program to interact with the user."""
-    p = subprocess.Popen(args=[binary],
+    args = [binary]
+    p = subprocess.Popen(args=args,
                          stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE,
                          env=os.environ)
+    p.args = args  # TODO: remove after Python 2 deprecation.
     expect(p, [b'OK'])
 
     title = util.assuan_serialize(title.encode('ascii'))
