@@ -79,10 +79,10 @@ class UnexpectedError(Exception):
     """Unexpected response."""
 
 
-def expect(p, prefixes):
+def expect(p, prefixes, confidential=False):
     """Read a line and return it without required prefix."""
     resp = p.stdout.readline()
-    log.debug('%s -> %r', p.args, resp)
+    log.debug('%s -> %r', p.args, resp if not confidential else '********')
     for prefix in prefixes:
         if resp.startswith(prefix):
             return resp[len(prefix):]
@@ -117,7 +117,7 @@ def interact(title, description, prompt, binary, options):
         expect(p, [b'OK', b'ERR'])
 
     write(p, b'GETPIN\n')
-    pin = expect(p, [b'OK', b'D '])
+    pin = expect(p, [b'OK', b'D '], confidential=True)
 
     p.communicate()  # close stdin and wait for the process to exit
     exit_code = p.wait()
