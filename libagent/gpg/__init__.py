@@ -228,9 +228,10 @@ def run_agent(device_type):
         pubkey_bytes = keyring.export_public_keys(env=env)
         device_type.ui = device.ui.UI(device_type=device_type,
                                       config=vars(args))
-        handler = agent.Handler(device=device_type(), pubkey_bytes=pubkey_bytes)
         with server.unix_domain_socket_server(sock_path) as sock:
             for conn in agent.yield_connections(sock):
+                handler = agent.Handler(device=device_type(),
+                                        pubkey_bytes=pubkey_bytes)
                 with contextlib.closing(conn):
                     try:
                         handler.handle(conn)

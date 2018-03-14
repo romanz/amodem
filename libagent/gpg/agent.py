@@ -79,6 +79,7 @@ class Handler(object):
     def __init__(self, device, pubkey_bytes):
         """C-tor."""
         self.reset()
+        self.options = []
         device.ui.options_getter = self._get_options
         self.client = client.Client(device=device)
         # Cache public keys from GnuPG
@@ -108,7 +109,6 @@ class Handler(object):
         self.keygrip = None
         self.digest = None
         self.algo = None
-        self.options = []
 
     def handle_option(self, opt):
         """Store GPG agent-related options (e.g. for pinentry)."""
