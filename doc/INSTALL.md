@@ -14,9 +14,14 @@ You can install them on these distributions as follows:
 
     $ apt-get install python3-pip python3-dev python3-tk libusb-1.0-0-dev libudev-dev
 
-##### Fedora/RedHat
+##### RedHat
 
     $ yum install python3-pip python3-devel python3-tk libusb-devel libudev-devel \
+                  gcc redhat-rpm-config
+
+##### Fedora
+
+    $ dnf install python3-pip python3-devel python3-tk libusb-devel libudev-devel \
                   gcc redhat-rpm-config
 
 ##### OpenSUSE
@@ -55,6 +60,7 @@ gpg (GnuPG) 2.1.15
 3. Then, install the latest [trezor_agent](https://pypi.python.org/pypi/trezor_agent) package:
 
     ```
+    $ pip3 install Cython
     $ pip3 install trezor_agent
     ```
 
