@@ -47,6 +47,7 @@ class Trezor(interface.Device):
         conn.callback_PinMatrixRequest = new_handler
 
     cached_passphrase_ack = None
+    cached_state = None
 
     def _override_passphrase_handler(self, conn):
         if self.ui is None:
@@ -77,6 +78,14 @@ class Trezor(interface.Device):
 
         conn.callback_PassphraseRequest = new_handler
 
+    def _override_state_handler(self, conn):
+        def callback_PassphraseStateRequest(msg):
+            log.debug('caching state from %r', msg)
+            self.__class__.cached_state = msg.state
+            return self._defs.PassphraseStateAck()
+
+        conn.callback_PassphraseStateRequest = callback_PassphraseStateRequest
+
     def _verify_version(self, connection):
         f = connection.features
         log.debug('connected to %s %s', self, f.device_id)
@@ -100,10 +109,12 @@ class Trezor(interface.Device):
             raise interface.NotFoundError('{} not connected'.format(self))
 
         log.debug('transports: %s', transports)
-        for _ in range(5):
-            connection = self._defs.Client(transports[0])
+        for _ in range(5):  # Retry a few times in case of PIN failures
+            connection = self._defs.Client(transport=transports[0],
+                                           state=self.__class__.cached_state)
             self._override_pin_handler(connection)
             self._override_passphrase_handler(connection)
+            self._override_state_handler(connection)
             self._verify_version(connection)
 
             try:

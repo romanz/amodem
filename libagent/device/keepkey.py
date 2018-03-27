@@ -32,6 +32,9 @@ class KeepKey(trezor.Trezor):
 
     required_version = '>=1.0.4'
 
+    def _override_state_handler(self, _):
+        """No support for `state` handling on Keepkey."""
+
     def pubkey(self, identity, ecdh=False):
         """Return public key."""
         _verify_support(identity, ecdh)
