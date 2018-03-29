@@ -33,6 +33,12 @@ If you are using python3 or your system `pip` command points to `pip3.x`
 dependencies instead:
 
     $ zypper install python3-pip python3-devel python3-tk libusb-1_0-devel libudev-devel
+    
+##### macOS
+
+There are many different options to install python environment on macOS ([official](https://www.python.org/downloads/mac-osx/), [anaconda](https://conda.io/docs/user-guide/install/macos.html), ..). Most importantly you need `libusb`. Probably the easiest way is via [homebrew](https://brew.sh/)
+
+    $ brew install libusb
 
 ### GPG
 
