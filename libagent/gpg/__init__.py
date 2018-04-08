@@ -191,7 +191,8 @@ fi
                 '--import-ownertrust', f.name])
 
     # Load agent and make sure it responds with the new identity
-    check_call([gpg_binary, '--list-secret-keys'], env={'GNUPGHOME': homedir})
+    check_call([gpg_binary, '--list-secret-keys', args.user_id],
+               env={'GNUPGHOME': homedir})
 
 
 def run_unlock(device_type, args):
