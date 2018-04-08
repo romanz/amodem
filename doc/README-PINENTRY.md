@@ -61,3 +61,9 @@ killall trezor-gpg-agent
 Any problems running the PIN entry program with GPG should appear in `$HOME/.gnupg/trezor/gpg-agent.log`.
 
 You can get similar logs for SSH by specifying `--log-file` in the SSH command line.
+
+The passphrase is cached by the agent (after its first entry), which needs to be restarted in order to reset the passphrase:
+```
+$ killall trezor-agent  	# (for SSH)
+$ killall trezor-gpg-agent	# (for GPG)
+```
