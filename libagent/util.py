@@ -215,6 +215,24 @@ def memoize(func):
     return wrapper
 
 
+def memoize_method(method):
+    """Simple caching decorator."""
+    cache = {}
+
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):
+        """Caching wrapper."""
+        key = (args, tuple(sorted(kwargs.items())))
+        if key in cache:
+            return cache[key]
+        else:
+            result = method(self, *args, **kwargs)
+            cache[key] = result
+            return result
+
+    return wrapper
+
+
 @memoize
 def which(cmd):
     """Return full path to specified command, or raise OSError if missing."""

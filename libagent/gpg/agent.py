@@ -124,7 +124,7 @@ class Handler(object):
             raise AgentError(b'ERR 100696144 No such device <SCD>')
         keyring.sendline(conn, b'D ' + reply)
 
-    @util.memoize
+    @util.memoize_method  # global cache for key grips
     def get_identity(self, keygrip):
         """
         Returns device.interface.Identity that matches specified keygrip.
@@ -171,7 +171,6 @@ class Handler(object):
         ec_point = self.client.ecdh(identity=identity, pubkey=remote_pubkey)
         keyring.sendline(conn, b'D ' + _serialize_point(ec_point))
 
-    @util.memoize
     def have_key(self, *keygrips):
         """Check if any keygrip corresponds to a TREZOR-based key."""
         for keygrip in keygrips:
