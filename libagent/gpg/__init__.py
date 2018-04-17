@@ -202,11 +202,25 @@ def run_unlock(device_type, args):
         log.info('unlocked %s device', d)
 
 
+def _server_from_assuan_fd(env):
+    fd = os.environ.get('_assuan_connection_fd')
+    if fd is not None:
+        log.info('using fd=%r for UNIX socket server', fd)
+        return server.unix_domain_socket_server_from_fd(int(fd))
+
+
+def _server_from_sock_path(env):
+    sock_path = keyring.get_agent_sock_path(env=env)
+    return server.unix_domain_socket_server(sock_path)
+
+
 def run_agent(device_type):
     """Run a simple GPG-agent server."""
     p = argparse.ArgumentParser()
     p.add_argument('--homedir', default=os.environ.get('GNUPGHOME'))
     p.add_argument('-v', '--verbose', default=0, action='count')
+    p.add_argument('--server', default=False, action='store_true',
+                   help='Use stdin/stdout for communication with GPG.')
 
     p.add_argument('--pin-entry-binary', type=str, default='pinentry',
                    help='Path to PIN entry UI helper.')
@@ -225,22 +239,30 @@ def run_agent(device_type):
     log.debug('pid: %d, parent pid: %d', os.getpid(), os.getppid())
     try:
         env = {'GNUPGHOME': args.homedir}
-        sock_path = keyring.get_agent_sock_path(env=env)
         pubkey_bytes = keyring.export_public_keys(env=env)
         device_type.ui = device.ui.UI(device_type=device_type,
                                       config=vars(args))
-        with server.unix_domain_socket_server(sock_path) as sock:
+        handler = agent.Handler(device=device_type(),
+                                pubkey_bytes=pubkey_bytes)
+
+        sock_server = _server_from_assuan_fd(os.environ)
+        if sock_server is None:
+            sock_server = _server_from_sock_path(env)
+
+        with sock_server as sock:
             for conn in agent.yield_connections(sock):
-                handler = agent.Handler(device=device_type(),
-                                        pubkey_bytes=pubkey_bytes)
                 with contextlib.closing(conn):
                     try:
                         handler.handle(conn)
                     except agent.AgentStop:
                         log.info('stopping gpg-agent')
                         return
+                    except IOError as e:
+                        log.info('connection closed: %s', e)
+                        return
                     except Exception as e:  # pylint: disable=broad-except
                         log.exception('handler failed: %s', e)
+
     except Exception as e:  # pylint: disable=broad-except
         log.exception('gpg-agent failed: %s', e)
 

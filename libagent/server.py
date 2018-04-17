@@ -39,6 +39,35 @@ def unix_domain_socket_server(sock_path):
         remove_file(sock_path)
 
 
+class FDServer(object):
+    def __init__(self, fd):
+        self.fd = fd
+        self.sock = socket.fromfd(fd, socket.AF_UNIX, socket.SOCK_STREAM)
+
+    def accept(self):
+        return self, None
+
+    def recv(self, n):
+        return self.sock.recv(n)
+
+    def sendall(self, data):
+        return self.sock.sendall(data)
+
+    def close(self):
+        pass
+
+    def settimeout(self, _):
+        pass
+
+    def getsockname(self):
+        return '<fd: {}>'.format(self.fd)
+
+
+@contextlib.contextmanager
+def unix_domain_socket_server_from_fd(fd):
+    yield FDServer(fd)
+
+
 def handle_connection(conn, handler, mutex):
     """
     Handle a single connection using the specified protocol handler in a loop.
