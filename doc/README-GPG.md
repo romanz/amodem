@@ -70,6 +70,21 @@ $ git tag v1.2.3 --sign                      # create GPG-signed tag
 $ git tag v1.2.3 --verify                    # verify tag signature
 ```
 
+Note that your git email has to correlate to your gpg key email. If you use a different email for git, you'll need to either generate a new gpg key for that email or set your git email using the command:
+
+````
+$ git config  user.email foo@example.com
+````
+
+If your git email is configured incorrectly, you will receive the error:
+
+````
+error: gpg failed to sign the data
+fatal: failed to write commit object
+````
+
+when committing to git.
+
 ### Manage passwords
 
 Password managers such as [pass](https://www.passwordstore.org/) and [gopass](https://www.justwatch.com/gopass/) rely on GPG for encryption so you can use your device with them too.
