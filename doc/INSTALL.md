@@ -76,6 +76,12 @@ gpg (GnuPG) 2.1.15
     $ git clone https://github.com/romanz/trezor-agent
     $ pip3 install --user -e trezor-agent/agents/trezor
     ```
+    
+    Or, through Homebrew on macOS:
+
+    ```
+    $ brew install trezor-agent
+    ```
 
 # 3. Install the KeepKey agent
 
