@@ -21,7 +21,7 @@ You can install them on these distributions as follows:
 
 ##### Fedora
 
-    $ dnf install python3-pip python3-devel python3-tk libusb-devel libudev-devel \
+    $ dnf install python3-pip python3-devel python3-tkinter libusb-devel libudev-devel \
                   gcc redhat-rpm-config
 
 ##### OpenSUSE
