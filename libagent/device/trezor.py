@@ -7,6 +7,7 @@ import mnemonic
 import semver
 
 from . import interface
+from .. import util
 
 log = logging.getLogger(__name__)
 
@@ -46,7 +47,8 @@ class Trezor(interface.Device):
 
         conn.callback_PinMatrixRequest = new_handler
 
-    cached_passphrase_ack = None
+    # Remembers the passphrase for an hour.
+    cached_passphrase_ack = util.ExpiringCache(seconds=60*60)
     cached_state = None
 
     def _override_passphrase_handler(self, conn):
@@ -57,9 +59,10 @@ class Trezor(interface.Device):
             try:
                 if msg.on_device is True:
                     return self._defs.PassphraseAck()
-                if self.__class__.cached_passphrase_ack:
+                ack = self.__class__.cached_passphrase_ack.get()
+                if ack:
                     log.debug('re-using cached %s passphrase', self)
-                    return self.__class__.cached_passphrase_ack
+                    return ack
 
                 passphrase = self.ui.get_passphrase()
                 passphrase = mnemonic.Mnemonic.normalize_string(passphrase)
@@ -70,7 +73,7 @@ class Trezor(interface.Device):
                     msg = 'Too long passphrase ({} chars)'.format(length)
                     raise ValueError(msg)
 
-                self.__class__.cached_passphrase_ack = ack
+                self.__class__.cached_passphrase_ack.set(ack)
                 return ack
             except:  # noqa
                 conn.init_device()
