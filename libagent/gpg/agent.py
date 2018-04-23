@@ -92,7 +92,7 @@ class Handler(object):
             b'OPTION': lambda _, args: self.handle_option(*args),
             b'SETKEYDESC': None,
             b'NOP': None,
-            b'GETINFO': lambda conn, _: keyring.sendline(conn, b'D ' + self.version),
+            b'GETINFO': self.handle_getinfo,
             b'AGENT_ID': lambda conn, _: keyring.sendline(conn, b'D TREZOR'),  # "Fake" agent ID
             b'SIGKEY': lambda _, args: self.set_key(*args),
             b'SETKEY': lambda _, args: self.set_key(*args),
@@ -114,6 +114,10 @@ class Handler(object):
         """Store GPG agent-related options (e.g. for pinentry)."""
         self.options.append(opt)
         log.debug('options: %s', self.options)
+
+    def handle_getinfo(self, conn, _args):
+        """Handle some of the GETINFO messages."""
+        keyring.sendline(conn, b'D ' + self.version)
 
     def handle_scd(self, conn, args):
         """No support for smart-card device protocol."""
