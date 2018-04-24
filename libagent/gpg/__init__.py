@@ -147,6 +147,7 @@ export PATH={0}
 -vv \
 --pin-entry-binary={pin_entry_binary} \
 --passphrase-entry-binary={passphrase_entry_binary} \
+--cache-expiry-seconds={cache_expiry_seconds} \
 $*
 """.format(os.environ['PATH'], agent_path, **vars(args)))
     check_call(['chmod', '700', f.name])
@@ -212,6 +213,8 @@ def run_agent(device_type):
                    help='Path to PIN entry UI helper.')
     p.add_argument('--passphrase-entry-binary', type=str, default='pinentry',
                    help='Path to passphrase entry UI helper.')
+    p.add_argument('--cache-expiry-seconds', type=float, default=float('inf'),
+                   help='Expire passphrase from cache after this duration.')
 
     args, _ = p.parse_known_args()
 
@@ -229,6 +232,8 @@ def run_agent(device_type):
         pubkey_bytes = keyring.export_public_keys(env=env)
         device_type.ui = device.ui.UI(device_type=device_type,
                                       config=vars(args))
+        device_type.cached_passphrase_ack = util.ExpiringCache(
+            seconds=float(args.cache_expiry_seconds))
         with server.unix_domain_socket_server(sock_path) as sock:
             for conn in agent.yield_connections(sock):
                 handler = agent.Handler(device=device_type(),
@@ -274,6 +279,8 @@ def main(device_type):
                    help='Path to PIN entry UI helper.')
     p.add_argument('--passphrase-entry-binary', type=str, default='pinentry',
                    help='Path to passphrase entry UI helper.')
+    p.add_argument('--cache-expiry-seconds', type=float, default=float('inf'),
+                   help='Expire passphrase from cache after this duration.')
 
     p.set_defaults(func=run_init)
 
@@ -283,5 +290,7 @@ def main(device_type):
 
     args = parser.parse_args()
     device_type.ui = device.ui.UI(device_type=device_type, config=vars(args))
+    device_type.cached_passphrase_ack = util.ExpiringCache(
+        seconds=float(args.cache_expiry_seconds))
 
     return args.func(device_type=device_type, args=args)
