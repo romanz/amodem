@@ -89,6 +89,8 @@ def create_agent_parser(device_type):
                    help='Path to PIN entry UI helper.')
     p.add_argument('--passphrase-entry-binary', type=str, default='pinentry',
                    help='Path to passphrase entry UI helper.')
+    p.add_argument('--cache-expiry-seconds', type=float, default=float('inf'),
+                   help='Expire passphrase from cache after this duration.')
 
     g = p.add_mutually_exclusive_group()
     g.add_argument('-d', '--daemonize', default=False, action='store_true',
@@ -274,6 +276,8 @@ def main(device_type):
 
     # override default PIN/passphrase entry tools (relevant for TREZOR/Keepkey):
     device_type.ui = device.ui.UI(device_type=device_type, config=vars(args))
+    device_type.cached_passphrase_ack = util.ExpiringCache(
+        args.cache_expiry_seconds)
 
     conn = JustInTimeConnection(
         conn_factory=lambda: client.Client(device_type()),

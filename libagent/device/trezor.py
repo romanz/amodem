@@ -47,8 +47,7 @@ class Trezor(interface.Device):
 
         conn.callback_PinMatrixRequest = new_handler
 
-    # Remembers the passphrase for an hour.
-    cached_passphrase_ack = util.ExpiringCache(seconds=60*60)
+    cached_passphrase_ack = util.ExpiringCache(seconds=float('inf'))
     cached_state = None
 
     def _override_passphrase_handler(self, conn):
