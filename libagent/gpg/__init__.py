@@ -180,7 +180,8 @@ fi
     pubkey = write_file(os.path.join(homedir, 'pubkey.asc'),
                         export_public_key(device_type, args))
     gpg_binary = keyring.get_gnupg_binary()
-    check_call([gpg_binary, '--homedir', homedir, '--quiet',
+    verbosity = ('-' + ('v' * args.verbose)) if args.verbose else '--quiet'
+    check_call([gpg_binary, '--homedir', homedir, verbosity,
                 '--import', pubkey.name])
 
     # Make new GPG identity with "ultimate" trust (via its fingerprint)
