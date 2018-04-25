@@ -102,6 +102,7 @@ class Handler(object):
             b'HAVEKEY': lambda _, args: self.have_key(*args),
             b'KEYINFO': _key_info,
             b'SCD': self.handle_scd,
+            b'GET_PASSPHRASE': self.handle_get_passphrase,
         }
 
     def reset(self):
@@ -115,9 +116,26 @@ class Handler(object):
         self.options.append(opt)
         log.debug('options: %s', self.options)
 
-    def handle_getinfo(self, conn, _args):
+    def handle_get_passphrase(self, conn, args):
+        passphrase = self.client.device.ui.get_passphrase('Symmetric encryption')
+        result = b'D ' + util.assuan_serialize(passphrase.encode('ascii'))
+        keyring.sendline(conn, result, confidential=True)
+
+    def handle_getinfo(self, conn, args):
         """Handle some of the GETINFO messages."""
-        keyring.sendline(conn, b'D ' + self.version)
+        result = None
+        if args[0] == b'version':
+            result = self.version
+        elif args[0] == b's2k_count':
+            # Use highest number of S2K iterations.
+            # https://www.gnupg.org/documentation/manuals/gnupg/OpenPGP-Options.html
+            # https://tools.ietf.org/html/rfc4880#section-3.7.1.3
+            result = '{}'.format(64 << 20).encode('ascii')
+        else:
+            log.warning('Unknown GETINFO command: %s', args)
+
+        if result:
+            keyring.sendline(conn, b'D ' + result)
 
     def handle_scd(self, conn, args):
         """No support for smart-card device protocol."""
