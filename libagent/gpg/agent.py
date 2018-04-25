@@ -116,10 +116,15 @@ class Handler(object):
         self.options.append(opt)
         log.debug('options: %s', self.options)
 
-    def handle_get_passphrase(self, conn, args):
-        passphrase = self.client.device.ui.get_passphrase('Symmetric encryption')
-        result = b'D ' + util.assuan_serialize(passphrase.encode('ascii'))
-        keyring.sendline(conn, result, confidential=True)
+    def handle_get_passphrase(self, conn, _):
+        """Allow simple GPG symmetric encryption (using a passphrase)."""
+        p1 = self.client.device.ui.get_passphrase('Symmetric encryption')
+        p2 = self.client.device.ui.get_passphrase('Re-enter encryption')
+        if p1 == p2:
+            result = b'D ' + util.assuan_serialize(p1.encode('ascii'))
+            keyring.sendline(conn, result, confidential=True)
+        else:
+            log.warning('Passphrase does not match!')
 
     def handle_getinfo(self, conn, args):
         """Handle some of the GETINFO messages."""
