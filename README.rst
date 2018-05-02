@@ -225,6 +225,26 @@ After the receiver has finished, verify the received file's hash::
 
 You can see a screencast of the `data transfer process <https://asciinema.org/a/25066?autoplay=1>`_.
 
+I/O redirection
+---------------
+The audio can be written/read to an intermediate PCM file (instead of the speaker/microphone) using::
+
+    $ echo 123 | amodem send -o /tmp/file.pcm
+    Sending 0.800 seconds of training audio
+    Starting modulation
+    Sent 0.004 kB @ 0.113 seconds
+
+    $ amodem recv -i /tmp/file.pcm
+    Waiting for carrier tone: 2.0 kHz
+    Carrier detected at ~150.0 ms @ 2.0 kHz
+    Carrier coherence: 100.000%
+    Carrier symbols amplitude : 1.000
+    Frequency error: 0.000 ppm
+    Starting demodulation
+    123
+    Received 0.004 kB @ 0.011 seconds = 0.376 kB/s
+
+
 Visualization
 -------------
 Make sure that ``matplotlib`` package is installed, and run (at the receiver side)::
