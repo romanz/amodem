@@ -225,7 +225,7 @@ def _main():
     logging.basicConfig(level=level, format=fmt)
 
     # Parsing and execution
-    log.debug(description)
+    log.info(description)
 
     args.pylab = None
     if getattr(args, 'plot', False):
