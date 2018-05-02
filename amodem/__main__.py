@@ -236,7 +236,11 @@ def _main():
         from . import alsa
         interface = alsa.Interface(config)
     elif args.audio_library == '-':
-        interface = _Dummy()
+        interface = _Dummy()  # manually disable PortAudio
+    elif args.command == 'send' and args.output is not None:
+        interface = _Dummy()  # redirected output
+    elif args.command == 'recv' and args.input is not None:
+        interface = _Dummy()  # redirected input
     else:
         interface = audio.Interface(config)
         interface.load(args.audio_library)
