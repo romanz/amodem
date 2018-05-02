@@ -142,8 +142,7 @@ def create_parser(description, interface_factory):
     receiver = subparsers.add_parser(
         'recv', help='demodulate audio signal into binary data.')
     receiver.add_argument(
-        '-i', '--input', help='input file (use "-" for stdin).'
-        ' if not specified, `arecord` tool will be used.')
+        '-i', '--input', help='input file (use "-" for stdin).')
     receiver.add_argument(
         '-o', '--output', help='output file (use "-" for stdout).')
     receiver.add_argument(
