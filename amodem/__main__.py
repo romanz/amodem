@@ -8,7 +8,7 @@ import zlib
 
 import pkg_resources
 
-from . import async
+from . import async_reader
 from . import audio
 from . import calib
 from . import main
@@ -77,7 +77,7 @@ def FileType(mode, interface_factory=None):
             assert audio_interface is not None
             if 'r' in mode:
                 s = audio_interface.recorder()
-                return async.AsyncReader(stream=s, bufsize=s.bufsize)
+                return async_reader.AsyncReader(stream=s, bufsize=s.bufsize)
             if 'w' in mode:
                 return audio_interface.player()
 
