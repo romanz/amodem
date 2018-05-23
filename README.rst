@@ -64,9 +64,9 @@ on each 250 byte data frame.
 Installation
 ------------
 
-Make sure that ``numpy`` and ``PortAudio v19`` packages are installed (on Debian)::
+Make sure that all the required packages are installed (on Debian)::
 
-    $ sudo apt-get install python-numpy portaudio19-dev
+    $ sudo apt-get install python-numpy python-pip portaudio19-dev git
 
 Get the latest released version from PyPI::
 
