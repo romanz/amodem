@@ -95,6 +95,12 @@ Then, install the latest [keepkey_agent](https://pypi.python.org/pypi/keepkey_ag
     ```
     $ pip3 install keepkey_agent
     ```
+    
+    Or, on Mac using Homebrew:
+    
+    ```
+    $ homebrew install keepkey-agent
+    ```
 
     Or, directly from the latest source code:
 
