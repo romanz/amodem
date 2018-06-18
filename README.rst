@@ -45,6 +45,8 @@ find the optimal output volume for its sound card, which will not saturate the
 receiving microphone and provide good enough Signal-to-Noise ratio
 for the demodulation to succeed.
 
+HackerNews discussion: https://news.ycombinator.com/item?id=17333257
+
 Technical Details
 -----------------
 
