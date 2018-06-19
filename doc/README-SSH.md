@@ -161,7 +161,7 @@ export SSH_AUTH_SOCK=$(systemctl show --user --property=Listen trezor-ssh-agent.
 If SSH connection fails to work, please open an [issue](https://github.com/romanz/trezor-agent/issues)
 with a verbose log attached (by running `trezor-agent -vv`) .
 
-##### Incompatible SSH options
+##### `IdentitiesOnly` SSH option
 
 Note that your local SSH configuration may ignore `trezor-agent`, if it has `IdentitiesOnly` option set to `yes`.
 
@@ -172,6 +172,12 @@ Note that your local SSH configuration may ignore `trezor-agent`, if it has `Ide
              This option is intended for situations where ssh-agent offers many different identities.
              The default is “no”.
 
-If you are failing to connect, try running:
+If you are failing to connect, save your public key using:
 
-    $ trezor-agent -vv user@host -- ssh -vv -oIdentitiesOnly=no user@host
+	$ trezor-agent -vv foobar@hostname.com > ~/.ssh/hostname.pub
+
+And add the following lines to `~/.ssh/config` (providing the public key explicitly to SSH):
+
+	Host hostname.com
+		User foobar
+		IdentityFile ~/.ssh/hostname.pub
