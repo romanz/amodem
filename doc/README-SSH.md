@@ -181,3 +181,12 @@ And add the following lines to `~/.ssh/config` (providing the public key explici
 	Host hostname.com
 		User foobar
 		IdentityFile ~/.ssh/hostname.pub
+
+Then, the following commands should successfully command to the remote host:
+
+	$ trezor-agent -v foobar@hostname.com -s
+	$ ssh foobar@hostname.com
+
+or,
+
+	$ trezor-agent -v foobar@hostname.com -c
