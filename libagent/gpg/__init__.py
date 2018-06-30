@@ -253,7 +253,9 @@ def run_agent(device_type):
 
 def main(device_type):
     """Parse command-line arguments."""
-    parser = argparse.ArgumentParser()
+    epilog = ('See https://github.com/romanz/trezor-agent/blob/master/'
+              'doc/README-GPG.md for usage examples.')
+    parser = argparse.ArgumentParser(epilog=epilog)
 
     agent_package = device_type.package_name()
     resources_map = {r.key: r for r in pkg_resources.require(agent_package)}

@@ -65,7 +65,10 @@ def _to_unicode(s):
 
 def create_agent_parser(device_type):
     """Create an ArgumentParser for this tool."""
-    p = configargparse.ArgParser(default_config_files=['~/.ssh/agent.config'])
+    epilog = ('See https://github.com/romanz/trezor-agent/blob/master/'
+              'doc/README-SSH.md for usage examples.')
+    p = configargparse.ArgParser(default_config_files=['~/.ssh/agent.config'],
+                                 epilog=epilog)
     p.add_argument('-v', '--verbose', default=0, action='count')
 
     agent_package = device_type.package_name()
