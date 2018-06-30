@@ -178,21 +178,22 @@ fi
     # Generate new GPG identity and import into GPG keyring
     pubkey = write_file(os.path.join(homedir, 'pubkey.asc'),
                         export_public_key(device_type, args))
-    gpg_binary = keyring.get_gnupg_binary()
-    check_call([gpg_binary, '--homedir', homedir, '--quiet',
-                '--import', pubkey.name])
+    check_call(keyring.gpg_command(['--homedir', homedir, '--quiet',
+                                    '--import', pubkey.name]))
 
     # Make new GPG identity with "ultimate" trust (via its fingerprint)
-    out = check_output([gpg_binary, '--homedir', homedir, '--list-public-keys',
-                        '--with-fingerprint', '--with-colons'])
+    out = check_output(keyring.gpg_command(['--homedir', homedir,
+                                            '--list-public-keys',
+                                            '--with-fingerprint',
+                                            '--with-colons']))
     fpr = re.findall('fpr:::::::::([0-9A-F]+):', out)[0]
     f = write_file(os.path.join(homedir, 'ownertrust.txt'), fpr + ':6\n')
-    check_call([gpg_binary, '--homedir', homedir,
-                '--import-ownertrust', f.name])
+    check_call(keyring.gpg_command(['--homedir', homedir,
+                                    '--import-ownertrust', f.name]))
 
     # Load agent and make sure it responds with the new identity
-    check_call([gpg_binary, '--list-secret-keys', args.user_id],
-               env={'GNUPGHOME': homedir})
+    check_call(keyring.gpg_command(['--list-secret-keys', args.user_id,
+                                    '--homedir', homedir]))
 
 
 def run_unlock(device_type, args):
