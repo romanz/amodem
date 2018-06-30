@@ -86,7 +86,8 @@ def verify_gpg_version():
     required_gpg = '>=2.1.11'
     msg = 'Existing GnuPG has version "{}" ({} required)'.format(existing_gpg,
                                                                  required_gpg)
-    assert semver.match(existing_gpg, required_gpg), msg
+    if not semver.match(existing_gpg, required_gpg):
+        log.error('Your GnuPG version may be incompatible: %s', existing_gpg)
 
 
 def check_output(args):
