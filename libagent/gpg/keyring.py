@@ -225,7 +225,9 @@ def gpg_version(sp=subprocess):
     args = gpg_command(['--version'])
     output = check_output(args=args, sp=sp)
     line = output.split(b'\n')[0]  # b'gpg (GnuPG) 2.1.11'
-    return line.split(b' ')[-1]  # b'2.1.11'
+    line = line.split(b' ')[-1]  # b'2.1.11'
+    line = line.split(b'-')[0]  # remove trailing version parts
+    return line.split(b'v')[-1]  # remove 'v' prefix
 
 
 def export_public_key(user_id, env=None, sp=subprocess):
