@@ -198,16 +198,18 @@ def get_gnupg_components(sp=subprocess):
 
 
 @util.memoize
-def get_gnupg_binary(sp=subprocess):
+def get_gnupg_binary(sp=subprocess, neopg_binary=None):
     """Starting GnuPG 2.2.x, the default installation uses `gpg`."""
-    return get_gnupg_components(sp=sp)['gpg']
+    if neopg_binary:
+        return [neopg_binary, 'gpg2']
+    return [get_gnupg_components(sp=sp)['gpg']]
 
 
 def gpg_command(args, env=None):
     """Prepare common GPG command line arguments."""
     if env is None:
         env = os.environ
-    cmd = [get_gnupg_binary()]
+    cmd = get_gnupg_binary(neopg_binary=env.get('NEOPG_BINARY'))
     homedir = env.get('GNUPGHOME')
     if homedir:
         cmd.extend(['--homedir', homedir])
