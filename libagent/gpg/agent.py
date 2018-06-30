@@ -119,6 +119,7 @@ class Handler(object):
         """No support for smart-card device protocol."""
         reply = {
             (b'GETINFO', b'version'): self.version,
+            (b'SERIALNO', b'openpgp'): 'ERR 32848 GPG_ERR_UNKNOWN'
         }.get(args)
         if reply is None:
             raise AgentError(b'ERR 100696144 No such device <SCD>')
