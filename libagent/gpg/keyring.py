@@ -209,10 +209,7 @@ def gpg_command(args, env=None):
     """Prepare common GPG command line arguments."""
     if env is None:
         env = os.environ
-    cmd = get_gnupg_binary(neopg_binary=env.get('NEOPG_BINARY'))
-    homedir = env.get('GNUPGHOME')
-    if homedir:
-        cmd.extend(['--homedir', homedir])
+    cmd = get_gnupg_binary(neopg_binary=env.get('NEOPG_BINARY')).copy()
     return cmd + args
 
 
