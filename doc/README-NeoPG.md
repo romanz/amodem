@@ -2,7 +2,7 @@
 
 1. Download build and install NeoPG from [source code](https://github.com/das-labor/neopg#installation).
 
-2. Generate Ed25519-based identity (using a special wrapper to invoke TREZOR-based agent):
+2. Generate Ed25519-based identity (using a [special wrapper](https://github.com/romanz/trezor-agent/blob/c22109df24c6eb8263aa40183a016be3437b1a0c/contrib/neopg-trezor) to invoke TREZOR-based agent):
 
 ```bash
 $ export NEOPG_BINARY=$PWD/contrib/neopg-trezor
