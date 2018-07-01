@@ -8,4 +8,8 @@ binary = 'neopg'
 if sys.argv[1:2] == ['agent']:
     os.execvp(agent, [agent, '-vv'] + sys.argv[2:])
 else:
+    # HACK: pass this script's path as argv[0], so it will be invoked again
+    # when NeoPG tries to run its own agent:
+    # https://github.com/das-labor/neopg/blob/1fe50460abe01febb118641e37aa50bc429a1786/src/neopg.cpp#L114
+    # https://github.com/das-labor/neopg/blob/1fe50460abe01febb118641e37aa50bc429a1786/legacy/gnupg/common/asshelp.cpp#L217
     os.execvp(binary, [__file__, 'gpg2'] + sys.argv[1:])
