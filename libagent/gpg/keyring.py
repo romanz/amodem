@@ -201,7 +201,7 @@ def get_gnupg_components(sp=subprocess):
 def get_gnupg_binary(sp=subprocess, neopg_binary=None):
     """Starting GnuPG 2.2.x, the default installation uses `gpg`."""
     if neopg_binary:
-        return [neopg_binary, 'gpg2']
+        return [neopg_binary]
     return [get_gnupg_components(sp=sp)['gpg']]
 
 
