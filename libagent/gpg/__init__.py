@@ -148,6 +148,7 @@ export PATH={0}
 -vv \
 --pin-entry-binary={pin_entry_binary} \
 --passphrase-entry-binary={passphrase_entry_binary} \
+--cache-expiry-seconds={cache_expiry_seconds} \
 $*
 """.format(os.environ['PATH'], agent_path, **vars(args)))
     check_call(['chmod', '700', f.name])
@@ -179,7 +180,8 @@ fi
     # Generate new GPG identity and import into GPG keyring
     pubkey = write_file(os.path.join(homedir, 'pubkey.asc'),
                         export_public_key(device_type, args))
-    check_call(keyring.gpg_command(['--homedir', homedir, '--quiet',
+    verbosity = ('-' + ('v' * args.verbose)) if args.verbose else '--quiet'
+    check_call(keyring.gpg_command(['--homedir', homedir, verbosity,
                                     '--import', pubkey.name]))
 
     # Make new GPG identity with "ultimate" trust (via its fingerprint)
@@ -229,6 +231,8 @@ def run_agent(device_type):
                    help='Path to PIN entry UI helper.')
     p.add_argument('--passphrase-entry-binary', type=str, default='pinentry',
                    help='Path to passphrase entry UI helper.')
+    p.add_argument('--cache-expiry-seconds', type=float, default=float('inf'),
+                   help='Expire passphrase from cache after this duration.')
 
     args, _ = p.parse_known_args()
 
@@ -245,6 +249,8 @@ def run_agent(device_type):
         pubkey_bytes = keyring.export_public_keys(env=env)
         device_type.ui = device.ui.UI(device_type=device_type,
                                       config=vars(args))
+        device_type.cached_passphrase_ack = util.ExpiringCache(
+            seconds=float(args.cache_expiry_seconds))
         handler = agent.Handler(device=device_type(),
                                 pubkey_bytes=pubkey_bytes)
 
@@ -272,7 +278,9 @@ def run_agent(device_type):
 
 def main(device_type):
     """Parse command-line arguments."""
-    parser = argparse.ArgumentParser()
+    epilog = ('See https://github.com/romanz/trezor-agent/blob/master/'
+              'doc/README-GPG.md for usage examples.')
+    parser = argparse.ArgumentParser(epilog=epilog)
 
     agent_package = device_type.package_name()
     resources_map = {r.key: r for r in pkg_resources.require(agent_package)}
@@ -299,6 +307,8 @@ def main(device_type):
                    help='Path to PIN entry UI helper.')
     p.add_argument('--passphrase-entry-binary', type=str, default='pinentry',
                    help='Path to passphrase entry UI helper.')
+    p.add_argument('--cache-expiry-seconds', type=float, default=float('inf'),
+                   help='Expire passphrase from cache after this duration.')
 
     p.set_defaults(func=run_init)
 
@@ -308,5 +318,7 @@ def main(device_type):
 
     args = parser.parse_args()
     device_type.ui = device.ui.UI(device_type=device_type, config=vars(args))
+    device_type.cached_passphrase_ack = util.ExpiringCache(
+        seconds=float(args.cache_expiry_seconds))
 
     return args.func(device_type=device_type, args=args)

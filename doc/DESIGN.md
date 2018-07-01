@@ -12,11 +12,11 @@ So when you `ssh` to a machine - rather than consult the normal ssh-agent (which
 
 ## Key Naming
 
-`trezor-agent` goes to great length to avoid using the valuable parent key. 
+`trezor-agent` goes to great length to avoid using the valuable parent key.
 
-The rationale behind this is that `trezor-agent` is to some extent condemned to *blindly* signing any NONCE given to it (e.g. as part of a challenge respone, or as the hash/hmac of someting to sign). 
+The rationale behind this is that `trezor-agent` is to some extent condemned to *blindly* signing any NONCE given to it (e.g. as part of a challenge respone, or as the hash/hmac of someting to sign).
 
-And doing so with the master private key is risky - as rogue (ssh) server could possibly provide a doctored NONCE that happens to be tied to a transaction or something else. 
+And doing so with the master private key is risky - as rogue (ssh) server could possibly provide a doctored NONCE that happens to be tied to a transaction or something else.
 
 It therefore uses only derived child keys pairs instead (according to the [BIP-0032: Hierarchical Deterministic Wallets][1] system) - and ones on different leafs. So the parent key is only used within the device for creating the child keys - and not exposed in any way to `trezor-agent`.
 
@@ -26,7 +26,7 @@ It is common for SSH users to use one (or a few) private keys with SSH on all se
 
 So taking a commmand such as:
 
-	$ trezor-agent -c user@fqdn.com 
+	$ trezor-agent -c user@fqdn.com
 
 The `trezor-agent` will take the `user`@`fqdn.com`; canonicalise it (e.g. to add the ssh default port number if none was specified) and then apply some simple hashing (See [SLIP-0013 : Authentication using deterministic hierarchy][2]). The resulting 128bit hash is then used to construct a lead 'HD node' that contains an extened public private *child* key.
 
@@ -42,10 +42,10 @@ Note: Keepkey does not support en-/de-cryption at this time.
 
 ### Index
 
-The canonicalisation process ([SLIP-0013][2] and [SLIP-0017][3]) of an email address or ssh address allows for the mixing in of an extra 'index' - a unsigned 32 bit number. This allows one to have multiple, different keys, for the same address. 
+The canonicalisation process ([SLIP-0013][2] and [SLIP-0017][3]) of an email address or ssh address allows for the mixing in of an extra 'index' - a unsigned 32 bit number. This allows one to have multiple, different keys, for the same address.
 
 This feature is currently not used -- it is set to '0'. This may change in the future.
 
-[1]: https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki 
+[1]: https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki
 [2]: https://github.com/satoshilabs/slips/blob/master/slip-0013.md
 [3]: https://github.com/satoshilabs/slips/blob/master/slip-0017.md

@@ -92,7 +92,7 @@ class Handler(object):
             b'OPTION': lambda _, args: self.handle_option(*args),
             b'SETKEYDESC': None,
             b'NOP': None,
-            b'GETINFO': lambda conn, _: keyring.sendline(conn, b'D ' + self.version),
+            b'GETINFO': self.handle_getinfo,
             b'AGENT_ID': lambda conn, _: keyring.sendline(conn, b'D TREZOR'),  # "Fake" agent ID
             b'SIGKEY': lambda _, args: self.set_key(*args),
             b'SETKEY': lambda _, args: self.set_key(*args),
@@ -102,6 +102,7 @@ class Handler(object):
             b'HAVEKEY': lambda _, args: self.have_key(*args),
             b'KEYINFO': _key_info,
             b'SCD': self.handle_scd,
+            b'GET_PASSPHRASE': self.handle_get_passphrase,
         }
 
     def reset(self):
@@ -114,6 +115,32 @@ class Handler(object):
         """Store GPG agent-related options (e.g. for pinentry)."""
         self.options.append(opt)
         log.debug('options: %s', self.options)
+
+    def handle_get_passphrase(self, conn, _):
+        """Allow simple GPG symmetric encryption (using a passphrase)."""
+        p1 = self.client.device.ui.get_passphrase('Symmetric encryption')
+        p2 = self.client.device.ui.get_passphrase('Re-enter encryption')
+        if p1 == p2:
+            result = b'D ' + util.assuan_serialize(p1.encode('ascii'))
+            keyring.sendline(conn, result, confidential=True)
+        else:
+            log.warning('Passphrase does not match!')
+
+    def handle_getinfo(self, conn, args):
+        """Handle some of the GETINFO messages."""
+        result = None
+        if args[0] == b'version':
+            result = self.version
+        elif args[0] == b's2k_count':
+            # Use highest number of S2K iterations.
+            # https://www.gnupg.org/documentation/manuals/gnupg/OpenPGP-Options.html
+            # https://tools.ietf.org/html/rfc4880#section-3.7.1.3
+            result = '{}'.format(64 << 20).encode('ascii')
+        else:
+            log.warning('Unknown GETINFO command: %s', args)
+
+        if result:
+            keyring.sendline(conn, b'D ' + result)
 
     def handle_scd(self, conn, args):
         """No support for smart-card device protocol."""

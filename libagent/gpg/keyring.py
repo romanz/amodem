@@ -48,9 +48,9 @@ def communicate(sock, msg):
     return recvline(sock)
 
 
-def sendline(sock, msg):
+def sendline(sock, msg, confidential=False):
     """Send a binary message, followed by EOL."""
-    log.debug('<- %r', msg)
+    log.debug('<- %r', ('<snip>' if confidential else msg))
     sock.sendall(msg + b'\n')
 
 

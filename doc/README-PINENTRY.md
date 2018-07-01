@@ -9,7 +9,7 @@ $ apt install pinentry-{curses,gnome3,qt}
 or (on macOS):
 
 ```
-$ brew install pinentry-mac
+$ brew install pinentry
 ```
 
 By default a standard GPG PIN entry program is used when entering your Trezor PIN, but it's difficult to use if you don't have a numeric keypad or want to use your mouse.

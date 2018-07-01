@@ -21,7 +21,7 @@ You can install them on these distributions as follows:
 
 ##### Fedora
 
-    $ dnf install python3-pip python3-devel python3-tk libusb-devel libudev-devel \
+    $ dnf install python3-pip python3-devel python3-tkinter libusb-devel libudev-devel \
                   gcc redhat-rpm-config
 
 ##### OpenSUSE
@@ -33,7 +33,7 @@ If you are using python3 or your system `pip` command points to `pip3.x`
 dependencies instead:
 
     $ zypper install python3-pip python3-devel python3-tk libusb-1_0-devel libudev-devel
-    
+
 ##### macOS
 
 There are many different options to install python environment on macOS ([official](https://www.python.org/downloads/mac-osx/), [anaconda](https://conda.io/docs/user-guide/install/macos.html), ..). Most importantly you need `libusb`. Probably the easiest way is via [homebrew](https://brew.sh/)
@@ -77,6 +77,12 @@ gpg (GnuPG) 2.1.15
     $ pip3 install --user -e trezor-agent/agents/trezor
     ```
 
+    Or, through Homebrew on macOS:
+
+    ```
+    $ brew install trezor-agent
+    ```
+
 # 3. Install the KeepKey agent
 
 1. Make sure you are running the latest firmware version on your KeepKey:
@@ -88,6 +94,12 @@ Then, install the latest [keepkey_agent](https://pypi.python.org/pypi/keepkey_ag
 
     ```
     $ pip3 install keepkey_agent
+    ```
+
+    Or, on Mac using Homebrew:
+
+    ```
+    $ homebrew install keepkey-agent
     ```
 
     Or, directly from the latest source code:
