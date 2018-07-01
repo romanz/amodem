@@ -291,7 +291,7 @@ def main(device_type):
     p.add_argument('-v', '--verbose', default=0, action='count')
     p.add_argument('-s', '--subkey', default=False, action='store_true')
 
-    p.add_argument('--homedir', type=str,
+    p.add_argument('--homedir', type=str, default=os.environ.get('GNUPGHOME'),
                    help='Customize GnuPG home directory for the new identity.')
 
     p.add_argument('--pin-entry-binary', type=str, default='pinentry',
