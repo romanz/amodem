@@ -201,16 +201,16 @@ def get_gnupg_components(sp=subprocess):
 def get_gnupg_binary(sp=subprocess, neopg_binary=None):
     """Starting GnuPG 2.2.x, the default installation uses `gpg`."""
     if neopg_binary:
-        return [neopg_binary]
-    return [get_gnupg_components(sp=sp)['gpg']]
+        return neopg_binary
+    return get_gnupg_components(sp=sp)['gpg']
 
 
 def gpg_command(args, env=None):
     """Prepare common GPG command line arguments."""
     if env is None:
         env = os.environ
-    cmd = get_gnupg_binary(neopg_binary=env.get('NEOPG_BINARY')).copy()
-    return cmd + args
+    cmd = get_gnupg_binary(neopg_binary=env.get('NEOPG_BINARY'))
+    return [cmd] + args
 
 
 def get_keygrip(user_id, sp=subprocess):
