@@ -1,0 +1,12 @@
+#!/usr/bin/env python3
+import os
+import shutil
+import sys
+
+agent = 'trezor-gpg-agent'
+binary = 'neopg'
+
+if sys.argv[1:2] == ['agent']:
+    os.execvp(agent, [agent, '-vv'] + sys.argv[2:])
+else:
+    os.execvp(binary, [__file__, 'gpg2'] + sys.argv[1:])
