@@ -240,7 +240,7 @@ def run_agent(device_type):
     log.debug('os.environ: %s', os.environ)
     log.debug('pid: %d, parent pid: %d', os.getpid(), os.getppid())
     try:
-        env = {'GNUPGHOME': args.homedir}
+        env = {'GNUPGHOME': args.homedir, 'PATH': os.environ['PATH']}
         pubkey_bytes = keyring.export_public_keys(env=env)
         device_type.ui = device.ui.UI(device_type=device_type,
                                       config=vars(args))
