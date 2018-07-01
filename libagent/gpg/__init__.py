@@ -87,7 +87,7 @@ def verify_gpg_version():
     msg = 'Existing GnuPG has version "{}" ({} required)'.format(existing_gpg,
                                                                  required_gpg)
     if not semver.match(existing_gpg, required_gpg):
-        log.error('Your GnuPG version may be incompatible: %s', existing_gpg)
+        log.error(msg)
 
 
 def check_output(args):
@@ -205,10 +205,11 @@ def run_unlock(device_type, args):
 
 
 def _server_from_assuan_fd(env):
-    fd = os.environ.get('_assuan_connection_fd')
-    if fd is not None:
-        log.info('using fd=%r for UNIX socket server', fd)
-        return server.unix_domain_socket_server_from_fd(int(fd))
+    fd = env.get('_assuan_connection_fd')
+    if fd is None:
+        return None
+    log.info('using fd=%r for UNIX socket server', fd)
+    return server.unix_domain_socket_server_from_fd(int(fd))
 
 
 def _server_from_sock_path(env):

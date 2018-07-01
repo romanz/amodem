@@ -40,31 +40,39 @@ def unix_domain_socket_server(sock_path):
 
 
 class FDServer(object):
+    """File-descriptor based server (for NeoPG)."""
+
     def __init__(self, fd):
+        """C-tor."""
         self.fd = fd
         self.sock = socket.fromfd(fd, socket.AF_UNIX, socket.SOCK_STREAM)
 
     def accept(self):
+        """Use the same socket for I/O."""
         return self, None
 
     def recv(self, n):
+        """Forward to underlying socket."""
         return self.sock.recv(n)
 
     def sendall(self, data):
+        """Forward to underlying socket."""
         return self.sock.sendall(data)
 
     def close(self):
-        pass
+        """Not needed."""
 
     def settimeout(self, _):
-        pass
+        """Not needed."""
 
     def getsockname(self):
+        """Simple representation."""
         return '<fd: {}>'.format(self.fd)
 
 
 @contextlib.contextmanager
 def unix_domain_socket_server_from_fd(fd):
+    """Build UDS-based socket server from a file descriptor."""
     yield FDServer(fd)
 
 
