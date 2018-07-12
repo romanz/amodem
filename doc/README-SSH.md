@@ -85,21 +85,29 @@ would allow you to login using the corresponding private key signature.
 
 ### Access remote Git/Mercurial repositories
 
-Copy your public key and register it in your repository web interface (e.g. [GitHub](https://help.github.com/articles/adding-a-new-ssh-key-to-your-github-account/)):
+Export your public key and register it in your repository web interface
+(e.g. [GitHub](https://help.github.com/articles/adding-a-new-ssh-key-to-your-github-account/)):
 
-	$ trezor-agent -v -e ed25519 git@github.com | xclip
+	$ trezor-agent -v -e ed25519 git@github.com > ~/.ssh/github.pub
+
+Add the following configuration to your `~/.ssh/config` file:
+
+	Host github.com
+		IdentityFile ~/.ssh/github.pub
 
 Use the following Bash alias for convenient Git operations:
 
-	$ alias git_hub='trezor-agent -v -e ed25519 git@github.com -- git'
+	$ alias ssh-shell='trezor-agent ~/.ssh/github.pub -v --shell'
 
-Replace `git` with `git_hub` for remote operations:
+Now, you can use regular Git commands under the "SSH-enabled" sub-shell:
 
-	$ git_hub push origin master
+	$ ssh-shell
+	$ git push origin master
 
 The same works for Mercurial (e.g. on [BitBucket](https://confluence.atlassian.com/bitbucket/set-up-ssh-for-mercurial-728138122.html)):
 
-	$ trezor-agent -v -e ed25519 git@bitbucket.org -- hg push
+	$ ssh-shell
+	$ hg push
 
 ### Start the agent as a systemd unit
 
