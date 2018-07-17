@@ -123,7 +123,7 @@ Description=trezor-agent SSH agent
 Requires=trezor-ssh-agent.socket
 
 [Service]
-Type=Simple
+Type=simple
 Environment="DISPLAY=:0"
 Environment="PATH=/bin:/usr/bin:/usr/local/bin:%h/.local/bin"
 ExecStart=/usr/bin/trezor-agent --foreground --sock-path %t/trezor-agent/S.ssh IDENTITY
@@ -132,6 +132,14 @@ ExecStart=/usr/bin/trezor-agent --foreground --sock-path %t/trezor-agent/S.ssh I
 If you've installed `trezor-agent` locally you may have to change the path in `ExecStart=`.
 
 Replace `IDENTITY` with the identity you used when exporting the public key.
+
+If you have multiple Trezors connected, you can select which one to use via a `TREZOR_PATH`
+environment variable. Use `trezorctl list` to find the correct path. Then add it
+to the agent with the following line:
+````
+Environment="TREZOR_PATH=<your path here>"
+````
+Note that USB paths depend on the _USB port_ which you use.
 
 ###### `trezor-ssh-agent.socket`
 
