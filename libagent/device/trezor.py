@@ -106,13 +106,13 @@ class Trezor(interface.Device):
 
     def connect(self):
         """Enumerate and connect to the first available interface."""
-        transports = self._defs.enumerate_transports()
-        if not transports:
+        transport = self._defs.find_device()
+        if not transport:
             raise interface.NotFoundError('{} not connected'.format(self))
 
-        log.debug('transports: %s', transports)
+        log.debug('using transport: %s', transport)
         for _ in range(5):  # Retry a few times in case of PIN failures
-            connection = self._defs.Client(transport=transports[0],
+            connection = self._defs.Client(transport=transport,
                                            state=self.__class__.cached_state)
             self._override_pin_handler(connection)
             self._override_passphrase_handler(connection)
