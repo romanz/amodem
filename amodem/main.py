@@ -59,7 +59,8 @@ def recv(config, src, dst, dump_audio=None, pylab=None):
         gain = 1.0 / amplitude
         log.debug('Gain correction: %.3f', gain)
 
-        sampler = sampling.Sampler(signal, sampling.Interpolator(), freq=freq)
+        sampler = sampling.Sampler(signal, sampling.defaultInterpolator,
+                                   freq=freq)
         receiver.run(sampler, gain=1.0/amplitude, output=dst)
         return True
     except BaseException:

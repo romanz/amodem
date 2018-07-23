@@ -85,12 +85,10 @@ class Detector(object):
         signal = np.concatenate([zeroes, carrier])
         signal = (2 ** 0.5) * signal / dsp.norm(signal)
 
-        coeffs = []
-        for i in range(len(buf) - len(signal)):
-            b = buf[i:i+len(signal)]
-            norm_b = dsp.norm(b)
-            c = (np.abs(np.dot(b, signal)) / norm_b) if norm_b else 0.0
-            coeffs.append(c)
+        corr = np.abs(np.correlate(buf, signal))
+        norm_b = np.sqrt(np.correlate(np.abs(buf)**2, np.ones(len(signal))))
+        coeffs = np.zeros_like(corr)
+        coeffs[norm_b > 0.0] = corr[norm_b > 0.0] / norm_b[norm_b > 0.0]
 
         index = np.argmax(coeffs)
         log.info('Carrier coherence: %.3f%%', coeffs[index] * 100)

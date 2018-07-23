@@ -30,6 +30,9 @@ class Interpolator(object):
         assert len(self.filt) == resolution
 
 
+defaultInterpolator = Interpolator()
+
+
 class Sampler(object):
     def __init__(self, src, interp=None, freq=1.0):
         self.freq = freq

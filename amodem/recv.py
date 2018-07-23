@@ -70,6 +70,7 @@ class Receiver(object):
         self.plt.plot(np.arange(order+lookahead), coeffs)
 
         equalization_filter = dsp.FIR(h=coeffs)
+        log.debug('Training completed')
         # Pre-load equalization filter with the signal (+lookahead)
         equalized = list(equalization_filter(signal))
         equalized = equalized[prefix+lookahead:-postfix+lookahead]
@@ -95,6 +96,7 @@ class Receiver(object):
             self._constellation(symbols[:, i], train_symbols[:, i],
                                 '$F_c = {0} Hz$'.format(freq), index=i)
         assert error_rate == 0, error_rate
+        log.debug('Training verified')
 
     def _bitstream(self, symbols, error_handler):
         streams = []
@@ -156,6 +158,7 @@ class Receiver(object):
         )
 
     def run(self, sampler, gain, output):
+        log.debug('Receiving')
         symbols = dsp.Demux(sampler, omegas=self.omegas, Nsym=self.Nsym)
         self._prefix(symbols, gain=gain)
 

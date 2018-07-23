@@ -46,9 +46,9 @@ class Equalizer(object):
         return np.array(list(itertools.islice(symbols, size)))
 
 
-prefix = [1]*200 + [0]*50
 equalizer_length = 200
 silence_length = 50
+prefix = [1]*equalizer_length + [0]*silence_length
 
 
 def train(signal, expected, order, lookahead=0):
