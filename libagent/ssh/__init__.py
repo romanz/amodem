@@ -193,7 +193,7 @@ def import_public_keys(contents):
         yield line
 
 
-class JustInTimeConnection(object):
+class JustInTimeConnection:
     """Connect to the device just before the needed operation."""
 
     def __init__(self, conn_factory, identities, public_keys=None):

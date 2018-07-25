@@ -15,7 +15,7 @@ def create_identity(user_id, curve_name):
     return result
 
 
-class Client(object):
+class Client:
     """Sign messages and get public keys from a hardware device."""
 
     def __init__(self, device):

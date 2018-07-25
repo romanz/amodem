@@ -59,7 +59,7 @@ class DeviceError(Error):
     """Error during device operation."""
 
 
-class Identity(object):
+class Identity:
     """Represent SLIP-0013 identity, together with a elliptic curve choice."""
 
     def __init__(self, identity_str, curve_name):
@@ -102,7 +102,7 @@ class Identity(object):
             return self.curve_name
 
 
-class Device(object):
+class Device:
     """Abstract cryptographic hardware device interface."""
 
     def __init__(self):

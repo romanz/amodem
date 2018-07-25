@@ -11,7 +11,7 @@ from . import formats, util
 log = logging.getLogger(__name__)
 
 
-class Client(object):
+class Client:
     """Client wrapper for SSH authentication device."""
 
     def __init__(self, device):

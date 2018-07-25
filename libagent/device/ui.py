@@ -9,7 +9,7 @@ from .. import util
 log = logging.getLogger(__name__)
 
 
-class UI(object):
+class UI:
     """UI for PIN/passphrase entry (for TREZOR devices)."""
 
     def __init__(self, device_type, config=None):

@@ -70,7 +70,7 @@ def _legacy_pubs(buf):
     return util.frame(code, num)
 
 
-class Handler(object):
+class Handler:
     """ssh-agent protocol handler."""
 
     def __init__(self, conn, debug=False):

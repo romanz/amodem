@@ -39,7 +39,7 @@ def unix_domain_socket_server(sock_path):
         remove_file(sock_path)
 
 
-class FDServer(object):
+class FDServer:
     """File-descriptor based server (for NeoPG)."""
 
     def __init__(self, fd):

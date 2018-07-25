@@ -18,7 +18,7 @@ def test_socket():
     assert not os.path.isfile(path)
 
 
-class FakeSocket(object):
+class FakeSocket:
 
     def __init__(self, data=b''):
         self.rx = io.BytesIO(data)
@@ -77,7 +77,7 @@ def test_server_thread():
     connections = [sock]
     quit_event = threading.Event()
 
-    class FakeServer(object):
+    class FakeServer:
         def accept(self):  # pylint: disable=no-self-use
             if not connections:
                 raise socket.timeout()

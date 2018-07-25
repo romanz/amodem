@@ -41,7 +41,7 @@ def test_parse_rsa():
     assert keyring.parse_sig(sig) == (0x1020304,)
 
 
-class FakeSocket(object):
+class FakeSocket:
     def __init__(self):
         self.rx = io.BytesIO()
         self.tx = io.BytesIO()

@@ -25,7 +25,7 @@ def test_frames():
     assert util.read_frame(io.BytesIO(f)) == b''.join(msgs)
 
 
-class FakeSocket(object):
+class FakeSocket:
     def __init__(self):
         self.buf = io.BytesIO()
 

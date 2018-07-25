@@ -70,7 +70,7 @@ class AgentStop(Exception):
 
 
 # pylint: disable=too-many-instance-attributes
-class Handler(object):
+class Handler:
     """GPG agent requests' handler."""
 
     def _get_options(self):

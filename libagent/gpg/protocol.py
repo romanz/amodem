@@ -185,7 +185,7 @@ def get_curve_name_by_oid(oid):
     raise KeyError('Unknown OID: {!r}'.format(oid))
 
 
-class PublicKey(object):
+class PublicKey:
     """GPG representation for public key packets."""
 
     def __init__(self, curve_name, created, verifying_key, ecdh=False):

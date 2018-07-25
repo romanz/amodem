@@ -146,7 +146,7 @@ def hexlify(blob):
     return binascii.hexlify(blob).decode('ascii').upper()
 
 
-class Reader(object):
+class Reader:
     """Read basic type objects out of given stream."""
 
     def __init__(self, stream):
@@ -258,7 +258,7 @@ def assuan_serialize(data):
     return data
 
 
-class ExpiringCache(object):
+class ExpiringCache:
     """Simple cache with a deadline."""
 
     def __init__(self, seconds, timer=time.time):
