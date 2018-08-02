@@ -9,6 +9,6 @@ from keepkeylib.transport_hid import HidTransport
 from keepkeylib.types_pb2 import IdentityType
 
 
-def enumerate_transports():
-    """Returns USB HID transports."""
-    return [HidTransport(p) for p in HidTransport.enumerate()]
+def find_device():
+    """Returns first USB HID transport."""
+    return next(HidTransport(p) for p in HidTransport.enumerate())
