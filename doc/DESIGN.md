@@ -36,7 +36,7 @@ The `trezor-agent` then instructs SSH to connect to the server. It will then eng
 
 ### GPG
 
-GPG uses much the same approach as SSH, expect in this it relies on [SLIP-0017 : ECDH using deterministic hierarchy][3] for the mapping to an ECDH key and it maps these to the normal GPG child key infrastructure.
+GPG uses much the same approach as SSH, except in this case it relies on [SLIP-0017 : ECDH using deterministic hierarchy][3] for the mapping to an ECDH key and it maps these to the normal GPG child key infrastructure.
 
 Note: Keepkey does not support en-/de-cryption at this time.
 
