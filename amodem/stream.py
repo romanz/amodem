@@ -24,8 +24,7 @@ class Reader:
                 self.total += len(data)
                 block.extend(data)
                 return block
-            else:
-                raise StopIteration()
+            raise StopIteration()
 
         finish_time = time.time() + self.timeout
         while time.time() <= finish_time:

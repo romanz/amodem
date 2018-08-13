@@ -33,8 +33,7 @@ class Demux:
         frame = self.sampler.take(size=self.Nsym)
         if len(frame) == self.Nsym:
             return np.dot(self.filters, frame)
-        else:
-            raise StopIteration
+        raise StopIteration
 
     __next__ = next
 
