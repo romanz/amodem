@@ -197,6 +197,20 @@ def _version():
     return pkg_resources.require('amodem')[0].version
 
 
+def _config_log(args):
+    if args.verbose == 0:
+        level, fmt = 'INFO', '%(message)s'
+    elif args.verbose == 1:
+        level, fmt = 'DEBUG', '%(message)s'
+    elif args.verbose >= 2:
+        level, fmt = ('DEBUG', '%(asctime)s %(levelname)-10s '
+                               '%(message)-100s '
+                               '%(filename)s:%(lineno)d')
+    if args.quiet:
+        level, fmt = 'WARNING', '%(message)s'
+    logging.basicConfig(level=level, format=fmt)
+
+
 def _main():
     fmt = ('Audio OFDM MODEM v{0:s}: '
            '{1:.1f} kb/s ({2:d}-QAM x {3:d} carriers) '
@@ -212,17 +226,7 @@ def _main():
     p = create_parser(description, interface_factory)
 
     args = p.parse_args()
-    if args.verbose == 0:
-        level, fmt = 'INFO', '%(message)s'
-    elif args.verbose == 1:
-        level, fmt = 'DEBUG', '%(message)s'
-    elif args.verbose >= 2:
-        level, fmt = ('DEBUG', '%(asctime)s %(levelname)-10s '
-                               '%(message)-100s '
-                               '%(filename)s:%(lineno)d')
-    if args.quiet:
-        level, fmt = 'WARNING', '%(message)s'
-    logging.basicConfig(level=level, format=fmt)
+    _config_log(args)
 
     # Parsing and execution
     log.info(description)
