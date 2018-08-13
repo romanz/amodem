@@ -81,7 +81,7 @@ def izip(iterables):
         yield tuple([next(iterable) for iterable in iterables])
 
 
-class Dummy(object):
+class Dummy:
     """ Dummy placeholder object for testing and mocking. """
 
     def __getattr__(self, name):

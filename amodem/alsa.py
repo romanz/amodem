@@ -9,7 +9,7 @@ import logging
 log = logging.getLogger(__name__)
 
 
-class Interface(object):
+class Interface:
 
     RECORDER = 'arecord'
     PLAYER = 'aplay'
@@ -50,7 +50,7 @@ class Interface(object):
         return Player(self)
 
 
-class Recorder(object):
+class Recorder:
     def __init__(self, lib):
         self.p = lib.launch(args=lib.record_cmd, stdout=subprocess.PIPE)
         self.read = self.p.stdout.read
@@ -60,7 +60,7 @@ class Recorder(object):
         self.p.kill()
 
 
-class Player(object):
+class Player:
     def __init__(self, lib):
         self.p = lib.launch(args=lib.play_cmd, stdin=subprocess.PIPE)
         self.write = self.p.stdin.write

@@ -5,7 +5,7 @@ import numpy as np
 from . import common
 
 
-class Interpolator(object):
+class Interpolator:
 
     def __init__(self, resolution=1024, width=128):
 
@@ -33,7 +33,7 @@ class Interpolator(object):
 defaultInterpolator = Interpolator()
 
 
-class Sampler(object):
+class Sampler:
     def __init__(self, src, interp=None, freq=1.0):
         self.freq = freq
         self.equalizer = lambda x: x  # LTI equalization filter

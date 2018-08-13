@@ -9,7 +9,7 @@ from . import sampling
 from . import levinson
 
 
-class Equalizer(object):
+class Equalizer:
 
     def __init__(self, config):
         self.carriers = config.carriers

@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class IIR(object):
+class IIR:
     def __init__(self, b, a):
         self.b = np.array(b) / a[0]
         self.a = np.array(a[1:]) / a[0]

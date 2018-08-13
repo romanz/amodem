@@ -3,7 +3,7 @@
 import numpy as np
 
 
-class Configuration(object):
+class Configuration:
     Fs = 32000.0  # sampling frequency [Hz]
     Tsym = 0.001  # symbol duration [seconds]
     Npoints = 64

@@ -8,7 +8,7 @@ import six  # since `Queue` module was renamed to `queue` (in Python 3)
 log = logging.getLogger()
 
 
-class AsyncReader(object):
+class AsyncReader:
     def __init__(self, stream, bufsize):
         self.stream = stream
         self.queue = six.moves.queue.Queue()

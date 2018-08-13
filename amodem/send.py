@@ -10,7 +10,7 @@ from . import dsp
 log = logging.getLogger(__name__)
 
 
-class Sender(object):
+class Sender:
     def __init__(self, fd, config, gain=1.0):
         self.gain = gain
         self.offset = 0

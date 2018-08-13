@@ -12,7 +12,7 @@ import mock
 config = config.fastest()
 
 
-class ProcessMock(object):
+class ProcessMock:
     def __init__(self):
         self.buf = BytesIO()
         self.stdin = self

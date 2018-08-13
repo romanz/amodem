@@ -7,7 +7,7 @@ import time
 log = logging.getLogger(__name__)
 
 
-class Interface(object):
+class Interface:
     def __init__(self, config, debug=False):
         self.debug = bool(debug)
         self.config = config
@@ -53,7 +53,7 @@ class Interface(object):
         return Stream(self, config=self.config, write=True)
 
 
-class Stream(object):
+class Stream:
 
     timer = time.time
 

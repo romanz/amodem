@@ -14,7 +14,7 @@ def _checksum_func(x):
     return binascii.crc32(bytes(x)) & 0xFFFFFFFF
 
 
-class Checksum(object):
+class Checksum:
     fmt = '>L'  # unsigned longs (32-bit)
     size = struct.calcsize(fmt)
 
@@ -34,7 +34,7 @@ class Checksum(object):
         return payload
 
 
-class Framer(object):
+class Framer:
     block_size = 250
     prefix_fmt = '>B'
     prefix_len = struct.calcsize(prefix_fmt)
@@ -88,7 +88,7 @@ def chain_wrapper(func):
     return wrapped
 
 
-class BitPacker(object):
+class BitPacker:
     byte_size = 8
 
     def __init__(self):

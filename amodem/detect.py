@@ -13,7 +13,7 @@ from . import common
 log = logging.getLogger(__name__)
 
 
-class Detector(object):
+class Detector:
 
     COHERENCE_THRESHOLD = 0.9
 

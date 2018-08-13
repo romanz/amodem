@@ -1,7 +1,7 @@
 import time
 
 
-class Reader(object):
+class Reader:
 
     wait = 0.2
     timeout = 2.0
@@ -45,7 +45,7 @@ class Reader(object):
     __next__ = next
 
 
-class Dumper(object):
+class Dumper:
     def __init__(self, src, dst):
         self.src = src
         self.dst = dst

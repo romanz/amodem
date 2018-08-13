@@ -13,7 +13,7 @@ from . import equalizer
 log = logging.getLogger(__name__)
 
 
-class Receiver(object):
+class Receiver:
 
     def __init__(self, config, pylab=None):
         self.stats = {}

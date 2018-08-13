@@ -5,7 +5,7 @@ import numpy as np
 from . import common
 
 
-class FIR(object):
+class FIR:
     def __init__(self, h):
         self.h = np.array(h)
         self.x_state = [0] * len(self.h)
@@ -19,7 +19,7 @@ class FIR(object):
         self.x_state = x_
 
 
-class Demux(object):
+class Demux:
     def __init__(self, sampler, omegas, Nsym):
         self.Nsym = Nsym
         self.filters = [exp_iwt(-w, Nsym) / (0.5*self.Nsym) for w in omegas]
@@ -73,7 +73,7 @@ def linear_regression(x, y):
     return a, b
 
 
-class MODEM(object):
+class MODEM:
 
     def __init__(self, symbols):
         self.encode_map = {}

@@ -31,7 +31,7 @@ bitrate = os.environ.get('BITRATE', 1)
 config = bitrates.get(int(bitrate))
 
 
-class Compressor(object):
+class Compressor:
     def __init__(self, stream):
         self.obj = zlib.compressobj()
         log.info('Using zlib compressor')
@@ -52,7 +52,7 @@ class Compressor(object):
             return result
 
 
-class Decompressor(object):
+class Decompressor:
     def __init__(self, stream):
         self.obj = zlib.decompressobj()
         log.info('Using zlib decompressor')
@@ -185,7 +185,7 @@ def create_parser(description, interface_factory):
     return p
 
 
-class _Dummy(object):
+class _Dummy:
     def __enter__(self):
         return self
 
