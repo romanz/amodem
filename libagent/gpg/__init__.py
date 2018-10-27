@@ -195,8 +195,8 @@ fi
                                     '--import-ownertrust', f.name]))
 
     # Load agent and make sure it responds with the new identity
-    check_call(keyring.gpg_command(['--list-secret-keys', args.user_id,
-                                    '--homedir', homedir]))
+    check_call(keyring.gpg_command(['--homedir', homedir,
+                                    '--list-secret-keys', args.user_id]))
 
 
 def run_unlock(device_type, args):
