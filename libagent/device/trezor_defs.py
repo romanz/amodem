@@ -1,6 +1,6 @@
 """TREZOR-related definitions."""
 
-# pylint: disable=unused-import,import-error
+# pylint: disable=unused-import,import-error,no-name-in-module,no-member
 import os
 import logging
 
@@ -21,8 +21,8 @@ if semver.match(trezorlib.__version__, ">=0.11.0"):
     from trezorlib.misc import sign_identity, get_ecdh_session_key
 
 else:
-    from trezorlib.client import (TrezorClient, CallException as TrezorFailure,
-                                  PinException)
+    from trezorlib.client import (TrezorClient, PinException,
+                                  CallException as TrezorFailure)
     from trezorlib.messages import IdentityType
     from trezorlib import messages
     from trezorlib.transport import get_transport
@@ -32,11 +32,19 @@ else:
     get_ecdh_session_key = TrezorClient.get_ecdh_session_key
 
     class Client(TrezorClient):
+        """Compatibility wrapper for older TrezorClient type.
+
+        This class redirects callback_* style methods to the UI implementation,
+        and stores state so that we can reuse it.
+        """
+
         def __init__(self, transport, ui, state=None):
+            """C-tor."""
             super().__init__(transport, state=state)
             self.ui = ui
 
         def callback_PinMatrixRequest(self, msg):
+            """Redirect PinMatrixRequest to UI."""
             try:
                 pin = self.ui.get_pin(msg.type)
                 if not pin.isdigit():
@@ -48,6 +56,7 @@ else:
                 raise
 
         def callback_PassphraseRequest(self, msg):
+            """Redirect PassphraseRequest to UI."""
             try:
                 if msg.on_device is True:
                     return messages.PassphraseAck()
@@ -66,7 +75,8 @@ else:
                 raise
 
         def callback_PassphraseStateRequest(self, msg):
-            self.state = msg.state
+            """Store state provided by device so that we can reuse it later."""
+            self.state = msg.state  # pylint: disable=attribute-defined-outside-init
             return messages.PassphraseStateAck()
 
 

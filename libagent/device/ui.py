@@ -49,8 +49,8 @@ class UI:
             options=self.options_getter())
 
     def button_request(self, _code=None):
+        """Called by TrezorClient when device interaction is required."""
         # XXX: show notification to the user?
-        pass
 
 
 def create_default_options_getter():

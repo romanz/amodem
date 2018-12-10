@@ -114,6 +114,11 @@ class Device:
         raise NotImplementedError()
 
     def close(self):
+        """Close connection to device.
+
+        By default, close the underlying connection. Overriding classes
+        can perform their own cleanup.
+        """
         self.conn.close()
 
     def __enter__(self):
