@@ -113,6 +113,9 @@ class Device:
         """Connect to device, otherwise raise NotFoundError."""
         raise NotImplementedError()
 
+    def close(self):
+        self.conn.close()
+
     def __enter__(self):
         """Allow usage as context manager."""
         self.conn = self.connect()
@@ -121,7 +124,7 @@ class Device:
     def __exit__(self, *args):
         """Close and mark as disconnected."""
         try:
-            self.conn.close()
+            self.close()
         except Exception as e:  # pylint: disable=broad-except
             log.exception('close failed: %s', e)
         self.conn = None
