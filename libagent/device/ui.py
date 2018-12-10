@@ -24,7 +24,7 @@ class UI:
         self.options_getter = create_default_options_getter()
         self.device_name = device_type.__name__
 
-    def get_pin(self, name=None):
+    def get_pin(self, _code=None):
         """Ask the user for (scrambled) PIN."""
         description = (
             'Use the numeric keypad to describe number positions.\n'
@@ -33,20 +33,24 @@ class UI:
             '    4 5 6\n'
             '    1 2 3')
         return interact(
-            title='{} PIN'.format(name or self.device_name),
+            title='{} PIN'.format(self.device_name),
             prompt='PIN:',
             description=description,
             binary=self.pin_entry_binary,
             options=self.options_getter())
 
-    def get_passphrase(self, name=None):
+    def get_passphrase(self):
         """Ask the user for passphrase."""
         return interact(
-            title='{} passphrase'.format(name or self.device_name),
+            title='{} passphrase'.format(self.device_name),
             prompt='Passphrase:',
             description=None,
             binary=self.passphrase_entry_binary,
             options=self.options_getter())
+
+    def button_request(self, _code=None):
+        # XXX: show notification to the user?
+        pass
 
 
 def create_default_options_getter():

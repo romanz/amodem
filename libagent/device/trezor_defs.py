@@ -4,17 +4,70 @@
 import os
 import logging
 
-from trezorlib.client import CallException, PinException
-from trezorlib.client import TrezorClient as Client
-from trezorlib.messages import IdentityType, PassphraseAck, PinMatrixAck, PassphraseStateAck
-
-try:
-    from trezorlib.transport import get_transport
-except ImportError:
-    from trezorlib.device import TrezorDevice
-    get_transport = TrezorDevice.find_by_path
+import mnemonic
+import semver
+import trezorlib
 
 log = logging.getLogger(__name__)
+
+
+if semver.match(trezorlib.__version__, ">=0.11.0"):
+    from trezorlib.client import TrezorClient as Client
+    from trezorlib.exceptions import TrezorFailure, PinException
+    from trezorlib.transport import get_transport
+    from trezorlib.messages import IdentityType
+
+    from trezorlib.btc import get_public_node
+    from trezorlib.misc import sign_identity, get_ecdh_session_key
+
+else:
+    from trezorlib.client import (TrezorClient, CallException as TrezorFailure,
+                                  PinException)
+    from trezorlib.messages import IdentityType
+    from trezorlib import messages
+    from trezorlib.transport import get_transport
+
+    get_public_node = TrezorClient.get_public_node
+    sign_identity = TrezorClient.sign_identity
+    get_ecdh_session_key = TrezorClient.get_ecdh_session_key
+
+    class Client(TrezorClient):
+        def __init__(self, transport, ui, state=None):
+            super().__init__(transport, state=state)
+            self.ui = ui
+
+        def callback_PinMatrixRequest(self, msg):
+            try:
+                pin = self.ui.get_pin(msg.type)
+                if not pin.isdigit():
+                    raise PinException(
+                        None, 'Invalid scrambled PIN: {!r}'.format(pin))
+                return messages.PinMatrixAck(pin=pin)
+            except:  # noqa
+                self.init_device()
+                raise
+
+        def callback_PassphraseRequest(self, msg):
+            try:
+                if msg.on_device is True:
+                    return messages.PassphraseAck()
+
+                passphrase = self.ui.get_passphrase()
+                passphrase = mnemonic.Mnemonic.normalize_string(passphrase)
+
+                length = len(passphrase)
+                if length > 50:
+                    msg = 'Too long passphrase ({} chars)'.format(length)
+                    raise ValueError(msg)
+
+                return messages.PassphraseAck(passphrase=passphrase)
+            except:  # noqa
+                self.init_device()
+                raise
+
+        def callback_PassphraseStateRequest(self, msg):
+            self.state = msg.state
+            return messages.PassphraseStateAck()
 
 
 def find_device():
