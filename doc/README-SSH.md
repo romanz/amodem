@@ -42,7 +42,7 @@ $ (trezor|keepkey|ledger)-agent identity@myhost -s
 
 to start a shell with the proper environment.
 
-##### 2. Connect to a server directly via `(trezor|keepkey|ledger)-agent`
+##### 3. Connect to a server directly via `(trezor|keepkey|ledger)-agent`
 
 If you just want to connect to a server this is the simplest way to do it:
 
