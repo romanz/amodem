@@ -23,6 +23,7 @@ class UI:
                                                   default_pinentry)
         self.options_getter = create_default_options_getter()
         self.device_name = device_type.__name__
+        self.cached_passphrase_ack = None
 
     def get_pin(self, _code=None):
         """Ask the user for (scrambled) PIN."""
@@ -41,12 +42,19 @@ class UI:
 
     def get_passphrase(self):
         """Ask the user for passphrase."""
-        return interact(
-            title='{} passphrase'.format(self.device_name),
-            prompt='Passphrase:',
-            description=None,
-            binary=self.passphrase_entry_binary,
-            options=self.options_getter())
+        passphrase = None
+        if self.cached_passphrase_ack:
+            passphrase = self.cached_passphrase_ack.get()
+        if passphrase is None:
+            passphrase = interact(
+                title='{} passphrase'.format(self.device_name),
+                prompt='Passphrase:',
+                description=None,
+                binary=self.passphrase_entry_binary,
+                options=self.options_getter())
+        if self.cached_passphrase_ack:
+            self.cached_passphrase_ack.set(passphrase)
+        return passphrase
 
     def button_request(self, _code=None):
         """Called by TrezorClient when device interaction is required."""

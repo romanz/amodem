@@ -249,7 +249,7 @@ def run_agent(device_type):
         pubkey_bytes = keyring.export_public_keys(env=env)
         device_type.ui = device.ui.UI(device_type=device_type,
                                       config=vars(args))
-        device_type.cached_passphrase_ack = util.ExpiringCache(
+        device_type.ui.cached_passphrase_ack = util.ExpiringCache(
             seconds=float(args.cache_expiry_seconds))
         handler = agent.Handler(device=device_type(),
                                 pubkey_bytes=pubkey_bytes)
@@ -318,7 +318,7 @@ def main(device_type):
 
     args = parser.parse_args()
     device_type.ui = device.ui.UI(device_type=device_type, config=vars(args))
-    device_type.cached_passphrase_ack = util.ExpiringCache(
+    device_type.ui.cached_passphrase_ack = util.ExpiringCache(
         seconds=float(args.cache_expiry_seconds))
 
     return args.func(device_type=device_type, args=args)
