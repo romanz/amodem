@@ -118,8 +118,8 @@ class Handler:
 
     def handle_get_passphrase(self, conn, _):
         """Allow simple GPG symmetric encryption (using a passphrase)."""
-        p1 = self.client.device.ui.get_passphrase('Symmetric encryption')
-        p2 = self.client.device.ui.get_passphrase('Re-enter encryption')
+        p1 = self.client.device.ui.get_passphrase('Symmetric encryption:')
+        p2 = self.client.device.ui.get_passphrase('Re-enter encryption:')
         if p1 == p2:
             result = b'D ' + util.assuan_serialize(p1.encode('ascii'))
             keyring.sendline(conn, result, confidential=True)

@@ -40,7 +40,7 @@ class UI:
             binary=self.pin_entry_binary,
             options=self.options_getter())
 
-    def get_passphrase(self):
+    def get_passphrase(self, prompt='Passphrase:'):
         """Ask the user for passphrase."""
         passphrase = None
         if self.cached_passphrase_ack:
@@ -48,7 +48,7 @@ class UI:
         if passphrase is None:
             passphrase = interact(
                 title='{} passphrase'.format(self.device_name),
-                prompt='Passphrase:',
+                prompt=prompt,
                 description=None,
                 binary=self.passphrase_entry_binary,
                 options=self.options_getter())
