@@ -26,3 +26,4 @@ htmlcov
 /dist
 /deb_dist
 *.html
+.pytest_cache/
