@@ -10,12 +10,12 @@ from . import framing, common, stream, detect, sampling
 log = logging.getLogger(__name__)
 
 
-def send(config, src, dst, gain=1.0):
+def send(config, src, dst, gain=1.0, extra_silence=0.0):
     sender = _send.Sender(dst, config=config, gain=gain)
     Fs = config.Fs
 
     # pre-padding audio with silence (priming the audio sending queue)
-    sender.write(np.zeros(int(Fs * config.silence_start)))
+    sender.write(np.zeros(int(Fs * (config.silence_start + extra_silence))))
 
     sender.start()
 

@@ -124,10 +124,13 @@ def create_parser(description, interface_factory):
     sender.add_argument(
         '-g', '--gain', type=float, default=1.0,
         help='Modulator gain (defaults to 1)')
+    sender.add_argument(
+        '--silence', type=float, default=0.0,
+        help='Extra silence before sending the data (in seconds)')
     sender.set_defaults(
         main=lambda config, args: main.send(
             config, src=wrap(Compressor, args.src, args.zlib), dst=args.dst,
-            gain=args.gain
+            gain=args.gain, extra_silence=args.silence
         ),
         calib=lambda config, args: calib.send(
             config=config, dst=args.dst,
