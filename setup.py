@@ -12,7 +12,8 @@ setup(
         'libagent',
         'libagent.device',
         'libagent.gpg',
-        'libagent.ssh'
+        'libagent.signify',
+        'libagent.ssh',
     ],
     install_requires=[
         'docutils>=0.14',

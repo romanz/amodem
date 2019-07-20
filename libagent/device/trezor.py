@@ -99,6 +99,11 @@ class Trezor(interface.Device):
 
     def sign(self, identity, blob):
         """Sign given blob and return the signature (as bytes)."""
+        sig, _ = self.sign_with_pubkey(identity, blob)
+        return sig
+
+    def sign_with_pubkey(self, identity, blob):
+        """Sign given blob and return the signature (as bytes)."""
         curve_name = identity.get_curve_name(ecdh=False)
         log.debug('"%s" signing %r (%s) on %s',
                   identity.to_string(), blob, curve_name, self)
@@ -112,7 +117,7 @@ class Trezor(interface.Device):
             log.debug('result: %s', result)
             assert len(result.signature) == 65
             assert result.signature[:1] == b'\x00'
-            return bytes(result.signature[1:])
+            return bytes(result.signature[1:]), bytes(result.public_key)
         except self._defs.TrezorFailure as e:
             msg = '{} error: {}'.format(self, e)
             log.debug(msg, exc_info=True)

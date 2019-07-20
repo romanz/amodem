@@ -36,5 +36,6 @@ setup(
         'trezor-agent = trezor_agent:ssh_agent',
         'trezor-gpg = trezor_agent:gpg_tool',
         'trezor-gpg-agent = trezor_agent:gpg_agent',
+        'trezor-signify = trezor_agent:signify_tool',
     ]},
 )
