@@ -179,7 +179,7 @@ systemctl --user enable trezor-ssh-agent.socket
 export SSH_AUTH_SOCK=$(systemctl show --user --property=Listen trezor-ssh-agent.socket | grep -o "/run.*" | cut -d " " -f 1)
 ```
 
-Make sure the SSH_AUTH_SOCK variable mathes the location of the socket that trezor-agent
+Make sure the SSH_AUTH_SOCK variable matches the location of the socket that trezor-agent
 is listening on: `ps -x | grep trezor-agent`. In this setup trezor-agent should start 
 automatically when the socket is opened.
 
