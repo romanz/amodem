@@ -296,7 +296,7 @@ def main(device_type):
                               help='initialize hardware-based GnuPG identity')
     p.add_argument('user_id')
     p.add_argument('-e', '--ecdsa-curve', default='nist256p1')
-    p.add_argument('-t', '--time', type=int, default=int(time.time()))
+    p.add_argument('-t', '--time', type=int, default=0)
     p.add_argument('-v', '--verbose', default=0, action='count')
     p.add_argument('-s', '--subkey', default=False, action='store_true')
 
