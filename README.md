@@ -16,6 +16,20 @@ See the following blog posts about this tool:
 
 Currently [TREZOR One](https://trezor.io/), [TREZOR Model T](https://trezor.io/), [Keepkey](https://www.keepkey.com/), and [Ledger Nano S](https://www.ledgerwallet.com/products/ledger-nano-s) are supported.
 
+## Components
+
+This repository contains source code for one library as well as
+agents to interact with several different hardware devices:
+
+* [`libagent`](https://pypi.org/project/libagent/): shared library
+* [`trezor-agent`](https://pypi.org/project/trezor-agent/): Using Trezor as hardware-based SSH/PGP agent
+* [`ledger_agent`](https://pypi.org/project/ledger_agent/): Using Ledger as hardware-based SSH/PGP agent
+* [`keepkey_agent`](https://pypi.org/project/keepkey_agent/): Using KeepKey as hardware-based SSH/PGP agent
+
+
+The [/releases](/releases) page on Github contains the `libagent`
+releases.
+
 ## Documentation
 
 * **Installation** instructions are [here](doc/INSTALL.md)
