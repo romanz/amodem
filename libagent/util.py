@@ -242,7 +242,7 @@ def which(cmd):
         from shutil import which as _which
     except ImportError:
         # For Python 2
-        from backports.shutil_which import which as _which  # pylint: disable=relative-import
+        from backports.shutil_which import which as _which
     full_path = _which(cmd)
     if full_path is None:
         raise OSError('Cannot find {!r} in $PATH'.format(cmd))

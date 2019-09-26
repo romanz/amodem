@@ -78,8 +78,7 @@ def create_agent_parser(device_type):
     p.add_argument('--version', help='print the version info',
                    action='version', version=versions)
 
-    curve_names = [name for name in formats.SUPPORTED_CURVES]
-    curve_names = ', '.join(sorted(curve_names))
+    curve_names = ', '.join(sorted(formats.SUPPORTED_CURVES))
     p.add_argument('-e', '--ecdsa-curve-name', metavar='CURVE',
                    default=formats.CURVE_NIST256,
                    help='specify ECDSA curve name: ' + curve_names)

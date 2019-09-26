@@ -1,5 +1,5 @@
 [MESSAGES CONTROL]
-disable=invalid-name, missing-docstring, locally-disabled, unbalanced-tuple-unpacking,no-else-return,fixme,duplicate-code,cyclic-import
+disable=invalid-name, missing-docstring, locally-disabled, unbalanced-tuple-unpacking,no-else-return,fixme,duplicate-code,cyclic-import,import-outside-toplevel
 
 [SIMILARITIES]
 min-similarity-lines=5

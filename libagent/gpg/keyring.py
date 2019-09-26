@@ -173,9 +173,7 @@ def sign_digest(sock, keygrip, digest, sp=subprocess, environ=None):
     assert communicate(sock, 'PKSIGN') == b'OK'
     while True:
         line = recvline(sock).strip()
-        if line.startswith(b'S PROGRESS'):
-            continue
-        else:
+        if not line.startswith(b'S PROGRESS'):
             break
     line = unescape(line)
     log.debug('unescaped: %r', line)
