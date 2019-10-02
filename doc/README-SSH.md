@@ -34,6 +34,11 @@ $ (trezor|keepkey|ledger)-agent identity@myhost -- COMMAND --WITH --ARGUMENTS
 to start the agent in the background and execute the command with environment variables set up to use the SSH agent.  The specified identity is used for all SSH connections.  The agent will exit after the command completes.
 Note the `--` separator, which is used to separate `trezor-agent`'s arguments from the SSH command arguments.
 
+Example:
+```
+ (trezor|keepkey|ledger)-agent -e ed25519 bob@example.com -- rsync up/ bob@example.com:/home/bob
+```
+
 As a shortcut you can run
 
 ```
