@@ -13,12 +13,11 @@ get_public_node = Client.get_public_node
 sign_identity = Client.sign_identity
 Client.state = None
 
+
 def find_device():
     """Returns first WebUSB or HID transport."""
-    webusb = WebUsbTransport.enumerate()
-    hidusb = HidTransport.enumerate()
+    for d in WebUsbTransport.enumerate():
+        return WebUsbTransport(d)
 
-    if len(webusb):
-        return next(WebUsbTransport(p) for p in webusb)
-    elif len(hidusb):
-        return next(HidTransport(p) for p in hidusb)
+    for d in HidTransport.enumerate():
+        return HidTransport(d)
