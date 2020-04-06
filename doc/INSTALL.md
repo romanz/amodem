@@ -74,6 +74,7 @@ gpg (GnuPG) 2.1.15
 
     ```
     $ git clone https://github.com/romanz/trezor-agent
+    $ pip3 install --user -e trezor-agent
     $ pip3 install --user -e trezor-agent/agents/trezor
     ```
 
@@ -126,6 +127,7 @@ Then, install the latest [keepkey_agent](https://pypi.python.org/pypi/keepkey_ag
 
     ```
     $ git clone https://github.com/romanz/trezor-agent
+    $ pip3 install --user -e trezor-agent
     $ pip3 install --user -e trezor-agent/agents/ledger
     ```
 
