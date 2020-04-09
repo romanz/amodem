@@ -8,12 +8,12 @@ import mnemonic
 import semver
 import trezorlib
 
-from trezorlib.client import TrezorClient as Client
+from trezorlib.client import TrezorClient as Client, PASSPHRASE_TEST_PATH
 from trezorlib.exceptions import TrezorFailure, PinException
 from trezorlib.transport import get_transport
 from trezorlib.messages import IdentityType
 
-from trezorlib.btc import get_public_node
+from trezorlib.btc import get_address, get_public_node
 from trezorlib.misc import sign_identity, get_ecdh_session_key
 
 log = logging.getLogger(__name__)

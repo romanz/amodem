@@ -4,6 +4,11 @@ import logging
 import os
 import subprocess
 
+try:
+    from trezorlib.client import PASSPHRASE_ON_DEVICE
+except Exception:
+    PASSPHRASE_ON_DEVICE = object()
+
 from .. import util
 
 log = logging.getLogger(__name__)
@@ -40,18 +45,24 @@ class UI:
             binary=self.pin_entry_binary,
             options=self.options_getter())
 
-    def get_passphrase(self, prompt='Passphrase:'):
+    def get_passphrase(self, prompt='Passphrase:', available_on_device=False):
         """Ask the user for passphrase."""
         passphrase = None
         if self.cached_passphrase_ack:
             passphrase = self.cached_passphrase_ack.get()
         if passphrase is None:
-            passphrase = interact(
-                title='{} passphrase'.format(self.device_name),
-                prompt=prompt,
-                description=None,
-                binary=self.passphrase_entry_binary,
-                options=self.options_getter())
+            env_passphrase = os.environ.get("TREZOR_PASSPHRASE")
+            if env_passphrase is not None:
+                passphrase = env_passphrase
+            elif available_on_device:
+                passphrase = PASSPHRASE_ON_DEVICE
+            else:
+                passphrase = interact(
+                    title='{} passphrase'.format(self.device_name),
+                    prompt=prompt,
+                    description=None,
+                    binary=self.passphrase_entry_binary,
+                    options=self.options_getter())
         if self.cached_passphrase_ack:
             self.cached_passphrase_ack.set(passphrase)
         return passphrase

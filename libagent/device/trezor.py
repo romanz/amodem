@@ -26,7 +26,7 @@ class Trezor(interface.Device):
     required_version = '>=1.4.0'
 
     ui = None  # can be overridden by device's users
-    cached_state = None
+    cached_session_id = None
 
     def _verify_version(self, connection):
         f = connection.features
@@ -54,11 +54,14 @@ class Trezor(interface.Device):
         for _ in range(5):  # Retry a few times in case of PIN failures
             connection = self._defs.Client(transport=transport,
                                            ui=self.ui,
-                                           state=self.__class__.cached_state)
+                                           session_id=self.__class__.cached_session_id)
             self._verify_version(connection)
 
             try:
-                connection.ping(msg='', pin_protection=True)  # unlock PIN
+                # unlock PIN and passphrase
+                self._defs.get_address(connection,
+                                       "Testnet",
+                                       self._defs.PASSPHRASE_TEST_PATH)
                 return connection
             except (self._defs.PinException, ValueError) as e:
                 log.error('Invalid PIN: %s, retrying...', e)
@@ -70,7 +73,7 @@ class Trezor(interface.Device):
 
     def close(self):
         """Close connection."""
-        self.__class__.cached_state = self.conn.state
+        self.__class__.cached_session_id = self.conn.session_id
         super().close()
 
     def pubkey(self, identity, ecdh=False):
