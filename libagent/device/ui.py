@@ -6,7 +6,7 @@ import subprocess
 
 try:
     from trezorlib.client import PASSPHRASE_ON_DEVICE
-except Exception:
+except ImportError:
     PASSPHRASE_ON_DEVICE = object()
 
 from .. import util
