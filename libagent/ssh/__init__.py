@@ -274,8 +274,6 @@ def main(device_type):
 
     # override default PIN/passphrase entry tools (relevant for TREZOR/Keepkey):
     device_type.ui = device.ui.UI(device_type=device_type, config=vars(args))
-    device_type.ui.cached_passphrase_ack = util.ExpiringCache(
-        args.cache_expiry_seconds)
 
     conn = JustInTimeConnection(
         conn_factory=lambda: client.Client(device_type()),

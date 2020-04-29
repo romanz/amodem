@@ -28,7 +28,8 @@ class UI:
                                                   default_pinentry)
         self.options_getter = create_default_options_getter()
         self.device_name = device_type.__name__
-        self.cached_passphrase_ack = None
+        self.cached_passphrase_ack = util.ExpiringCache(
+            seconds=float(config.get('cache_expiry_seconds', 'inf')))
 
     def get_pin(self, _code=None):
         """Ask the user for (scrambled) PIN."""
