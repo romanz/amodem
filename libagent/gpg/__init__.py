@@ -143,7 +143,7 @@ def run_init(device_type, args):
     # Prepare GPG agent invocation script (to pass the PATH from environment).
     with open(os.path.join(homedir, 'run-agent.sh'), 'w') as f:
         f.write(r"""#!/bin/sh
-export PATH={0}
+export PATH="{0}"
 {1} \
 -vv \
 --pin-entry-binary={pin_entry_binary} \
