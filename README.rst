@@ -98,6 +98,12 @@ For validation, run::
     optional arguments:
       -h, --help     show this help message and exit
 
+On, Windows you may download the `portaudio` library from `MinGW <https://packages.msys2.org/base/mingw-w64-portaudio>`_.
+Then, you should specify the DLL using the following command-line flag::
+
+    -l AUDIO_LIBRARY, --audio-library AUDIO_LIBRARY
+                        File name of PortAudio shared library.
+
 
 Calibration
 -----------
