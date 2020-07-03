@@ -29,7 +29,7 @@ class AsyncReader:
                 queue.put(buf)
                 total += len(buf)
             log.debug('AsyncReader thread stopped (read %d bytes)', total)
-        except BaseException:
+        except BaseException:  # pylint: disable=broad-except
             log.exception('AsyncReader thread failed')
             queue.put(None)
 

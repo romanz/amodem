@@ -1,5 +1,6 @@
 from amodem import stream
 import subprocess as sp
+import sys
 
 script = br"""
 import sys
@@ -14,7 +15,7 @@ while True:
 
 
 def test_read():
-    p = sp.Popen(args=['python', '-'], stdin=sp.PIPE, stdout=sp.PIPE)
+    p = sp.Popen(args=[sys.executable, '-'], stdin=sp.PIPE, stdout=sp.PIPE)
     p.stdin.write(script)
     p.stdin.close()
     f = stream.Reader(p.stdout)

@@ -75,10 +75,12 @@ def take(iterable, n):
 
 def izip(iterables):
     """ "Python 3" zip re-implementation for Python 2. """
-    # pylint: disable=stop-iteration-return
     iterables = [iter(iterable) for iterable in iterables]
-    while True:
-        yield tuple([next(iterable) for iterable in iterables])
+    try:
+        while True:
+            yield tuple([next(iterable) for iterable in iterables])
+    except StopIteration:
+        pass
 
 
 class Dummy:

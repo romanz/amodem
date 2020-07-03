@@ -236,11 +236,11 @@ def _main():
 
     args.pylab = None
     if getattr(args, 'plot', False):
-        import pylab  # pylint: disable=import-error
+        import pylab  # pylint: disable=import-error,import-outside-toplevel
         args.pylab = pylab
 
     if args.audio_library == 'ALSA':
-        from . import alsa
+        from . import alsa  # pylint: disable=import-outside-toplevel
         interface = alsa.Interface(config)
     elif args.audio_library == '-':
         interface = _Dummy()  # manually disable PortAudio

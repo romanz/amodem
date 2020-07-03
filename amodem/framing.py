@@ -29,8 +29,7 @@ class Checksum:
         if received != expected:
             log.warning('Invalid checksum: %08x != %08x', received, expected)
             raise ValueError('Invalid checksum')
-        else:
-            log.debug('Good checksum: %08x', received)
+        log.debug('Good checksum: %08x', received)
         return payload
 
 

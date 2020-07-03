@@ -63,7 +63,7 @@ def recv(config, src, dst, dump_audio=None, pylab=None):
                                    freq=freq)
         receiver.run(sampler, gain=1.0/amplitude, output=dst)
         return True
-    except BaseException:
+    except BaseException:  # pylint: disable=broad-except
         log.exception('Decoding failed')
         return False
     finally:

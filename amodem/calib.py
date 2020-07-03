@@ -107,8 +107,7 @@ def volume_calibration(result_iterator, volume_ctl):
 def iter_window(iterable, size):
     # pylint: disable=stop-iteration-return
     block = []
-    while True:
-        item = next(iterable)
+    for item in iterable:
         block.append(item)
         block = block[-size:]
         if len(block) == size:
