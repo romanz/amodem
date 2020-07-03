@@ -1,16 +1,6 @@
 Audio Modem Communication Library
 =================================
 
-.. image:: https://travis-ci.org/romanz/amodem.svg?branch=master
-    :target: https://travis-ci.org/romanz/amodem
-    :alt: Build Status
-.. image:: https://coveralls.io/repos/romanz/amodem/badge.svg?branch=master
-    :target: https://coveralls.io/r/romanz/amodem?branch=master
-    :alt: Code Coverage
-.. image:: https://landscape.io/github/romanz/amodem/master/landscape.svg?style=flat
-    :target: https://landscape.io/github/romanz/amodem/master
-    :alt: Code Health
-
 .. image:: https://img.shields.io/pypi/pyversions/amodem.svg
     :target: https://pypi.python.org/pypi/amodem/
     :alt: Python Versions
@@ -24,9 +14,6 @@ Audio Modem Communication Library
     :target: https://pypi.python.org/pypi/amodem/
     :alt: Development Status
 
-.. image:: https://badge.waffle.io/romanz/amodem.svg?label=ready&title=ready
-    :target: https://waffle.io/romanz/amodem
-    :alt: 'Ready'
 
 Description
 -----------
