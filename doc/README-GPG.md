@@ -213,7 +213,7 @@ Description=trezor-gpg-agent
 Requires=trezor-gpg-agent.socket
 
 [Service]
-Type=Simple
+Type=simple
 Environment="GNUPGHOME=%h/.gnupg/trezor"
 Environment="PATH=/bin:/usr/bin:/usr/local/bin:%h/.local/bin"
 ExecStart=/usr/bin/trezor-gpg-agent -vv
