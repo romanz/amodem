@@ -4,6 +4,7 @@ import base64
 import hashlib
 import logging
 import struct
+import nacl.signing
 
 from .. import formats, util
 
@@ -92,7 +93,7 @@ def _serialize_nist256(vk):
 
 def _serialize_ed25519(vk):
     return mpi((0x40 << 256) |
-               util.bytes2num(vk.to_bytes()))
+               util.bytes2num(vk.encode(encoder=nacl.encoding.RawEncoder)))
 
 
 def _compute_keygrip(params):
@@ -131,7 +132,7 @@ def keygrip_ed25519(vk):
         ['b', util.num2bytes(0x2DFC9311D490018C7338BF8688861767FF8FF5B2BEBE27548A14B235ECA6874A, size=32)],  # nopep8
         ['g', util.num2bytes(0x04216936D3CD6E53FEC0A4E231FDD6DC5C692CC7609525A7B2C9562D608F25D51A6666666666666666666666666666666666666666666666666666666666666658, size=65)],  # nopep8
         ['n', util.num2bytes(0x1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED, size=32)],  # nopep8
-        ['q', vk.to_bytes()],
+        ['q', vk.encode(encoder=nacl.encoding.RawEncoder)],
     ])
 
 
@@ -144,7 +145,7 @@ def keygrip_curve25519(vk):
         ['b', b'\x01'],
         ['g', util.num2bytes(0x04000000000000000000000000000000000000000000000000000000000000000920ae19a1b8a086b4e01edd2c7748d14c923d4d7e6d7c61b229e9c5a27eced3d9, size=65)],  # nopep8
         ['n', util.num2bytes(0x1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED, size=32)],  # nopep8
-        ['q', vk.to_bytes()],
+        ['q', vk.encode(encoder=nacl.encoding.RawEncoder)],
     ])
 
 

@@ -1,5 +1,5 @@
 import ecdsa
-import ed25519
+import nacl.signing
 import pytest
 
 from .. import protocol
@@ -83,8 +83,8 @@ def test_nist256p1_ecdh():
 
 
 def test_ed25519():
-    sk = ed25519.SigningKey(b'\x00' * 32)
-    vk = sk.get_verifying_key()
+    sk = nacl.signing.SigningKey(b'\x00'*32, encoder=nacl.encoding.RawEncoder)
+    vk = sk.verify_key
     pk = protocol.PublicKey(curve_name=formats.CURVE_ED25519,
                             created=42, verifying_key=vk)
     assert repr(pk) == 'GPG public key ed25519/36B40FE6'
@@ -92,8 +92,8 @@ def test_ed25519():
 
 
 def test_curve25519():
-    sk = ed25519.SigningKey(b'\x00' * 32)
-    vk = sk.get_verifying_key()
+    sk = nacl.signing.SigningKey(b'\x00'*32, encoder=nacl.encoding.RawEncoder)
+    vk = sk.verify_key
     pk = protocol.PublicKey(curve_name=formats.ECDH_CURVE25519,
                             created=42, verifying_key=vk)
     assert repr(pk) == 'GPG public key curve25519/69460384'

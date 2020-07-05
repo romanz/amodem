@@ -5,7 +5,7 @@ import io
 import logging
 
 import ecdsa
-import ed25519
+import nacl.signing
 
 from . import util
 
@@ -88,8 +88,10 @@ def parse_pubkey(blob):
 
         def ed25519_verify(sig, msg):
             assert len(sig) == 64
-            vk = ed25519.VerifyingKey(pubkey)
-            vk.verify(sig, msg)
+            vk = nacl.signing.VerifyKey(bytes(pubkey),
+                                        encoder=nacl.encoding.RawEncoder)
+            vk.verify(msg, sig)
+            log.debug('verify signature')
             return sig
 
         result.update(curve=CURVE_ED25519, verifier=ed25519_verify)
@@ -101,7 +103,7 @@ def _decompress_ed25519(pubkey):
     """Load public key from the serialized blob (stripping the prefix byte)."""
     if pubkey[:1] == b'\x00':
         # set by Trezor fsm_msgSignIdentity() and fsm_msgGetPublicKey()
-        return ed25519.VerifyingKey(pubkey[1:])
+        return nacl.signing.VerifyKey(pubkey[1:], encoder=nacl.encoding.RawEncoder)
     else:
         return None
 
@@ -161,8 +163,8 @@ def serialize_verifying_key(vk):
     Currently, NIST256P1 and ED25519 elliptic curves are supported.
     Raise TypeError on unsupported key format.
     """
-    if isinstance(vk, ed25519.keys.VerifyingKey):
-        pubkey = vk.to_bytes()
+    if isinstance(vk, nacl.signing.VerifyKey):
+        pubkey = vk.encode(encoder=nacl.encoding.RawEncoder)
         key_type = SSH_ED25519_KEY_TYPE
         blob = util.frame(SSH_ED25519_KEY_TYPE) + util.frame(pubkey)
         return key_type, blob

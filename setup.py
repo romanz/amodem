@@ -21,7 +21,7 @@ setup(
         'ConfigArgParse>=0.12.1',
         'python-daemon>=2.1.2',
         'ecdsa>=0.13',
-        'ed25519>=1.4',
+        'pynacl>=1.4.0',
         'mnemonic>=0.18',
         'pymsgbox>=1.0.6',
         'semver>=2.2',
