@@ -149,6 +149,8 @@ def create_parser(description, interface_factory):
     receiver.add_argument(
         '-o', '--output', help='output file (use "-" for stdout).')
     receiver.add_argument(
+        '-f', '--fault-tolerance', help='fault tolerance level [1]')
+    receiver.add_argument(
         '-d', '--dump', type=FileType('wb'),
         help='Filename to save recorded audio')
     receiver.add_argument(

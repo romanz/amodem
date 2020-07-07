@@ -10,8 +10,11 @@ from io import BytesIO
 
 import pytest
 import logging
-logging.basicConfig(level=logging.DEBUG,  # useful for debugging
-                    format='%(asctime)s %(levelname)-12s %(message)s')
+
+logging.basicConfig(
+    level=logging.DEBUG,  # useful for debugging
+    format="%(asctime)s %(levelname)-12s %(message)s",
+)
 
 
 def run(size, chan=None, df=0, success=True, cfg=None):
@@ -36,8 +39,9 @@ def run(size, chan=None, df=0, success=True, cfg=None):
     dump = BytesIO()
 
     try:
-        result = main.recv(config=cfg, src=rx_audio, dst=rx_data,
-                           dump_audio=dump, pylab=None)
+        result = main.recv(
+            config=cfg, src=rx_audio, dst=rx_data, dump_audio=dump, pylab=None
+        )
     finally:
         rx_audio.close()
 
@@ -49,13 +53,14 @@ def run(size, chan=None, df=0, success=True, cfg=None):
         assert rx_data == tx_data
 
 
-@pytest.fixture(params=[0, 1, 3, 10, 42, 123])
-def small_size(request):
-    return request.param
+# @pytest.fixture(params=[0, 1, 3, 10, 42, 123])
+# def small_size(request):
+#     return request.param
 
 
-def test_small(small_size):
-    run(small_size, chan=lambda x: x)
+def test_small():
+    for small_size in [0, 1, 3, 10, 42, 123]:
+        run(small_size, chan=lambda x: x)
 
 
 def test_flip():
@@ -72,14 +77,19 @@ def test_error():
     run(1024, chan=lambda x: x[:-skip], success=False)
 
 
-@pytest.fixture(params=[sign * mag for sign in (+1, -1)
-                        for mag in (0.1, 1, 10, 100, 1e3, 10e3)])
-def freq_err(request):
-    return request.param * 1e-6
+# @pytest.fixture(params=[sign * mag for sign in (+1, -1)
+#                         for mag in (0.1, 1, 10, 100, 1e3, 10e3)])
+# def freq_err(request):
+#     return request.param * 1e-6
 
 
-def test_timing(freq_err):
-    run(8192, df=freq_err)
+def test_timing():
+    for freq_err in [
+        sign * mag * 1e-6
+        for sign in (+1, -1)
+        for mag in (0.1, 1, 10, 100, 1e3, 10e3)
+    ]:
+        run(8192, df=freq_err)
 
 
 def test_lowpass():
@@ -108,10 +118,11 @@ def test_large():
     run(54321, chan=lambda x: x)
 
 
-@pytest.fixture(params=sorted(config.bitrates.keys()))
-def rate(request):
-    return request.param
+# @pytest.fixture(params=sorted(config.bitrates.keys()))
+# def rate(request):
+#     return request.param
 
 
-def test_rate(rate):
-    run(1, cfg=config.bitrates[rate])
+def test_rate():
+    for rate in sorted(config.bitrates.keys()):
+        run(1, cfg=config.bitrates[rate])
