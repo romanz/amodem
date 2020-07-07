@@ -10,12 +10,17 @@ log = logging.getLogger(__name__)
 
 
 def _checksum_func(x):
-    ''' The result will be unsigned on Python 2/3. '''
+    """ The result will be unsigned on Python 2/3. """
     return binascii.crc32(bytes(x)) & 0xFFFFFFFF
 
 
+def _short_checksum_func(x):
+    """ The result will be unsigned on Python 2/3. """
+    return binascii.crc32(bytes(x)) & 0xFF
+
+
 class Checksum:
-    fmt = '>L'  # unsigned longs (32-bit)
+    fmt = ">L"  # unsigned longs (32-bit)
     size = struct.calcsize(fmt)
 
     def encode(self, payload):
@@ -23,42 +28,55 @@ class Checksum:
         return struct.pack(self.fmt, checksum) + payload
 
     def decode(self, data):
-        received, = struct.unpack(self.fmt, bytes(data[:self.size]))
+        (received,) = struct.unpack(self.fmt, bytes(data[: self.size]))
         payload = data[self.size:]
         expected = _checksum_func(payload)
         if received != expected:
-            log.warning('Invalid checksum: %08x != %08x', received, expected)
-            raise ValueError('Invalid checksum')
-        log.debug('Good checksum: %08x', received)
+            log.warning("Invalid checksum: %08x != %08x", received, expected)
+            raise ValueError("Invalid checksum")
+        log.debug("Good checksum: %08x", received)
         return payload
 
 
 class Framer:
     block_size = 250
-    prefix_fmt = '>H'
+    prefix_fmt = ">LBHB"
     prefix_len = struct.calcsize(prefix_fmt)
     checksum = Checksum()
 
-    EOF = b''
+    EOF = b""
 
-    def _pack(self, block):
+    def __init__(self, flags=0):
+        self.flags = flags
+
+    def _pack(self, block, flags=0, cnt=0):
         frame = self.checksum.encode(block)
-        return bytearray(struct.pack(self.prefix_fmt, len(frame)) + frame)
+        prefix = struct.pack(self.prefix_fmt[:-1], cnt, flags, len(frame))
+        return bytearray(
+            prefix + struct.pack(">B", _short_checksum_func(prefix)) + frame
+        )
 
     def encode(self, data):
-        for block in common.iterate(data=data, size=self.block_size,
-                                    func=bytearray, truncate=False):
-            yield self._pack(block=block)
-        yield self._pack(block=self.EOF)
+        for idx, block in enumerate(common.iterate(data=data,
+                                                   size=self.block_size,
+                                                   func=bytearray,
+                                                   truncate=False)):
+            yield self._pack(block=block, flags=self.flags, cnt=idx)
+        yield self._pack(block=self.EOF, flags=self.flags, cnt=0xffffffff)
 
     def decode(self, data):
         data = iter(data)
         while True:
-            length, = _take_fmt(data, self.prefix_fmt)
+            cnt, flag, length, mychecksum = _take_fmt(data, self.prefix_fmt)
+            pre_chk = _short_checksum_func(
+                struct.pack(self.prefix_fmt[:-1], cnt, flag, length)
+            )
+            if pre_chk != mychecksum:
+                raise ValueError("bad prefix data")
             frame = _take_len(data, length)
             block = self.checksum.decode(frame)
             if block == self.EOF:
-                log.debug('EOF frame detected')
+                log.debug("EOF frame detected")
                 return
 
             yield block
@@ -68,14 +86,14 @@ def _take_fmt(data, fmt):
     length = struct.calcsize(fmt)
     chunk = bytearray(itertools.islice(data, length))
     if len(chunk) < length:
-        raise ValueError('missing prefix data')
+        raise ValueError("missing prefix data")
     return struct.unpack(fmt, bytes(chunk))
 
 
 def _take_len(data, length):
     chunk = bytearray(itertools.islice(data, length))
     if len(chunk) < length:
-        raise ValueError('missing payload data')
+        raise ValueError("missing payload data")
     return chunk
 
 
@@ -84,6 +102,7 @@ def chain_wrapper(func):
     def wrapped(*args, **kwargs):
         result = func(*args, **kwargs)
         return itertools.chain.from_iterable(result)
+
     return wrapped
 
 
@@ -112,8 +131,7 @@ def encode(data, framer=None):
 @chain_wrapper
 def _to_bytes(bits):
     converter = BitPacker()
-    for chunk in common.iterate(data=bits, size=8,
-                                func=tuple, truncate=True):
+    for chunk in common.iterate(data=bits, size=8, func=tuple, truncate=True):
         yield [converter.to_byte[chunk]]
 
 
