@@ -13,10 +13,6 @@ r = random.Random(0)
 blob = bytearray(r.randrange(0, 256) for i in range(64 * 1024))
 data_fixture_params = [b"", b"abc", b"1234567890", blob, blob[:12345]]
 
-# @pytest.fixture(params=[b'', b'abc', b'1234567890', blob, blob[:12345]])
-# def data(request):
-#    return request.param
-
 
 def test_checksum():
     for data in data_fixture_params:
@@ -44,6 +40,16 @@ def test_fail():
     encoded[-1] = not encoded[-1]
     with pytest.raises(ValueError):
         concat(framing.decode_frames(encoded))
+
+
+def test_sequenceError():
+    f = framing.Framer(block_size=7)
+    encoded14 = concat(f.encode(b"123456789012345678901"))
+    footerLen = len(concat(f.encode(b"")))
+    blockLenBytes = int((len(encoded14) - footerLen) / 3)
+    badEncoded14 = encoded14[:blockLenBytes] + encoded14[2 * blockLenBytes:]
+    with pytest.raises(ValueError):
+        concat(f.decode(badEncoded14))
 
 
 def test_missing():

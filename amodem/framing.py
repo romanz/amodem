@@ -19,35 +19,60 @@ def _short_checksum_func(x):
     return binascii.crc32(bytes(x)) & 0xFF
 
 
+class StopOnFault:
+    """ error codes for fault tolerance -
+    matching this code will raise error of this type """
+
+    PAYLOAD_ERR = 0x01
+    HEADER_ERR = 0x02
+    SEQUENCE_ERR = 0x04
+    ALL_ERR = 0xFF  # halt on all error
+
+
 class Checksum:
     fmt = ">L"  # unsigned longs (32-bit)
     size = struct.calcsize(fmt)
+
+    def __init__(self, stopOnCode=0):
+        self.fTOL = stopOnCode
 
     def encode(self, payload):
         checksum = _checksum_func(payload)
         return struct.pack(self.fmt, checksum) + payload
 
-    def decode(self, data):
+    def decode(self, data, cnt=0):
         (received,) = struct.unpack(self.fmt, bytes(data[: self.size]))
         payload = data[self.size:]
         expected = _checksum_func(payload)
         if received != expected:
-            log.warning("Invalid checksum: %08x != %08x", received, expected)
-            raise ValueError("Invalid checksum")
+            errMSG = "Frame %d %s checksum: %02x != calc checksum: %02x " % (
+                cnt,
+                "Payload",
+                received,
+                expected,
+            )
+            log.warning(errMSG)
+            if bool(self.fTOL & StopOnFault.PAYLOAD_ERR):
+                raise ValueError(errMSG)
         log.debug("Good checksum: %08x", received)
         return payload
 
 
 class Framer:
-    block_size = 250
+    """ Class for handling data frames
+     packing, unpacking, checksums, etc """
+
     prefix_fmt = ">LBHB"
     prefix_len = struct.calcsize(prefix_fmt)
-    checksum = Checksum()
 
     EOF = b""
 
-    def __init__(self, flags=0):
+    def __init__(self, flags=0, stopOnCode=StopOnFault.ALL_ERR,
+                 block_size=250):
         self.flags = flags
+        self.fTOL = stopOnCode
+        self.checksum = Checksum(stopOnCode=stopOnCode)
+        self.block_size = block_size
 
     def _pack(self, block, flags=0, cnt=0):
         frame = self.checksum.encode(block)
@@ -57,43 +82,73 @@ class Framer:
         )
 
     def encode(self, data):
-        for idx, block in enumerate(common.iterate(data=data,
-                                                   size=self.block_size,
-                                                   func=bytearray,
-                                                   truncate=False)):
+        idx = -1
+        for idx, block in enumerate(common.iterate(
+                data=data, size=self.block_size, func=bytearray,
+                truncate=False)):
             yield self._pack(block=block, flags=self.flags, cnt=idx)
-        yield self._pack(block=self.EOF, flags=self.flags, cnt=0xffffffff)
+        yield self._pack(block=self.EOF, flags=self.flags, cnt=idx + 1)
 
     def decode(self, data):
         data = iter(data)
+        local_cnt = 0
+        prior_cnt = -1
         while True:
-            cnt, flag, length, mychecksum = _take_fmt(data, self.prefix_fmt)
+            cnt, flag, length, mychecksum = _take_fmt(
+                data, self.prefix_fmt, local_cnt, self.fTOL
+            )
             pre_chk = _short_checksum_func(
                 struct.pack(self.prefix_fmt[:-1], cnt, flag, length)
             )
             if pre_chk != mychecksum:
-                raise ValueError("bad prefix data")
-            frame = _take_len(data, length)
+                errMSG = "Frame %d %s checksum:%02x != calc checksum:%02x" % (
+                    cnt,
+                    "Header",
+                    mychecksum,
+                    pre_chk,
+                )
+                log.warning(errMSG)
+                if bool(self.fTOL & StopOnFault.HEADER_ERR):
+                    raise ValueError(errMSG)
+            if cnt != local_cnt or (prior_cnt >= 0 and cnt != prior_cnt + 1):
+                errMSG = "Frame %d %s error. Msg cnt %d, Prior Msg cnt %d" % (
+                    local_cnt,
+                    "Sequence counting",
+                    cnt,
+                    prior_cnt,
+                )
+                log.warning(errMSG)
+                if bool(self.fTOL & StopOnFault.SEQUENCE_ERR):
+                    raise ValueError(errMSG)
+            frame = _take_len(data, length, local_cnt, self.fTOL)
             block = self.checksum.decode(frame)
             if block == self.EOF:
                 log.debug("EOF frame detected")
                 return
-
+            prior_cnt = cnt
+            local_cnt += 1
             yield block
 
 
-def _take_fmt(data, fmt):
+def _take_fmt(data, fmt, cnt=0, fTOL=StopOnFault.ALL_ERR):
     length = struct.calcsize(fmt)
     chunk = bytearray(itertools.islice(data, length))
     if len(chunk) < length:
-        raise ValueError("missing prefix data")
+        errMSG = "Frame: %d - Data truncated in %s" % (cnt, "prefix")
+        log.error(errMSG)
+        if bool(fTOL & StopOnFault.HEADER_ERR):
+            raise ValueError(errMSG)
+        return struct.unpack(fmt, bytes([0]) * length)
     return struct.unpack(fmt, bytes(chunk))
 
 
-def _take_len(data, length):
+def _take_len(data, length, cnt=0, fTOL=StopOnFault.ALL_ERR):
     chunk = bytearray(itertools.islice(data, length))
     if len(chunk) < length:
-        raise ValueError("missing payload data")
+        errMSG = "Frame: %d - Data truncated in %s" % (cnt, "payload")
+        log.warning(errMSG)
+        if bool(fTOL & StopOnFault.PAYLOAD_ERR):
+            raise ValueError(errMSG)
     return chunk
 
 
@@ -120,9 +175,9 @@ class BitPacker:
 
 
 @chain_wrapper
-def encode(data, framer=None):
+def encode(data, framer=None, flags=0, block_size=250):
     converter = BitPacker()
-    framer = framer or Framer()
+    framer = framer or Framer(flags=flags, block_size=block_size)
     for frame in framer.encode(data):
         for byte in frame:
             yield converter.to_bits[byte]
@@ -135,7 +190,9 @@ def _to_bytes(bits):
         yield [converter.to_byte[chunk]]
 
 
-def decode_frames(bits, framer=None):
-    framer = framer or Framer()
+def decode_frames(bits, framer=None, stopOnCode=StopOnFault.ALL_ERR,
+                  block_size=250):
+    """ Decodes frames from bitstream """
+    framer = framer or Framer(stopOnCode=stopOnCode, block_size=block_size)
     for frame in framer.decode(_to_bytes(bits)):
         yield bytes(frame)
