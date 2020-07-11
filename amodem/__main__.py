@@ -149,15 +149,23 @@ def create_parser(description, interface_factory):
     receiver.add_argument(
         '-o', '--output', help='output file (use "-" for stdout).')
     receiver.add_argument(
+        '-f', '--fault-tolerance', help='fault tolerance level [1]')
+    receiver.add_argument(
         '-d', '--dump', type=FileType('wb'),
         help='Filename to save recorded audio')
+    receiver.add_argument(
+        '-s', '--stopcode', default=main.framing.StopOnFault.ALL_ERR,
+        type=int,
+        help="errors causing a decoding halt [%02x]\n%s" % (
+            main.framing.StopOnFault.ALL_ERR,
+            main.framing.StopOnFault.helpMsg))
     receiver.add_argument(
         '--plot', action='store_true', default=False,
         help='plot results using pylab module')
     receiver.set_defaults(
         main=lambda config, args: main.recv(
             config, src=args.src, dst=wrap(Decompressor, args.dst, args.zlib),
-            pylab=args.pylab, dump_audio=args.dump
+            pylab=args.pylab, dump_audio=args.dump, stopOnCode=args.stopcode,
         ),
         calib=lambda config, args: calib.recv(
             config=config, src=args.src, verbose=args.verbose,
