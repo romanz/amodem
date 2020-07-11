@@ -27,6 +27,7 @@ class StopOnFault:
     HEADER_ERR = 0x02
     SEQUENCE_ERR = 0x04
     ALL_ERR = 0xFF  # halt on all error
+    helpMsg = """Payload_error: 0x01 / Header_err: 0x02 / sequence_err=0x04 """
 
 
 class Checksum:
@@ -93,6 +94,7 @@ class Framer:
         data = iter(data)
         local_cnt = 0
         prior_cnt = -1
+        prior_len = -1
         while True:
             cnt, flag, length, mychecksum = _take_fmt(
                 data, self.prefix_fmt, local_cnt, self.fTOL
@@ -110,6 +112,7 @@ class Framer:
                 log.warning(errMSG)
                 if bool(self.fTOL & StopOnFault.HEADER_ERR):
                     raise ValueError(errMSG)
+
             if cnt != local_cnt or (prior_cnt >= 0 and cnt != prior_cnt + 1):
                 errMSG = "Frame %d %s error. Msg cnt %d, Prior Msg cnt %d" % (
                     local_cnt,
@@ -120,12 +123,15 @@ class Framer:
                 log.warning(errMSG)
                 if bool(self.fTOL & StopOnFault.SEQUENCE_ERR):
                     raise ValueError(errMSG)
+                if length != prior_len:
+                    length = prior_len  # guessing what length should be
             frame = _take_len(data, length, local_cnt, self.fTOL)
-            block = self.checksum.decode(frame)
+            block = self.checksum.decode(frame, local_cnt)
             if block == self.EOF:
                 log.debug("EOF frame detected")
                 return
             prior_cnt = cnt
+            prior_len = length
             local_cnt += 1
             yield block
 

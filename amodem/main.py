@@ -10,7 +10,9 @@ from . import framing, common, stream, detect, sampling
 log = logging.getLogger(__name__)
 
 
-def send(config, src, dst, gain=1.0, extra_silence=0.0):
+# pylint: disable=too-many-arguments
+def send(config, src, dst, gain=1.0, extra_silence=0.0,
+         block_size=250, flags=0x00):
     sender = _send.Sender(dst, config=config, gain=gain)
     Fs = config.Fs
 
@@ -24,7 +26,7 @@ def send(config, src, dst, gain=1.0, extra_silence=0.0):
 
     reader = stream.Reader(src, eof=True)
     data = itertools.chain.from_iterable(reader)
-    bits = framing.encode(data)
+    bits = framing.encode(data, flags=flags, block_size=block_size)
     log.info('Starting modulation')
     sender.modulate(bits=bits)
 
@@ -37,7 +39,8 @@ def send(config, src, dst, gain=1.0, extra_silence=0.0):
     return True
 
 
-def recv(config, src, dst, dump_audio=None, pylab=None):
+def recv(config, src, dst, stopOnCode=framing.StopOnFault.ALL_ERR,
+         dump_audio=None, pylab=None):
     if dump_audio:
         src = stream.Dumper(src, dump_audio)
     reader = stream.Reader(src, data_type=common.loads)
@@ -61,7 +64,8 @@ def recv(config, src, dst, dump_audio=None, pylab=None):
 
         sampler = sampling.Sampler(signal, sampling.defaultInterpolator,
                                    freq=freq)
-        receiver.run(sampler, gain=1.0/amplitude, output=dst)
+        receiver.run(sampler, gain=1.0/amplitude, output=dst,
+                     stopOnCode=stopOnCode)
         return True
     except BaseException:  # pylint: disable=broad-except
         log.exception('Decoding failed')
