@@ -17,6 +17,10 @@ PUBKEY_TEXT = ('ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzd'
 
 class MockDevice(device.interface.Device):  # pylint: disable=abstract-method
 
+    @classmethod
+    def package_name(cls):
+        return 'fake-device-agent'
+
     def connect(self):  # pylint: disable=no-self-use
         return mock.Mock()
 

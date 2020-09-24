@@ -131,7 +131,28 @@ Then, install the latest [keepkey_agent](https://pypi.python.org/pypi/keepkey_ag
     $ pip3 install --user -e trezor-agent/agents/ledger
     ```
 
-# 5. Installation Troubleshooting
+# 5. Install the OnlyKey agent
+
+1. Make sure you are running the latest firmware version on your OnlyKey:
+
+ * [OnlyKey Firmware Upgrade Guide](https://docs.crp.to/upgradeguide.html)
+
+2. Make sure that your `udev` rules are configured [correctly](https://docs.crp.to/linux.html#udev-rule).
+3. Then, install the latest [onlykey-agent](https://pypi.python.org/pypi/onlykey-agent) package:
+
+    ```
+    $ pip3 install onlykey-agent
+    ```
+
+    Or, directly from the latest source code:
+
+    ```
+    $ git clone https://github.com/romanz/trezor-agent
+    $ pip3 install --user -e trezor-agent
+    $ pip3 install --user -e trezor-agent/agents/onlykey
+    ```
+
+# 6. Installation Troubleshooting
 
 If there is an import problem with the installed `protobuf` package,
 see [this issue](https://github.com/romanz/trezor-agent/issues/28) for fixing it.
