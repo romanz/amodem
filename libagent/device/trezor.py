@@ -6,6 +6,7 @@ import logging
 import semver
 
 from . import interface
+from .. import formats
 
 log = logging.getLogger(__name__)
 
@@ -87,7 +88,8 @@ class Trezor(interface.Device):
             n=addr,
             ecdsa_curve_name=curve_name)
         log.debug('result: %s', result)
-        return bytes(result.node.public_key)
+        pubkey = bytes(result.node.public_key)
+        return formats.decompress_pubkey(pubkey=pubkey, curve_name=identity.curve_name)
 
     def _identity_proto(self, identity):
         result = self._defs.IdentityType()

@@ -22,7 +22,7 @@ class MockDevice(device.interface.Device):  # pylint: disable=abstract-method
 
     def pubkey(self, identity, ecdh=False):  # pylint: disable=unused-argument
         assert self.conn
-        return PUBKEY
+        return formats.decompress_pubkey(pubkey=PUBKEY, curve_name=identity.curve_name)
 
     def sign(self, identity, blob):
         """Sign given blob and return the signature (as bytes)."""

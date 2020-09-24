@@ -7,6 +7,7 @@ import struct
 from ledgerblue import comm  # pylint: disable=import-error
 
 from . import interface
+from .. import formats
 
 log = logging.getLogger(__name__)
 
@@ -64,7 +65,9 @@ class LedgerNanoS(interface.Device):
         log.debug('apdu: %r', apdu)
         result = bytearray(self.conn.exchange(bytes(apdu)))
         log.debug('result: %r', result)
-        return _convert_public_key(curve_name, result[1:])
+        return formats.decompress_pubkey(
+            pubkey=_convert_public_key(curve_name, result[1:]),
+            curve_name=identity.curve_name)
 
     def sign(self, identity, blob):
         """Sign given blob and return the signature (as bytes)."""
