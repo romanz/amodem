@@ -158,8 +158,8 @@ def run_process(command, environ):
     env.update(environ)
     try:
         p = subprocess.Popen(args=command, env=env)
-    except OSError as e:
-        raise OSError('cannot run %r: %s' % (command, e))
+    except OSError as exc:
+        raise OSError('cannot run %r: %s' % (command, exc)) from exc
     log.debug('subprocess %d is running', p.pid)
     ret = p.wait()
     log.debug('subprocess %d exited: %d', p.pid, ret)
