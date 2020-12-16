@@ -1,12 +1,11 @@
 """TREZOR-related definitions."""
 
-import logging
 # pylint: disable=unused-import,import-error,no-name-in-module,no-member
+import logging
 import os
 
 import mnemonic
 import semver
-
 import trezorlib
 from trezorlib.btc import get_address, get_public_node
 from trezorlib.client import PASSPHRASE_TEST_PATH

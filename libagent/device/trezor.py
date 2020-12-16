@@ -126,6 +126,11 @@ class Trezor(interface.Device):
 
     def ecdh(self, identity, pubkey):
         """Get shared session key using Elliptic Curve Diffie-Hellman."""
+        session_key, _ = self.ecdh_with_pubkey(identity, pubkey)
+        return session_key
+
+    def ecdh_with_pubkey(self, identity, pubkey):
+        """Get shared session key using Elliptic Curve Diffie-Hellman & self public key."""
         curve_name = identity.get_curve_name(ecdh=True)
         log.debug('"%s" shared session key (%s) for %r from %s',
                   identity.to_string(), curve_name, pubkey, self)
@@ -138,7 +143,11 @@ class Trezor(interface.Device):
             log.debug('result: %s', result)
             assert len(result.session_key) in {65, 33}  # NIST256 or Curve25519
             assert result.session_key[:1] == b'\x04'
-            return bytes(result.session_key)
+            self_pubkey = result.public_key
+            if self_pubkey:
+                self_pubkey = bytes(self_pubkey[1:])
+
+            return bytes(result.session_key), self_pubkey
         except self._defs.TrezorFailure as e:
             msg = '{} error: {}'.format(self, e)
             log.debug(msg, exc_info=True)
