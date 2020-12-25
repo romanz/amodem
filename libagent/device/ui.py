@@ -3,6 +3,7 @@
 import logging
 import os
 import subprocess
+import sys
 
 try:
     from trezorlib.client import PASSPHRASE_ON_DEVICE
@@ -76,11 +77,12 @@ class UI:
 def create_default_options_getter():
     """Return current TTY and DISPLAY settings for GnuPG pinentry."""
     options = []
-    try:
-        ttyname = subprocess.check_output(args=['tty']).strip()
-        options.append(b'ttyname=' + ttyname)
-    except subprocess.CalledProcessError as e:
-        log.warning('no TTY found: %s', e)
+    if sys.stdin.isatty():  # short-circuit calling `tty`
+        try:
+            ttyname = subprocess.check_output(args=['tty']).strip()
+            options.append(b'ttyname=' + ttyname)
+        except subprocess.CalledProcessError as e:
+            log.warning('no TTY found: %s', e)
 
     display = os.environ.get('DISPLAY')
     if display is not None:
