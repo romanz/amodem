@@ -2,10 +2,11 @@
 # pylint: disable=attribute-defined-outside-init
 """OnlyKey-related code (see https://www.onlykey.io/)."""
 
-import logging
-import hashlib
 import codecs
+import hashlib
+import logging
 import time
+
 import ecdsa
 import nacl.signing
 import unidecode

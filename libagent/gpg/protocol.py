@@ -4,6 +4,7 @@ import base64
 import hashlib
 import logging
 import struct
+
 import nacl.signing
 
 from .. import formats, util

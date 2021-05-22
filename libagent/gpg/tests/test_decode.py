@@ -4,8 +4,8 @@ import os
 
 import pytest
 
-from .. import decode, protocol
 from ... import util
+from .. import decode, protocol
 
 
 def test_subpackets():

@@ -21,9 +21,8 @@ import time
 import pkg_resources
 import semver
 
-
-from . import agent, client, encode, keyring, protocol
 from .. import device, formats, server, util
+from . import agent, client, encode, keyring, protocol
 
 log = logging.getLogger(__name__)
 

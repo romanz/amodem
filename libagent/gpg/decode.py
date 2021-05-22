@@ -9,8 +9,8 @@ import struct
 import ecdsa
 import nacl.signing
 
-from . import protocol
 from .. import util
+from . import protocol
 
 log = logging.getLogger(__name__)
 

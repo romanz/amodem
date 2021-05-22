@@ -16,7 +16,6 @@ import time
 import pkg_resources
 import semver
 
-
 from .. import formats, server, util
 from ..device import interface, ui
 

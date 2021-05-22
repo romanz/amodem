@@ -11,9 +11,9 @@ import sys
 import tempfile
 import threading
 
-import pkg_resources
 import configargparse
 import daemon
+import pkg_resources
 
 from .. import device, formats, server, util
 from . import client, protocol

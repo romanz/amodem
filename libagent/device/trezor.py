@@ -5,8 +5,8 @@ import logging
 
 import semver
 
-from . import interface
 from .. import formats
+from . import interface
 
 log = logging.getLogger(__name__)
 
