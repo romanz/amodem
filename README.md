@@ -1,6 +1,5 @@
 # Hardware-based SSH/GPG agent
 
-[![Build Status](https://travis-ci.org/romanz/trezor-agent.svg?branch=master)](https://travis-ci.org/romanz/trezor-agent)
 [![Chat](https://badges.gitter.im/romanz/trezor-agent.svg)](https://gitter.im/romanz/trezor-agent)
 
 This project allows you to use various hardware security devices to operate GPG and SSH.  Instead of keeping your key on your computer and decrypting it with a passphrase when you want to use it, the key is generated and stored on the device and never reaches your computer.  Read more about the design [here](doc/DESIGN.md).
