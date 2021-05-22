@@ -5,12 +5,13 @@ import os
 import subprocess
 import sys
 
+from .. import util
+
 try:
     from trezorlib.client import PASSPHRASE_ON_DEVICE
 except ImportError:
     PASSPHRASE_ON_DEVICE = object()
 
-from .. import util
 
 log = logging.getLogger(__name__)
 

@@ -2,8 +2,8 @@ import ecdsa
 import nacl.signing
 import pytest
 
-from .. import protocol
 from ... import formats
+from .. import protocol
 
 
 def test_packet():

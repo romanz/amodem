@@ -6,8 +6,8 @@ import struct
 
 from ledgerblue import comm  # pylint: disable=import-error
 
-from . import interface
 from .. import formats
+from . import interface
 
 log = logging.getLogger(__name__)
 

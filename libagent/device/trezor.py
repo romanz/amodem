@@ -5,8 +5,8 @@ import logging
 
 import semver
 
-from . import interface
 from .. import formats
+from . import interface
 
 log = logging.getLogger(__name__)
 
@@ -71,6 +71,7 @@ class Trezor(interface.Device):
                 log.exception('ping failed: %s', e)
                 connection.close()  # so the next HID open() will succeed
                 raise
+        return None
 
     def close(self):
         """Close connection."""

@@ -2,8 +2,8 @@
 import io
 import logging
 
-from . import decode, keyring, protocol
 from .. import util
+from . import decode, keyring, protocol
 
 log = logging.getLogger(__name__)
 

@@ -1,7 +1,7 @@
 """KeepKey-related code (see https://www.keepkey.com/)."""
 
-from . import trezor
 from .. import formats
+from . import trezor
 
 
 def _verify_support(identity, ecdh):
