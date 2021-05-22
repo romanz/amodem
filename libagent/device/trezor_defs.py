@@ -28,3 +28,4 @@ def find_device():
         return get_transport(os.environ.get("TREZOR_PATH"))
     except Exception as e:  # pylint: disable=broad-except
         log.debug("Failed to find a Trezor device: %s", e)
+        return None
