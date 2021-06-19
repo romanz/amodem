@@ -15,11 +15,6 @@ from . import main
 from .config import bitrates
 
 
-# Python 3 has `buffer` attribute for byte-based I/O
-_stdin = getattr(sys.stdin, 'buffer', sys.stdin)
-_stdout = getattr(sys.stdout, 'buffer', sys.stdout)
-
-
 try:
     import argcomplete
 except ImportError:
@@ -83,9 +78,9 @@ def FileType(mode, interface_factory=None):
 
         if fname == '-':
             if 'r' in mode:
-                return _stdin
+                return sys.stdin.buffer
             if 'w' in mode:
-                return _stdout
+                return sys.stdout.buffer
 
         return open(fname, mode)
 
