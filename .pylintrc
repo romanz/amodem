@@ -1,2 +1,2 @@
 [MESSAGES CONTROL]
-disable=invalid-name, missing-docstring, too-many-instance-attributes, too-few-public-methods, logging-format-interpolation
+disable=invalid-name, missing-docstring, too-many-instance-attributes, too-few-public-methods, logging-format-interpolation, consider-using-with
