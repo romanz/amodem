@@ -3,7 +3,7 @@
 import logging
 import threading
 
-import six  # since `Queue` module was renamed to `queue` (in Python 3)
+from queue import Queue
 
 log = logging.getLogger()
 
@@ -11,7 +11,7 @@ log = logging.getLogger()
 class AsyncReader:
     def __init__(self, stream, bufsize):
         self.stream = stream
-        self.queue = six.moves.queue.Queue()
+        self.queue = Queue()
         self.stop = threading.Event()
         args = (stream, bufsize, self.queue, self.stop)
         self.thread = threading.Thread(target=AsyncReader._thread,
