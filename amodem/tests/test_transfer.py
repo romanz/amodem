@@ -49,13 +49,18 @@ def run(size, chan=None, df=0, success=True, cfg=None):
         assert rx_data == tx_data
 
 
-@pytest.fixture(params=[0, 1, 3, 10, 42, 123])
+@pytest.fixture(params=[0, 1, 3, 10, 16, 17, 42, 123])
 def small_size(request):
     return request.param
 
 
-def test_small(small_size):
-    run(small_size, chan=lambda x: x)
+@pytest.fixture(params=list(config.bitrates.values()))
+def all_configs(request):
+    return request.param
+
+
+def test_small(small_size, all_configs):
+    run(small_size, chan=lambda x: x, cfg=all_configs)
 
 
 def test_flip():
