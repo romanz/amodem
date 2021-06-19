@@ -73,16 +73,6 @@ def take(iterable, n):
     return np.array(list(itertools.islice(iterable, n)))
 
 
-def izip(iterables):
-    """ "Python 3" zip re-implementation for Python 2. """
-    iterables = [iter(iterable) for iterable in iterables]
-    try:
-        while True:
-            yield tuple([next(iterable) for iterable in iterables])
-    except StopIteration:
-        pass
-
-
 class Dummy:
     """ Dummy placeholder object for testing and mocking. """
 

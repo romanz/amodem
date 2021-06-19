@@ -111,7 +111,7 @@ class Receiver:
             bits = self.modem.decode(S, freq_handler)  # list of bit tuples
             streams.append(bits)  # bit stream per frequency
 
-        return common.izip(streams), symbol_list
+        return zip(*streams), symbol_list
 
     def _demodulate(self, sampler, symbols):
         symbol_list = []

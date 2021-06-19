@@ -48,12 +48,6 @@ def test_dumps_loads():
     assert all(x == y)
 
 
-def test_izip():
-    x = range(10)
-    y = range(-10, 0)
-    assert list(common.izip([x, y])) == list(zip(x, y))
-
-
 def test_configs():
     default = config.Configuration()
     fastest = config.fastest()
