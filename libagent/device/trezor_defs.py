@@ -25,7 +25,7 @@ def find_device():
     If unset, picks first connected device.
     """
     try:
-        return get_transport(os.environ.get("TREZOR_PATH"))
+        return get_transport(os.environ.get("TREZOR_PATH"), prefix_search=True)
     except Exception as e:  # pylint: disable=broad-except
         log.debug("Failed to find a Trezor device: %s", e)
         return None
