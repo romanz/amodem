@@ -61,7 +61,7 @@ gpg (GnuPG) 2.1.15
 
  * [TREZOR firmware releases](https://wallet.trezor.io/data/firmware/releases.json): `1.4.2+`
 
-2. Make sure that your `udev` rules are configured [correctly](https://doc.satoshilabs.com/trezor-user/settingupchromeonlinux.html#manual-configuration-of-udev-rules).
+2. Make sure that your `udev` rules are configured [correctly](https://wiki.trezor.io/Udev_rules).
 
 3. Then, install the latest [trezor_agent](https://pypi.python.org/pypi/trezor_agent) package:
 
