@@ -17,8 +17,11 @@ log = logging.getLogger(__name__)
 def check_output(args, env=None, sp=subprocess):
     """Call an external binary and return its stdout."""
     log.debug('calling %s with env %s', args, env)
-    output = sp.check_output(args=args, env=env)
+    p = sp.Popen(args=args, env=env, stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE)
+    (output, error) = p.communicate()
     log.debug('output: %r', output)
+    if error:
+        log.debug('error: %r', error)
     return output
 
 
