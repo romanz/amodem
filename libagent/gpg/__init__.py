@@ -18,6 +18,7 @@ import subprocess
 import sys
 import time
 
+import daemon
 import pkg_resources
 import semver
 

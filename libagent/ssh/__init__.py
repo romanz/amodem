@@ -269,7 +269,7 @@ def main(device_type):
         identities = [device.interface.Identity(
             identity_str=args.identity, curve_name=args.ecdsa_curve_name)]
     for index, identity in enumerate(identities):
-        identity.identity_dict['proto'] = u'ssh'
+        identity.identity_dict['proto'] = 'ssh'
         log.info('identity #%d: %s', index, identity.to_string())
 
     # override default PIN/passphrase entry tools (relevant for TREZOR/Keepkey):
