@@ -1,6 +1,5 @@
-import glob
 import io
-import os
+import pathlib
 
 import pytest
 
@@ -30,8 +29,8 @@ def test_mpi():
     assert decode.parse_mpis(util.Reader(s), n=2) == [0x123, 5]
 
 
-cwd = os.path.join(os.path.dirname(__file__))
-input_files = glob.glob(os.path.join(cwd, '*.gpg'))
+cwd = pathlib.Path(__file__).parent
+input_files = cwd.glob('*.gpg')
 
 
 @pytest.fixture(params=input_files)
@@ -60,3 +59,20 @@ def test_has_custom_subpacket():
 def test_load_by_keygrip_missing():
     with pytest.raises(KeyError):
         decode.load_by_keygrip(pubkey_bytes=b'', keygrip=b'')
+
+
+def test_keygrips():
+    pubkey_bytes = (cwd / "romanz-pubkey.gpg").open("rb").read()
+    keygrips = list(decode.iter_keygrips(pubkey_bytes))
+    assert [k.hex() for k in keygrips] == [
+        '7b2497258d76bc6539ed88d018cd1c739e2dbb6c',
+        '30ae97f3d8e0e34c5ed80e1715fd442ca24c0a8e',
+    ]
+
+    for keygrip in keygrips:
+        pubkey_dict, user_ids = decode.load_by_keygrip(pubkey_bytes, keygrip)
+        assert pubkey_dict['keygrip'] == keygrip
+        assert [u['value'] for u in user_ids] == [
+            b'Roman Zeyde <roman.zeyde@gmail.com>',
+            b'Roman Zeyde <me@romanzey.de>',
+        ]

@@ -17,6 +17,7 @@ setup(
     ],
     install_requires=[
         'docutils>=0.14',
+        'python-daemon>=2.3.0',
         'wheel>=0.32.3',
         'backports.shutil_which>=3.5.1',
         'ConfigArgParse>=0.12.1',
