@@ -122,7 +122,7 @@ def run_init(device_type, args):
     verify_gpg_version()
 
     # Prepare new GPG home directory for hardware-based identity
-    device_name = os.path.basename(sys.argv[0]).rsplit('-', 1)[0]
+    device_name = device_type.package_name().rsplit('-', 1)[0]
     log.info('device name: %s', device_name)
     homedir = args.homedir
     if not homedir:
