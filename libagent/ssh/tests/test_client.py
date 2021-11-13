@@ -74,3 +74,52 @@ def test_ssh_agent():
     c.device.sign = cancel_sign
     with pytest.raises(IOError):
         c.sign_ssh_challenge(blob=BLOB, identity=identity)
+
+
+CHALLENGE_BLOB = (
+    b'\x00\x00\x00 \xe4\x08\x8e"J#\x83 \x05\x90\x1e\xa9\xf9C\xb1\xd2\x8f\xc3\x8c\xea\xd8\xf6E'
+    b'%q\xff\x07\xfa\xd8\x8b\xdf\xbd2\x00\x00\x00\x03git\x00\x00\x00\x0essh-connection\x00\x00'
+    b'\x00\tpublickey\x01\x00\x00\x00\x0bssh-ed25519\x00\x00\x003\x00\x00\x00\x0bssh-ed25519'
+    b'\x00\x00\x00 \xd1q\x1ab\xc6\xf0d\x19\xe2q<\x05\x0b\xdao\xa1\xcb\xae\xad\xc9\x0b\x16\xf3'
+    b'\xc2m\x84q8qU\xda\xb0'
+)
+
+
+def test_parse_ssh_challenge():
+    result = client.parse_ssh_blob(CHALLENGE_BLOB)
+    result['public_key'].pop('verifier')
+    assert result == {
+        'auth': b'publickey',
+        'conn': b'ssh-connection',
+        'key_type': b'ssh-ed25519',
+        'nonce': b'\xe4\x08\x8e"J#\x83 \x05\x90\x1e\xa9\xf9C\xb1\xd2\x8f\xc3\x8c\xea'
+                 b'\xd8\xf6E%q\xff\x07\xfa\xd8\x8b\xdf\xbd',
+        'public_key': {'blob': b'\x00\x00\x00\x0bssh-ed25519\x00\x00\x00 \xd1'
+                               b'q\x1ab\xc6\xf0d\x19\xe2q<\x05\x0b\xdao\xa1\xcb'
+                               b'\xae\xad\xc9\x0b\x16\xf3\xc2m\x84q8qU\xda\xb0',
+                       'curve': 'ed25519',
+                       'fingerprint': '47:a3:26:af:0b:5d:a2:c3:91:ed:26:36:94:be:3a:d5',
+                       'type': b'ssh-ed25519'},
+        'sshsig': False,
+        'user': b'git',
+    }
+
+
+FILE_SIG_BLOB = (
+    b"SSHSIG\x00\x00\x00\x04file\x00\x00\x00\x00\x00\x00\x00\x06sha512\x00\x00\x00@r\xb7r\xfeM"
+    b"\xe5w\xf0#w\x1dbl\xca\to=\x90\xb69\xd1:u{\xe5\xe4\xf1\xb1\xa8C\xb8\xfcM\x91\x9f\x12\xa8"
+    b"\x1d`\x00\x848C<\x85\x8e\xf0o\xdab\xdcQ\xce\xf2\xda\xc3\xae\xa9\x1e%\x85\xcd\xe3'"
+)
+
+
+def test_parse_ssh_signature():
+    result = client.parse_ssh_blob(FILE_SIG_BLOB)
+    assert result == {
+        'hashalg': b'sha512',
+        'message': b'r\xb7r\xfeM\xe5w\xf0#w\x1dbl\xca\to=\x90\xb69\xd1:u{'
+                   b'\xe5\xe4\xf1\xb1\xa8C\xb8\xfcM\x91\x9f\x12\xa8\x1d`\x00\x848C<'
+                   b"\x85\x8e\xf0o\xdab\xdcQ\xce\xf2\xda\xc3\xae\xa9\x1e%\x85\xcd\xe3'",
+        'namespace': b'file',
+        'reserved': b'',
+        'sshsig': True,
+    }
