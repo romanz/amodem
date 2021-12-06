@@ -23,6 +23,26 @@ _public_key = (
     'home\n'
 )
 
+_public_key_cert = (
+    'ecdsa-sha2-nistp256-cert-v01@openssh.com '
+    'AAAAKGVjZHNhLXNoYTItbmlzdHAyNTYtY2VydC12MDFAb3B'
+    'lbnNzaC5jb20AAAAgohlAP8H3LPYWz3+w/E+RGDxG6tNAEE'
+    '3Ao9Z6Pc66khEAAAAIbmlzdHAyNTYAAABBBGI2zqveJSB+g'
+    'eQEWG46OvGs2h3+0qu7tIdsH8WylrV19vttd7GR5rKvTWJt'
+    '8b9ErthmnFALelAFKOB/u50jsukAAAAAAAAAFQAAAAEAAAA'
+    'IdW5pdFRlc3QAAAAIAAAABHVzZXIAAAAAAAAAAP////////'
+    '//AAAAAAAAAIIAAAAVcGVybWl0LVgxMS1mb3J3YXJkaW5nA'
+    'AAAAAAAABdwZXJtaXQtYWdlbnQtZm9yd2FyZGluZwAAAAAA'
+    'AAAWcGVybWl0LXBvcnQtZm9yd2FyZGluZwAAAAAAAAAKcGV'
+    'ybWl0LXB0eQAAAAAAAAAOcGVybWl0LXVzZXItcmMAAAAAAA'
+    'AAAAAAADMAAAALc3NoLWVkMjU1MTkAAAAgf9gyPrF24CLZc'
+    '0rHoZuI1+yjBFWt66G8oUmm20yRO8IAAABTAAAAC3NzaC1l'
+    'ZDI1NTE5AAAAQCEgVgsR7fSgcTxuAWqMW4h42y7pt1BAKR4'
+    'HTRg178tl7Vx8WoRtQcNirX9eggBcTA+5ILWmeY3uDN+soW'
+    't7fwk= '
+    'home\n'
+)
+
 
 def test_parse_public_key():
     key = formats.import_public_key(_public_key)
@@ -32,6 +52,16 @@ def test_parse_public_key():
     assert key['curve'] == 'nist256p1'
     assert key['fingerprint'] == '4b:19:bc:0f:c8:7e:dc:fa:1a:e3:c2:ff:6f:e0:80:a2'  # nopep8
     assert key['type'] == b'ecdsa-sha2-nistp256'
+
+
+def test_parse_public_key_cert():
+    key = formats.import_public_key(_public_key_cert)
+    assert key['name'] == b'home'
+    assert key['point'] == _point
+
+    assert key['curve'] == 'nist256p1'
+    assert key['fingerprint'] == 'ab:ab:5d:9f:f4:33:f4:d0:c3:68:65:3b:94:86:de:22'  # nopep8
+    assert key['type'] == b'ecdsa-sha2-nistp256-cert-v01@openssh.com'
 
 
 def test_decompress():

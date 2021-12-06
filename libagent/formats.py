@@ -25,8 +25,10 @@ SSH_NIST256_DER_OCTET = b'\x04'
 SSH_NIST256_KEY_PREFIX = b'ecdsa-sha2-'
 SSH_NIST256_CURVE_NAME = b'nistp256'
 SSH_NIST256_KEY_TYPE = SSH_NIST256_KEY_PREFIX + SSH_NIST256_CURVE_NAME
+SSH_NIST256_CERT_POSTFIX = b'-cert-v01@openssh.com'
+SSH_NIST256_CERT_TYPE = SSH_NIST256_KEY_TYPE + SSH_NIST256_CERT_POSTFIX
 SSH_ED25519_KEY_TYPE = b'ssh-ed25519'
-SUPPORTED_KEY_TYPES = {SSH_NIST256_KEY_TYPE, SSH_ED25519_KEY_TYPE}
+SUPPORTED_KEY_TYPES = {SSH_NIST256_KEY_TYPE, SSH_NIST256_CERT_TYPE, SSH_ED25519_KEY_TYPE}
 
 hashfunc = hashlib.sha256
 
@@ -49,6 +51,7 @@ def parse_pubkey(blob):
     The verifier returns the signatures in the required SSH format.
     Currently, NIST256P1 and ED25519 elliptic curves are supported.
     """
+    # pylint: disable=too-many-locals
     fp = fingerprint(blob)
     s = io.BytesIO(blob)
     key_type = util.read_frame(s)
@@ -57,10 +60,27 @@ def parse_pubkey(blob):
 
     result = {'blob': blob, 'type': key_type, 'fingerprint': fp}
 
-    if key_type == SSH_NIST256_KEY_TYPE:
+    if key_type in (SSH_NIST256_KEY_TYPE, SSH_NIST256_CERT_TYPE):
+        if key_type == SSH_NIST256_CERT_TYPE:
+            _nonce = util.read_frame(s)
+
         curve_name = util.read_frame(s)
         log.debug('curve name: %s', curve_name)
         point = util.read_frame(s)
+
+        if key_type == SSH_NIST256_CERT_TYPE:
+            _serial_number = util.recv(s, '>Q')
+            _type = util.recv(s, '>L')
+            _key_id = util.read_frame(s)
+            _valid_principals = util.read_frame(s)
+            _valid_after = util.recv(s, '>Q')
+            _valid_before = util.recv(s, '>Q')
+            _critical_options = util.read_frame(s)
+            _extensions = util.read_frame(s)
+            _reserved = util.read_frame(s)
+            _signature_key = util.read_frame(s)
+            _signature = util.read_frame(s)
+
         assert s.read() == b''
         _type, point = point[:1], point[1:]
         assert _type == SSH_NIST256_DER_OCTET
