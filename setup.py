@@ -10,6 +10,7 @@ setup(
     url='http://github.com/romanz/trezor-agent',
     packages=[
         'libagent',
+        'libagent.age',
         'libagent.device',
         'libagent.gpg',
         'libagent.signify',
