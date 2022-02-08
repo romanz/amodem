@@ -4,13 +4,13 @@
 
 SSH requires no configuration, but you may put common command line options in `~/.ssh/agent.conf` to avoid repeating them in every invocation.
 
-See `(trezor|keepkey|ledger|onlykey)-agent -h` for details on supported options and the configuration file format.
+See `(trezor|keepkey|ledger|jade|onlykey)-agent -h` for details on supported options and the configuration file format.
 
 If you'd like a Trezor-style PIN entry program, follow [these instructions](README-PINENTRY.md).
 
 ## 2. Usage
 
-Use the `(trezor|keepkey|ledger|onlykey)-agent` program to work with SSH. It has three main modes of operation:
+Use the `(trezor|keepkey|ledger|jade|onlykey)-agent` program to work with SSH. It has three main modes of operation:
 
 ##### 1. Export public keys
 
@@ -18,7 +18,7 @@ To get your public key so you can add it to `authorized_hosts` or allow
 ssh access to a service that supports it, run:
 
 ```
-(trezor|keepkey|ledger|onlykey)-agent identity@myhost
+(trezor|keepkey|ledger|jade|onlykey)-agent identity@myhost
 ```
 
 The identity (ex: `identity@myhost`) is used to derive the public key and is added as a comment to the exported key string.
@@ -28,7 +28,7 @@ The identity (ex: `identity@myhost`) is used to derive the public key and is add
 Run
 
 ```
-$ (trezor|keepkey|ledger|onlykey)-agent identity@myhost -- COMMAND --WITH --ARGUMENTS
+$ (trezor|keepkey|ledger|jade|onlykey)-agent identity@myhost -- COMMAND --WITH --ARGUMENTS
 ```
 
 to start the agent in the background and execute the command with environment variables set up to use the SSH agent.  The specified identity is used for all SSH connections.  The agent will exit after the command completes.
@@ -36,23 +36,23 @@ Note the `--` separator, which is used to separate `trezor-agent`'s arguments fr
 
 Example:
 ```
- (trezor|keepkey|ledger|onlykey)-agent -e ed25519 bob@example.com -- rsync up/ bob@example.com:/home/bob
+ (trezor|keepkey|ledger|jade|onlykey)-agent -e ed25519 bob@example.com -- rsync up/ bob@example.com:/home/bob
 ```
 
 As a shortcut you can run
 
 ```
-$ (trezor|keepkey|ledger|onlykey)-agent identity@myhost -s
+$ (trezor|keepkey|ledger|jade|onlykey)-agent identity@myhost -s
 ```
 
 to start a shell with the proper environment.
 
-##### 3. Connect to a server directly via `(trezor|keepkey|ledger|onlykey)-agent`
+##### 3. Connect to a server directly via `(trezor|keepkey|ledger|jade|onlykey)-agent`
 
 If you just want to connect to a server this is the simplest way to do it:
 
 ```
-$ (trezor|keepkey|ledger|onlykey)-agent user@remotehost -c
+$ (trezor|keepkey|ledger|jade|onlykey)-agent user@remotehost -c
 ```
 
 The identity `user@remotehost` is used as both the destination user and host as well as for key derivation, so you must generate a separate key for each host you connect to.
@@ -118,7 +118,7 @@ The same works for Mercurial (e.g. on [BitBucket](https://confluence.atlassian.c
 
 ##### 1. Create these files in `~/.config/systemd/user`
 
-Replace `trezor` with `keepkey` or `ledger` or `onlykey` as required.
+Replace `trezor` with `keepkey` or `ledger` or `jade` or `onlykey` as required.
 
 ###### `trezor-ssh-agent.service`
 
