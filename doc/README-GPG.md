@@ -5,7 +5,7 @@ and please let me [know](https://github.com/romanz/trezor-agent/issues/new) if s
 work well for you. If possible:
 
  * record the session (e.g. using [asciinema](https://asciinema.org))
- * attach the GPG agent log from `~/.gnupg/{trezor,ledger}/gpg-agent.log` (can be [encrypted](https://keybase.io/romanz))
+ * attach the GPG agent log from `~/.gnupg/{trezor,ledger,jade}/gpg-agent.log` (can be [encrypted](https://keybase.io/romanz))
 
 Thanks!
 
@@ -18,14 +18,14 @@ Thanks!
     Run
 
     ```
-    $ (trezor|keepkey|ledger|onlykey)-gpg init "Roman Zeyde <roman.zeyde@gmail.com>"
+    $ (trezor|keepkey|ledger|jade|onlykey)-gpg init "Roman Zeyde <roman.zeyde@gmail.com>"
     ```
 
     Follow the instructions provided to complete the setup.  Keep note of the timestamp value which you'll need if you want to regenerate the key later.
 
     If you'd like a Trezor-style PIN entry program, follow [these instructions](README-PINENTRY.md).
 
-2. Add `export GNUPGHOME=~/.gnupg/(trezor|keepkey|ledger|onlykey)` to your `.bashrc` or other environment file.
+2. Add `export GNUPGHOME=~/.gnupg/(trezor|keepkey|ledger|jade|onlykey)` to your `.bashrc` or other environment file.
 
     This `GNUPGHOME` contains your hardware keyring and agent settings.  This agent software assumes all keys are backed by hardware devices so you can't use standard GPG keys in `GNUPGHOME` (if you do mix keys you'll receive an error when you attempt to use them).
 
@@ -203,7 +203,7 @@ Follow [these instructions](enigmail.md) to set up Enigmail in Thunderbird.
 
 ##### 1. Create these files in `~/.config/systemd/user`
 
-Replace `trezor` with `keepkey` or `ledger` or `onlykey` as required.
+Replace `trezor` with `keepkey` or `ledger` or `jade` or `onlykey` as required.
 
 ###### `trezor-gpg-agent.service`
 

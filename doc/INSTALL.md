@@ -152,7 +152,31 @@ Then, install the latest [keepkey_agent](https://pypi.python.org/pypi/keepkey_ag
     $ pip3 install --user -e trezor-agent/agents/onlykey
     ```
 
-# 6. Installation Troubleshooting
+# 6. Install the Blockstream Jade agent
+
+1. Make sure you are running the latest firmware version on your Blockstream Jade:
+
+ * [Jade firmware releases](https://github.com/Blockstream/Jade/blob/master/CHANGELOG.md): `0.1.33+`
+
+2. Make sure that your `udev` rules are configured [correctly](https://github.com/bitcoin-core/HWI/blob/master/hwilib/udev/55-usb-jade.rules).
+
+3. If necessary, ensure the user is added to the [`dialout` group](https://help.blockstream.com/hc/en-us/articles/900005443223-My-Blockstream-Jade-is-not-recognized-by-my-computer)
+
+4. Then, install the latest [jade-agent](https://pypi.python.org/pypi/jade-agent) package:
+
+    ```
+    $ pip3 install jade-agent
+    ```
+
+    Or, directly from the latest source code:
+
+    ```
+    $ git clone https://github.com/romanz/trezor-agent
+    $ pip3 install --user -e trezor-agent
+    $ pip3 install --user -e trezor-agent/agents/jade
+    ```
+
+# 7. Installation Troubleshooting
 
 If there is an import problem with the installed `protobuf` package,
 see [this issue](https://github.com/romanz/trezor-agent/issues/28) for fixing it.
