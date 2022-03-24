@@ -30,7 +30,7 @@ So taking a commmand such as:
 
 The `trezor-agent` will take the `user`@`fqdn.com`; canonicalise it (e.g. to add the ssh default port number if none was specified) and then apply some simple hashing (See [SLIP-0013 : Authentication using deterministic hierarchy][2]). The resulting 128bit hash is then used to construct a lead 'HD node' that contains an extened public private *child* key.
 
-This way they keypair is specific to the server/hostname/port and protocol combination used. And it is this private key that is used to sign the nonce passed by the SSH server (as opposed to the master key).
+This way the keypair is specific to the server/hostname/port and protocol combination used. And it is this private key that is used to sign the nonce passed by the SSH server (as opposed to the master key).
 
 The `trezor-agent` then instructs SSH to connect to the server. It will then engage in the normal challenge response process, ask the hardware wallet to blindly sign any nonce flashed by the server with the derived child private key and return this to the server. It then hands over to normal SSH for the rest of the logged in session.
 
