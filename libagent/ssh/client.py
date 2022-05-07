@@ -76,5 +76,7 @@ def parse_ssh_blob(data):
         public_key = util.read_frame(i)
         res['public_key'] = formats.parse_pubkey(public_key)
 
-    assert not i.read()
+    unparsed = i.read()
+    if unparsed:
+        log.warning('unparsed blob: %r', unparsed)
     return res
