@@ -88,7 +88,7 @@ class Handler:
             msg_code('SSH_AGENTC_REQUEST_RSA_IDENTITIES'): _legacy_pubs,
             msg_code('SSH2_AGENTC_REQUEST_IDENTITIES'): self.list_pubs,
             msg_code('SSH2_AGENTC_SIGN_REQUEST'): self.sign_message,
-            msg_code('SSH_AGENTC_EXTENSION'): self.unsupported_extension,
+            msg_code('SSH_AGENTC_EXTENSION'): _unsupported_extension,
         }
 
     def handle(self, msg):
@@ -166,6 +166,7 @@ class Handler:
         code = util.pack('B', msg_code('SSH2_AGENT_SIGN_RESPONSE'))
         return util.frame(code, data)
 
-    def unsupported_extension(self, buf):
-        code = util.pack('B', msg_code('SSH_AGENT_EXTENSION_FAILURE'))
-        return util.frame(code)
+
+def _unsupported_extension():
+    code = util.pack('B', msg_code('SSH_AGENT_EXTENSION_FAILURE'))
+    return util.frame(code)
