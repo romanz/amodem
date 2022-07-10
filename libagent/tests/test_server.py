@@ -78,12 +78,12 @@ def test_server_thread():
     quit_event = threading.Event()
 
     class FakeServer:
-        def accept(self):  # pylint: disable=no-self-use
+        def accept(self):
             if not connections:
                 raise socket.timeout()
             return connections.pop(), 'address'
 
-        def getsockname(self):  # pylint: disable=no-self-use
+        def getsockname(self):
             return 'fake_server'
 
     def handle_conn(conn):

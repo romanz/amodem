@@ -167,6 +167,6 @@ class Handler:
         return util.frame(code, data)
 
 
-def _unsupported_extension(buf):
+def _unsupported_extension(buf):  # pylint: disable=unused-argument
     code = util.pack('B', msg_code('SSH_AGENT_EXTENSION_FAILURE'))
     return util.frame(code)

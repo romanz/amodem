@@ -21,7 +21,7 @@ class MockDevice(device.interface.Device):  # pylint: disable=abstract-method
     def package_name(cls):
         return 'fake-device-agent'
 
-    def connect(self):  # pylint: disable=no-self-use
+    def connect(self):
         return mock.Mock()
 
     def pubkey(self, identity, ecdh=False):  # pylint: disable=unused-argument
