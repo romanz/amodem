@@ -10,14 +10,10 @@ setup(
     url='http://github.com/romanz/trezor-agent',
     scripts=['jade_agent.py'],
     install_requires=[
-        # FIXME: will need libagent version that includes jade support - 0.14.5 ??
-        # FIXME: will need to put the tag version just as we are about to apply it ?
-        'libagent>=0.14.4',
+        'libagent>=0.14.5',
         # Jade py api from github source, v0.1.33
-        'jadepy @ git+https://github.com/Blockstream/Jade.git@0.1.33#egg=jadepy[requests]'
+        'jadepy[requests] @ git+https://github.com/Blockstream/Jade.git@0.1.33'
     ],
-    # Not sure why this doesn't work ...
-    # dependency_links=['https://github.com/Blockstream/Jade/tarball/0.1.33#egg=jadepy[requests]'],
     platforms=['POSIX'],
     classifiers=[
         'Environment :: Console',
