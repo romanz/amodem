@@ -1,4 +1,4 @@
-"""Jade-related code (see https://www.keepkey.com/)."""
+"""Jade-related code (see https://blockstream.com/jade/)."""
 
 import logging
 
