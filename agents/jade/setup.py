@@ -11,8 +11,8 @@ setup(
     scripts=['jade_agent.py'],
     install_requires=[
         'libagent>=0.14.5',
-        # Jade py api from github source, v0.1.33
-        'jadepy[requests] @ git+https://github.com/Blockstream/Jade.git@0.1.33'
+        # Jade py api from github source, v0.1.37
+        'jadepy[requests] @ git+https://github.com/Blockstream/Jade.git@0.1.37'
     ],
     platforms=['POSIX'],
     classifiers=[
