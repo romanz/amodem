@@ -114,6 +114,42 @@ The same works for Mercurial (e.g. on [BitBucket](https://confluence.atlassian.c
 	$ ssh-shell
 	$ hg push
 
+### Git commit signing
+
+For more details, see the following great blog post: https://calebhearth.com/sign-git-with-ssh
+
+	$ trezor-agent -e ed25519 user@host --shell
+	$ ssh-add -L
+	ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDeAmtnhHlyg4dzGP3/OF4WHX7NoYhClS98EK22q/O5+ <ssh://user@host|ed25519>
+	$ git config --local user.signingkey "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDeAmtnhHlyg4dzGP3/OF4WHX7NoYhClS98EK22q/O5+"
+	$ git config --local gpg.format ssh
+	$ git config --local commit.gpgsign true
+
+	$ git config --local gpg.ssh.allowedSignersFile $PWD/.git/allowed-signers
+	$ echo "user@host ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDeAmtnhHlyg4dzGP3/OF4WHX7NoYhClS98EK22q/O5+" >> $PWD/.git/allowed-signers
+
+	$ git commit --allow-empty --message="Testing SSH signing"
+	[master 4a1f730] Testing SSH signing
+
+	$ git log --show-signature -1
+	commit 4a1f730d7f70fd31a0bda334734d0ac4dc9d97ad (HEAD -> master)
+	Good "git" signature for user@host with ED25519 key SHA256:aESFjLsydJHQg1vnAkq42jQDkCcn4Tde4J+v+0XFmwM
+	Author: Roman Zeyde <me@romanzey.de>
+	Date:   Fri Oct 21 18:34:09 2022 +0300
+
+	    Testing SSH signing
+
+	$ cat .git/config
+	[user]
+		signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDeAmtnhHlyg4dzGP3/OF4WHX7NoYhClS98EK22q/O5+
+	[gpg]
+		format = ssh
+	[commit]
+		gpgsign = true
+	[gpg "ssh"]
+		allowedSignersFile = /home/user/Code/test-git-ssh-sig/.git/allowed-signers
+
+
 ### Start the agent as a systemd unit
 
 ##### 1. Create these files in `~/.config/systemd/user`
