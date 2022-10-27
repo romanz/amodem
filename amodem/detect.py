@@ -113,5 +113,5 @@ class Detector:
 
         freq_err = a / (self.Tsym * self.freq)
         log.info('Frequency error: %.3f ppm', freq_err * 1e6)
-        self.plt.title('Frequency drift: {0:.3f} ppm'.format(freq_err * 1e6))
+        self.plt.title(f'Frequency drift: {freq_err * 1e6:.3f} ppm')
         return amplitude, freq_err

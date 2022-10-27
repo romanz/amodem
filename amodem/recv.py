@@ -45,7 +45,7 @@ class Receiver:
         self.plt.plot(equalizer.prefix)
         errors = (bits != equalizer.prefix)
         if any(errors):
-            msg = 'Incorrect prefix: {0} errors'.format(sum(errors))
+            msg = f'Incorrect prefix: {sum(errors)} errors'
             raise ValueError(msg)
         log.debug('Prefix OK')
 
@@ -94,7 +94,7 @@ class Receiver:
         for (i, freq), snr in zip(enumerate(self.frequencies), SNRs):
             log.debug('%5.1f kHz: SNR = %5.2f dB', freq / 1e3, snr)
             self._constellation(symbols[:, i], train_symbols[:, i],
-                                '$F_c = {0} Hz$'.format(freq), index=i)
+                                f'$F_c = {freq} Hz$', index=i)
         assert error_rate == 0, error_rate
         log.debug('Training verified')
 
@@ -188,7 +188,7 @@ class Receiver:
             symbol_list = np.array(self.stats['symbol_list'])
             for i, freq in enumerate(self.frequencies):
                 self._constellation(symbol_list[i], self.modem.symbols,
-                                    '$F_c = {0} Hz$'.format(freq), index=i)
+                                    f'$F_c = {freq} Hz$', index=i)
         self.plt.show()
 
     def _constellation(self, y, symbols, title, index=None):

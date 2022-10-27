@@ -18,7 +18,7 @@ def volume_controller(cmd):
     def controller(level):
         assert 0 < level <= 1
         percent = 100 * level
-        args = '{0} {1:.0f}%'.format(cmd, percent)
+        args = f'{cmd} {percent:.0f}%'
         log.debug('Setting volume to %7.3f%% -> "%s"', percent, args)
         subprocess.check_call(args=args, shell=True)
     return controller if cmd else (lambda level: None)
@@ -73,7 +73,7 @@ def detector(config, src, frame_length=200):
         if success:
             msg = 'good signal'
         else:
-            msg = 'too {0} signal'.format(errors[flags.index(False)])
+            msg = f'too {errors[flags.index(False)]} signal'
 
         yield dict(
             freq=freq, rms=rms, peak=peak, coherency=coherency,
@@ -135,7 +135,7 @@ def recv(config, src, verbose=False, volume_cmd=None, dump_audio=None):
     log.info('verbose: %s', verbose)
     if verbose:
         fields = ['total', 'rms', 'coherency', 'peak']
-        fmt += ', '.join('{0}={{{0}:.4f}}'.format(f) for f in fields)
+        fmt += ', '.join(f'{f}={{{f}:.4f}}' for f in fields)
 
     for state in recv_iter(config, src, volume_cmd, dump_audio):
         log.info(fmt.format(**state))

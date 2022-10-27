@@ -26,7 +26,7 @@ class Interface:
 
     def call(self, name, *args, **kwargs):
         assert self.lib is not None
-        func_name = 'Pa_{0}'.format(name)
+        func_name = f'Pa_{name}'
         if self.debug:
             log.debug('API: %s%s', name, args)
         func = getattr(self.lib, func_name)
@@ -81,7 +81,7 @@ class Stream:
         assert read != write  # don't support full duplex
 
         direction = 'Input' if read else 'Output'
-        api_name = 'GetDefault{0}Device'.format(direction)
+        api_name = f'GetDefault{direction}Device'
         index = interface.call(api_name, restype=ctypes.c_int)
         self.params = Stream.Parameters(
             device=index,               # choose default device
