@@ -82,7 +82,7 @@ def FileType(mode, interface_factory=None):
             if 'w' in mode:
                 return sys.stdout.buffer
 
-        return open(fname, mode)
+        return open(fname, mode)  # pylint: disable=unspecified-encoding
 
     return opener
 
