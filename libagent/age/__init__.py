@@ -11,6 +11,7 @@ import argparse
 import base64
 import contextlib
 import datetime
+import io
 import logging
 import os
 import sys
@@ -65,9 +66,15 @@ def base64_decode(encoded: str) -> bytes:
     return base64.b64decode(encoded + ("=" * pad))
 
 
+# https://github.com/FiloSottile/age/blob/v1.1.0-rc.1/internal/format/format.go#L45
+BYTES_PER_LINE = 48
+
 def base64_encode(data: bytes) -> str:
     """Encode data using Base64 (and remove '=')."""
-    return base64.b64encode(data).replace(b"=", b"").decode()
+    reader = io.BytesIO(data)
+    chunks = map(base64.b64encode, iter(lambda: reader.read(BYTES_PER_LINE), b""))
+    chunks = (chunk.replace(b"=", b"") for chunk in chunks)
+    return b"\n".join(chunks).decode()
 
 
 def decrypt(key, encrypted):
@@ -124,9 +131,10 @@ def run_decrypt(device_type, args):
 
 def _handle_single_file(file_index, stanzas, identities, c):
     d = c.device.__class__.__name__
-    msg = base64_encode(f'Please confirm decryption on {d} device...'.encode())
     for peer_pubkey, encrypted in stanzas:
         for identity in identities:
+            id_str = identity.to_string()
+            msg = base64_encode(f'Please confirm {id_str} decryption on {d} device...'.encode())
             sys.stdout.write(f'-> msg\n{msg}\n')
             sys.stdout.flush()
 
