@@ -69,6 +69,7 @@ def base64_decode(encoded: str) -> bytes:
 # https://github.com/FiloSottile/age/blob/v1.1.0-rc.1/internal/format/format.go#L45
 BYTES_PER_LINE = 48
 
+
 def base64_encode(data: bytes) -> str:
     """Encode data using Base64 (and remove '=')."""
     reader = io.BytesIO(data)
