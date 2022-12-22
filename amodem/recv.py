@@ -81,7 +81,7 @@ class Receiver:
         equalizer_length = equalizer.equalizer_length
         symbols = self.equalizer.demodulator(equalized, equalizer_length)
         sliced = np.array(symbols).round()
-        errors = np.array(sliced - train_symbols, dtype=np.bool)
+        errors = np.array(sliced - train_symbols, dtype=bool)
         error_rate = errors.sum() / errors.size
 
         errors = np.array(symbols - train_symbols)
