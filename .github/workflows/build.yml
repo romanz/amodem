@@ -33,4 +33,4 @@ jobs:
 
     - name: Test with pytest
       run: |
-        py.test -v --cov=amodem
+        pytest -v --cov=amodem
