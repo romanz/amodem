@@ -87,7 +87,7 @@ when committing to git.
 
 ### Manage passwords
 
-Password managers such as [pass](https://www.passwordstore.org/) and [gopass](https://www.justwatch.com/gopass/) rely on GPG for encryption so you can use your device with them too.
+Password managers such as [pass](https://www.passwordstore.org/) rely on GPG for encryption so you can use your device with them too.
 
 ##### With `pass`:
 
