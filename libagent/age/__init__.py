@@ -167,7 +167,7 @@ def main(device_type):
     args = p.parse_args()
 
     log_path = os.environ.get("TREZOR_AGE_PLUGIN_LOG")
-    util.setup_logging(verbosity=2, filename=log_path)
+    util.setup_logging(verbosity=args.verbose, filename=log_path)
 
     log.debug("starting age plugin: %s", args)
 
