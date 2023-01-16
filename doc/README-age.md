@@ -51,7 +51,7 @@ $ age-plugin-trezor -i "John Doe" | tee ~/.passage/identities
 # SLIP-0017: John Doe
 AGE-PLUGIN-TREZOR-1FFHKSM3QG3HK2PEPD5D
 
-$ awk '/# recipient:/ {print $3}' ~/.passage/identities | tee ~/.passage/identities
+$ awk '/# recipient:/ {print $3}' ~/.passage/identities | tee -a ~/.passage/store/.age-recipients
 age1wpl78afms4x36mucnd4j65sanrtj9873up47qq39h68q0aw7n4xqdlw6tk
 ```
 
