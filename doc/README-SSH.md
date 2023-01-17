@@ -226,7 +226,7 @@ automatically when the socket is opened.
 
 ##### 4. SSH will now automatically use your device key in all terminals.
 
-##### 5. Signatures with ssh and trezor
+## 5. Signatures with ssh and trezor
 
 SSH and ssh-keygen can make and verify signatures, See
 [ssh_signatures](https://www.agwa.name/blog/post/ssh_signatures)
@@ -237,20 +237,20 @@ https://github.com/openssh/openssh-portable/blob/master/sshsig.c
 openssh/openssh-portable@2a9c9f7
 
 
-## generate SSH public key
+##### generate SSH public key
 $ trezor-agent -e ed25519 git@github.com | tee ~/.ssh/trezor-github.pub
 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIvcbhXyaXXNytCLTDfEMlLuwEhtfo0XmPP1U5RsnOZ4 <ssh://git@github.com|ed25519>
 
-## sign the given file using TREZOR
+##### sign the given file using TREZOR
 $ trezor-agent -e ed25519 git@github.com -- ssh-keygen -Y sign -f ~/.ssh/trezor-github.pub -n file README.md
 Signing file README.md
 Write signature to README.md.sig
 
-## set allowed identities for verification (using the above public key)
+##### set allowed identities for verification (using the above public key)
 $ cat allowed 
 git@github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIvcbhXyaXXNytCLTDfEMlLuwEhtfo0XmPP1U5RsnOZ4 <ssh://git@github.com|ed25519>
 
-## verify the above signature
+##### verify the above signature
 $ ssh-keygen -Y verify -f allowed -I git@github.com -n file -s README.md.sig -vvv < README.md
 debug1: sshsig_verify_fd: signature made with hash "sha512"
 debug1: sshsig_wrap_verify: verify message length 64
