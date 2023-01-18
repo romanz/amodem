@@ -1,6 +1,6 @@
 # SSH Agent
 
-## 1. Configuration
+## Configuration
 
 SSH requires no configuration, but you may put common command line options in `~/.ssh/agent.conf` to avoid repeating them in every invocation.
 
@@ -8,7 +8,7 @@ See `(trezor|keepkey|ledger|jade|onlykey)-agent -h` for details on supported opt
 
 If you'd like a Trezor-style PIN entry program, follow [these instructions](README-PINENTRY.md).
 
-## 2. Usage
+## Usage
 
 Use the `(trezor|keepkey|ledger|jade|onlykey)-agent` program to work with SSH. It has three main modes of operation:
 
@@ -57,7 +57,7 @@ $ (trezor|keepkey|ledger|jade|onlykey)-agent user@remotehost -c
 
 The identity `user@remotehost` is used as both the destination user and host as well as for key derivation, so you must generate a separate key for each host you connect to.
 
-## 3. Common Use Cases
+## Common Use Cases
 
 ### Start a single SSH session
 [![Demo](https://asciinema.org/a/22959.png)](https://asciinema.org/a/22959)
@@ -226,15 +226,15 @@ automatically when the socket is opened.
 
 ##### 4. SSH will now automatically use your device key in all terminals.
 
-## 5. Signatures with ssh and trezor
+## SSH Signatures
 
-SSH and ssh-keygen can make and verify signatures, See
-[ssh_signatures](https://www.agwa.name/blog/post/ssh_signatures)
+SSH and ssh-keygen can make and verify signatures, see https://www.agwa.name/blog/post/ssh_signatures.
 
 See here for more ssh protocol details:
-https://github.com/openssh/openssh-portable/blob/master/PROTOCOL.sshsig
-https://github.com/openssh/openssh-portable/blob/master/sshsig.c
-openssh/openssh-portable@2a9c9f7
+
+ - https://github.com/openssh/openssh-portable/blob/master/PROTOCOL.sshsig
+ - https://github.com/openssh/openssh-portable/blob/master/sshsig.c
+ - https://github.com/openssh/openssh-portable/commit/2a9c9f7272c1e8665155118fe6536bebdafb6166
 
 
 ##### generate SSH public key
@@ -264,7 +264,7 @@ debug1: allowed:1: matched key and principal
 Good "file" signature for git@github.com with ED25519 key SHA256:6UBhPb5SOoCUfasGC1/aCBegYov0/P3ajd6eNbYg77A
 ```
 
-## 4. Troubleshooting
+## Troubleshooting
 
 If SSH connection fails to work, please open an [issue](https://github.com/romanz/trezor-agent/issues)
 with a verbose log attached (by running `trezor-agent -vv`) .
