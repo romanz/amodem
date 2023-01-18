@@ -1,6 +1,6 @@
 # SSH Agent
 
-## 1. Configuration
+## Configuration
 
 SSH requires no configuration, but you may put common command line options in `~/.ssh/agent.conf` to avoid repeating them in every invocation.
 
@@ -8,7 +8,7 @@ See `(trezor|keepkey|ledger|jade|onlykey)-agent -h` for details on supported opt
 
 If you'd like a Trezor-style PIN entry program, follow [these instructions](README-PINENTRY.md).
 
-## 2. Usage
+## Usage
 
 Use the `(trezor|keepkey|ledger|jade|onlykey)-agent` program to work with SSH. It has three main modes of operation:
 
@@ -57,7 +57,7 @@ $ (trezor|keepkey|ledger|jade|onlykey)-agent user@remotehost -c
 
 The identity `user@remotehost` is used as both the destination user and host as well as for key derivation, so you must generate a separate key for each host you connect to.
 
-## 3. Common Use Cases
+## Common Use Cases
 
 ### Start a single SSH session
 [![Demo](https://asciinema.org/a/22959.png)](https://asciinema.org/a/22959)
@@ -226,12 +226,50 @@ automatically when the socket is opened.
 
 ##### 4. SSH will now automatically use your device key in all terminals.
 
-## 4. Troubleshooting
+## SSH Signatures
+
+SSH and ssh-keygen can make and verify signatures, see https://www.agwa.name/blog/post/ssh_signatures.
+
+See here for more ssh protocol details:
+
+ - https://github.com/openssh/openssh-portable/blob/master/PROTOCOL.sshsig
+ - https://github.com/openssh/openssh-portable/blob/master/sshsig.c
+ - https://github.com/openssh/openssh-portable/commit/2a9c9f7272c1e8665155118fe6536bebdafb6166
+
+
+##### generate SSH public key
+```
+$ trezor-agent -e ed25519 git@github.com | tee ~/.ssh/trezor-github.pub
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIvcbhXyaXXNytCLTDfEMlLuwEhtfo0XmPP1U5RsnOZ4 <ssh://git@github.com|ed25519>
+```
+##### sign the given file using TREZOR
+```
+$ trezor-agent -e ed25519 git@github.com -- ssh-keygen -Y sign -f ~/.ssh/trezor-github.pub -n file README.md
+Signing file README.md
+Write signature to README.md.sig
+```
+##### set allowed identities for verification (using the above public key)
+```
+$ cat allowed 
+git@github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIvcbhXyaXXNytCLTDfEMlLuwEhtfo0XmPP1U5RsnOZ4 <ssh://git@github.com|ed25519>
+```
+##### verify the above signature
+```
+$ ssh-keygen -Y verify -f allowed -I git@github.com -n file -s README.md.sig -vvv < README.md
+debug1: sshsig_verify_fd: signature made with hash "sha512"
+debug1: sshsig_wrap_verify: verify message length 64
+debug1: Valid (unverified) signature from key SHA256:6UBhPb5SOoCUfasGC1/aCBegYov0/P3ajd6eNbYg77A
+debug1: parse_principals_key_and_options: allowed:1: matched principal "git@github.com"
+debug1: allowed:1: matched key and principal
+Good "file" signature for git@github.com with ED25519 key SHA256:6UBhPb5SOoCUfasGC1/aCBegYov0/P3ajd6eNbYg77A
+```
+
+## Troubleshooting
 
 If SSH connection fails to work, please open an [issue](https://github.com/romanz/trezor-agent/issues)
 with a verbose log attached (by running `trezor-agent -vv`) .
 
-##### `IdentitiesOnly` SSH option
+#### `IdentitiesOnly` SSH option
 
 Note that your local SSH configuration may ignore `trezor-agent`, if it has `IdentitiesOnly` option set to `yes`.
 
