@@ -95,8 +95,8 @@ class BitPacker:
             bits = [index & (2 ** k) for k in range(self.byte_size)]
             bits_list.append(tuple((1 if b else 0) for b in bits))
 
-        self.to_bits = dict((i, bits) for i, bits in enumerate(bits_list))
-        self.to_byte = dict((bits, i) for i, bits in enumerate(bits_list))
+        self.to_bits = dict(enumerate(bits_list))
+        self.to_byte = {bits: i for i, bits in enumerate(bits_list)}
 
 
 @chain_wrapper

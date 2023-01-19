@@ -19,8 +19,7 @@ class Reader:
     def next(self):
         block = bytearray()
         if self.eof:
-            data = self.fd.read(self.bufsize)
-            if data:
+            if data := self.fd.read(self.bufsize):
                 self.total += len(data)
                 block.extend(data)
                 return block
@@ -29,8 +28,7 @@ class Reader:
         finish_time = time.time() + self.timeout
         while time.time() <= finish_time:
             left = self.bufsize - len(block)
-            data = self.fd.read(left)
-            if data:
+            if data := self.fd.read(left):
                 self.total += len(data)
                 block.extend(data)
 

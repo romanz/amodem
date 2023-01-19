@@ -5,10 +5,9 @@ import numpy as np
 
 def iterlist(x, *args, **kwargs):
     x = np.array(x)
-    return list(
-        (i, list(x))
-        for i, x in common.iterate(x, index=True, *args, **kwargs)
-    )
+    return [
+        (i, list(x)) for i, x in common.iterate(x, index=True, *args, **kwargs)
+    ]
 
 
 def test_iterate():
@@ -35,9 +34,7 @@ def test_split():
 def test_icapture():
     x = range(100)
     y = []
-    z = []
-    for i in common.icapture(x, result=y):
-        z.append(i)
+    z = list(common.icapture(x, result=y))
     assert list(x) == y
     assert list(x) == z
 

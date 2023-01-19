@@ -21,10 +21,10 @@ class Equalizer:
         r = dsp.prbs(reg=1, poly=0x1100b, bits=2)
         constellation = [1, 1j, -1, -1j]
 
-        symbols = []
-        for _ in range(length):
-            symbols.append([constellation[next(r)] for _ in range(self.Nfreq)])
-
+        symbols = [
+            [constellation[next(r)] for _ in range(self.Nfreq)]
+            for _ in range(length)
+        ]
         symbols = np.array(symbols)
         # Constant symbols (for analog debugging)
         symbols[:constant_prefix, :] = 1
@@ -32,9 +32,7 @@ class Equalizer:
 
     def modulator(self, symbols):
         gain = 1.0 / len(self.carriers)
-        result = []
-        for s in symbols:
-            result.append(np.dot(s, self.carriers))
+        result = [np.dot(s, self.carriers) for s in symbols]
         result = np.concatenate(result).real * gain
         assert np.max(np.abs(result)) <= 1
         return result

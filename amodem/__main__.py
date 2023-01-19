@@ -34,8 +34,7 @@ class Compressor:
 
     def read(self, size):
         while True:
-            data = self.stream.read(size)
-            if data:
+            if data := self.stream.read(size):
                 result = self.obj.compress(data)
                 if not result:  # compression is too good :)
                     continue  # try again (since falsy data = EOF)
@@ -88,12 +87,12 @@ def FileType(mode, interface_factory=None):
 
 
 def get_volume_cmd(args):
-    volume_controllers = [
-        dict(test='pactl --version',
-             send='pactl set-sink-volume @DEFAULT_SINK@',
-             recv='pactl set-source-volume @DEFAULT_SOURCE@')
-    ]
     if args.calibrate == 'auto':
+        volume_controllers = [
+            dict(test='pactl --version',
+                 send='pactl set-sink-volume @DEFAULT_SINK@',
+                 recv='pactl set-source-volume @DEFAULT_SOURCE@')
+        ]
         for c in volume_controllers:
             if os.system(c['test']) == 0:
                 return c[args.command]
