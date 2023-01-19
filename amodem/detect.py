@@ -92,8 +92,7 @@ class Detector:
 
         index = np.argmax(coeffs)
         log.info('Carrier coherence: %.3f%%', coeffs[index] * 100)
-        offset = index + len(zeroes)
-        return offset
+        return index + len(zeroes)
 
     def estimate(self, buf, skip=5):
         filt = dsp.exp_iwt(-self.omega, self.Nsym) / (0.5 * self.Nsym)

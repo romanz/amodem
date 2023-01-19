@@ -69,7 +69,7 @@ def quantize(q, s):
 def test_overflow():
     q = dsp.MODEM(config.symbols)
     r = np.random.RandomState(seed=0)
-    for i in range(10000):
+    for _ in range(10000):
         s = 10*(r.normal() + 1j * r.normal())
         quantize(q, s)
 
@@ -88,6 +88,5 @@ def test_prbs():
     assert r == [1, 2, 0, 1, 3, 3, 2, 1]
 
     period = 2 ** 16 - 1
-    r = list(itertools.islice(dsp.prbs(reg=1, poly=0x1100b, bits=16), period))
-    r.sort()
+    r = sorted(itertools.islice(dsp.prbs(reg=1, poly=0x1100b, bits=16), period))
     assert r == list(range(1, 2 ** 16))

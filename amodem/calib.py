@@ -70,11 +70,7 @@ def detector(config, src, frame_length=200):
         flags = [total > 0.1, peak < 1.0, coherency > 0.99]
 
         success = all(flags)
-        if success:
-            msg = 'good signal'
-        else:
-            msg = f'too {errors[flags.index(False)]} signal'
-
+        msg = 'good signal' if success else f'too {errors[flags.index(False)]} signal'
         yield dict(
             freq=freq, rms=rms, peak=peak, coherency=coherency,
             total=total, success=success, msg=msg
@@ -123,10 +119,13 @@ def recv_iter(config, src, volume_cmd=None, dump_audio=None):
     result_iterator = volume_calibration(result_iterator, volume_ctl)
     for _prev, curr, _next in iter_window(result_iterator, size=3):
         # don't log errors during frequency changes
-        if _prev['success'] and _next['success']:
-            if _prev['freq'] != _next['freq']:
-                if not curr['success']:
-                    curr['msg'] = 'frequency change'
+        if (
+            _prev['success']
+            and _next['success']
+            and _prev['freq'] != _next['freq']
+            and not curr['success']
+        ):
+            curr['msg'] = 'frequency change'
         yield curr
 
 

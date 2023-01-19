@@ -130,7 +130,7 @@ class Receiver:
         log.info('Starting demodulation')
         for i, block_of_bits in enumerate(stream, 1):
             for bits in block_of_bits:
-                self.stats['rx_bits'] = self.stats['rx_bits'] + len(bits)
+                self.stats['rx_bits'] += len(bits)
                 yield bits
 
             if i % self.iters_per_update == 0:

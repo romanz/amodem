@@ -23,12 +23,9 @@ def test_read():
     result = list(zip(range(10), f))
     p.kill()
 
-    j = 0
-    for i, buf in result:
+    for j, (i, buf) in enumerate(result):
         assert i == j
         assert len(buf) == f.bufsize
-        j += 1
-
     try:
         next(f)
     except IOError as e:

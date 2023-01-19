@@ -54,7 +54,7 @@ def test_too_weak():
 
 def test_too_noisy():
     r = random.Random(0)  # generate random binary signal
-    signal = np.array([r.choice([-1, 1]) for i in range(int(config.Fs))])
+    signal = np.array([r.choice([-1, 1]) for _ in range(int(config.Fs))])
     src = BytesIO(common.dumps(signal * 0.5))
     for r in calib.detector(config, src=src):
         assert not r['success']

@@ -26,7 +26,7 @@ class Interpolator:
         lengths = [len(f) for f in self.filt]
         self.coeff_len = 2 * width
 
-        assert set(lengths) == set([self.coeff_len])  # verify same lengths
+        assert set(lengths) == {self.coeff_len}
         assert len(self.filt) == resolution
 
 

@@ -54,9 +54,7 @@ def coherence(x, omega):
     n = len(x)
     Hc = exp_iwt(-omega, n) / np.sqrt(0.5*n)
     norm_x = norm(x)
-    if not norm_x:
-        return 0.0
-    return np.dot(Hc, x) / norm_x
+    return np.dot(Hc, x) / norm_x if norm_x else 0.0
 
 
 def linear_regression(x, y):

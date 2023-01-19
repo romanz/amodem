@@ -10,7 +10,7 @@ def concat(iterable):
 
 
 r = random.Random(0)
-blob = bytearray(r.randrange(0, 256) for i in range(64 * 1024))
+blob = bytearray(r.randrange(0, 256) for _ in range(64 * 1024))
 
 
 @pytest.fixture(params=[b'', b'abc', b'1234567890', blob, blob[:12345]])
