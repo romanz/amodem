@@ -102,7 +102,7 @@ def test_spawn():
     def thread(x):
         obj.append(x)
 
-    with server.spawn(thread, dict(x=1)):
+    with server.spawn(thread, {'x': 1}):
         pass
 
     assert obj == [1]

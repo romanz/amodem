@@ -289,7 +289,7 @@ class OnlyKey(interface.Device):
 
             log.info('received= %s', repr(result))
             return bytes(result)
-        raise Exception('failed to sign challenge')
+        raise interface.Error('failed to sign challenge')
 
     def ecdh(self, identity, pubkey):
         """Get shared session key using Elliptic Curve Diffie-Hellman."""

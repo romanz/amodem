@@ -134,7 +134,7 @@ def server_thread(sock, handle_conn, quit_event):
             break
         # Handle connections from SSH concurrently.
         threading.Thread(target=handle_conn,
-                         kwargs=dict(conn=conn)).start()
+                         kwargs={'conn': conn}).start()
     log.debug('server thread stopped')
 
 
