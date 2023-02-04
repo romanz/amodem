@@ -36,11 +36,13 @@ def _convert_public_key(ecdsa_curve_name, result):
 
 class LedgerNanoS(interface.Device):
     """Connection to Ledger Nano S device."""
+
     LEDGER_APP_NAME = "SSH/PGP Agent"
     ledger_app_version = None
     ledger_app_supports_end_of_frame_byte = True
 
     def get_app_name_and_version(self, dongle):
+        """Retrieve currently running Ledger application name and its version string."""
         device_version_answer = dongle.exchange(binascii.unhexlify('B001000000'))
         offset = 1
         app_name_length = struct.unpack_from("B", device_version_answer, offset)[0]
@@ -50,7 +52,7 @@ class LedgerNanoS(interface.Device):
         app_version_length = struct.unpack_from("B", device_version_answer, offset)[0]
         offset += 1
         app_version = device_version_answer[offset: offset + app_version_length]
-        log.debug("running app {}, version {}".format(app_name, app_version))
+        log.debug("running app %s, version %s", app_name, app_version)
         return (app_name.decode(), app_version.decode())
 
     @classmethod
@@ -98,6 +100,7 @@ class LedgerNanoS(interface.Device):
 
     def sign(self, identity, blob):
         """Sign given blob and return the signature (as bytes)."""
+        # pylint: disable=too-many-locals,too-many-branches
         path = _expand_path(identity.get_bip32_address(ecdh=False))
         offset = 0
         result = None

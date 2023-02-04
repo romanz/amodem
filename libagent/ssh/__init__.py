@@ -138,9 +138,9 @@ def serve(handler, sock_path, timeout=UNIX_SOCKET_TIMEOUT):
         handle_conn = functools.partial(server.handle_connection,
                                         handler=handler,
                                         mutex=device_mutex)
-        kwargs = dict(sock=sock,
-                      handle_conn=handle_conn,
-                      quit_event=quit_event)
+        kwargs = {'sock': sock,
+                  'handle_conn': handle_conn,
+                  'quit_event': quit_event}
         with server.spawn(server.server_thread, kwargs):
             try:
                 yield environ
