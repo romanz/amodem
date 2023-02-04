@@ -64,13 +64,13 @@ class LedgerNanoS(interface.Device):
             dongle = comm.getDongle(debug=True)
             (app_name, self.ledger_app_version) = self.get_app_name_and_version(dongle)
 
-            self.ledger_app_version = self.ledger_app_version.split(".")
-            if self.ledger_app_version[0] == "0" and self.ledger_app_version[1] == "0" and int(self.ledger_app_version[2]) <= 7:
+            version_parts = self.ledger_app_version.split(".")
+            if (version_parts[0] == "0" and version_parts[1] == "0" and int(version_parts[2]) <= 7):
                 self.ledger_app_supports_end_of_frame_byte = False
 
             if app_name != LedgerNanoS.LEDGER_APP_NAME:
                 # we could launch the app here if we are in the dashboard
-                raise interface.DeviceError('{} is not running {}'.format(self, LedgerNanoS.LEDGER_APP_NAME))
+                raise interface.DeviceError(f'{self} is not running {LedgerNanoS.LEDGER_APP_NAME}')
 
             return dongle
         except comm.CommException as e:
@@ -106,7 +106,7 @@ class LedgerNanoS(interface.Device):
             if offset == 0:
                 data += bytearray([len(path) // 4]) + path
             chunk_size = min(len(blob) - offset, 255 - len(data))
-            data += blob[offset : offset + chunk_size]
+            data += blob[offset:offset + chunk_size]
 
             if identity.identity_dict['proto'] == 'ssh':
                 ins = '04'
@@ -120,8 +120,8 @@ class LedgerNanoS(interface.Device):
 
             if offset == 0:
                 p1 = "00"
-            elif ((offset + chunk_size) == len(blob)) and self.ledger_app_supports_end_of_frame_byte:
-                p1 = "81" # end of frame byte only handled in 0.0.8+
+            elif offset + chunk_size == len(blob) and self.ledger_app_supports_end_of_frame_byte:
+                p1 = "81"  # end of frame byte only handled in 0.0.8+
             else:
                 p1 = "01"
 
