@@ -121,12 +121,11 @@ class LedgerNanoS(interface.Device):
             else:
                 p2 = '82' if identity.identity_dict['proto'] == 'ssh' else '02'
 
-            if offset == 0:
-                p1 = "00"
-            elif offset + chunk_size == len(blob) and self.ledger_app_supports_end_of_frame_byte:
-                p1 = "81"  # end of frame byte only handled in 0.0.8+
+            if offset + chunk_size == len(blob) and self.ledger_app_supports_end_of_frame_byte:
+                # mark that we are at the end of the frame
+                p1 = "80" if offset == 0 else "81"
             else:
-                p1 = "01"
+                p1 = "00" if offset == 0 else "01"
 
             apdu = binascii.unhexlify('80' + ins + p1 + p2) + len(data).to_bytes(1, 'little') + data
 
