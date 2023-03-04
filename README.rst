@@ -140,13 +140,16 @@ You can see a screencast of the `calibration process <https://asciinema.org/a/25
 Devices
 -------
 To specify an input/output device other than default, set the following environment variables::
+
     ~/sender $ export OUTAUDIODEVICE=2  # Set output device using device id.
     ~/sender $ export INAUDIODEVICE=2   # Set input device using device id.
 
-To list input/output devices, use the following command ::
+To list input/output devices, use the following command::
+
     ~/sender $ amodem lsdev
 
 To see details of a specific i/o device, specify the device id using ``-d`` as shown below::
+
     ~/sender $ amodem lsdev -d 2
 
 Usage
