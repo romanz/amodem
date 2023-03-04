@@ -73,19 +73,20 @@ For validation, run::
 
     $ export BITRATE=48  # explicitly select high MODEM bit rate (assuming good SNR).
     $ amodem -h
-    usage: amodem [-h] {send,recv} ...
+    usage: amodem [-h] {send,recv,lsdev} ...
 
-    Audio OFDM MODEM: 48.0 kb/s (64-QAM x 8 carriers) Fs=32.0 kHz
+    Audio OFDM MODEM v1.15.4: 48.0 kb/s (64-QAM x 8 carriers) Fs=32.0 kHz
 
     positional arguments:
-      {send,recv}
-        send         modulate binary data into audio signal.
-        recv         demodulate audio signal into binary data.
+    {send,recv,lsdev}
+        send             modulate binary data into audio signal.
+        recv             demodulate audio signal into binary data.
+        lsdev            list all devices. (portaudio only)
 
     optional arguments:
-      -h, --help     show this help message and exit
+    -h, --help         show this help message and exit
 
-On, Windows you may download the `portaudio` library from `MinGW <https://packages.msys2.org/base/mingw-w64-portaudio>`_.
+On Windows you may download the `portaudio` library from `MinGW <https://packages.msys2.org/base/mingw-w64-portaudio>`_.
 Then, you should specify the DLL using the following command-line flag::
 
     -l AUDIO_LIBRARY, --audio-library AUDIO_LIBRARY
@@ -135,6 +136,18 @@ and send me the resulting ``audio.raw`` file for debugging::
     ~/receiver $ arecord --format=S16_LE --channels=1 --rate=32000 audio.raw
 
 You can see a screencast of the `calibration process <https://asciinema.org/a/25065?autoplay=1>`_.
+
+Devices
+-------
+To specify an input/output device other than default, set the following environment variables::
+    ~/sender $ export OUTAUDIODEVICE=2  # Set output device using device id.
+    ~/sender $ export INAUDIODEVICE=2   # Set input device using device id.
+
+To list input/output devices, use the following command ::
+    ~/sender $ amodem lsdev
+
+To see details of a specific i/o device, specify the device id using ``-d`` as shown below::
+    ~/sender $ amodem lsdev -d 2
 
 Usage
 -----

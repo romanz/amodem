@@ -46,11 +46,11 @@ class Interface:
             s.close()
         self.call('Terminate')
 
-    def recorder(self):
-        return Stream(self, config=self.config, read=True)
+    def recorder(self, preferred_device=None):
+        return Stream(self, config=self.config, read=True, preferred_device=preferred_device)
 
-    def player(self):
-        return Stream(self, config=self.config, write=True)
+    def player(self, preferred_device=None):
+        return Stream(self, config=self.config, write=True, preferred_device=preferred_device)
 
 
 class Stream:
@@ -66,7 +66,7 @@ class Stream:
             ('hostApiSpecificStreamInfo', ctypes.POINTER(None))
         ]
 
-    def __init__(self, interface, config, read=False, write=False):
+    def __init__(self, interface, config, read=False, write=False, preferred_device=None):
         self.interface = interface
         self.stream = ctypes.POINTER(ctypes.c_void_p)()
         self.user_data = ctypes.c_void_p(None)
@@ -80,11 +80,13 @@ class Stream:
         write = bool(write)
         assert read != write  # don't support full duplex
 
-        direction = 'Input' if read else 'Output'
-        api_name = f'GetDefault{direction}Device'
-        index = interface.call(api_name, restype=ctypes.c_int)
+        if preferred_device is None: #use default device if preferred_device is undefined
+            direction = 'Input' if read else 'Output'
+            api_name = f'GetDefault{direction}Device'
+            preferred_device = interface.call(api_name, restype=ctypes.c_int)
+
         self.params = Stream.Parameters(
-            device=index,               # choose default device
+            device=preferred_device,    
             channelCount=1,             # mono audio
             sampleFormat=0x00000008,    # 16-bit samples (paInt16)
             suggestedLatency=self.latency,
