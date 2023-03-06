@@ -29,6 +29,7 @@ config = bitrates.get(int(bitrate))
 input_device = os.environ.get('INAUDIODEVICE')
 output_device = os.environ.get('OUTAUDIODEVICE')
 
+
 class Compressor:
     def __init__(self, stream):
         self.obj = zlib.compressobj()
@@ -180,12 +181,12 @@ def create_parser(description, interface_factory):
         g.add_argument('-v', '--verbose', default=0, action='count')
         g.add_argument('-q', '--quiet', default=False, action='store_true')
 
-
     device_lister = subparsers.add_parser(
         'lsdev', help='list all devices. (portaudio only)')
     device_lister.add_argument(
         '-d', '--device', help='get details of a single device')
-    device_lister.add_argument('-l', '--audio-library', default='libportaudio.so',
+    device_lister.add_argument(
+        '-l', '--audio-library', default='libportaudio.so',
         help='File name of PortAudio shared library.')
     device_lister.set_defaults(
         input_type=FileType('rb'),
