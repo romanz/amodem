@@ -35,7 +35,7 @@ setup(
     platforms=['POSIX'],
     classifiers=[
         'Environment :: Console',
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'Intended Audience :: Information Technology',
         'Intended Audience :: System Administrators',
