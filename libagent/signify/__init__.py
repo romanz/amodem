@@ -2,21 +2,12 @@
 
 import argparse
 import binascii
-import contextlib
-import functools
 import hashlib
 import logging
-import os
-import re
-import struct
-import subprocess
 import sys
 import time
 
-import pkg_resources
-import semver
-
-from .. import formats, server, util
+from .. import util
 from ..device import interface, ui
 
 log = logging.getLogger(__name__)

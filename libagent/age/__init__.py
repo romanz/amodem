@@ -9,21 +9,17 @@ See these links for more details:
 
 import argparse
 import base64
-import contextlib
-import datetime
 import io
 import logging
 import os
 import sys
-import traceback
 
 import bech32
 import pkg_resources
-import semver
 from cryptography.exceptions import InvalidTag
 from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
 
-from .. import device, server, util
+from .. import device, util
 from . import client
 
 log = logging.getLogger(__name__)
