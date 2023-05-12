@@ -100,7 +100,7 @@ Then, install the latest [keepkey_agent](https://pypi.python.org/pypi/keepkey_ag
     Or, on Mac using Homebrew:
 
     ```
-    $ homebrew install keepkey-agent
+    $ brew install keepkey-agent
     ```
 
     Or, directly from the latest source code:
