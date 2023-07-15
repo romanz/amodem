@@ -75,10 +75,10 @@ def detector(config, src, frame_length=200):
         else:
             msg = f'too {errors[flags.index(False)]} signal'
 
-        yield dict(
-            freq=freq, rms=rms, peak=peak, coherency=coherency,
-            total=total, success=success, msg=msg
-        )
+        yield {
+            'freq': freq, 'rms': rms, 'peak': peak, 'coherency': coherency,
+            'total': total, 'success': success, 'msg': msg
+        }
 
 
 def volume_calibration(result_iterator, volume_ctl):

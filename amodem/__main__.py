@@ -88,11 +88,11 @@ def FileType(mode, interface_factory=None):
 
 
 def get_volume_cmd(args):
-    volume_controllers = [
-        dict(test='pactl --version',
-             send='pactl set-sink-volume @DEFAULT_SINK@',
-             recv='pactl set-source-volume @DEFAULT_SOURCE@')
-    ]
+    volume_controllers = [{
+        'test': 'pactl --version',
+        'send': 'pactl set-sink-volume @DEFAULT_SINK@',
+        'recv': 'pactl set-source-volume @DEFAULT_SOURCE@'
+    }]
     if args.calibrate == 'auto':
         for c in volume_controllers:
             if os.system(c['test']) == 0:

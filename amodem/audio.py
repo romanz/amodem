@@ -7,6 +7,10 @@ import time
 log = logging.getLogger(__name__)
 
 
+class AudioError(Exception):
+    pass
+
+
 class Interface:
     def __init__(self, config, debug=False):
         self.debug = bool(debug)
@@ -35,7 +39,7 @@ class Interface:
 
     def _error_check(self, res):
         if res != 0:
-            raise Exception(res, self._error_string(res))
+            raise AudioError(res, self._error_string(res))
 
     def __enter__(self):
         self.call('Initialize')

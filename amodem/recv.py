@@ -43,7 +43,7 @@ class Receiver:
         self.plt.subplot(1, 2, 2)
         self.plt.plot(np.abs(S))
         self.plt.plot(equalizer.prefix)
-        errors = (bits != equalizer.prefix)
+        errors = bits != equalizer.prefix
         if any(errors):
             msg = f'Incorrect prefix: {sum(errors)} errors'
             raise ValueError(msg)

@@ -5,7 +5,7 @@ class Reader:
 
     wait = 0.2
     timeout = 2.0
-    bufsize = (8 << 10)
+    bufsize = 8 << 10
 
     def __init__(self, fd, data_type=None, eof=False):
         self.fd = fd

@@ -79,7 +79,7 @@ class MODEM:
         symbols = np.array(list(symbols))
         bits_per_symbol = np.log2(len(symbols))
         bits_per_symbol = np.round(bits_per_symbol)
-        N = (2 ** bits_per_symbol)
+        N = 2 ** bits_per_symbol
         assert N == len(symbols)
         bits_per_symbol = int(bits_per_symbol)
 
