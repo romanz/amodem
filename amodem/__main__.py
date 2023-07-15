@@ -106,7 +106,7 @@ def wrap(cls, stream, enable):
 
 def create_parser(description, interface_factory):
     p = argparse.ArgumentParser(description=description)
-    subparsers = p.add_subparsers()
+    subparsers = p.add_subparsers(required=True)
 
     # Modulator
     sender = subparsers.add_parser(
