@@ -21,14 +21,16 @@ ECDH_NIST256 = 'nist256p1'
 ECDH_CURVE25519 = 'curve25519'
 
 # SSH key types
+SSH_CERT_POSTFIX = b'-cert-v01@openssh.com'
 SSH_NIST256_DER_OCTET = b'\x04'
 SSH_NIST256_KEY_PREFIX = b'ecdsa-sha2-'
 SSH_NIST256_CURVE_NAME = b'nistp256'
 SSH_NIST256_KEY_TYPE = SSH_NIST256_KEY_PREFIX + SSH_NIST256_CURVE_NAME
-SSH_NIST256_CERT_POSTFIX = b'-cert-v01@openssh.com'
-SSH_NIST256_CERT_TYPE = SSH_NIST256_KEY_TYPE + SSH_NIST256_CERT_POSTFIX
+SSH_NIST256_CERT_TYPE = SSH_NIST256_KEY_TYPE + SSH_CERT_POSTFIX
 SSH_ED25519_KEY_TYPE = b'ssh-ed25519'
-SUPPORTED_KEY_TYPES = {SSH_NIST256_KEY_TYPE, SSH_NIST256_CERT_TYPE, SSH_ED25519_KEY_TYPE}
+SSH_ED25519_CERT_TYPE = SSH_ED25519_KEY_TYPE + SSH_CERT_POSTFIX
+SUPPORTED_KEY_TYPES = {SSH_NIST256_KEY_TYPE, SSH_NIST256_CERT_TYPE,
+                       SSH_ED25519_KEY_TYPE, SSH_ED25519_CERT_TYPE}
 
 hashfunc = hashlib.sha256
 
@@ -41,6 +43,20 @@ def fingerprint(blob):
     """
     digest = hashlib.md5(blob).digest()
     return ':'.join('{:02x}'.format(c) for c in bytearray(digest))
+
+
+def __skip_certificate_fields(s):
+    _serial_number = util.recv(s, '>Q')
+    _type = util.recv(s, '>L')
+    _key_id = util.read_frame(s)
+    _valid_principals = util.read_frame(s)
+    _valid_after = util.recv(s, '>Q')
+    _valid_before = util.recv(s, '>Q')
+    _critical_options = util.read_frame(s)
+    _extensions = util.read_frame(s)
+    _reserved = util.read_frame(s)
+    _signature_key = util.read_frame(s)
+    _signature = util.read_frame(s)
 
 
 def parse_pubkey(blob):
@@ -69,18 +85,7 @@ def parse_pubkey(blob):
         point = util.read_frame(s)
 
         if key_type == SSH_NIST256_CERT_TYPE:
-            _serial_number = util.recv(s, '>Q')
-            _type = util.recv(s, '>L')
-            _key_id = util.read_frame(s)
-            _valid_principals = util.read_frame(s)
-            _valid_after = util.recv(s, '>Q')
-            _valid_before = util.recv(s, '>Q')
-            _critical_options = util.read_frame(s)
-            _extensions = util.read_frame(s)
-            _reserved = util.read_frame(s)
-            _signature_key = util.read_frame(s)
-            _signature = util.read_frame(s)
-
+            __skip_certificate_fields(s)
         assert s.read() == b''
         _type, point = point[:1], point[1:]
         assert _type == SSH_NIST256_DER_OCTET
@@ -102,8 +107,12 @@ def parse_pubkey(blob):
         result.update(point=coords, curve=CURVE_NIST256,
                       verifier=ecdsa_verifier)
 
-    if key_type == SSH_ED25519_KEY_TYPE:
+    if key_type in (SSH_ED25519_KEY_TYPE, SSH_ED25519_CERT_TYPE):
+        if key_type == SSH_ED25519_CERT_TYPE:
+            _nonce = util.read_frame(s)
         pubkey = util.read_frame(s)
+        if key_type == SSH_ED25519_CERT_TYPE:
+            __skip_certificate_fields(s)
         assert s.read() == b''
 
         def ed25519_verify(sig, msg):
