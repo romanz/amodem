@@ -43,6 +43,57 @@ _public_key_cert = (
     'home\n'
 )
 
+_public_key_ed25519_cert = (
+    'ssh-ed25519-cert-v01@openssh.com '
+    'AAAAIHNzaC1lZDI1NTE5LWNlcnQtdjAxQG9wZW5zc2guY29'
+    'tAAAAIK5TMdCnuxxy4rr0CTHLekAsnL4DAhFyksK5romkuw'
+    'xgAAAAIFBdF2tjfSO8nLIi736is+f0erq28RTc7CkM11NZt'
+    'TKRAAAAAAAAAAAAAAABAAAACXVuaXQtdGVzdAAAAA0AAAAJ'
+    'dW5pdC10ZXN0AAAAAAAAAAD//////////wAAAAAAAACCAAA'
+    'AFXBlcm1pdC1YMTEtZm9yd2FyZGluZwAAAAAAAAAXcGVybW'
+    'l0LWFnZW50LWZvcndhcmRpbmcAAAAAAAAAFnBlcm1pdC1wb'
+    '3J0LWZvcndhcmRpbmcAAAAAAAAACnBlcm1pdC1wdHkAAAAA'
+    'AAAADnBlcm1pdC11c2VyLXJjAAAAAAAAAAAAAABoAAAAE2V'
+    'jZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBC'
+    'HF5pUcZLVlTUBzos8ojyN34KrS7TnGAZINhRsCoNuRV4NFN'
+    'IlEYpEvSwlumQuDx6B1y4Va+3pYzBbZInm6vwgAAABjAAAA'
+    'E2VjZHNhLXNoYTItbmlzdHAyNTYAAABIAAAAICUMX1taTy6'
+    'y+1Aa1m7kXHI/Qv7ZZIeNp7ndmCRLFCSuAAAAIBaX43k0Ye'
+    'Bk8a5zp6FyFCBYVOtis/DUbGm07d7miPnE '
+    'hello\n'
+)
+
+_public_key_ed25519_cert_BLOB = (
+    b'\x00\x00\x00 ssh-ed25519-cert-v01@openssh.com'
+    b'\x00\x00\x00 \xaeS1\xd0\xa7\xbb\x1cr\xe2\xba'
+    b'\xf4\t1\xcbz@,\x9c\xbe\x03\x02\x11r\x92\xc2\xb9'
+    b'\xae\x89\xa4\xbb\x0c`\x00\x00\x00 P]\x17kc}#'
+    b'\xbc\x9c\xb2"\xef~\xa2\xb3\xe7\xf4z\xba\xb6\xf1'
+    b'\x14\xdc\xec)\x0c\xd7SY\xb52\x91\x00\x00\x00'
+    b'\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00'
+    b'\x00\tunit-test\x00\x00\x00\r\x00\x00\x00\tun'
+    b'it-test\x00\x00\x00\x00\x00\x00\x00\x00\xff\xff'
+    b'\xff\xff\xff\xff\xff\xff\x00\x00\x00\x00\x00'
+    b'\x00\x00\x82\x00\x00\x00\x15permit-X11-forwar'
+    b'ding\x00\x00\x00\x00\x00\x00\x00\x17permit-ag'
+    b'ent-forwarding\x00\x00\x00\x00\x00\x00\x00\x16'
+    b'permit-port-forwarding\x00\x00\x00\x00\x00\x00'
+    b'\x00\npermit-pty\x00\x00\x00\x00\x00\x00\x00'
+    b'\x0epermit-user-rc\x00\x00\x00\x00\x00\x00\x00'
+    b'\x00\x00\x00\x00h\x00\x00\x00\x13ecdsa-sha2-n'
+    b'istp256\x00\x00\x00\x08nistp256\x00\x00\x00A'
+    b'\x04!\xc5\xe6\x95\x1cd\xb5eM@s\xa2\xcf(\x8f#w'
+    b'\xe0\xaa\xd2\xed9\xc6\x01\x92\r\x85\x1b\x02\xa0'
+    b'\xdb\x91W\x83E4\x89Db\x91/K\tn\x99\x0b\x83\xc7'
+    b'\xa0u\xcb\x85Z\xfbzX\xcc\x16\xd9"y\xba\xbf\x08'
+    b'\x00\x00\x00c\x00\x00\x00\x13ecdsa-sha2-nistp'
+    b'256\x00\x00\x00H\x00\x00\x00 %\x0c_[ZO.\xb2\xfb'
+    b'P\x1a\xd6n\xe4\\r?B\xfe\xd9d\x87\x8d\xa7\xb9'
+    b'\xdd\x98$K\x14$\xae\x00\x00\x00 \x16\x97\xe3y'
+    b'4a\xe0d\xf1\xaes\xa7\xa1r\x14 XT\xebb\xb3\xf0'
+    b'\xd4li\xb4\xed\xde\xe6\x88\xf9\xc4'
+)
+
 
 def test_parse_public_key():
     key = formats.import_public_key(_public_key)
@@ -84,6 +135,16 @@ def test_parse_ed25519():
     assert p['blob'] == BLOB
     assert p['fingerprint'] == '6b:b0:77:af:e5:3a:21:6d:17:82:9b:06:19:03:a1:97'  # nopep8
     assert p['type'] == b'ssh-ed25519'
+
+
+def test_parse_ed25519_cert():
+    p = formats.import_public_key(_public_key_ed25519_cert)
+    assert p['name'] == b'hello'
+    assert p['curve'] == 'ed25519'
+
+    assert p['blob'] == _public_key_ed25519_cert_BLOB
+    assert p['fingerprint'] == '86:b6:17:3e:e1:5c:ba:e0:dc:86:80:b2:47:b4:ad:50'  # nopep8
+    assert p['type'] == b'ssh-ed25519-cert-v01@openssh.com'
 
 
 def test_export_ed25519():
