@@ -7,7 +7,7 @@ print('ONLY FOR DEBUGGING AND TESTING!!!')
 setup(
     name='fake_device_agent',
     version='0.9.0',
-    description='Testing trezor_agent with a fake device - NOT SAFE!!!',
+    description='Testing SSH/GPG agent with a fake device - NOT SAFE!!!',
     author='Roman Zeyde',
     author_email='roman.zeyde@gmail.com',
     url='http://github.com/romanz/trezor-agent',

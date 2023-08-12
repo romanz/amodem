@@ -63,7 +63,7 @@ gpg (GnuPG) 2.1.15
 
 2. Make sure that your `udev` rules are configured [correctly](https://wiki.trezor.io/Udev_rules).
 
-3. Then, install the latest [trezor_agent](https://pypi.python.org/pypi/trezor_agent) package:
+3. Then, install the latest [trezor-agent](https://pypi.python.org/pypi/trezor-agent) package:
 
     ```
     $ pip3 install Cython hidapi
@@ -91,7 +91,7 @@ gpg (GnuPG) 2.1.15
  * [KeepKey firmware releases](https://github.com/keepkey/keepkey-firmware/releases): `3.0.17+`
 
 2. Make sure that your `udev` rules are configured [correctly](https://support.keepkey.com/support/solutions/articles/6000037796-keepkey-wallet-is-not-being-recognized-by-linux).
-Then, install the latest [keepkey_agent](https://pypi.python.org/pypi/keepkey_agent) package:
+Then, install the latest [keepkey-agent](https://pypi.python.org/pypi/keepkey-agent) package:
 
     ```
     $ pip3 install keepkey_agent
@@ -117,10 +117,10 @@ Then, install the latest [keepkey_agent](https://pypi.python.org/pypi/keepkey_ag
  * [Ledger Nano S firmware releases](https://github.com/LedgerHQ/blue-app-ssh-agent): `0.0.3+` (install [SSH/PGP Agent](https://www.ledgerwallet.com/images/apps/chrome-mngr-apps.png) app)
 
 2. Make sure that your `udev` rules are configured [correctly](https://ledger.zendesk.com/hc/en-us/articles/115005165269-What-if-Ledger-Wallet-is-not-recognized-on-Linux-).
-3. Then, install the latest [ledger_agent](https://pypi.python.org/pypi/ledger_agent) package:
+3. Then, install the latest [ledger-agent](https://pypi.python.org/pypi/ledger-agent) package:
 
     ```
-    $ pip3 install ledger_agent
+    $ pip3 install ledger-agent
     ```
 
     Or, directly from the latest source code:
