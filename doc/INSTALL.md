@@ -66,8 +66,7 @@ gpg (GnuPG) 2.1.15
 3. Then, install the latest [trezor-agent](https://pypi.python.org/pypi/trezor-agent) package:
 
     ```
-    $ pip3 install Cython hidapi
-    $ pip3 install trezor_agent
+    $ pip3 install trezor-agent
     ```
 
     Or, directly from the latest source code:
