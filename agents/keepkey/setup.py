@@ -6,7 +6,7 @@ setup(
     version='0.9.0',
     description='Using KeepKey as hardware SSH/GPG agent',
     author='Roman Zeyde',
-    author_email='roman.zeyde@gmail.com',
+    author_email='dev@romanzey.de',
     url='http://github.com/romanz/trezor-agent',
     scripts=['keepkey_agent.py'],
     install_requires=[

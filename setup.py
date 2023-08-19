@@ -6,7 +6,7 @@ setup(
     version='0.14.7',
     description='Using hardware wallets as SSH/GPG agent',
     author='Roman Zeyde',
-    author_email='roman.zeyde@gmail.com',
+    author_email='dev@romanzey.de',
     url='http://github.com/romanz/trezor-agent',
     packages=[
         'libagent',

@@ -9,7 +9,7 @@ setup(
     version='0.9.0',
     description='Testing SSH/GPG agent with a fake device - NOT SAFE!!!',
     author='Roman Zeyde',
-    author_email='roman.zeyde@gmail.com',
+    author_email='dev@romanzey.de',
     url='http://github.com/romanz/trezor-agent',
     scripts=['fake_device_agent.py'],
     install_requires=[
