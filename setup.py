@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='libagent',
-    version='0.14.7',
+    version='0.14.8',
     description='Using hardware wallets as SSH/GPG agent',
     author='Roman Zeyde',
     author_email='dev@romanzey.de',
