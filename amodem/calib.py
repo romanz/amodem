@@ -66,7 +66,7 @@ def detector(config, src, frame_length=200):
         max_index = np.argmax(coeffs)
         freq = config.frequencies[max_index]
         rms = abs(coeffs[max_index])
-        coherency = rms / total
+        coherency = rms / total if total > 0 else 0.0
         flags = [total > 0.1, peak < 1.0, coherency > 0.99]
 
         success = all(flags)
