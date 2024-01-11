@@ -169,8 +169,9 @@ def create_parser(description, interface_factory):
     for sub in subparsers.choices.values():
         sub.add_argument('-c', '--calibrate', nargs='?', default=False,
                          metavar='SYSTEM', help=calibration_help)
-        sub.add_argument('-l', '--audio-library', default='libportaudio.so',
-                         help='File name of PortAudio shared library.')
+        sub.add_argument('-l', '--audio-library', default='sd',
+                         help="'alsa', 'sd' or file name of "
+                         "PortAudio shared library")
         sub.add_argument('-z', '--zlib', default=False, action='store_true',
                          help='Use zlib to compress/decompress data.')
         g = sub.add_mutually_exclusive_group()
@@ -234,9 +235,12 @@ def _main():
         import pylab  # pylint: disable=import-error,import-outside-toplevel
         args.pylab = pylab
 
-    if args.audio_library == 'ALSA':
+    if args.audio_library in ['alsa', 'ALSA']:
         from . import alsa  # pylint: disable=import-outside-toplevel
         interface = alsa.Interface(config)
+    elif args.audio_library == 'sd':
+        from . import sd  # pylint: disable=import-outside-toplevel
+        interface = sd.Interface(config)
     elif args.audio_library == '-':
         interface = _Dummy()  # manually disable PortAudio
     elif args.command == 'send' and args.output is not None:
