@@ -1,5 +1,6 @@
 import itertools
 import logging
+import threading
 
 import numpy as np
 
@@ -39,11 +40,13 @@ class Sender:
         self.write(signal)
         self.write(self.silence)
 
-    def modulate(self, bits):
+    def modulate(self, bits, stop_event: threading.Event = None):
         bits = itertools.chain(bits, self.padding)
         Nfreq = len(self.carriers)
         symbols_iter = common.iterate(self.modem.encode(bits), size=Nfreq)
         for i, symbols in enumerate(symbols_iter, 1):
+            if stop_event is not None and stop_event.is_set():
+                raise StopIteration('Stop iteration by stop_event')
             self.write(np.dot(symbols, self.carriers))
             if i % self.iters_per_report == 0:
                 total_bits = i * Nfreq * self.modem.bits_per_symbol
