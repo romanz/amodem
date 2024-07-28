@@ -8,6 +8,7 @@ class Configuration:
     Tsym = 0.001  # symbol duration [seconds]
     Npoints = 64
     frequencies = [1e3, 8e3]  # use 1..8 kHz carriers
+    negotiate_frequencies = [12e3]  # negotiate carrier
 
     # audio config
     bits_per_sample = 16
@@ -71,6 +72,7 @@ bitrates = {
     24: Configuration(Fs=16e3, Npoints=16, frequencies=[1e3, 6e3]),
     28: Configuration(Fs=32e3, Npoints=16, frequencies=[3e3, 9e3]),
     32: Configuration(Fs=32e3, Npoints=16, frequencies=[2e3, 9e3]),
+    40: Configuration(Fs=32e3, Npoints=16, frequencies=[2e3, 11e3]),
     36: Configuration(Fs=32e3, Npoints=64, frequencies=[4e3, 9e3]),
     42: Configuration(Fs=32e3, Npoints=64, frequencies=[4e3, 10e3]),
     48: Configuration(Fs=32e3, Npoints=64, frequencies=[3e3, 10e3]),

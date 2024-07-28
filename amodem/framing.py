@@ -3,6 +3,7 @@ import functools
 import itertools
 import logging
 import struct
+import time
 from math import erfc
 
 import numpy as np
@@ -73,20 +74,28 @@ class Checksum:
     fmt = '>L'  # unsigned longs (32-bit)
     size = struct.calcsize(fmt)
 
-    def encode(self, payload):
+    def encode(self, payload, cut_eof=False, is_last_block=False):
         checksum = _checksum_func(payload)
+        if cut_eof and is_last_block:
+            checksum = _checksum_func(struct.pack('>I', checksum))
         encoded = struct.pack(self.fmt, checksum) + payload
         return encoded
 
-    def decode(self, data):
+    def decode(self, data, cut_eof=False):
         received, = struct.unpack(self.fmt, bytes(data[:self.size]))
         payload = data[self.size:]
         expected = _checksum_func(payload)
-        if received != expected:
+        if cut_eof:
+            eof_detected = received == _checksum_func(struct.pack('>I', expected))
+            valid_fail = received != expected and not eof_detected
+        else:
+            eof_detected = False
+            valid_fail = received != expected
+        if valid_fail:
             log.warning('Invalid checksum: %08x != %08x', received, expected)
             raise ValueError('Invalid checksum')
         log.debug('Good checksum: %08x', received)
-        return payload
+        return payload, eof_detected
 
 
 class Framer:
@@ -99,8 +108,8 @@ class Framer:
 
     EOF = b''
 
-    def _pack(self, block, padded_size=None):
-        frame = self.checksum.encode(block)
+    def _pack(self, block, padded_size=None, cut_eof=False, is_last_block=False):
+        frame = self.checksum.encode(block, cut_eof=cut_eof, is_last_block=is_last_block)
         packed = bytearray(struct.pack(self.prefix_fmt, len(frame)) + frame)
 
         if padded_size is not None:
@@ -113,24 +122,37 @@ class Framer:
         packed = encode_pack(packed)
         return packed
 
-    def encode(self, data):
-        for block in common.iterate(data=data, size=self.block_size,
-                                    func=bytearray, truncate=False):
-            yield self._pack(block=block, padded_size=self.unencrypted_size)
-        yield self._pack(block=self.EOF, padded_size=self.unencrypted_size)
+    def encode(self, data, cut_eof=False):
+        iterator = common.iterate(data=data, size=self.block_size,
+                                  func=bytearray, truncate=False)
 
-    def decode(self, data):
+        prev_block = next(iterator, None)
+        for current_block in iterator:
+            yield self._pack(block=prev_block, padded_size=self.unencrypted_size)
+            prev_block = current_block
+        if prev_block is not None:
+            yield self._pack(block=prev_block, padded_size=self.unencrypted_size, cut_eof=cut_eof,
+                             is_last_block=cut_eof)
+        if not cut_eof:
+            # 添加EOF块
+            yield self._pack(block=self.EOF, padded_size=self.unencrypted_size)
+
+    def decode(self, data, cut_eof=False):
         data = iter(data)
         while True:
             pack = decode_pack(data, self.chunk_size)
             length, = _take_fmt(pack, self.prefix_fmt)
             frame = _take_len(pack, length)
-            block = self.checksum.decode(frame)
+            block, eof_detected = self.checksum.decode(frame, cut_eof=cut_eof)
             if block == self.EOF:
                 log.debug('EOF frame detected')
                 return
 
             yield block
+
+            if eof_detected:
+                log.debug('End frame detected')
+                return
 
 
 def _take_fmt(data, fmt):
@@ -171,10 +193,10 @@ class BitPacker:
 
 
 @chain_wrapper
-def encode(data, framer=None):
+def encode(data, framer=None, cut_eof=False):
     converter = BitPacker()
     framer = framer or Framer()
-    for frame in framer.encode(data):
+    for frame in framer.encode(data, cut_eof=cut_eof):
         for byte in frame:
             yield converter.to_bits[byte]
 
@@ -187,7 +209,7 @@ def _to_bytes(bits):
         yield [converter.to_byte[chunk]]
 
 
-def decode_frames(bits, framer=None):
+def decode_frames(bits, framer=None, cut_eof=False):
     framer = framer or Framer()
-    for frame in framer.decode(_to_bytes(bits)):
+    for frame in framer.decode(_to_bytes(bits), cut_eof=cut_eof):
         yield bytes(frame)
