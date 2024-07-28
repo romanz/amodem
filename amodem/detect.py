@@ -36,7 +36,7 @@ class Detector:
         bufs = collections.deque([], maxlen=self.maxlen)
         for offset, buf in common.iterate(samples, self.Nsym, index=True):
             if stop_event is not None and stop_event.is_set():
-                raise StopIteration('Stop iteration by stop_event')
+                raise StopIteration('Detector stop iteration by stop_event')
             if offset > self.max_offset:
                 raise ValueError('Timeout waiting for carrier')
             bufs.append(buf)
