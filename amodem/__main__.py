@@ -196,6 +196,8 @@ def _version():
 
 
 def _config_log(args):
+    level = fmt = None
+
     if args.verbose == 0:
         level, fmt = 'INFO', '%(message)s'
     elif args.verbose == 1:
