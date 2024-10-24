@@ -1,6 +1,6 @@
-from amodem import common
-from amodem import config
 import numpy as np
+
+from .. import common, config
 
 
 def iterlist(x, *args, **kwargs):
