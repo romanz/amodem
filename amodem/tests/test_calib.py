@@ -1,13 +1,12 @@
-from amodem import calib
-from amodem import common
-from amodem import config
-
 from io import BytesIO
-
-import numpy as np
 import random
-import pytest
+
 import mock
+import numpy as np
+import pytest
+
+from .. import calib, common, config
+
 
 config = config.fastest()
 

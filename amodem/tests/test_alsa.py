@@ -1,6 +1,6 @@
-from amodem import alsa, config
-
 import mock
+
+from .. import alsa, config
 
 
 def test_alsa():

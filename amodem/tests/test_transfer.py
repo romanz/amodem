@@ -1,15 +1,13 @@
-from amodem import main
-from amodem import common
-from amodem import sampling
-from amodem import config
-import utils
+from io import BytesIO
+import logging
+import os
 
 import numpy as np
-import os
-from io import BytesIO
-
 import pytest
-import logging
+
+from .. import common, config, main, sampling
+from . import utils
+
 logging.basicConfig(level=logging.DEBUG,  # useful for debugging
                     format='%(asctime)s %(levelname)-12s %(message)s')
 

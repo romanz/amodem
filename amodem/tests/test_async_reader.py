@@ -1,8 +1,11 @@
-import mock
-import time
-import pytest
-from amodem import async_reader
 import logging
+import time
+
+import mock
+import pytest
+
+from .. import async_reader
+
 
 logging.basicConfig(format='%(message)s')
 

@@ -1,4 +1,4 @@
-from amodem import config
+from .. import config
 
 
 def test_bitrates():

@@ -1,10 +1,9 @@
 from numpy.random import RandomState
 import numpy as np
 
-import utils
-from amodem import equalizer
-from amodem import dsp
-from amodem import config
+from . import utils
+from .. import config, dsp, equalizer
+
 config = config.fastest()
 
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from setuptools import setup
+from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 
 class PyTest(TestCommand):
@@ -21,7 +21,7 @@ setup(
     author_email='dev@romanzey.de',
     license='MIT',
     url='http://github.com/romanz/amodem',
-    packages=['amodem'],
+    packages=find_packages(),
     tests_require=['pytest'],
     cmdclass={'test': PyTest},
     install_requires=['numpy'],

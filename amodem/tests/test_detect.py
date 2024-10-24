@@ -1,13 +1,8 @@
 import numpy as np
 import pytest
 
-from amodem import dsp
-from amodem import recv
-from amodem import detect
-from amodem import equalizer
-from amodem import sampling
-from amodem import config
-from amodem import common
+from .. import common, config, detect, dsp, equalizer, recv, sampling
+
 config = config.fastest()
 
 
@@ -17,7 +12,7 @@ def test_detect():
     x = np.cos(2 * np.pi * config.Fc * t)
 
     detector = detect.Detector(config, pylab=common.Dummy())
-    samples, amp, freq_err = detector.run(x)
+    _samples, amp, freq_err = detector.run(x)
     assert abs(1 - amp) < 1e-12
     assert abs(freq_err) < 1e-12
 
@@ -39,11 +34,11 @@ def test_prefix():
         sampler = sampling.Sampler(signal)
         return dsp.Demux(sampler=sampler, omegas=[omega], Nsym=config.Nsym)
     r = recv.Receiver(config, pylab=common.Dummy())
-    r._prefix(symbols_stream(signal))
+    r._prefix(symbols_stream(signal))  # pylint: disable=protected-access
 
     with pytest.raises(ValueError):
         silence = 0 * signal
-        r._prefix(symbols_stream(silence))
+        r._prefix(symbols_stream(silence))  # pylint: disable=protected-access
 
 
 def test_find_start():

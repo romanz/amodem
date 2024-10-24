@@ -1,7 +1,7 @@
-from amodem import audio, config
-
 import mock
 import pytest
+
+from .. import audio, config
 
 
 def test():
@@ -31,4 +31,4 @@ def test():
             s.close()
 
         with pytest.raises(Exception):
-            interface._error_check(1)
+            interface._error_check(1)  # pylint: disable=protected-access

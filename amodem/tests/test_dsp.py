@@ -1,11 +1,10 @@
-from amodem import dsp
-from amodem import sampling
-from amodem import config
-import utils
-
-import numpy as np
 import random
 import itertools
+
+import numpy as np
+
+from .. import dsp, sampling, config
+from . import utils
 
 config = config.fastest()
 
@@ -69,7 +68,7 @@ def quantize(q, s):
 def test_overflow():
     q = dsp.MODEM(config.symbols)
     r = np.random.RandomState(seed=0)
-    for i in range(10000):
+    for _ in range(10000):
         s = 10*(r.normal() + 1j * r.normal())
         quantize(q, s)
 

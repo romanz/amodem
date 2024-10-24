@@ -1,8 +1,9 @@
-from amodem import framing
-import random
 import itertools
+import random
 
 import pytest
+
+from .. import framing
 
 
 def concat(iterable):
