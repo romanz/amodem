@@ -157,7 +157,7 @@ class Receiver:
             (1.0 - sampler.freq) * 1e6
         )
 
-    def run(self, sampler, gain, output):
+    def run(self, sampler, gain, output, cut_eof=False):
         log.debug('Receiving')
         symbols = dsp.Demux(sampler, omegas=self.omegas, Nsym=self.Nsym)
         self._prefix(symbols, gain=gain)
@@ -168,7 +168,7 @@ class Receiver:
         bitstream = self._demodulate(sampler, symbols)
         bitstream = itertools.chain.from_iterable(bitstream)
 
-        for frame in framing.decode_frames(bitstream):
+        for frame in framing.decode_frames(bitstream, cut_eof=cut_eof):
             output.write(frame)
             self.output_size += len(frame)
 
