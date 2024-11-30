@@ -2,6 +2,7 @@
 from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 
+
 class PyTest(TestCommand):
 
     def finalize_options(self):
@@ -12,6 +13,7 @@ class PyTest(TestCommand):
         import sys
         import pytest
         sys.exit(pytest.main(['.']))
+
 
 setup(
     name='amodem',

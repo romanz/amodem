@@ -12,6 +12,7 @@ from . import async_reader
 from . import audio
 from . import calib
 from . import main
+from . import lsdev
 from .config import bitrates
 
 
@@ -24,6 +25,9 @@ log = logging.getLogger('__name__')
 
 bitrate = os.environ.get('BITRATE', 1)
 config = bitrates.get(int(bitrate))
+
+input_device = os.environ.get('INAUDIODEVICE')
+output_device = os.environ.get('OUTAUDIODEVICE')
 
 
 class Compressor:
@@ -71,10 +75,10 @@ def FileType(mode, interface_factory=None):
         if fname is None:
             assert audio_interface is not None
             if 'r' in mode:
-                s = audio_interface.recorder()
+                s = audio_interface.recorder(int(input_device))
                 return async_reader.AsyncReader(stream=s, bufsize=s.bufsize)
             if 'w' in mode:
-                return audio_interface.player()
+                return audio_interface.player(int(output_device))
 
         if fname == '-':
             if 'r' in mode:
@@ -177,6 +181,24 @@ def create_parser(description, interface_factory):
         g.add_argument('-v', '--verbose', default=0, action='count')
         g.add_argument('-q', '--quiet', default=False, action='store_true')
 
+    device_lister = subparsers.add_parser(
+        'lsdev', help='list all devices. (portaudio only)')
+    device_lister.add_argument(
+        '-d', '--device', help='get details of a single device')
+    device_lister.add_argument(
+        '-l', '--audio-library', default='libportaudio.so',
+        help='File name of PortAudio shared library.')
+    device_lister.set_defaults(
+        input_type=FileType('rb'),
+        output_type=FileType('wb'),
+        input=None,
+        output=None,
+        verbose=0,
+        quiet=False,
+        calibrate=False,
+        command='lsdev'
+    )
+
     if argcomplete:
         argcomplete.autocomplete(p)
 
@@ -253,7 +275,12 @@ def _main():
         args.src = args.input_type(args.input)
         args.dst = args.output_type(args.output)
         try:
-            if args.calibrate is False:
+            if args.command == 'lsdev':
+                if args.device:
+                    lsdev.getParticularDevice(interface, int(args.device))
+                else:
+                    lsdev.getDevices(interface)
+            elif args.calibrate is False:
                 args.main(config=config, args=args)
             else:
                 args.calib(config=config, args=args)
