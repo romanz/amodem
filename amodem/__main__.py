@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # PYTHON_ARGCOMPLETE_OK
 import argparse
+import contextlib
 import logging
 import os
 import sys
@@ -183,14 +184,6 @@ def create_parser(description, interface_factory):
     return p
 
 
-class _Dummy:
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *args):
-        pass
-
-
 def _version():
     return pkg_resources.require('amodem')[0].version
 
@@ -240,11 +233,11 @@ def _main():
         from . import alsa  # pylint: disable=import-outside-toplevel
         interface = alsa.Interface(config)
     elif args.audio_library == '-':
-        interface = _Dummy()  # manually disable PortAudio
+        interface = contextlib.nullcontext()  # manually disable PortAudio
     elif args.command == 'send' and args.output is not None:
-        interface = _Dummy()  # redirected output
+        interface = contextlib.nullcontext()  # redirected output
     elif args.command == 'recv' and args.input is not None:
-        interface = _Dummy()  # redirected input
+        interface = contextlib.nullcontext()  # redirected input
     else:
         interface = audio.Interface(config)
         interface.load(args.audio_library)
