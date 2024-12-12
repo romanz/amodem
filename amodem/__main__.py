@@ -130,7 +130,8 @@ def create_parser(description, interface_factory):
         ),
         calib=lambda config, args: calib.send(
             config=config, dst=args.dst,
-            volume_cmd=get_volume_cmd(args)
+            volume_cmd=get_volume_cmd(args),
+            gain=args.gain,
         ),
         input_type=FileType('rb'),
         output_type=FileType('wb', interface_factory),
