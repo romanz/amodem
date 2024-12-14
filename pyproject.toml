@@ -1,0 +1,37 @@
+[project]
+name = "amodem"
+version = "1.15.7"
+authors = [
+  { name="Roman Zeyde", email="dev@romanzey.de" },
+]
+description = "Audio Modem Communication Library"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.7"
+dependencies = [
+  "numpy",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Networking",
+    "Topic :: Communications",
+]
+
+[project.scripts]
+amodem = "amodem.__main__:_main"
+
+[project.urls]
+Homepage = "https://github.com/romanz/amodem"
+Issues = "https://github.com/romanz/amodem/issues"
