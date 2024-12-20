@@ -1,6 +1,6 @@
 [project]
 name = "amodem"
-version = "1.15.7"
+version = "1.16.0"
 authors = [
   { name="Roman Zeyde", email="dev@romanzey.de" },
 ]
