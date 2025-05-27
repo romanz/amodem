@@ -34,6 +34,7 @@ class Recorder:
 
         self.audio_stream = sd.RawInputStream(
             samplerate=lib.config.Fs,
+            device=lib.config.input_device_index,
             blocksize=self.bufsize,
             channels=1, dtype='int16')
         self.audio_stream.start()
@@ -56,6 +57,7 @@ class Player:
 
         self.audio_stream = sd.RawOutputStream(
             samplerate=lib.config.Fs,
+            device=lib.config.output_device_index,
             blocksize=self.buffer_size,
             channels=1, dtype='int16')
 

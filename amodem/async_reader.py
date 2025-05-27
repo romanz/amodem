@@ -14,7 +14,7 @@ class AsyncReader:
         self.queue = Queue()
         self.stop = threading.Event()
         args = (stream, bufsize, self.queue, self.stop)
-        self.thread = threading.Thread(target=AsyncReader._thread,
+        self.thread = threading.Thread(target=AsyncReader._thread, daemon=True,
                                        args=args, name='AsyncReader')
         self.thread.start()
         self.buf = b''

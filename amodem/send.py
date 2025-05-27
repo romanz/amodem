@@ -1,5 +1,6 @@
 import itertools
 import logging
+import threading
 
 import numpy as np
 
@@ -19,7 +20,7 @@ class Sender:
         self.carriers = config.carriers / config.Nfreq
         self.pilot = config.carriers[config.carrier_index]
         self.silence = np.zeros(equalizer.silence_length * config.Nsym)
-        self.iters_per_report = config.baud  # report once per second
+        self.iters_per_report = 4 * config.baud  # report once per second
         self.padding = [0] * config.bits_per_baud
         self.equalizer = equalizer.Equalizer(config)
 
@@ -39,12 +40,14 @@ class Sender:
         self.write(signal)
         self.write(self.silence)
 
-    def modulate(self, bits):
+    def modulate(self, bits, stop_event: threading.Event = None):
         bits = itertools.chain(bits, self.padding)
         Nfreq = len(self.carriers)
         symbols_iter = common.iterate(self.modem.encode(bits), size=Nfreq)
         for i, symbols in enumerate(symbols_iter, 1):
+            if stop_event is not None and stop_event.is_set():
+                raise StopIteration('Modulate stop iteration by stop_event')
             self.write(np.dot(symbols, self.carriers))
             if i % self.iters_per_report == 0:
                 total_bits = i * Nfreq * self.modem.bits_per_symbol
-                log.debug('Sent %10.3f kB', total_bits / 8e3)
+                log.info('Sent %10.3f kB', total_bits / 8e3)

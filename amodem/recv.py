@@ -9,6 +9,7 @@ from . import dsp
 from . import common
 from . import framing
 from . import equalizer
+from . import rs_codec
 
 log = logging.getLogger(__name__)
 
@@ -24,14 +25,14 @@ class Receiver:
         self.Nsym = config.Nsym
         self.Tsym = config.Tsym
         self.iters_per_update = 100  # [ms]
-        self.iters_per_report = 1000  # [ms]
+        self.iters_per_report = 4 * 1000  # [ms]
         self.modem_bitrate = config.modem_bps
         self.equalizer = equalizer.Equalizer(config)
         self.carrier_index = config.carrier_index
         self.output_size = 0  # number of bytes written to output stream
         self.freq_err_gain = 0.01 * self.Tsym  # integration feedback gain
 
-    def _prefix(self, symbols, gain=1.0):
+    def _prefix(self, symbols, gain=1.0, enable_correction=False):
         S = common.take(symbols, len(equalizer.prefix))
         S = S[:, self.carrier_index] * gain
         sliced = np.round(np.abs(S))
@@ -44,12 +45,17 @@ class Receiver:
         self.plt.plot(np.abs(S))
         self.plt.plot(equalizer.prefix)
         errors = bits != equalizer.prefix
-        if any(errors):
-            msg = f'Incorrect prefix: {sum(errors)} errors'
-            raise ValueError(msg)
+        if not enable_correction:
+            if any(errors):
+                msg = f'Incorrect prefix: {sum(errors)} errors'
+                raise ValueError(msg)
+        else:
+            if sum(errors) / len(errors) > (rs_codec.RSCodecProvider.get_num_symbols() / 2) / framing.Framer.chunk_size:
+                msg = f'Incorrect prefix: {sum(errors)} errors'
+                raise ValueError(msg)
         log.debug('Prefix OK')
 
-    def _train(self, sampler, order, lookahead):
+    def _train(self, sampler, order, lookahead, enable_correction=False):
         equalizer_length = equalizer.equalizer_length
         train_symbols = self.equalizer.train_symbols(equalizer_length)
         train_signal = (self.equalizer.modulator(train_symbols) *
@@ -67,17 +73,17 @@ class Receiver:
         )
 
         self.plt.figure()
-        self.plt.plot(np.arange(order+lookahead), coeffs)
+        self.plt.plot(np.arange(order + lookahead), coeffs)
 
         equalization_filter = dsp.FIR(h=coeffs)
         log.debug('Training completed')
         # Pre-load equalization filter with the signal (+lookahead)
         equalized = list(equalization_filter(signal))
-        equalized = equalized[prefix+lookahead:-postfix+lookahead]
-        self._verify_training(equalized, train_symbols)
+        equalized = equalized[prefix + lookahead:-postfix + lookahead]
+        self._verify_training(equalized, train_symbols, enable_correction=enable_correction)
         return equalization_filter
 
-    def _verify_training(self, equalized, train_symbols):
+    def _verify_training(self, equalized, train_symbols, enable_correction=False):
         equalizer_length = equalizer.equalizer_length
         symbols = self.equalizer.demodulator(equalized, equalizer_length)
         sliced = np.array(symbols).round()
@@ -95,7 +101,10 @@ class Receiver:
             log.debug('%5.1f kHz: SNR = %5.2f dB', freq / 1e3, snr)
             self._constellation(symbols[:, i], train_symbols[:, i],
                                 f'$F_c = {freq} Hz$', index=i)
-        assert error_rate == 0, error_rate
+        if not enable_correction:
+            assert error_rate == 0, error_rate
+        else:
+            assert error_rate < (rs_codec.RSCodecProvider.get_num_symbols() / 2) / framing.Framer.chunk_size, error_rate
         log.debug('Training verified')
 
     def _bitstream(self, symbols, error_handler):
@@ -141,7 +150,7 @@ class Receiver:
 
     def _update_sampler(self, errors, sampler):
         err = np.array([e for v in errors.values() for e in v])
-        err = np.mean(np.angle(err))/(2*np.pi) if err.size else 0
+        err = np.mean(np.angle(err)) / (2 * np.pi) if err.size else 0
         errors.clear()
 
         sampler.freq -= self.freq_err_gain * err
@@ -150,27 +159,36 @@ class Receiver:
     def _report_progress(self, noise, sampler):
         e = np.array([e for v in noise.values() for e in v])
         noise.clear()
-        log.debug(
+        log.info(
             'Got  %10.3f kB, SNR: %5.2f dB, drift: %+5.2f ppm',
             self.stats['rx_bits'] / 8e3,
             -10 * np.log10(np.mean(np.abs(e) ** 2)),
             (1.0 - sampler.freq) * 1e6
         )
 
-    def run(self, sampler, gain, output):
+    def run(self, sampler, gain, output, stop_event=None, enable_correction=False, raise_err=True):
         log.debug('Receiving')
         symbols = dsp.Demux(sampler, omegas=self.omegas, Nsym=self.Nsym)
-        self._prefix(symbols, gain=gain)
+        self._prefix(symbols, gain=gain, enable_correction=enable_correction)
 
-        filt = self._train(sampler, order=10, lookahead=10)
+        filt = self._train(sampler, order=10, lookahead=10, enable_correction=enable_correction)
         sampler.equalizer = lambda x: list(filt(x))
 
         bitstream = self._demodulate(sampler, symbols)
         bitstream = itertools.chain.from_iterable(bitstream)
 
-        for frame in framing.decode_frames(bitstream):
-            output.write(frame)
-            self.output_size += len(frame)
+        if not enable_correction:
+            for frame in framing.decode_frames(bitstream, enable_correction=enable_correction, raise_err=raise_err):
+                if stop_event is not None and stop_event.is_set():
+                    raise StopIteration('Receiver stop iteration by stop_event')
+                output.write(frame)
+                self.output_size += len(frame)
+        else:
+            for frame, fid in framing.decode_frames(bitstream, enable_correction=enable_correction, raise_err=raise_err):
+                if stop_event is not None and stop_event.is_set():
+                    raise StopIteration('Receiver stop iteration by stop_event')
+                output.write(frame, fid)  # should implement a writer support write (data, frame_id)
+                self.output_size += len(frame)
 
     def report(self):
         if self.stats:

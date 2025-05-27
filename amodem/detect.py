@@ -3,6 +3,7 @@
 import collections
 import itertools
 import logging
+import threading
 
 import numpy as np
 
@@ -31,10 +32,12 @@ class Detector:
         self.max_offset = config.timeout * config.Fs
         self.plt = pylab
 
-    def _wait(self, samples):
+    def _wait(self, samples, stop_event: threading.Event = None):
         counter = 0
         bufs = collections.deque([], maxlen=self.maxlen)
         for offset, buf in common.iterate(samples, self.Nsym, index=True):
+            if stop_event is not None and stop_event.is_set():
+                raise StopIteration('Detector stop iteration by stop_event')
             if offset > self.max_offset:
                 raise ValueError('Timeout waiting for carrier')
             bufs.append(buf)
@@ -50,8 +53,8 @@ class Detector:
 
         raise ValueError('No carrier detected')
 
-    def run(self, samples):
-        offset, bufs = self._wait(samples)
+    def run(self, samples, stop_event: threading.Event = None):
+        offset, bufs = self._wait(samples, stop_event=stop_event)
 
         length = (self.CARRIER_THRESHOLD - 1) * self.Nsym
         begin = offset - length

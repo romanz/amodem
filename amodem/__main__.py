@@ -5,8 +5,11 @@ import logging
 import os
 import sys
 import zlib
-
-import pkg_resources
+try:
+    from importlib.metadata import version, PackageNotFoundError
+except ImportError:
+    # Python < 3.8
+    from importlib_metadata import version, PackageNotFoundError
 
 from . import async_reader
 from . import audio
@@ -193,7 +196,10 @@ class _Dummy:
 
 
 def _version():
-    return pkg_resources.require('amodem')[0].version
+    try:
+        return version("amodem")
+    except PackageNotFoundError:
+        return "unknown"
 
 
 def _config_log(args):
@@ -201,10 +207,14 @@ def _config_log(args):
         level, fmt = 'INFO', '%(message)s'
     elif args.verbose == 1:
         level, fmt = 'DEBUG', '%(message)s'
-    elif args.verbose >= 2:
+    elif args.verbose == 2:
         level, fmt = ('DEBUG', '%(asctime)s %(levelname)-10s '
                                '%(message)-100s '
                                '%(filename)s:%(lineno)d')
+    elif args.verbose > 2:
+        level, fmt = ('INFO', '%(asctime)s %(levelname)-10s '
+                              '%(message)-100s '
+                              '%(filename)s:%(lineno)d')
     if args.quiet:
         level, fmt = 'WARNING', '%(message)s'
     logging.basicConfig(level=level, format=fmt)
