@@ -15,7 +15,6 @@ log = logging.getLogger(__name__)
 
 
 class Detector:
-
     COHERENCE_THRESHOLD = 0.9
 
     CARRIER_DURATION = sum(equalizer.prefix)
@@ -65,7 +64,7 @@ class Detector:
 
         log.debug('Buffered %d ms of audio', len(bufs))
 
-        bufs = list(bufs)[-self.CARRIER_THRESHOLD-self.SEARCH_WINDOW:]
+        bufs = list(bufs)[-self.CARRIER_THRESHOLD - self.SEARCH_WINDOW:]
         n = self.SEARCH_WINDOW + self.CARRIER_DURATION - self.CARRIER_THRESHOLD
         trailing = list(itertools.islice(samples, n * self.Nsym))
         bufs.append(np.array(trailing))
@@ -89,7 +88,7 @@ class Detector:
         signal = (2 ** 0.5) * signal / dsp.norm(signal)
 
         corr = np.abs(np.correlate(buf, signal))
-        norm_b = np.sqrt(np.correlate(np.abs(buf)**2, np.ones(len(signal))))
+        norm_b = np.sqrt(np.correlate(np.abs(buf) ** 2, np.ones(len(signal))))
         coeffs = np.zeros_like(corr)
         coeffs[norm_b > 0.0] = corr[norm_b > 0.0] / norm_b[norm_b > 0.0]
 
