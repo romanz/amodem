@@ -3,6 +3,7 @@
 import collections
 import itertools
 import logging
+import threading
 
 import numpy as np
 
@@ -14,7 +15,6 @@ log = logging.getLogger(__name__)
 
 
 class Detector:
-
     COHERENCE_THRESHOLD = 0.9
 
     CARRIER_DURATION = sum(equalizer.prefix)
@@ -31,10 +31,12 @@ class Detector:
         self.max_offset = config.timeout * config.Fs
         self.plt = pylab
 
-    def _wait(self, samples):
+    def _wait(self, samples, stop_event: threading.Event = None):
         counter = 0
         bufs = collections.deque([], maxlen=self.maxlen)
         for offset, buf in common.iterate(samples, self.Nsym, index=True):
+            if stop_event is not None and stop_event.is_set():
+                raise StopIteration('Detector stop iteration by stop_event')
             if offset > self.max_offset:
                 raise ValueError('Timeout waiting for carrier')
             bufs.append(buf)
@@ -50,8 +52,8 @@ class Detector:
 
         raise ValueError('No carrier detected')
 
-    def run(self, samples):
-        offset, bufs = self._wait(samples)
+    def run(self, samples, stop_event: threading.Event = None):
+        offset, bufs = self._wait(samples, stop_event=stop_event)
 
         length = (self.CARRIER_THRESHOLD - 1) * self.Nsym
         begin = offset - length
@@ -62,7 +64,7 @@ class Detector:
 
         log.debug('Buffered %d ms of audio', len(bufs))
 
-        bufs = list(bufs)[-self.CARRIER_THRESHOLD-self.SEARCH_WINDOW:]
+        bufs = list(bufs)[-self.CARRIER_THRESHOLD - self.SEARCH_WINDOW:]
         n = self.SEARCH_WINDOW + self.CARRIER_DURATION - self.CARRIER_THRESHOLD
         trailing = list(itertools.islice(samples, n * self.Nsym))
         bufs.append(np.array(trailing))
@@ -86,7 +88,7 @@ class Detector:
         signal = (2 ** 0.5) * signal / dsp.norm(signal)
 
         corr = np.abs(np.correlate(buf, signal))
-        norm_b = np.sqrt(np.correlate(np.abs(buf)**2, np.ones(len(signal))))
+        norm_b = np.sqrt(np.correlate(np.abs(buf) ** 2, np.ones(len(signal))))
         coeffs = np.zeros_like(corr)
         coeffs[norm_b > 0.0] = corr[norm_b > 0.0] / norm_b[norm_b > 0.0]
 

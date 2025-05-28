@@ -85,11 +85,14 @@ For validation, run::
     optional arguments:
       -h, --help     show this help message and exit
 
+`python-sounddevice <https://python-sounddevice.readthedocs.io>` is used by default as the audio library.
+This should work out-of-the box on Linux, Windows and macOS, however, other choices are available.
+
 On, Windows you may download the `portaudio` library from `MinGW <https://packages.msys2.org/base/mingw-w64-portaudio>`_.
 Then, you should specify the DLL using the following command-line flag::
 
     -l AUDIO_LIBRARY, --audio-library AUDIO_LIBRARY
-                        File name of PortAudio shared library.
+                        The AUDIO_LIBRARY can be 'alsa', 'sd' (the default) or the file name for the PortAudio shared library.
 
 
 Calibration

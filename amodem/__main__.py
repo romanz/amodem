@@ -6,8 +6,11 @@ import logging
 import os
 import sys
 import zlib
-
-import pkg_resources
+try:
+    from importlib.metadata import version, PackageNotFoundError
+except ImportError:
+    # Python < 3.8
+    from importlib_metadata import version, PackageNotFoundError
 
 from . import async_reader
 from . import audio
@@ -171,8 +174,9 @@ def create_parser(description, interface_factory):
     for sub in subparsers.choices.values():
         sub.add_argument('-c', '--calibrate', nargs='?', default=False,
                          metavar='SYSTEM', help=calibration_help)
-        sub.add_argument('-l', '--audio-library', default='libportaudio.so',
-                         help='File name of PortAudio shared library.')
+        sub.add_argument('-l', '--audio-library', default='sd',
+                         help="'alsa', 'sd' or file name of "
+                         "PortAudio shared library")
         sub.add_argument('-z', '--zlib', default=False, action='store_true',
                          help='Use zlib to compress/decompress data.')
         g = sub.add_mutually_exclusive_group()
@@ -186,7 +190,10 @@ def create_parser(description, interface_factory):
 
 
 def _version():
-    return pkg_resources.require('amodem')[0].version
+    try:
+        return version("amodem")
+    except PackageNotFoundError:
+        return "unknown"
 
 
 def _config_log(args):
@@ -196,10 +203,14 @@ def _config_log(args):
         level, fmt = 'INFO', '%(message)s'
     elif args.verbose == 1:
         level, fmt = 'DEBUG', '%(message)s'
-    elif args.verbose >= 2:
+    elif args.verbose == 2:
         level, fmt = ('DEBUG', '%(asctime)s %(levelname)-10s '
                                '%(message)-100s '
                                '%(filename)s:%(lineno)d')
+    elif args.verbose > 2:
+        level, fmt = ('INFO', '%(asctime)s %(levelname)-10s '
+                              '%(message)-100s '
+                              '%(filename)s:%(lineno)d')
     if args.quiet:
         level, fmt = 'WARNING', '%(message)s'
     logging.basicConfig(level=level, format=fmt)
@@ -230,9 +241,12 @@ def _main():
         import pylab  # pylint: disable=import-error,import-outside-toplevel
         args.pylab = pylab
 
-    if args.audio_library == 'ALSA':
+    if args.audio_library in ['alsa', 'ALSA']:
         from . import alsa  # pylint: disable=import-outside-toplevel
         interface = alsa.Interface(config)
+    elif args.audio_library == 'sd':
+        from . import sd  # pylint: disable=import-outside-toplevel
+        interface = sd.Interface(config)
     elif args.audio_library == '-':
         interface = contextlib.nullcontext()  # manually disable PortAudio
     elif args.command == 'send' and args.output is not None:
