@@ -1,6 +1,7 @@
-from amodem import stream
 import subprocess as sp
 import sys
+
+from .. import stream
 
 script = br"""
 import sys

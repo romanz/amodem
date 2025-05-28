@@ -1,8 +1,8 @@
-from amodem import sampling
-from amodem import common
+from io import BytesIO
 
 import numpy as np
-from io import BytesIO
+
+from .. import common, sampling
 
 
 def test_resample():
