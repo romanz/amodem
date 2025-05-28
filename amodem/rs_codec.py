@@ -40,8 +40,8 @@ def decode_with_rs(encoded_data):
         decoded, _, _ = RSCodecProvider.get_codec().decode(encoded_data)
         return decoded
     except Exception:
-        import traceback
-        traceback.print_exc()
+        # import traceback
+        # traceback.print_exc()
         return encoded_data
 
 
