@@ -22,6 +22,7 @@ build/
 htmlcov
 *_ext.c
 *_ext.so
+.env
 /.tox
 /dist
 /deb_dist
