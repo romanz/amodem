@@ -7,7 +7,10 @@ import os
 import sys
 import zlib
 
-import pkg_resources
+try:
+    from importlib.metadata import version as metadata_version
+except ImportError:
+    from importlib_metadata import version as metadata_version
 
 from . import async_reader
 from . import audio
@@ -186,7 +189,7 @@ def create_parser(description, interface_factory):
 
 
 def _version():
-    return pkg_resources.require('amodem')[0].version
+    return metadata_version('amodem')
 
 
 def _config_log(args):
