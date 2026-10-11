@@ -2,6 +2,7 @@ import time
 
 
 class Reader:
+    """Read blocks and apply data_type, including when stopping at EOF."""
 
     wait = 0.2
     timeout = 2.0
@@ -23,7 +24,7 @@ class Reader:
             if data:
                 self.total += len(data)
                 block.extend(data)
-                return block
+                return self.data_type(block)
             raise StopIteration()
 
         finish_time = time.time() + self.timeout
